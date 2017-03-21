@@ -5,7 +5,12 @@ const returnJson = require('./../libs/return_json');
 
 /** Get a history router
 
-  lnd_grpc_api: <LND API>
+  {
+    lnd_grpc_api: <LND API>
+  }
+
+  @returns
+  <Router Object>
 */
 module.exports = (args) => {
   if (!args.lnd_grpc_api) {
