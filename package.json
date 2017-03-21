@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "async": "2.1.5",
+    "body-parser": "1.17.1",
+    "compression": "1.6.2",
+    "express": "4.15.2",
+    "grpc": "1.2.0",
+    "lodash": "4.17.4",
+    "morgan": "1.8.1",
+    "walnut": "0.0.2"
+  },
+  "engines": {
+    "node": "6.9.4",
+    "npm":  "3.10.10"
+  },
+  "main": "app.js",
+  "name": "bet",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "version": "1.0.0"
+}
