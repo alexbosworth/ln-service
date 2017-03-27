@@ -5,6 +5,7 @@ const logger = require('morgan');
 const walnut = require('walnut');
 
 const balanceRouter = require('./routers/balance');
+const blockchainRouter = require('./routers/blockchain');
 const channelsRouter = require('./routers/channels');
 const lndGrpcInterface = require('./libs/lnd_grpc_interface');
 const historyRouter = require('./routers/history');
@@ -33,6 +34,7 @@ app.use(bodyParser.json());
 app.use(logger(logFormat));
 
 app.use('/v0/balance', balanceRouter({lnd_grpc_api: lndGrpcApi}));
+app.use('/v0/blockchain', blockchainRouter({}));
 app.use('/v0/channels', channelsRouter({lnd_grpc_api: lndGrpcApi}));
 app.use('/v0/history', historyRouter({lnd_grpc_api: lndGrpcApi}));
 app.use('/v0/invoices', invoicesRouter({lnd_grpc_api: lndGrpcApi}));

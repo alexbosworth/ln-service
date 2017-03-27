@@ -1,12 +1,13 @@
 {
   "dependencies": {
-    "async": "2.1.5",
+    "async": "2.2.0",
     "body-parser": "1.17.1",
     "compression": "1.6.2",
     "express": "4.15.2",
     "grpc": "1.2.0",
     "lodash": "4.17.4",
     "morgan": "1.8.1",
+    "request": "2.81.0",
     "walnut": "0.0.2"
   },
   "engines": {
