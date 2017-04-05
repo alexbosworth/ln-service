@@ -3,6 +3,15 @@
   {
     lnd_grpc_api: <Object>
   }
+
+  @returns via cbk
+  {
+    amount_received: <Amount Received Satoshis Number>
+    amount_sent: <Amount Sent Satoshis Number>
+    id: <Peer Id Number>
+    network_address: <Network Address String>
+    public_key: <Public Key String>
+  }
 */
 module.exports = (args, cbk) => {
   if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
