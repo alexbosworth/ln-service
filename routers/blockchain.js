@@ -14,7 +14,7 @@ module.exports = (args) => {
   const router = ExpressRouter({caseSensitive: true, strict: true});
 
   router.get('/transaction_info/:id', (req, res) => {
-    return getTransactionInfo({id: req.params.id}, returnJson({res: res}));
+    return getTransactionInfo({id: req.params.id}, returnJson({res}));
   });
 
   return router;

@@ -2,7 +2,7 @@ const _ = require('lodash');
 
 const msPerSecond = 1000;
 
-/** Get invoices
+/** Get all created invoices.
 
   {
     lnd_grpc_api: <Object>
@@ -10,12 +10,12 @@ const msPerSecond = 1000;
 
   @returns via cbk
   [{
-    amount: <Satoshi Number>
     confirmed: <Bool>
     created_at: <Date String>
     memo: <String>
     outgoing: <Bool>
     payment: <Payment Request Hex Encoded String>
+    tokens: <Satoshi Number>
   }]
 */
 module.exports = (args, cbk) => {
@@ -32,12 +32,12 @@ module.exports = (args, cbk) => {
       const creationDate = parseInt(invoice.creation_date) * msPerSecond;
 
       return {
-        amount: parseInt(invoice.value),
         confirmed: invoice.settled,
         created_at: new Date(creationDate).toISOString(),
         memo: invoice.memo,
         outgoing: false,
         payment: invoice.payment_request,
+        tokens: parseInt(invoice.value),
       };
     });
 

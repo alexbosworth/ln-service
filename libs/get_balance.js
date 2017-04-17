@@ -3,7 +3,7 @@ const asyncAuto = require('async/auto');
 const getChainBalance = require('./get_chain_balance');
 const getChannelBalance = require('./get_channel_balance');
 
-/** Get history
+/** Get both the chain and channel balance totals.
 
   {
     lnd_grpc_api: <Object>

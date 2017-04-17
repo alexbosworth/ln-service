@@ -147,9 +147,9 @@ service Lightning {
         };
     }
 
-    rpc QueryRoute(RouteRequest) returns (Route) {
+    rpc QueryRoutes(QueryRoutesRequest) returns (QueryRoutesResponse) {
         option (google.api.http) = {
-            get: "/v1/graph/route/{pub_key}/{amt}"
+            get: "/v1/graph/routes/{pub_key}/{amt}"
         };
     }
 
@@ -159,6 +159,8 @@ service Lightning {
         };
     }
 
+    rpc SubscribeChannelGraph(GraphTopologySubscription) returns (stream GraphTopologyUpdate);
+
     rpc SetAlias(SetAliasRequest) returns (SetAliasResponse);
 
     rpc DebugLevel(DebugLevelRequest) returns (DebugLevelResponse);
@@ -166,7 +168,7 @@ service Lightning {
 
 message Transaction {
     string tx_hash = 1 [ json_name = "tx_hash" ];
-    double amount = 2 [ json_name = "amount" ];
+    int64 amount = 2 [ json_name = "amount" ];
     int32 num_confirmations = 3 [ json_name = "num_confirmations" ];
     string block_hash = 4 [ json_name = "block_hash" ];
     int32 block_height = 5 [ json_name = "block_height" ];
@@ -196,6 +198,7 @@ message SendResponse {
 }
 
 message ChannelPoint {
+    // TODO(roasbeef): make str vs bytes into a oneof
     bytes funding_txid = 1 [ json_name = "funding_txid" ];
     string funding_txid_str = 2 [ json_name = "funding_txid_str" ];
     uint32 output_index = 3 [ json_name = "output_index" ];
@@ -251,20 +254,21 @@ message HTLC {
 }
 
 message ActiveChannel {
-    string remote_pubkey = 1 [ json_name = "remote_pubkey" ];
-    string channel_point = 2 [ json_name = "channel_point" ];
-    uint64 chan_id = 3 [ json_name = "chan_id" ];
+    bool active = 1 [ json_name = "active" ];
+    string remote_pubkey = 2 [ json_name = "remote_pubkey" ];
+    string channel_point = 3 [ json_name = "channel_point" ];
+    uint64 chan_id = 4 [ json_name = "chan_id" ];
 
-    int64 capacity = 4 [ json_name = "capacity" ];
-    int64 local_balance = 5 [ json_name = "local_balance" ];
-    int64 remote_balance = 6 [ json_name = "remote_balance" ];
+    int64 capacity = 5 [ json_name = "capacity" ];
+    int64 local_balance = 6 [ json_name = "local_balance" ];
+    int64 remote_balance = 7 [ json_name = "remote_balance" ];
 
-    int64 unsettled_balance = 7 [ json_name = "unsettled_balance" ];
-    int64 total_satoshis_sent = 8 [ json_name = "total_satoshis_sent" ];
-    int64 total_satoshis_received = 9 [ json_name = "total_satoshis_received" ];
-    uint64 num_updates = 10 [ json_name = "num_updates" ];
+    int64 unsettled_balance = 8 [ json_name = "unsettled_balance" ];
+    int64 total_satoshis_sent = 9 [ json_name = "total_satoshis_sent" ];
+    int64 total_satoshis_received = 10 [ json_name = "total_satoshis_received" ];
+    uint64 num_updates = 11 [ json_name = "num_updates" ];
 
-    repeated HTLC pending_htlcs = 11 [ json_name = "pending_htlcs" ];
+    repeated HTLC pending_htlcs = 12 [ json_name = "pending_htlcs" ];
 }
 
 message ListChannelsRequest {}
@@ -401,9 +405,12 @@ message ChannelBalanceResponse {
     int64 balance = 1 [ json_name = "balance" ];
 }
 
-message RouteRequest {
+message QueryRoutesRequest {
     string pub_key = 1;
     int64 amt = 2;
+}
+message QueryRoutesResponse {
+    repeated Route routes = 1 [ json_name = "routes"];
 }
 
 message Hop {
@@ -435,8 +442,13 @@ message NodeInfo {
 message LightningNode {
     uint32 last_update = 1 [ json_name = "last_update" ];
     string pub_key = 2 [ json_name = "pub_key" ];
-    string address = 3 [ json_name = "address" ];
-    string alias = 4 [ json_name = "alias" ];
+    string alias = 3 [ json_name = "alias" ];
+    repeated NodeAddress addresses = 4 [ json_name = "addresses" ];
+}
+
+message NodeAddress {
+    string network = 1 [ json_name = "network" ];
+    string addr = 2 [ json_name = "addr" ];
 }
 
 message RoutingPolicy {
@@ -491,6 +503,37 @@ message NetworkInfo {
     //  * also additional RPC for tracking fee info once in
 }
 
+message GraphTopologySubscription {}
+message GraphTopologyUpdate {
+    repeated NodeUpdate node_updates = 1; 
+    repeated ChannelEdgeUpdate channel_updates = 2;
+    repeated ClosedChannelUpdate closed_chans = 3;
+}
+message NodeUpdate {
+    repeated string addresses = 1;
+    string identity_key = 2;
+    bytes global_features = 3;
+    string alias = 4;
+}
+message ChannelEdgeUpdate {
+    uint64 chan_id = 1;
+
+    ChannelPoint chan_point = 2;
+
+    int64 capacity = 3;
+
+    RoutingPolicy routing_policy  = 4;
+
+    string advertising_node  = 5;
+    string connecting_node = 6;
+}
+message ClosedChannelUpdate {
+    uint64 chan_id = 1;
+    int64 capacity = 2;
+    uint32 closed_height = 3;
+    ChannelPoint chan_point = 4;
+}
+
 message SetAliasRequest {
     string new_alias = 1;
 }
@@ -537,7 +580,7 @@ message Payment {
 
     int64 creation_date = 3 [ json_name = "creation_date" ];
 
-    repeated string path = 4 [ json_name = "string" ];
+    repeated string path = 4 [ json_name = "path" ];
 
     int64 fee = 5 [ json_name = "fee" ];
 }

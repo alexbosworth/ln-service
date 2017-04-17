@@ -2,7 +2,7 @@ const ExpressRouter = require('express').Router;
 
 const getNetworkInfo = require('./../libs/get_network_info');
 
-/** Get a purchase router
+/** Get a network info router.
 
   {
     lnd_grpc_api: <LND API>

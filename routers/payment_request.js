@@ -26,7 +26,7 @@ module.exports = (args) => {
       lnd_grpc_api: args.lnd_grpc_api,
       payment_request: req.params.payment_request,
     },
-    returnJson({res: res}));
+    returnJson({res}));
   });
 
   return router;

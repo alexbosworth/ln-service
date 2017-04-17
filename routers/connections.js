@@ -1,9 +1,9 @@
 const ExpressRouter = require('express').Router;
 
-const lookupInvoice = require('./../libs/lookup_invoice');
+const getConnections = require('./../libs/get_connections');
 const returnJson = require('./../libs/return_json');
 
-/** Get a purchase router
+/** Get a connections router
 
   {
     lnd_grpc_api: <LND API>
@@ -14,15 +14,16 @@ const returnJson = require('./../libs/return_json');
 */
 module.exports = (args) => {
   if (!args.lnd_grpc_api) {
-    return (req, res) => { return res.status(500).send(); };
+    return (req, res) => {
+      return res.status(500).json({error: 'Invalid arguments'});
+    };
   }
 
   const router = ExpressRouter({caseSensitive: true, strict: true});
 
-  router.get('/:rhash', (req, res, next) => {
-    return lookupInvoice({
+  router.get('/', (req, res) => {
+    return getConnections({
       lnd_grpc_api: args.lnd_grpc_api,
-      rhash: req.params.rhash,
     },
     returnJson({res}));
   });

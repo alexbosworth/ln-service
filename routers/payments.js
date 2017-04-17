@@ -1,9 +1,9 @@
 const ExpressRouter = require('express').Router;
 
-const lookupInvoice = require('./../libs/lookup_invoice');
 const returnJson = require('./../libs/return_json');
+const sendPayment = require('./../libs/send_payment');
 
-/** Get a purchase router
+/** Get a payments router.
 
   {
     lnd_grpc_api: <LND API>
@@ -19,10 +19,10 @@ module.exports = (args) => {
 
   const router = ExpressRouter({caseSensitive: true, strict: true});
 
-  router.get('/:rhash', (req, res, next) => {
-    return lookupInvoice({
+  router.post('/', (req, res, next) => {
+    return sendPayment({
       lnd_grpc_api: args.lnd_grpc_api,
-      rhash: req.params.rhash,
+      payment_request: req.body.payment_request,
     },
     returnJson({res}));
   });

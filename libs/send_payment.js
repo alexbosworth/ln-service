@@ -1,8 +1,8 @@
-/** Send a payment
+/** Send a channel payment.
 
   {
     lnd_grpc_api: <Object>
-    payment_request: <String>
+    payment_request: <Serialized Payment Request String>
   }
 */
 module.exports = (args, cbk) => {

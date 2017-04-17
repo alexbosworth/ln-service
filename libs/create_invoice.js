@@ -1,15 +1,15 @@
-/** Create an invoice
+/** Create a channel invoice.
 
   {
-    amount: <Satoshis Number>
     lnd_grpc_api: <Object>
     memo: <Invoice Description String>
+    tokens: <Satoshis Number>
   }
 
   @returns via cbk
   {
-    payment_request: <Hex Encoded Payment Request String>
     id: <Payment Request String>
+    payment_request: <Hex Encoded Payment Request String>
   }
 */
 module.exports = (args, cbk) => {
@@ -19,7 +19,7 @@ module.exports = (args, cbk) => {
 
   return args.lnd_grpc_api.addInvoice({
     memo: args.memo,
-    value: args.amount,
+    value: args.tokens,
   },
   (err, response) => {
     if (!!err) { return cbk([500, 'Add invoice error', err]); }

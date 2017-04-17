@@ -1,9 +1,11 @@
 const ExpressRouter = require('express').Router;
 
+const closeChannel = require('./../libs/close_channel');
+const getChannels = require('./../libs/get_channels');
+const openChannel = require('./../libs/open_channel');
 const returnJson = require('./../libs/return_json');
-const sendPayment = require('./../libs/send_payment');
 
-/** Get a send payment router
+/** Get a channels router
 
   {
     lnd_grpc_api: <LND API>
@@ -19,12 +21,24 @@ module.exports = (args) => {
 
   const router = ExpressRouter({caseSensitive: true, strict: true});
 
-  router.post('/', (req, res, next) => {
-    return sendPayment({
+  router.delete('/:id', (req, res, next) => {
+    return closeChannel({
+      id: req.params.id,
       lnd_grpc_api: args.lnd_grpc_api,
-      payment_request: req.body.payment_request,
     },
-    returnJson({res: res}));
+    returnJson({res}));
+  });
+
+  router.get('/', (req, res, next) => {
+    return getChannels({lnd_grpc_api: args.lnd_grpc_api}, returnJson({res}));
+  });
+
+  router.post('/', (req, res, next) => {
+    return openChannel({
+      lnd_grpc_api: args.lnd_grpc_api,
+      partner_public_key: req.body.partner_public_key,
+    },
+    returnJson({res}));
   });
 
   return router;

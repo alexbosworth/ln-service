@@ -1,6 +1,6 @@
 const msPerSecond = 1000;
 
-/** Get payments
+/** Get payments made through channels.
 
   {
     lnd_grpc_api: <Object>
@@ -8,7 +8,6 @@ const msPerSecond = 1000;
 
   @returns via cbk
   [{
-    amount: <Satoshis Number>
     confirmed: <Bool>
     created_at: <ISO8601 Date String>
     destination: <Compressed Public Key String>
@@ -16,6 +15,7 @@ const msPerSecond = 1000;
     hops: <Route Hops Number>
     id: <String> // rhash
     outgoing: <Bool>
+    tokens: <Satoshis Number>
   }]
 */
 module.exports = (args, cbk) => {
@@ -32,7 +32,6 @@ module.exports = (args, cbk) => {
       const creationDate = parseInt(payment.creation_date) * msPerSecond;
 
       return {
-        amount: parseInt(payment.value),
         confirmed: true,
         created_at: new Date(creationDate).toISOString(),
         destination: payment.path[payment.path.length - 1],
@@ -40,6 +39,7 @@ module.exports = (args, cbk) => {
         hops: payment.path.length - 1,
         id: payment.payment_hash,
         outgoing: true,
+        tokens: parseInt(payment.value),
       };
     });
 

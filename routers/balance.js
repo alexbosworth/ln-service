@@ -3,7 +3,7 @@ const ExpressRouter = require('express').Router;
 const getBalance = require('./../libs/get_balance');
 const returnJson = require('./../libs/return_json');
 
-/** Get a history router
+/** Get a balance router
 
   {
     lnd_grpc_api: <LND API>
@@ -20,10 +20,7 @@ module.exports = (args) => {
   const router = ExpressRouter({caseSensitive: true, strict: true});
 
   router.get('/', (req, res, next) => {
-    return getBalance({
-      lnd_grpc_api: args.lnd_grpc_api,
-    },
-    returnJson({res: res}));
+    return getBalance({lnd_grpc_api: args.lnd_grpc_api}, returnJson({res}));
   });
 
   return router;

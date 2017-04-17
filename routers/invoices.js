@@ -4,7 +4,7 @@ const createInvoice = require('./../libs/create_invoice');
 const getInvoices = require('./../libs/get_invoices');
 const returnJson = require('./../libs/return_json');
 
-/** Get a history router
+/** Get an invoices router.
 
   {
     lnd_grpc_api: <LND API>
@@ -24,7 +24,7 @@ module.exports = (args) => {
     return getInvoices({
       lnd_grpc_api: args.lnd_grpc_api,
     },
-    returnJson({res: res}));
+    returnJson({res}));
   });
 
   router.post('/', (req, res, next) => {
@@ -33,7 +33,7 @@ module.exports = (args) => {
       lnd_grpc_api: args.lnd_grpc_api,
       memo: req.body.memo,
     },
-    returnJson({res: res}));
+    returnJson({res}));
   });
 
   return router;

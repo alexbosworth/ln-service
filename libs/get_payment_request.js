@@ -35,9 +35,9 @@ module.exports = (args, cbk) => {
     }
 
     return cbk(null, {
-      amount: parseInt(res.num_satoshis),
       destination: res.destination,
       id: res.payment_hash,
+      tokens: parseInt(res.num_satoshis),
     });
   });
 };

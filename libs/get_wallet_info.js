@@ -1,7 +1,7 @@
 const _ = require('lodash');
 
-/** Get balance
-'
+/** Get overall wallet info.
+
   {
     lnd_grpc_api: <Object>
   }

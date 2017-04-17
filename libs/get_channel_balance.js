@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-/** Get balance
+/** Get balance across channels.
 
   {
     lnd_grpc_api: <Object>

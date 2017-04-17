@@ -23,7 +23,7 @@ module.exports = (args) => {
     return getWalletInfo({
       lnd_grpc_api: args.lnd_grpc_api,
     },
-    returnJson({res: res}));
+    returnJson({res}));
   });
 
   return router;

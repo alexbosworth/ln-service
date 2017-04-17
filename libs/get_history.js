@@ -12,7 +12,6 @@ const getPayments = require('./get_payments');
 
   @returns via cbk
   [{
-    amount: <Satoshi Number>
     confirmed: <Bool>
     created_at: <ISO8601 Date String>
     [destination]: <Compressed Public Key String>
@@ -22,6 +21,7 @@ const getPayments = require('./get_payments');
     [memo]: <String>
     outgoing: <Bool>
     [payment]: <Payment Request String>
+    tokens: <Satoshi Number>
   }]
 */
 module.exports = (args, cbk) => {

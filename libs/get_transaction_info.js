@@ -4,6 +4,7 @@ const request = require("request");
 /** Get transaction info for a transaction id
 
   FIXME: - fix this to make it monetized
+  FIXME: - fill this in to make the backend pluggable.
 
   {
     id: <Transaction Id String>
@@ -19,7 +20,7 @@ const request = require("request");
     }]
     outputs: [{
       address: <Address String>
-      value: <Value Number>
+      tokens: <Value Number>
     }]
   }
 */

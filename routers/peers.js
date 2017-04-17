@@ -21,11 +21,8 @@ module.exports = (args) => {
 
   const router = ExpressRouter({caseSensitive: true, strict: true});
 
-  router.get("/", (req, res) => {
-    return getPeers({
-      lnd_grpc_api: args.lnd_grpc_api,
-    },
-    returnJson({res: res}));
+  router.get('/', (req, res) => {
+    return getPeers({lnd_grpc_api: args.lnd_grpc_api}, returnJson({res}));
   });
 
   return router;

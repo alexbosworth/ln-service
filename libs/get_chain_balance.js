@@ -1,11 +1,14 @@
 const _ = require('lodash');
 const smallTokenUnitsPerBigUnit = 100000000;
 
-/** Get balance
+/** Get balance on the chain.
 
   {
     lnd_grpc_api: <Object>
   }
+
+  @returns via cbk
+  <Chain Balance Satoshis>
 */
 module.exports = (args, cbk) => {
   if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }

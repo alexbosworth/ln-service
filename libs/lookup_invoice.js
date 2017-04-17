@@ -1,14 +1,14 @@
-/** Lookup an invoice
+/** Lookup a channel invoice.
 
   {
     lnd_grpc_api: <Object>
-    rhash: <String>
+    id: <RHash Identification String>
   }
 
   @returns via cbk
   {
-    memo: <String>'
-    settled: <Bool>
+    memo: <Description String>'
+    settled: <Finalized Bool>
   }
 */
 module.exports = (args, cbk) => {
