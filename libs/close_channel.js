@@ -44,16 +44,22 @@ module.exports = (args, cbk) => {
       let transactionId = res.getChannel.transaction_id;
       let transactionVout = res.getChannel.transaction_vout;
 
-      console.log("TX ID", transactionId);
-
       // FIXME: - make this use the stream API properly
 
-      args.lnd_grpc_api.closeChannel({
+      const closeChannel = args.lnd_grpc_api.closeChannel({
         channel_point: {
           funding_txid: Buffer.from(transactionId.match(/.{2}/g).reverse().join(""), 'hex'),
           output_index: transactionVout
         },
       });
+
+      closeChannel.on('data', (data) => { console.log('CLOSE CHAN', data); });
+
+      closeChannel.on('end', () => { console.log('END CLOSE CHANNEL'); });
+
+      closeChannel.on('error', (err) => { console.log('CLOSE CHAN ERR', err); });
+
+      closeChannel.on('status', (status) => { console.log('CHSTA', status); });
 
       return cbk();
     }],

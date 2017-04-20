@@ -3,6 +3,7 @@ const asyncAuto = require('async/auto');
 
 const getInvoices = require('./get_invoices');
 const getPayments = require('./get_payments');
+const getTransactions = require('./get_transactions');
 
 /** Get history
 
@@ -12,6 +13,7 @@ const getPayments = require('./get_payments');
 
   @returns via cbk
   [{
+    [block_id]: <Block Hash String>
     confirmed: <Bool>
     created_at: <ISO8601 Date String>
     [destination]: <Compressed Public Key String>
@@ -36,8 +38,17 @@ module.exports = (args, cbk) => {
       return getPayments({lnd_grpc_api: args.lnd_grpc_api}, cbk);
     },
 
-    history: ['getInvoices', 'getPayments', (res, cbk) => {
-      const allTransactions = res.getInvoices.concat(res.getPayments);
+    getTransactions: (cbk) => {
+      return getTransactions({lnd_grpc_api: args.lnd_grpc_api}, cbk);
+    },
+
+    history: ['getInvoices', 'getPayments', 'getTransactions', (res, cbk) => {
+      console.log(res);
+
+      const allTransactions = []
+        .concat(res.getInvoices)
+        .concat(res.getPayments)
+        .concat(res.getTransactions);
 
       return cbk(null, _(allTransactions).sortBy(['created_at']).reverse());
     }],

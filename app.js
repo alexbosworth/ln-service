@@ -16,6 +16,7 @@ const networkInfoRouter = require('./routers/network_info');
 const payReqRouter = require('./routers/payment_request');
 const peersRouter = require('./routers/peers');
 const purchasedRouter = require('./routers/purchased');
+const transactionsRouter = require('./routers/transactions');
 const walletInfoRouter = require('./routers/wallet_info');
 
 const lndGrpcHost = 'localhost:10009';
@@ -46,6 +47,7 @@ app.use('/v0/network_info', networkInfoRouter({lnd_grpc_api: lndGrpcApi}));
 app.use('/v0/peers', peersRouter({lnd_grpc_api: lndGrpcApi}));
 app.use('/v0/purchased', purchasedRouter({lnd_grpc_api: lndGrpcApi}));
 app.use('/v0/payment_request', payReqRouter({lnd_grpc_api: lndGrpcApi}));
+app.use('/v0/transactions', transactionsRouter({lnd_grpc_api: lndGrpcApi}));
 app.use('/v0/wallet_info', walletInfoRouter({lnd_grpc_api: lndGrpcApi}));
 
 if (process.env.NODE_ENV !== 'production') {

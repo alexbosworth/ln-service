@@ -41,7 +41,7 @@ module.exports = (args, cbk) => {
       };
     });
 
-    return cbk(null, _(invoices).sortBy('created_at'));
+    return cbk(null, _.sortBy(invoices, 'created_at'));
   });
 };
 
