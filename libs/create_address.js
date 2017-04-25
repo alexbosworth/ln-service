@@ -1,3 +1,5 @@
+const rowTypes = require('./../config/row_types');
+
 /** Create a new receive address.
 
   {
@@ -7,6 +9,7 @@
   @returns via cbk
   {
     address: <Address String>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
@@ -19,7 +22,7 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Expected address response', response]);
     }
 
-    return cbk(null, {address: response.address});
+    return cbk(null, {address: response.address, type: rowTypes.address});
   });
 };
 

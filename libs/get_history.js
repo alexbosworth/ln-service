@@ -19,11 +19,12 @@ const getTransactions = require('./get_transactions');
     [destination]: <Compressed Public Key String>
     [fee]: <Satoshis Number>
     [hops]: <Route Hops Number>
-    [id]: <String>
+    id: <String>
     [memo]: <String>
     outgoing: <Bool>
     [payment]: <Payment Request String>
     tokens: <Satoshi Number>
+    type: <Type String>
   }]
 */
 module.exports = (args, cbk) => {
@@ -43,8 +44,6 @@ module.exports = (args, cbk) => {
     },
 
     history: ['getInvoices', 'getPayments', 'getTransactions', (res, cbk) => {
-      console.log(res);
-
       const allTransactions = []
         .concat(res.getInvoices)
         .concat(res.getPayments)

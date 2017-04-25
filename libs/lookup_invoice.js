@@ -1,3 +1,5 @@
+const rowTypes = require('./../config/row_types');
+
 /** Lookup a channel invoice.
 
   {
@@ -7,8 +9,9 @@
 
   @returns via cbk
   {
-    memo: <Description String>'
+    memo: <Description String>
     settled: <Finalized Bool>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
@@ -33,6 +36,7 @@ module.exports = (args, cbk) => {
     return cbk(null, {
       memo: response.memo,
       settled: response.settled,
+      type: rowTypes.channel_transaction,
     });
   });
 };

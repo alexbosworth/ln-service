@@ -1,5 +1,7 @@
 const _ = require('lodash');
 
+const rowTypes = require('./../config/row_types');
+
 /** Get network info
 
   {
@@ -14,6 +16,7 @@ const _ = require('lodash');
     minimum_channel_size: <Satoshis Number String>
     node_count: <Number>
     total_capacity: <Satoshis Number String>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
@@ -53,6 +56,7 @@ module.exports = (args, cbk) => {
       minimum_channel_size: networkInfo.min_channel_size,
       node_count: networkInfo.num_nodes,
       total_capacity: networkInfo.total_network_capacity,
+      type: rowTypes.network_info,
     });
   });
 };

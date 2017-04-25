@@ -1,4 +1,4 @@
-/** Get channels
+/** Get pending channels.
 
   {
     lnd_grpc_api: <Object>
@@ -18,42 +18,35 @@
     transaction_id: <Blockchain Transaction Id>
     transaction_vout: <Blockchain Transaction Vout Number>
     transfers_count: <Channel Transfers Total Number>
-    unsettled_balance: <Unsettled Balance Satoshis Number>
   }]
 */
 module.exports = (args, cbk) => {
   if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
 
-  return args.lnd_grpc_api.listChannels({}, (err, res) => {
-    if (!!err) { return cbk([500, 'Get channels error', err]); }
+  return args.lnd_grpc_api.pendingChannels({}, (err, res) => {
+    if (!!err) { return cbk([500, 'Get pending channels error', err]); }
 
-    if (!res || !Array.isArray(res.channels)) {
-      return cbk([500, 'Expected channels array', res]);
+    if (!res || !Array.isArray(res.pending_channels)) {
+      return cbk([500, 'Expected pending channels', res]);
     }
 
-    // FIXME: - check for valid channel data
+    const channels = res.pending_channels.map((channel) => {
+      const tx = channel.closing_txid || channel.channel_point;
 
-    const channels = res.channels.map((channel) => {
-      if (!!channel.pending_htlcs.length) {
-        console.log("PENDING HTLCS", channel.pending_htlcs);
-      }
-
-      const [transactionId, vout] = channel.channel_point.split(":");
+      const [transactionId, vout] = tx.split(':');
 
       return {
-        id: channel.chan_id,
-        is_active: channel.active,
-        is_closing: false,
-        is_opening: false,
+        is_active: false,
+        is_closing: !!channel.closing_txid,
+        is_opening: channel.status === 'OPENING',
         local_balance: parseInt(channel.local_balance),
-        partner_public_key: channel.remote_pubkey,
-        received: parseInt(channel.total_satoshis_received),
+        partner_public_key: channel.identity_key,
+        received: 0,
         remote_balance: parseInt(channel.remote_balance),
-        sent: parseInt(channel.total_satoshis_sent),
+        sent: 0,
         transaction_id: transactionId,
         transaction_vout: parseInt(vout),
-        transfers_count: parseInt(channel.num_updates),
-        unsettled_balance: parseInt(channel.unsettled_balance),
+        transfers_count: 0,
       };
     });
 

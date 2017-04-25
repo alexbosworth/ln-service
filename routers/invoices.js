@@ -29,9 +29,9 @@ module.exports = (args) => {
 
   router.post('/', (req, res, next) => {
     return createInvoice({
-      amount: req.body.amount,
       lnd_grpc_api: args.lnd_grpc_api,
       memo: req.body.memo,
+      tokens: req.body.tokens,
     },
     returnJson({res}));
   });

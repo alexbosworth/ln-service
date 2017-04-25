@@ -2,6 +2,8 @@ const asyncAuto = require('async/auto');
 
 const getChainBalance = require('./get_chain_balance');
 
+const staticFee = 1e5;
+
 /** Open a new channel.
 
   {
@@ -17,17 +19,37 @@ module.exports = (args, cbk) => {
 
     openChannel: ['getChainBalance', (res, cbk) => {
       // FIXME: - cleanup and make work properly
-      const fee = 1e5
+
+      console.log('OPENING CHANNEL', res.getChainBalance);
 
       const open = args.lnd_grpc_api.openChannel({
-        local_funding_amount: res.getChainBalance - fee,
+        local_funding_amount: res.getChainBalance - staticFee,
         node_pubkey: Buffer.from(args.partner_public_key, 'hex'),
         num_confs: 1,
-        push_sat: Math.round(res.getChainBalance / 2),
       });
 
-      open.on('data', function(feature) {
-        console.log("FEATURE", feature);
+      open.on('data', function(chan) {
+        if (chan.update === 'chan_open') {
+          const transactionId = chan.chan_open.channel_point.funding_txid
+            .toString('hex').match(/.{2}/g).reverse().join('')
+
+          console.log({
+            transaction_id: transactionId,
+            type: 'channel_open',
+            vout: chan.chan_open.channel_point.output_index,
+          });
+        } else if (chan.update === 'chan_pending') {
+          const transactionId = chan.chan_pending.txid.toString('hex')
+            .match(/.{2}/g).reverse().join('')
+
+          console.log({
+            transaction_id: transactionId,
+            type: 'channel_pending',
+            vout: chan.chan_pending.output_index,
+          });
+        } else {
+          console.log('CHANNEL UPDATE', chan);
+        }
       });
 
       open.on('end', function() {

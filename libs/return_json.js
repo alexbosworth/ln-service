@@ -8,6 +8,8 @@ module.exports = (args) => {
     if (Array.isArray(err)) {
       const [statusCode, errorMessage] = err;
 
+      console.log("ERROR", err);
+
       return args.res.status(statusCode).send({error: errorMessage || ''});
     }
 

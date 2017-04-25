@@ -1,0 +1,11 @@
+{
+  "address": "address",
+  "balances": "balances",
+  "chain_transaction": "chain_transaction",
+  "channel_transaction": "channel_transaction",
+  "connection": "connection",
+  "network_info": "network_info",
+  "payment_request": "payment_request",
+  "peer": "peer",
+  "wallet": "wallet"
+}

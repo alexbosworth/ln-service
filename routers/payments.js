@@ -7,6 +7,7 @@ const sendPayment = require('./../libs/send_payment');
 
   {
     lnd_grpc_api: <LND API>
+    wss: <Websocket Server>
   }
 
   @returns
@@ -23,6 +24,7 @@ module.exports = (args) => {
     return sendPayment({
       lnd_grpc_api: args.lnd_grpc_api,
       payment_request: req.body.payment_request,
+      wss: args.wss,
     },
     returnJson({res}));
   });

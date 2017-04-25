@@ -1,5 +1,7 @@
 const msPerSecond = 1000;
 
+const rowTypes = require('./../config/row_types');
+
 /** Get payments made through channels.
 
   {
@@ -13,9 +15,10 @@ const msPerSecond = 1000;
     destination: <Compressed Public Key String>
     fee: <Satoshis Number>
     hops: <Route Hops Number>
-    id: <String> // rhash
+    id: <RHash Id String>
     outgoing: <Bool>
     tokens: <Satoshis Number>
+    type: <Type String>
   }]
 */
 module.exports = (args, cbk) => {
@@ -40,6 +43,7 @@ module.exports = (args, cbk) => {
         id: payment.payment_hash,
         outgoing: true,
         tokens: parseInt(payment.value),
+        type: rowTypes.channel_transaction,
       };
     });
 

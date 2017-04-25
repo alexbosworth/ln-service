@@ -1,3 +1,5 @@
+const rowTypes = require('./../config/row_types');
+
 /** Send tokens in a blockchain transaction.
 
   {
@@ -8,7 +10,8 @@
 
   @returns via cbk
   {
-    transaction_id: <Transaction Id String>
+    id: <Transaction Id String>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
@@ -29,7 +32,7 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Expected transaction id', response]);
     }
 
-    return cbk(null, {transaction_id: response.txid});
+    return cbk(null, {id: response.txid, type: rowTypes.chain_transaction});
   });
 };
 

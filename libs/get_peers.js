@@ -1,3 +1,5 @@
+const rowTypes = require('./../config/row_types');
+
 /** Get connected peers.
 
   {
@@ -14,6 +16,7 @@
     public_key: <Public Key String>
     tokens_received: <Amount Received Satoshis Number>
     tokens_sent: <Amount Sent Satoshis Number>
+    type: <Type String>
   }]
 */
 module.exports = (args, cbk) => {
@@ -34,10 +37,11 @@ module.exports = (args, cbk) => {
         bytes_sent: parseInt(peer.bytes_sent),
         id: peer.peer_id,
         network_address: peer.address,
-        ping_time: parseInt(peer.ping_time),
+        ping_time: Math.round(parseInt(peer.ping_time) / 1000),
         public_key: peer.pub_key,
         tokens_received: parseInt(peer.sat_recv),
         tokens_sent: parseInt(peer.sat_sent),
+        type: rowTypes.peer,
       };
     });
 

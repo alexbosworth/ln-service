@@ -2,6 +2,7 @@ const asyncAuto = require('async/auto');
 
 const getChainBalance = require('./get_chain_balance');
 const getChannelBalance = require('./get_channel_balance');
+const rowTypes = require('./../config/row_types');
 
 /** Get both the chain and channel balance totals.
 
@@ -13,6 +14,7 @@ const getChannelBalance = require('./get_channel_balance');
   {
     chain_balance: <Satoshis Number>
     channel_balance: <Satoshis Number>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
@@ -31,6 +33,7 @@ module.exports = (args, cbk) => {
       return cbk(null, {
         chain_balance: res.getChainBalance,
         channel_balance: res.getChannelBalance,
+        type: rowTypes.balances,
       });
     }],
   },

@@ -1,4 +1,7 @@
 const _ = require('lodash');
+const createHash = require('crypto').createHash;
+
+const rowTypes = require('./../config/row_types');
 
 const msPerSecond = 1000;
 
@@ -12,10 +15,12 @@ const msPerSecond = 1000;
   [{
     confirmed: <Bool>
     created_at: <Date String>
+    id: <RHash String>
     memo: <String>
     outgoing: <Bool>
     payment: <Payment Request Hex Encoded String>
     tokens: <Satoshi Number>
+    type: <Type String>
   }]
 */
 module.exports = (args, cbk) => {
@@ -34,10 +39,12 @@ module.exports = (args, cbk) => {
       return {
         confirmed: invoice.settled,
         created_at: new Date(creationDate).toISOString(),
+        id: createHash('sha256').update(invoice.r_preimage).digest('hex'),
         memo: invoice.memo,
         outgoing: false,
         payment: invoice.payment_request,
         tokens: parseInt(invoice.value),
+        type: rowTypes.channel_transaction,
       };
     });
 

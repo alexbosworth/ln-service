@@ -1,5 +1,7 @@
 const msPerSec = 1e3;
 
+const rowTypes = require('./../config/row_types');
+
 /** Get Blockchain transactions.
 
   {
@@ -15,6 +17,7 @@ const msPerSec = 1e3;
     id: <Transaction Id String>
     outgoing: <Transaction Outbound Bool>
     tokens: <Satoshis Number>
+    type: <Type String>
   }]
 */
 module.exports = (args, cbk) => {
@@ -38,6 +41,7 @@ module.exports = (args, cbk) => {
         id: transaction.tx_hash,
         outgoing: (parseInt(transaction.amount) < 0),
         tokens: Math.abs(parseInt(transaction.amount)),
+        type: rowTypes.chain_transaction,
       };
     });
 

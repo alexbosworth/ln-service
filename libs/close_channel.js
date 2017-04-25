@@ -48,12 +48,25 @@ module.exports = (args, cbk) => {
 
       const closeChannel = args.lnd_grpc_api.closeChannel({
         channel_point: {
-          funding_txid: Buffer.from(transactionId.match(/.{2}/g).reverse().join(""), 'hex'),
-          output_index: transactionVout
+          funding_txid: Buffer.from(transactionId.match(/.{2}/g).reverse().join(''), 'hex'),
+          output_index: transactionVout,
         },
+        force: true,
       });
 
-      closeChannel.on('data', (data) => { console.log('CLOSE CHAN', data); });
+      closeChannel.on('data', (chan) => {
+        if (chan.update === 'close_pending') {
+          console.log('TX ID', chan.close_pending.txid);
+
+          console.log({
+            transaction_id: chan.close_pending.txid.toString('hex'),
+            type: 'channel_closing',
+            vout: chan.close_pending.output_index,
+          });
+        } else {
+          console.log('CLOSE CHAN', chan);
+        }
+      });
 
       closeChannel.on('end', () => { console.log('END CLOSE CHANNEL'); });
 

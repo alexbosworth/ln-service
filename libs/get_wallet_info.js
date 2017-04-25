@@ -1,9 +1,22 @@
 const _ = require('lodash');
 
+const rowTypes = require('./../config/row_types');
+
 /** Get overall wallet info.
 
   {
     lnd_grpc_api: <Object>
+  }
+
+  @returns via cbk
+  {
+    active_channels_count: <Active Channels Count Number>
+    block_height: <Best Chain Height Number>
+    is_testnet: <Using Testnet Bool>
+    peers_count: <Peer Count Number>
+    pending_channels_count: <Pending Channels Count Number>
+    public_key: <Public Key String>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
@@ -45,6 +58,7 @@ module.exports = (args, cbk) => {
       peers_count: res.num_peers,
       pending_channels_count: res.num_pending_channels,
       public_key: res.identity_pubkey,
+      type: rowTypes.wallet,
     });
   });
 };

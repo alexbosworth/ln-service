@@ -5,6 +5,9 @@ const _ = require('lodash');
   {
     lnd_grpc_api: <Object>
   }
+
+  @returns via cbk
+  <Channels Balance Satoshis>
 */
 module.exports = (args, cbk) => {
   if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }

@@ -3,6 +3,8 @@ const asyncAuto = require('async/auto');
 
 const getChannels = require('./get_channels');
 const getPeers = require('./get_peers');
+const getPendingChannels = require('./get_pending_channels');
+const rowTypes = require('./../config/row_types');
 
 /** Get all connections, offline and online.
 
@@ -15,6 +17,8 @@ const getPeers = require('./get_peers');
     channels: [{
       id: <Channel Id String>
       is_active: <Channel Active Bool>
+      is_closing: <Channel Closing Bool>
+      is_opening: <Channel Opening Bool>
       local_balance: <Local Balance Satoshis Number>
       received: <Received Satoshis Number>
       remote_balance: <Remote Balance Satoshis Number>
@@ -22,7 +26,7 @@ const getPeers = require('./get_peers');
       transaction_id: <Blockchain Transaction Id>
       transaction_vout: <Blockchain Transaction Vout Number>
       transfers_count: <Channel Transfers Total Number>
-      unsettled_balance: <Unsettled Balance Satoshis Number>
+      [unsettled_balance]: <Unsettled Balance Satoshis Number>
     }]
     peers: [{
       bytes_received: <Bytes Received Number>
@@ -34,6 +38,7 @@ const getPeers = require('./get_peers');
       tokens_sent: <Amount Sent Satoshis Number>
     }]
     public_key: <Public Key String>
+    type: <Type String>
   }]
 */
 module.exports = (args, cbk) => {
@@ -46,17 +51,31 @@ module.exports = (args, cbk) => {
       return getPeers({lnd_grpc_api: args.lnd_grpc_api}, cbk);
     },
 
-    connections: ['getChannels', 'getPeers', (res, cbk) => {
+    getPendingChannels: (cbk) => {
+      return getPendingChannels({lnd_grpc_api: args.lnd_grpc_api}, cbk);
+    },
+
+    connections: [
+      'getChannels',
+      'getPeers',
+      'getPendingChannels',
+      (res, cbk) =>
+    {
       const channels = _.groupBy(res.getChannels, 'partner_public_key');
       const peers = _.groupBy(res.getPeers, 'public_key');
+      const pending = _.groupBy(res.getPendingChannels, 'partner_public_key');
 
       const allPublicKeys = Object.keys(channels).concat(Object.keys(peers));
 
       const connections = _.uniq(allPublicKeys).map((publicKey) => {
+        const openChannels = channels[publicKey] || [];
+        const pendingChannels = pending[publicKey] || [];
+
         return {
-          channels: channels[publicKey] || [],
-          peers: peers[publicKey],
+          channels: openChannels.concat(pendingChannels),
+          peers: peers[publicKey] || [],
           public_key: publicKey,
+          type: rowTypes.connection,
         };
       });
 

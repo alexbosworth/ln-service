@@ -1,3 +1,5 @@
+const rowTypes = require('./../config/row_types');
+
 /** Create a channel invoice.
 
   {
@@ -10,11 +12,12 @@
   {
     id: <Payment Request String>
     payment_request: <Hex Encoded Payment Request String>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd_grpc_api || !args.amount) {
-    return cbk([500, 'Missing lnd grpc api, or amount', args]);
+  if (!args.lnd_grpc_api || !args.tokens) {
+    return cbk([500, 'Missing lnd grpc api, or tokens', args]);
   }
 
   return args.lnd_grpc_api.addInvoice({
@@ -30,9 +33,12 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Rhash is not a buffer']);
     }
 
+    console.log("ADD INVOICE", response.r_hash.toString('hex'));
+
     return cbk(null, {
       id: response.r_hash.toString('hex'),
       payment_request: response.payment_request,
+      type: rowTypes.payment_request,
     });
   });
 };

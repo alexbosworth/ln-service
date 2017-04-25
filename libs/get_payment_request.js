@@ -1,5 +1,7 @@
 const _ = require('lodash');
 
+const rowTypes = require('./../config/row_types');
+
 /** Get balance
 
   {
@@ -10,7 +12,8 @@ const _ = require('lodash');
   @returns via cbk
   {
     destination: <Public Key String>
-    id: <Payment Request Hash string>
+    id: <Payment Request Hash String>
+    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
@@ -38,6 +41,7 @@ module.exports = (args, cbk) => {
       destination: res.destination,
       id: res.payment_hash,
       tokens: parseInt(res.num_satoshis),
+      type: rowTypes.payment_request,
     });
   });
 };
