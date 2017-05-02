@@ -10,7 +10,7 @@ const rowTypes = require('./../config/row_types');
 
   @returns via cbk
   {
-    id: <Payment Request String>
+    id: <Payment Request Id String>
     payment_request: <Hex Encoded Payment Request String>
     type: <Type String>
   }

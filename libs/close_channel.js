@@ -46,20 +46,21 @@ module.exports = (args, cbk) => {
 
       // FIXME: - make this use the stream API properly
 
+      const txId = transactionId.match(/.{2}/g).reverse().join('');
+
       const closeChannel = args.lnd_grpc_api.closeChannel({
         channel_point: {
-          funding_txid: Buffer.from(transactionId.match(/.{2}/g).reverse().join(''), 'hex'),
+          funding_txid: Buffer.from(txId, 'hex'),
           output_index: transactionVout,
         },
-        force: true,
       });
 
       closeChannel.on('data', (chan) => {
         if (chan.update === 'close_pending') {
-          console.log('TX ID', chan.close_pending.txid);
+          const txId = chan.close_pending.txid.toString('hex');
 
           console.log({
-            transaction_id: chan.close_pending.txid.toString('hex'),
+            transaction_id: txId.match(/.{2}/g).reverse().join(''),
             type: 'channel_closing',
             vout: chan.close_pending.output_index,
           });

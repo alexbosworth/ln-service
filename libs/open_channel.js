@@ -31,7 +31,7 @@ module.exports = (args, cbk) => {
       open.on('data', function(chan) {
         if (chan.update === 'chan_open') {
           const transactionId = chan.chan_open.channel_point.funding_txid
-            .toString('hex').match(/.{2}/g).reverse().join('')
+            .toString('hex').match(/.{2}/g).reverse().join('');
 
           console.log({
             transaction_id: transactionId,

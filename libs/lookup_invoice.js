@@ -10,6 +10,7 @@ const rowTypes = require('./../config/row_types');
   @returns via cbk
   {
     memo: <Description String>
+    payment_request: <Payment Request String>
     settled: <Finalized Bool>
     type: <Type String>
   }
@@ -35,6 +36,7 @@ module.exports = (args, cbk) => {
 
     return cbk(null, {
       memo: response.memo,
+      payment_request: response.payment_request,
       settled: response.settled,
       type: rowTypes.channel_transaction,
     });

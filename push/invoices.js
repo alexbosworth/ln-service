@@ -1,3 +1,5 @@
+const createHash = require('crypto').createHash;
+
 const broadcastResponse = require('./../libs/broadcast_response');
 const rowTypes = require('./../config/row_types');
 
@@ -20,7 +22,7 @@ module.exports = (args) => {
       clients: args.wss.clients,
       row: {
         confirmed: tx.settled,
-        id: crypto.createHash('sha256').update(tx.r_preimage).digest('hex'),
+        id: createHash('sha256').update(tx.r_preimage).digest('hex'),
         memo: tx.memo,
         outgoing: false,
         tokens: parseInt(tx.value),

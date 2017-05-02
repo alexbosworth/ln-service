@@ -12,6 +12,12 @@ const returnJson = require('./../libs/return_json');
 
   @returns
   <Router Object>
+
+  POST /
+  {
+    memo: <String>
+    tokens: <Tokens Number>
+  }
 */
 module.exports = (args) => {
   if (!args.lnd_grpc_api) {
