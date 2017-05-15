@@ -1,3 +1,4 @@
+const broadcastResponse = require('./broadcast_response');
 const rowTypes = require('./../config/row_types');
 
 /** Send tokens in a blockchain transaction.
@@ -6,11 +7,15 @@ const rowTypes = require('./../config/row_types');
     address: <Destination Address String>
     lnd_grpc_api: <Object>
     tokens: <Satoshis Number>
+    wss: <Web Socket Server Object>
   }
 
   @returns via cbk
   {
+    confirmed: <Bool>
     id: <Transaction Id String>
+    outgoing: <Bool>
+    tokens: <Tokens Number>
     type: <Type String>
   }
 */
@@ -32,7 +37,19 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Expected transaction id', response]);
     }
 
-    return cbk(null, {id: response.txid, type: rowTypes.chain_transaction});
+    console.log('SEND COINS RESPONSE', response);
+
+    const transaction = {
+      confirmed: false,
+      id: response.txid,
+      outgoing: true,
+      tokens: parseInt(args.tokens),
+      type: rowTypes.chain_transaction,
+    };
+
+    broadcastResponse({clients: args.wss.clients, row: transaction});
+
+    return cbk(null, transaction);
   });
 };
 

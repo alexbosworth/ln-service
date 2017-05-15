@@ -32,7 +32,7 @@ const logFormat = ':method :url :status - :response-time ms - :user-agent';
 const port = process.env.PORT || 10553;
 
 const app = express();
-const lndGrpcApi = lndGrpcInterface('./config/grpc.proto', lndGrpcHost);
+const lnd = lndGrpcInterface('./config/grpc.proto', lndGrpcHost);
 
 const server = http.createServer(app);
 const wss = new ws.Server({server});
@@ -47,23 +47,23 @@ app.use(compress);
 app.use(bodyParser.json());
 app.use(logger(logFormat));
 
-app.use('/v0/addresses', addressesRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/balance', balanceRouter({lnd_grpc_api: lndGrpcApi}));
+app.use('/v0/addresses', addressesRouter({lnd_grpc_api: lnd}));
+app.use('/v0/balance', balanceRouter({lnd_grpc_api: lnd}));
 app.use('/v0/blockchain', blockchainRouter({}));
-app.use('/v0/channels', channelsRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/connections', connectionsRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/history', historyRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/invoices', invoicesRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/network_info', networkInfoRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/payment_request', payReqRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/payments', paymentsRouter({lnd_grpc_api: lndGrpcApi, wss}));
-app.use('/v0/peers', peersRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/purchased', purchasedRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/transactions', transactionsRouter({lnd_grpc_api: lndGrpcApi}));
-app.use('/v0/wallet_info', walletInfoRouter({lnd_grpc_api: lndGrpcApi}));
+app.use('/v0/channels', channelsRouter({lnd_grpc_api: lnd}));
+app.use('/v0/connections', connectionsRouter({lnd_grpc_api: lnd}));
+app.use('/v0/history', historyRouter({lnd_grpc_api: lnd}));
+app.use('/v0/invoices', invoicesRouter({lnd_grpc_api: lnd, wss}));
+app.use('/v0/network_info', networkInfoRouter({lnd_grpc_api: lnd}));
+app.use('/v0/payment_request', payReqRouter({lnd_grpc_api: lnd}));
+app.use('/v0/payments', paymentsRouter({lnd_grpc_api: lnd, wss}));
+app.use('/v0/peers', peersRouter({lnd_grpc_api: lnd}));
+app.use('/v0/purchased', purchasedRouter({lnd_grpc_api: lnd}));
+app.use('/v0/transactions', transactionsRouter({lnd_grpc_api: lnd, wss}));
+app.use('/v0/wallet_info', walletInfoRouter({lnd_grpc_api: lnd}));
 
-subscribeToInvoices({lnd_grpc_api: lndGrpcApi, wss});
-subscribeToTransactions({lnd_grpc_api: lndGrpcApi, wss});
+subscribeToInvoices({lnd_grpc_api: lnd, wss});
+subscribeToTransactions({lnd_grpc_api: lnd, wss});
 
 wss.on('connection', (ws) => {
   const location = url.parse(ws.upgradeReq.url, true);

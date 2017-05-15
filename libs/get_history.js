@@ -22,7 +22,7 @@ const getTransactions = require('./get_transactions');
     id: <String>
     [memo]: <String>
     outgoing: <Bool>
-    [payment]: <Payment Request String>
+    [payment_request]: <Payment Request String>
     tokens: <Satoshi Number>
     type: <Type String>
   }]

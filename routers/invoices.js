@@ -8,6 +8,7 @@ const returnJson = require('./../libs/return_json');
 
   {
     lnd_grpc_api: <LND API>
+    wss: <Websocket Server>
   }
 
   @returns
@@ -15,7 +16,8 @@ const returnJson = require('./../libs/return_json');
 
   POST /
   {
-    memo: <String>
+    include_address: <Address String>
+    memo: <Memo String>
     tokens: <Tokens Number>
   }
 */
@@ -35,9 +37,11 @@ module.exports = (args) => {
 
   router.post('/', (req, res, next) => {
     return createInvoice({
+      include_address: req.body.include_address,
       lnd_grpc_api: args.lnd_grpc_api,
       memo: req.body.memo,
       tokens: req.body.tokens,
+      wss: args.wss,
     },
     returnJson({res}));
   });

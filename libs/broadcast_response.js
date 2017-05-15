@@ -10,6 +10,8 @@ const ws = require('ws');
 module.exports = (args) => {
   const stringifiedRow = JSON.stringify(args.row);
 
+  console.log('BROADCAST', args.row);
+
   args.clients.forEach((client) => {
     if (!!client && client.readyState === ws.OPEN) {
       try {

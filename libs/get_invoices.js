@@ -18,7 +18,7 @@ const msPerSecond = 1000;
     id: <RHash String>
     memo: <String>
     outgoing: <Bool>
-    payment: <Payment Request Hex Encoded String>
+    payment_request: <Payment Request Hex Encoded String>
     tokens: <Satoshi Number>
     type: <Type String>
   }]
@@ -42,7 +42,7 @@ module.exports = (args, cbk) => {
         id: createHash('sha256').update(invoice.r_preimage).digest('hex'),
         memo: invoice.memo,
         outgoing: false,
-        payment: invoice.payment_request,
+        payment_request: invoice.payment_request,
         tokens: parseInt(invoice.value),
         type: rowTypes.channel_transaction,
       };

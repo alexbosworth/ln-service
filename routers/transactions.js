@@ -8,6 +8,7 @@ const sendTransaction = require('./../libs/send_transaction');
 
   {
     lnd_grpc_api: <LND API>
+    wss: <Websocket Server>
   }
 
   @returns
@@ -32,6 +33,7 @@ module.exports = (args) => {
       address: req.body.address,
       lnd_grpc_api: args.lnd_grpc_api,
       tokens: req.body.tokens,
+      wss: args.wss,
     },
     returnJson({res}));
   });
