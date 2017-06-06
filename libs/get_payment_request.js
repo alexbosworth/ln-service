@@ -1,8 +1,10 @@
 const _ = require('lodash');
+const asyncAuto = require('async/auto');
 
+const decodePaymentRequest = require('./decode_payment_request');
 const rowTypes = require('./../config/row_types');
 
-/** Get balance
+/** Get payment request
 
   {
     lnd_grpc_api: <Object>
@@ -13,6 +15,7 @@ const rowTypes = require('./../config/row_types');
   {
     destination: <Public Key String>
     id: <Payment Request Hash String>
+    tokens: <Token Amount Number>
     type: <Type String>
   }
 */
@@ -23,25 +26,23 @@ module.exports = (args, cbk) => {
     return cbk([500, 'Missing payment request', args]);
   }
 
-  return args.lnd_grpc_api.decodePayReq({
-    pay_req: args.payment_request,
+  return asyncAuto({
+    decodedPaymentRequest: (cbk) => {
+      return decodePaymentRequest({
+        lnd_grpc_api: args.lnd_grpc_api,
+        payment_request: args.payment_request,
+      },
+      cbk);
+    },
   },
   (err, res) => {
-    if (!!err) { return cbk([500, 'Get payment request error', err]); }
-
-    if (!res.destination) { return cbk([500, 'Expected destination', res]); }
-
-    if (!res.payment_hash) { return cbk([500, 'Expected payment hash', res]); }
-
-    if (res.num_satoshis === undefined) {
-      return cbk([500, 'Expected num satoshis', res]);
-    }
+    if (!!err) { return cbk(err); }
 
     return cbk(null, {
-      destination: res.destination,
-      id: res.payment_hash,
-      tokens: parseInt(res.num_satoshis),
-      type: rowTypes.payment_request,
+      destination: res.decodedPaymentRequest.destination,
+      id: res.decodedPaymentRequest.id,
+      tokens: res.decodedPaymentRequest.tokens,
+      type: res.decodedPaymentRequest.type,
     });
   });
 };

@@ -17,8 +17,11 @@ const rowTypes = require('./../config/row_types');
   @returns via cbk
   {
     [address]: <Backup Address String>
+    created_at: <ISO 8601 Date String>
     id: <Payment Request Id String>
+    memo: <Description String>
     payment_request: <Hex Encoded Payment Request String>
+    tokens: <Tokens Number>
     type: <Type String>
   }
 */
@@ -34,6 +37,8 @@ module.exports = (args, cbk) => {
       if (!args.lnd_grpc_api || !args.tokens) {
         return cbk([500, 'Missing lnd grpc api, or tokens', args]);
       }
+
+      const createdAt = new Date().toISOString();
 
       return args.lnd_grpc_api.addInvoice({
         memo: args.memo,
@@ -51,8 +56,11 @@ module.exports = (args, cbk) => {
         }
 
         return cbk(null, {
+          created_at: createdAt,
           id: response.r_hash.toString('hex'),
+          memo: args.memo,
           payment_request: response.payment_request,
+          tokens: args.tokens,
           type: rowTypes.payment_request,
         });
       });
@@ -69,8 +77,11 @@ module.exports = (args, cbk) => {
 
     return cbk(null, {
       address: res.addAddress.address,
+      created_at: invoice.created_at,
       id: invoice.id,
+      memo: invoice.memo,
       payment_request: invoice.payment_request,
+      tokens: invoice.tokens,
       type: invoice.type,
     });
   });
