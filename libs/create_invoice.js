@@ -26,18 +26,26 @@ const rowTypes = require('./../config/row_types');
   }
 */
 module.exports = (args, cbk) => {
+  if (!args.lnd_grpc_api) {
+    return cbk([500, 'Missing lnd grpc api, or tokens', args]);
+  }
+
   return asyncAuto({
-    addAddress: (cbk) => {
+    validate: (cbk) => {
+      if (!args.tokens) {
+        return cbk([400, 'Expected tokens']);
+      }
+
+      return cbk();
+    },
+
+    addAddress: ['validate', (res, cbk) => {
       if (!args.include_address) { return cbk(); }
 
       return createAddress({lnd_grpc_api: args.lnd_grpc_api}, cbk);
-    },
+    }],
 
-    addInvoice: (cbk) => {
-      if (!args.lnd_grpc_api || !args.tokens) {
-        return cbk([500, 'Missing lnd grpc api, or tokens', args]);
-      }
-
+    addInvoice: ['validate', (res, cbk) => {
       const createdAt = new Date().toISOString();
 
       return args.lnd_grpc_api.addInvoice({
@@ -64,7 +72,7 @@ module.exports = (args, cbk) => {
           type: rowTypes.payment_request,
         });
       });
-    },
+    }],
   },
   (err, res) => {
     if (!!err) { return cbk(err); }

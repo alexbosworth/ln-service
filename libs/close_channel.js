@@ -69,9 +69,13 @@ module.exports = (args, cbk) => {
         }
       });
 
-      closeChannel.on('end', () => { console.log('END CLOSE CHANNEL'); });
+      closeChannel.on('end', () => {
+        console.log('END CLOSE CHANNEL');
+      });
 
-      closeChannel.on('error', (err) => { console.log('CLOSE CHAN ERR', err); });
+      closeChannel.on('error', (err) => {
+        console.log('CLOSE CHAN ERR', err);
+      });
 
       closeChannel.on('status', (status) => { console.log('CHSTA', status); });
 

@@ -1,4 +1,11 @@
+const _ = require('lodash');
+const asyncAuto = require('async/auto');
+const asyncMap = require('async/map');
+
 /** Get pending channels.
+
+  Both is_closing and is_opening are returned as part of a channel because
+  a channel may be opening, closing, or active.
 
   {
     lnd_grpc_api: <Object>
@@ -23,34 +30,85 @@
 module.exports = (args, cbk) => {
   if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
 
-  return args.lnd_grpc_api.pendingChannels({}, (err, res) => {
-    if (!!err) { return cbk([500, 'Get pending channels error', err]); }
+  return asyncAuto({
+    getPending: (cbk) => {
+      return args.lnd_grpc_api.pendingChannels({}, (err, res) => {
+        if (!!err) { return cbk([500, 'Get pending channels error', err]); }
 
-    if (!res || !Array.isArray(res.pending_channels)) {
-      return cbk([500, 'Expected pending channels', res]);
+        if (!res || !Array.isArray(res.pending_open_channels)) {
+          return cbk([500, 'Expected pending open channels', res]);
+        }
+
+        if (!res || !Array.isArray(res.pending_closing_channels)) {
+          return cbk([500, 'Expected pending open channels', res]);
+        }
+
+        if (!res || !Array.isArray(res.pending_force_closing_channels)) {
+          return cbk([500, 'Expected pending open channels', res]);
+        }
+
+        const openingChannelOutpoints = res.pending_open_channels.map((n) => {
+          return n.channel.channel_point;
+        });
+
+        const channels = []
+          .concat(res.pending_open_channels)
+          .concat(res.pending_closing_channels)
+          .concat(res.pending_force_closing_channels);
+
+        return cbk(null, {
+          channels: channels.map((n) => n.channel),
+          opening: openingChannelOutpoints,
+        });
+      });
+    },
+
+    pendingChannels: ['getPending', (res, cbk) => {
+      const openingOutpoints = res.getPending.opening;
+
+      return asyncMap(res.getPending.channels, (channel, cbk) => {
+        if (!channel.channel_point) {
+          return cbk([500, 'Expected channel outpoint', channel]);
+        }
+
+        const isOpening = _.includes(openingOutpoints, channel.channel_point);
+        const [transactionId, vout] = channel.channel_point.split(':');
+
+        if (channel.local_balance === undefined) {
+          return cbk([500, 'Expected local balance', channel]);
+        }
+
+        if (!channel.remote_node_pub) {
+          return cbk([500, 'Expected remote node pub', channel]);
+        }
+
+        if (channel.remote_balance === undefined) {
+          return cbk([500, 'Expected remote balance', channel]);
+        }
+
+        return cbk(null, {
+          is_active: false,
+          is_closing: !isOpening,
+          is_opening: isOpening,
+          local_balance: parseInt(channel.local_balance),
+          partner_public_key: channel.remote_node_pub,
+          received: 0,
+          remote_balance: parseInt(channel.remote_balance),
+          sent: 0,
+          transaction_id: transactionId,
+          transaction_vout: parseInt(vout),
+          transfers_count: 0,
+        });
+      },
+      cbk);
+    }],
+  },
+  (err, res) => {
+    if (!!err) {
+      return cbk(err);
     }
 
-    const channels = res.pending_channels.map((channel) => {
-      const tx = channel.closing_txid || channel.channel_point;
-
-      const [transactionId, vout] = tx.split(':');
-
-      return {
-        is_active: false,
-        is_closing: !!channel.closing_txid,
-        is_opening: channel.status === 'OPENING',
-        local_balance: parseInt(channel.local_balance),
-        partner_public_key: channel.identity_key,
-        received: 0,
-        remote_balance: parseInt(channel.remote_balance),
-        sent: 0,
-        transaction_id: transactionId,
-        transaction_vout: parseInt(vout),
-        transfers_count: 0,
-      };
-    });
-
-    return cbk(null, channels);
+    return cbk(null, res.pendingChannels);
   });
 };
 

@@ -19,7 +19,8 @@ module.exports = (args) => {
     return broadcastResponse({
       clients: args.wss.clients,
       row: {
-        block_id: tx.block_hash || undefined,
+        block_id: tx.block_hash || null,
+        confirmation_count: !tx.block_hash ? 0 : 1,
         confirmed: !!tx.block_hash,
         fee: parseInt(tx.total_fees),
         id: tx.tx_hash,

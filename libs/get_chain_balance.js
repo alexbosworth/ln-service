@@ -16,11 +16,11 @@ module.exports = (args, cbk) => {
   return args.lnd_grpc_api.walletBalance({}, (err, res) => {
     if (!!err) { return cbk([500, 'Get chain balance error', err]); }
 
-    if (!res || !_(res.balance).isNumber()) {
+    if (!res || res.balance === undefined) {
       return cbk([500, 'Expected balance', res]);
     }
 
-    return cbk(null, res.balance * smallTokenUnitsPerBigUnit);
+    return cbk(null, parseInt(res.balance));
   });
 };
 

@@ -12,6 +12,7 @@ const rowTypes = require('./../config/row_types');
 
   @returns via cbk
   {
+    confirmation_count: <Number>
     confirmed: <Bool>
     id: <Transaction Id String>
     outgoing: <Bool>
@@ -40,6 +41,7 @@ module.exports = (args, cbk) => {
     console.log('SEND COINS RESPONSE', response);
 
     const transaction = {
+      confirmation_count: 0,
       confirmed: false,
       id: response.txid,
       outgoing: true,

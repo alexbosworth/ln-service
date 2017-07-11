@@ -2,6 +2,7 @@ const _ = require('lodash');
 const asyncAuto = require('async/auto');
 
 const decodePaymentRequest = require('./decode_payment_request');
+
 const rowTypes = require('./../config/row_types');
 
 /** Get payment request
@@ -39,6 +40,7 @@ module.exports = (args, cbk) => {
     if (!!err) { return cbk(err); }
 
     return cbk(null, {
+      confirmed: false, // FIXME: - make this real
       destination: res.decodedPaymentRequest.destination,
       id: res.decodedPaymentRequest.id,
       tokens: res.decodedPaymentRequest.tokens,

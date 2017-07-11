@@ -11,6 +11,7 @@ const rowTypes = require('./../config/row_types');
   @returns via cbk
   [{
     [block_id]: <Block Hash String>
+    confirmation_count: <Number>
     confirmed: <Bool>
     created_at: <Created ISO 8601 Date String>
     fee: <Fees Paid Satoshi Number>
@@ -34,8 +35,9 @@ module.exports = (args, cbk) => {
       const date = new Date(parseInt(transaction.time_stamp) * msPerSec);
 
       return {
-        block_id: transaction.block_hash,
+        block_id: transaction.block_hash || null,
         confirmed: !!transaction.num_confirmations,
+        confirmation_count: !transaction.num_confirmations ? 0 : 1,
         created_at: date.toISOString(),
         fee: parseInt(transaction.total_fees),
         id: transaction.tx_hash,

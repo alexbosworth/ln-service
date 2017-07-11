@@ -22,7 +22,7 @@ module.exports = (args) => {
   router.get('/:rhash', (req, res, next) => {
     return lookupInvoice({
       lnd_grpc_api: args.lnd_grpc_api,
-      rhash: req.params.rhash,
+      id: req.params.rhash,
     },
     returnJson({res}));
   });

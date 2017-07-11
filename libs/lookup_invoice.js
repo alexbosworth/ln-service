@@ -16,12 +16,12 @@ const rowTypes = require('./../config/row_types');
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd_grpc_api || !args.rhash) {
-    return cbk([500, 'Missing lnd grpc api or rhash', args]);
+  if (!args.lnd_grpc_api || !args.id) {
+    return cbk([500, 'Missing lnd grpc api or id', args]);
   }
 
   return args.lnd_grpc_api.lookupInvoice({
-    r_hash_str: args.rhash,
+    r_hash_str: args.id,
   },
   (err, response) => {
     if (!!err) { return cbk([500, 'Lookup invoice error', err]); }
