@@ -68,13 +68,14 @@ subscribeToInvoices({lnd_grpc_api: lnd, wss});
 subscribeToTransactions({lnd_grpc_api: lnd, wss});
 
 wss.on('connection', (ws) => {
-  const location = url.parse(ws.upgradeReq.url, true);
-
-  ws.on('message', (message) => { console.log('received: %s', message); });
+  ws.on('message', (message) => {
+    // FIXME: - parse messages sent through socket
+    return console.log(`received: ${message}`);
+  });
 });
 
 server.listen(10554, () => {
-  console.log('Listening on %d', server.address().port);
+  console.log(`Listening on ${server.address().port}`);
 });
 
 if (process.env.NODE_ENV !== 'production') {

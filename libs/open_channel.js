@@ -2,6 +2,8 @@ const asyncAuto = require('async/auto');
 
 const getChainBalance = require('./get_chain_balance');
 
+const lndConfig = require('./../config/lnd');
+
 const staticFee = 1e5;
 
 /** Open a new channel.
@@ -18,14 +20,14 @@ module.exports = (args, cbk) => {
     },
 
     openChannel: ['getChainBalance', (res, cbk) => {
-      // FIXME: - cleanup and make work properly
+      const balance = res.getChainBalance;
+      const limit = lndConfig.channel_limit_satoshis;
 
-      console.log('OPENING CHANNEL', res.getChainBalance);
+      const channelAmount = balance > limit ? limit : balance;
 
       const open = args.lnd_grpc_api.openChannel({
-        local_funding_amount: res.getChainBalance - staticFee,
+        local_funding_amount: channelAmount - staticFee,
         node_pubkey: Buffer.from(args.partner_public_key, 'hex'),
-        num_confs: 1,
       });
 
       open.on('data', function(chan) {
