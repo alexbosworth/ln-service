@@ -13,6 +13,7 @@ module.exports = (args, cbk) => {
 
   const addPeer = args.lnd_grpc_api.connectPeer({
     addr: {host: args.host, pubkey: args.public_key},
+    perm: true,
   },
   (err, response) => {
     if (!!err) { return cbk([500, 'Add Peer Error', err]); }

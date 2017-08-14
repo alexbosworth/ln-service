@@ -1,3 +1,4 @@
+const basicAuth = require('express-basic-auth');
 const bodyParser = require('body-parser');
 const compress = require('compression')();
 const crypto = require('crypto');
@@ -9,6 +10,7 @@ const walnut = require('walnut');
 const ws = require('ws');
 
 const addressesRouter = require('./routers/addresses');
+const authorizer = require('./routers/authorizer');
 const balanceRouter = require('./routers/balance');
 const blockchainRouter = require('./routers/blockchain');
 const channelsRouter = require('./routers/channels');
@@ -43,10 +45,10 @@ app
 .on('error', (e) => { console.log('Listen error', e); });
 
 app.disable('x-powered-by');
-
 app.use(compress);
 app.use(bodyParser.json());
 app.use(logger(logFormat));
+app.use(basicAuth({authorizer, authorizeAsync: true}));
 
 app.use('/v0/addresses', addressesRouter({lnd_grpc_api: lnd}));
 app.use('/v0/balance', balanceRouter({lnd_grpc_api: lnd}));

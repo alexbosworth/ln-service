@@ -4,6 +4,7 @@
     "body-parser": "1.17.2",
     "compression": "1.7.0",
     "express": "4.15.4",
+    "express-basic-auth": "1.1.1",
     "grpc": "1.4.1",
     "lodash": "4.17.4",
     "morgan": "1.8.2",
@@ -12,7 +13,7 @@
     "ws": "3.1.0"
   },
   "engines": {
-    "node": "6.9.4",
+    "node": "6.11.2",
     "npm":  "3.10.10"
   },
   "main": "app.js",

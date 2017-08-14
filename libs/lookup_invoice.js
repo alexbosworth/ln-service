@@ -24,7 +24,9 @@ module.exports = (args, cbk) => {
     r_hash_str: args.id,
   },
   (err, response) => {
-    if (!!err) { return cbk([500, 'Lookup invoice error', err]); }
+    if (!!err) {
+      return cbk([500, 'Lookup invoice error', err]);
+    }
 
     if (response.memo === undefined) {
       return cbk([500, 'Missing memo', response]);

@@ -1,0 +1,4 @@
+{
+  "channel_limit_satoshis": 16777216,
+  "grpc_ssl_cipher_suites": "HIGH+ECDSA"
+}

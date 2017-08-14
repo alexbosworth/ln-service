@@ -2,6 +2,8 @@ const _ = require('lodash');
 const asyncAuto = require('async/auto');
 
 const decodePaymentRequest = require('./decode_payment_request');
+const getWalletInfo = require('./get_wallet_info');
+const lookupInvoice = require('./lookup_invoice');
 
 const rowTypes = require('./../config/row_types');
 
@@ -14,6 +16,7 @@ const rowTypes = require('./../config/row_types');
 
   @returns via cbk
   {
+    confirmed: <Settled Bool>
     destination: <Public Key String>
     id: <Payment Request Hash String>
     tokens: <Token Amount Number>
@@ -35,12 +38,37 @@ module.exports = (args, cbk) => {
       },
       cbk);
     },
+
+    getWalletInfo: (cbk) => {
+      return getWalletInfo({lnd_grpc_api: args.lnd_grpc_api}, cbk);
+    },
+
+    getPaymentConfirmationStatus: [
+      'decodedPaymentRequest',
+      'getWalletInfo',
+      (res, cbk) =>
+    {
+      const paymentPublicKey = res.decodedPaymentRequest.destination;
+
+      // Exit early when no information on the payment request is available.
+      if (res.getWalletInfo.public_key !== paymentPublicKey) {
+        return cbk(null, {});
+      }
+
+      return lookupInvoice({
+        id: res.decodedPaymentRequest.id,
+        lnd_grpc_api: args.lnd_grpc_api,
+      },
+      cbk);
+    }]
   },
   (err, res) => {
-    if (!!err) { return cbk(err); }
+    if (!!err) {
+      return cbk(err);
+    }
 
     return cbk(null, {
-      confirmed: false, // FIXME: - make this real
+      confirmed: !!res.getPaymentConfirmationStatus.settled,
       destination: res.decodedPaymentRequest.destination,
       id: res.decodedPaymentRequest.id,
       tokens: res.decodedPaymentRequest.tokens,
