@@ -28,6 +28,7 @@ const rowTypes = require('./config/row_types');
 const subscribeToInvoices = require('./push/invoices');
 const subscribeToTransactions = require('./push/transactions');
 const transactionsRouter = require('./routers/transactions');
+const verifyClient = require('./push/verify_client');
 const walletInfoRouter = require('./routers/wallet_info');
 
 const lndGrpcHost = 'localhost:10009';
@@ -38,7 +39,7 @@ const app = express();
 const lnd = lndGrpcInterface('./config/grpc.proto', lndGrpcHost);
 
 const server = http.createServer(app);
-const wss = new ws.Server({server});
+const wss = new ws.Server({server, verifyClient});
 
 app
 .listen(port, () => { console.log(`Listening on port: ${port}`); })

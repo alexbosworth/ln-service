@@ -25,7 +25,7 @@ module.exports = (args) => {
         fee: parseInt(tx.total_fees),
         id: tx.tx_hash,
         outgoing: parseInt(tx.amount) < 0,
-        tokens: parseInt(tx.amount),
+        tokens: Math.abs(parseInt(tx.amount)),
         type: rowTypes.chain_transaction,
       },
     });
