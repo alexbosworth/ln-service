@@ -13,6 +13,7 @@ const rowTypes = require('./../config/row_types');
   {
     destination: <Public Key String>
     id: <Payment Request Hash String>
+    tokens: <Requested Tokens Number>
     type: <Type String>
   }
 */

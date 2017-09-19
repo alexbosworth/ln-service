@@ -40,7 +40,9 @@ module.exports = (args, cbk) => {
     },
 
     addAddress: ['validate', (res, cbk) => {
-      if (!args.include_address) { return cbk(); }
+      if (!args.include_address) {
+        return cbk();
+      }
 
       return createAddress({lnd_grpc_api: args.lnd_grpc_api}, cbk);
     }],
@@ -53,7 +55,9 @@ module.exports = (args, cbk) => {
         value: args.tokens,
       },
       (err, response) => {
-        if (!!err) { return cbk([500, 'Add invoice error', err]); }
+        if (!!err) {
+          return cbk([500, 'Add invoice error', err]);
+        }
 
         if (!response.payment_request) {
           return cbk([500, 'No payment request']);
@@ -75,13 +79,17 @@ module.exports = (args, cbk) => {
     }],
   },
   (err, res) => {
-    if (!!err) { return cbk(err); }
+    if (!!err) {
+      return cbk(err);
+    }
 
     const invoice = res.addInvoice;
 
     broadcastResponse({clients: args.wss.clients, row: invoice});
 
-    if (!res.addAddress) { return cbk(null, invoice); }
+    if (!res.addAddress) {
+      return cbk(null, invoice);
+    }
 
     return cbk(null, {
       address: res.addAddress.address,
