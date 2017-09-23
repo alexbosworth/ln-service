@@ -11,9 +11,11 @@ const intBase = 10;
   }
 
   @returns via cbk
-  [{
-    fee: <Route Fee Tokens Number>
-  }]
+  {
+    routes: [{
+      fee: <Route Fee Tokens Number>
+    }]
+  }
 */
 module.exports = (args, cbk) => {
   if (!args.lnd_grpc_api) {
@@ -45,9 +47,11 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Expected valid routes']);
     }
 
-    return cbk(null, res.routes.map((route) => {
+    const routes = res.routes.map((route) => {
       return {fee: parseInt(route.total_fees, intBase)};
-    }));
+    });
+
+    return cbk(null, {routes});
   });
 };
 

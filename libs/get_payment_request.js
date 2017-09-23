@@ -20,6 +20,7 @@ const rowTypes = require('./../config/row_types');
     confirmed: <Settled Bool>
     destination: <Public Key String>
     id: <Payment Request Hash String>
+    routes: [{fee: <Route Fee Tokens Number>}]
     tokens: <Token Amount Number>
     type: <Type String>
   }
@@ -81,7 +82,7 @@ module.exports = (args, cbk) => {
       confirmed: !!res.getPaymentConfirmationStatus.settled,
       destination: res.decodedPaymentRequest.destination,
       id: res.decodedPaymentRequest.id,
-      routes: res.getRoutes,
+      routes: res.getRoutes.routes,
       tokens: res.decodedPaymentRequest.tokens,
       type: res.decodedPaymentRequest.type,
     });
