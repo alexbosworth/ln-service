@@ -1,6 +1,8 @@
 const broadcastResponse = require('./broadcast_response');
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
+
 /** Send tokens in a blockchain transaction.
 
   {
@@ -45,7 +47,7 @@ module.exports = (args, cbk) => {
       confirmed: false,
       id: response.txid,
       outgoing: true,
-      tokens: parseInt(args.tokens),
+      tokens: parseInt(args.tokens, intBase),
       type: rowTypes.chain_transaction,
     };
 

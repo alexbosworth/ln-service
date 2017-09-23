@@ -4,6 +4,7 @@ const request = require('request');
 
 const centsPerUnit = 100;
 const coindeskApi = 'https://api.coindesk.com/v1/';
+const intBase = 10;
 const remoteServiceTimeoutMs = 20 * 1000;
 
 /** Get the number of cents for a Bitcoin
@@ -45,7 +46,7 @@ module.exports = (args, cbk) => {
 
       if (!rate) { return cbk([500, 'Expected currency rate']); }
 
-      const cents = parseInt((rate * centsPerUnit).toFixed());
+      const cents = parseInt((rate * centsPerUnit, intBase).toFixed());
 
       return cbk(null, {cents_per_bitcoin: cents});
     });

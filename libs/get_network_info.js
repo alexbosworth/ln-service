@@ -20,7 +20,9 @@ const rowTypes = require('./../config/row_types');
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
+  if (!args.lnd_grpc_api) {
+    return cbk([500, 'Missing lnd grpc api', args]);
+  }
 
   return args.lnd_grpc_api.getNetworkInfo({}, (err, networkInfo) => {
     if (!!err) { return cbk([500, 'Get network info error', err]); }

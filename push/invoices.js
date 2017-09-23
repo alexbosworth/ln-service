@@ -3,6 +3,8 @@ const createHash = require('crypto').createHash;
 const broadcastResponse = require('./../libs/broadcast_response');
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
+
 /** Subscribe to invoices.
 
   {
@@ -25,7 +27,7 @@ module.exports = (args) => {
         id: createHash('sha256').update(tx.r_preimage).digest('hex'),
         memo: tx.memo,
         outgoing: false,
-        tokens: parseInt(tx.value),
+        tokens: parseInt(tx.value, intBase),
         type: rowTypes.channel_transaction,
       },
     });

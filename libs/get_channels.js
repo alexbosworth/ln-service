@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 
+const intBase = 10;
+
 /** Get channels
 
   {
@@ -110,22 +112,22 @@ module.exports = (args, cbk) => {
         const [transactionId, vout] = channel.channel_point.split(':');
 
         return cbk(null, {
-          capacity: parseInt(channel.capacity),
-          commit_transaction_fee: parseInt(channel.commit_fee),
-          commit_transaction_weight: parseInt(channel.commit_weight),
+          capacity: parseInt(channel.capacity, intBase),
+          commit_transaction_fee: parseInt(channel.commit_fee, intBase),
+          commit_transaction_weight: parseInt(channel.commit_weight, intBase),
           id: channel.chan_id,
           is_active: channel.active,
           is_closing: false,
           is_opening: false,
-          local_balance: parseInt(channel.local_balance),
+          local_balance: parseInt(channel.local_balance, intBase),
           partner_public_key: channel.remote_pubkey,
-          received: parseInt(channel.total_satoshis_received),
-          remote_balance: parseInt(channel.remote_balance),
-          sent: parseInt(channel.total_satoshis_sent),
+          received: parseInt(channel.total_satoshis_received, intBase),
+          remote_balance: parseInt(channel.remote_balance, intBase),
+          sent: parseInt(channel.total_satoshis_sent, intBase),
           transaction_id: transactionId,
-          transaction_vout: parseInt(vout),
-          transfers_count: parseInt(channel.num_updates),
-          unsettled_balance: parseInt(channel.unsettled_balance),
+          transaction_vout: parseInt(vout, intBase),
+          transfers_count: parseInt(channel.num_updates, intBase),
+          unsettled_balance: parseInt(channel.unsettled_balance, intBase),
         });
       },
       cbk);

@@ -1,5 +1,7 @@
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
+
 /** Get connected peers.
 
   {
@@ -33,14 +35,14 @@ module.exports = (args, cbk) => {
 
     const peers = res.peers.map((peer) => {
       return {
-        bytes_received: parseInt(peer.bytes_recv),
-        bytes_sent: parseInt(peer.bytes_sent),
+        bytes_received: parseInt(peer.bytes_recv, intBase),
+        bytes_sent: parseInt(peer.bytes_sent, intBase),
         id: peer.peer_id,
         network_address: peer.address,
-        ping_time: Math.round(parseInt(peer.ping_time) / 1000),
+        ping_time: Math.round(parseInt(peer.ping_time, intBase) / 1000),
         public_key: peer.pub_key,
-        tokens_received: parseInt(peer.sat_recv),
-        tokens_sent: parseInt(peer.sat_sent),
+        tokens_received: parseInt(peer.sat_recv, intBase),
+        tokens_sent: parseInt(peer.sat_sent, intBase),
         type: rowTypes.peer,
       };
     });

@@ -2,6 +2,8 @@ const _ = require('lodash');
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 
+const intBase = 10;
+
 /** Get pending channels.
 
   Both is_closing and is_opening are returned as part of a channel because
@@ -90,13 +92,13 @@ module.exports = (args, cbk) => {
           is_active: false,
           is_closing: !isOpening,
           is_opening: isOpening,
-          local_balance: parseInt(channel.local_balance),
+          local_balance: parseInt(channel.local_balance, intBase),
           partner_public_key: channel.remote_node_pub,
           received: 0,
-          remote_balance: parseInt(channel.remote_balance),
+          remote_balance: parseInt(channel.remote_balance, intBase),
           sent: 0,
           transaction_id: transactionId,
-          transaction_vout: parseInt(vout),
+          transaction_vout: parseInt(vout, intBase),
           transfers_count: 0,
         });
       },

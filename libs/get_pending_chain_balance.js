@@ -1,3 +1,5 @@
+const intBase = 10;
+
 /** Get pending chain balance.
 
   {
@@ -17,7 +19,7 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Expected total limbo balance', res]);
     }
 
-    return cbk(null, parseInt(res.total_limbo_balance));
+    return cbk(null, parseInt(res.total_limbo_balance, intBase));
   });
 };
 

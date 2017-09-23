@@ -2,6 +2,8 @@ const _ = require('lodash');
 
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
+
 /** Get decoded payment request
 
   {
@@ -34,14 +36,14 @@ module.exports = (args, cbk) => {
 
     if (!res.payment_hash) { return cbk([500, 'Expected payment hash', res]); }
 
-    if (res.num_satoshis === undefined) {
+    if (!_.isFinite(parseInt(res.num_satoshis, intBase))) {
       return cbk([500, 'Expected num satoshis', res]);
     }
 
     return cbk(null, {
       destination: res.destination,
       id: res.payment_hash,
-      tokens: parseInt(res.num_satoshis),
+      tokens: parseInt(res.num_satoshis, intBase),
       type: rowTypes.payment_request,
     });
   });

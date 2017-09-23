@@ -2,6 +2,8 @@ const msPerSecond = 1000;
 
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
+
 /** Get payments made through channels.
 
   {
@@ -32,17 +34,17 @@ module.exports = (args, cbk) => {
     // FIXME: - find any missing expected values, do this map async
 
     const payments = res.payments.map((payment) => {
-      const creationDate = parseInt(payment.creation_date) * msPerSecond;
+      const creationDate = parseInt(payment.creation_date, intBase);
 
       return {
         confirmed: true,
-        created_at: new Date(creationDate).toISOString(),
+        created_at: new Date(creationDate * msPerSecond).toISOString(),
         destination: payment.path[payment.path.length - 1],
-        fee: parseInt(payment.fee),
+        fee: parseInt(payment.fee, intBase),
         hops: payment.path.length - 1,
         id: payment.payment_hash,
         outgoing: true,
-        tokens: parseInt(payment.value),
+        tokens: parseInt(payment.value, intBase),
         type: rowTypes.channel_transaction,
       };
     });

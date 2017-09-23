@@ -1,6 +1,8 @@
 const broadcastResponse = require('./../libs/broadcast_response');
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
+
 /** Subscribe to transactions.
 
   {
@@ -22,10 +24,10 @@ module.exports = (args) => {
         block_id: tx.block_hash || null,
         confirmation_count: !tx.block_hash ? 0 : 1,
         confirmed: !!tx.block_hash,
-        fee: parseInt(tx.total_fees),
+        fee: parseInt(tx.total_fees, intBase),
         id: tx.tx_hash,
-        outgoing: parseInt(tx.amount) < 0,
-        tokens: Math.abs(parseInt(tx.amount)),
+        outgoing: parseInt(tx.amount, intBase) < 0,
+        tokens: Math.abs(parseInt(tx.amount, intBase)),
         type: rowTypes.chain_transaction,
       },
     });

@@ -3,6 +3,8 @@ const createHash = require('crypto').createHash;
 const broadcastResponse = require('./broadcast_response');
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
+
 /** Send a channel payment.
 
   {
@@ -38,11 +40,11 @@ module.exports = (args, cbk) => {
 
     const transaction = {
       confirmed: true,
-      fee: parseInt(res.payment_route.total_fees),
+      fee: parseInt(res.payment_route.total_fees, intBase),
       hops: res.payment_route.hops.length,
       id: createHash('sha256').update(res.payment_preimage).digest('hex'),
       outgoing: true,
-      tokens: parseInt(res.payment_route.total_amt),
+      tokens: parseInt(res.payment_route.total_amt, intBase),
       type: rowTypes.channel_transaction,
     };
 

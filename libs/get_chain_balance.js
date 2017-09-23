@@ -1,5 +1,7 @@
 const _ = require('lodash');
-const smallTokenUnitsPerBigUnit = 100000000;
+
+const intBase = 10;
+const smallTokenUnitsPerBigUnit = 1e8;
 
 /** Get balance on the chain.
 
@@ -20,7 +22,7 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Expected balance', res]);
     }
 
-    return cbk(null, parseInt(res.balance));
+    return cbk(null, parseInt(res.balance, intBase));
   });
 };
 

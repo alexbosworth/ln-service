@@ -3,6 +3,7 @@ const createHash = require('crypto').createHash;
 
 const rowTypes = require('./../config/row_types');
 
+const intBase = 10;
 const msPerSecond = 1000;
 
 /** Get all created invoices.
@@ -34,16 +35,16 @@ module.exports = (args, cbk) => {
     // FIXME: - find any missing expected values, do this map async
 
     const invoices = res.invoices.map((invoice) => {
-      const creationDate = parseInt(invoice.creation_date) * msPerSecond;
+      const creationEpochDate = parseInt(invoice.creation_date, intBase);
 
       return {
         confirmed: invoice.settled,
-        created_at: new Date(creationDate).toISOString(),
+        created_at: new Date(creationEpochDate * msPerSecond).toISOString(),
         id: createHash('sha256').update(invoice.r_preimage).digest('hex'),
         memo: invoice.memo,
         outgoing: false,
         payment_request: invoice.payment_request,
-        tokens: parseInt(invoice.value),
+        tokens: parseInt(invoice.value, intBase),
         type: rowTypes.channel_transaction,
       };
     });

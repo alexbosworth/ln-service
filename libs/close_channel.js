@@ -1,5 +1,8 @@
 const asyncAuto = require('async/auto');
 
+const intBase = 10;
+const separatorChar = ':';
+
 /** Close a channel.
 
   {
@@ -11,31 +14,45 @@ const asyncAuto = require('async/auto');
   {}
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
+  if (!args.lnd_grpc_api) {
+    return cbk([500, 'Missing lnd grpc api', args]);
+  }
 
   return asyncAuto({
     getChannel: (cbk) => {
-      if (!args.id) { return cbk([400, 'Expected channel id']); }
+      if (!args.id) {
+        return cbk([400, 'Expected channel id']);
+      }
 
       return args.lnd_grpc_api.getChanInfo({
         chan_id: args.id,
       },
       (err, response) => {
-        if (!!err) { return cbk([500, 'Get chan err', err]); }
+        if (!!err) {
+          return cbk([500, 'Get chan err', err]);
+        }
 
-        if (!response) { return cbk([500, 'Expected response']); }
+        if (!response) {
+          return cbk([500, 'Expected response']);
+        }
 
-        if (!response.chan_point) { return cbk([500, 'Expected outpoint']); }
+        if (!response.chan_point) {
+          return cbk([500, 'Expected outpoint']);
+        }
 
-        const [transactionId, vout] = response.chan_point.split(':');
+        const [transactionId, vout] = response.chan_point.split(separatorChar);
 
-        if (!transactionId) { return cbk([500, 'Expected transaction id']); }
+        if (!transactionId) {
+          return cbk([500, 'Expected transaction id']);
+        }
 
-        if (vout === undefined) { return cbk([500, 'Expected vout']); }
+        if (!_.isFinite(parseInt(vout, intBase))) {
+          return cbk([500, 'Expected vout']);
+        }
 
         return cbk(null, {
           transaction_id: transactionId,
-          transaction_vout: parseInt(vout),
+          transaction_vout: parseInt(vout, intBase),
         });
       });
     },
@@ -83,7 +100,9 @@ module.exports = (args, cbk) => {
     }],
   },
   (err, res) => {
-    if (!!err) { return cbk(err); }
+    if (!!err) {
+      return cbk(err);
+    }
 
     return cbk();
   });

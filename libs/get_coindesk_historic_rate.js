@@ -4,6 +4,8 @@ const request = require('request');
 const API = 'https://api.coindesk.com/v1/';
 const REMOTE_SERVICE_TIMEOUT_MS = 20 * 1000;
 
+const intBase = 10;
+
 /** Get the number of USD cents for a Bitcoin
 
   {
@@ -38,7 +40,7 @@ module.exports = (args, cbk) => {
         return go_on([500, 'Expected price', body]);
       }
 
-      const cents = parseInt((body.bpi[startDate] * 100).toFixed());
+      const cents = parseInt((body.bpi[startDate] * 100, intBase).toFixed());
 
       return cbk(null, cents);
     });

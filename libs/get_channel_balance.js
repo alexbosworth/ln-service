@@ -1,5 +1,7 @@
 const _ = require('lodash');
 
+const intBase = 10;
+
 /** Get balance across channels.
 
   {
@@ -19,7 +21,7 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Expected channel balance', res]);
     }
 
-    return cbk(null, parseInt(res.balance));
+    return cbk(null, parseInt(res.balance, intBase));
   });
 };
 

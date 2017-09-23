@@ -1,6 +1,7 @@
-const msPerSec = 1e3;
-
 const rowTypes = require('./../config/row_types');
+
+const intBase = 10;
+const msPerSec = 1e3;
 
 /** Get Blockchain transactions.
 
@@ -32,17 +33,17 @@ module.exports = (args, cbk) => {
     }
 
     const transactions = res.transactions.map((transaction) => {
-      const date = new Date(parseInt(transaction.time_stamp) * msPerSec);
+      const dateTime = parseInt(transaction.time_stamp, intBase) * msPerSec;
 
       return {
         block_id: transaction.block_hash || null,
         confirmed: !!transaction.num_confirmations,
         confirmation_count: !transaction.num_confirmations ? 0 : 1,
-        created_at: date.toISOString(),
-        fee: parseInt(transaction.total_fees),
+        created_at: new Date(dateTime).toISOString(),
+        fee: parseInt(transaction.total_fees, intBase),
         id: transaction.tx_hash,
-        outgoing: (parseInt(transaction.amount) < 0),
-        tokens: Math.abs(parseInt(transaction.amount)),
+        outgoing: (parseInt(transaction.amount, intBase) < 0),
+        tokens: Math.abs(parseInt(transaction.amount, intBase)),
         type: rowTypes.chain_transaction,
       };
     });

@@ -2,6 +2,7 @@ const _ = require('lodash');
 const asyncAuto = require('async/auto');
 
 const decodePaymentRequest = require('./decode_payment_request');
+const getRoutes = require('./get_routes');
 const getWalletInfo = require('./get_wallet_info');
 const lookupInvoice = require('./lookup_invoice');
 
@@ -43,6 +44,15 @@ module.exports = (args, cbk) => {
       return getWalletInfo({lnd_grpc_api: args.lnd_grpc_api}, cbk);
     },
 
+    getRoutes: ['decodedPaymentRequest', (res, cbk) => {
+      return getRoutes({
+        destination: res.decodedPaymentRequest.destination,
+        lnd_grpc_api: args.lnd_grpc_api,
+        tokens: res.decodedPaymentRequest.tokens,
+      },
+      cbk);
+    }],
+
     getPaymentConfirmationStatus: [
       'decodedPaymentRequest',
       'getWalletInfo',
@@ -71,6 +81,7 @@ module.exports = (args, cbk) => {
       confirmed: !!res.getPaymentConfirmationStatus.settled,
       destination: res.decodedPaymentRequest.destination,
       id: res.decodedPaymentRequest.id,
+      routes: res.getRoutes,
       tokens: res.decodedPaymentRequest.tokens,
       type: res.decodedPaymentRequest.type,
     });

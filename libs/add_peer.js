@@ -16,7 +16,9 @@ module.exports = (args, cbk) => {
     perm: true,
   },
   (err, response) => {
-    if (!!err) { return cbk([500, 'Add Peer Error', err]); }
+    if (!!err) {
+      return cbk([500, 'Add Peer Error', err]);
+    }
 
     return cbk();
   });
