@@ -2,6 +2,14 @@ const _ = require('lodash');
 
 const intBase = 10;
 
+const pathNotFoundErrors = [
+  'noPathFound',
+  'noRouteFound',
+  'insufficientCapacity',
+  'maxHopsExceeded',
+  'targetNotInNetwork',
+];
+
 /** Get routes
 
   {
@@ -31,8 +39,13 @@ module.exports = (args, cbk) => {
     pub_key: args.destination,
   },
   (err, res) => {
+    // Exit early when an error indicates that no routes are possible
+    if (!!err && _.isFinite(err.code) && !!pathNotFoundErrors[err.code]) {
+      return cbk(null, {routes: []});
+    }
+
     if (!!err) {
-      return cbk(err);
+      return cbk([500, 'Unexpected error getting routes', err]);
     }
 
     if (!res || !Array.isArray(res.routes)) {
