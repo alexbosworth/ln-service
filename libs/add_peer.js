@@ -1,4 +1,4 @@
-/** Add a peer.
+/** Add a peer if possible (not self, or already connected)
 
   {
     host: <Host String>
@@ -16,6 +16,14 @@ module.exports = (args, cbk) => {
     perm: true,
   },
   (err, response) => {
+    if (!!err && !!err.message && /already.connected.to/.test(err.message)) {
+      return cbk();
+    }
+
+    if (!!err && !!err.message && /connection.to.self/.test(err.message)) {
+      return cbk();
+    }
+
     if (!!err) {
       return cbk([500, 'Add Peer Error', err]);
     }

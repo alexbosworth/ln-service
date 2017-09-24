@@ -36,7 +36,9 @@ module.exports = (args, cbk) => {
     payment_request: args.payment_request,
   },
   (err, res) => {
-    if (!!err) { return cbk([500, 'Send payment err', err, res]); }
+    if (!!err) {
+      return cbk([500, 'Send payment err', err, res]);
+    }
 
     const transaction = {
       confirmed: true,
