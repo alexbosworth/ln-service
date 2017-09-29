@@ -7,6 +7,7 @@ const rowTypes = require('./../config/row_types');
 /** Create a channel invoice.
 
   {
+    description: <Public Invoice Description String>
     include_address: <Return Backup Chain Address Bool>
     lnd_grpc_api: <Object>
     memo: <Invoice Description String>
@@ -47,10 +48,12 @@ module.exports = (args, cbk) => {
       return createAddress({lnd_grpc_api: args.lnd_grpc_api}, cbk);
     }],
 
-    addInvoice: ['validate', (res, cbk) => {
+    addInvoice: ['addAddress', 'validate', (res, cbk) => {
       const createdAt = new Date().toISOString();
 
       return args.lnd_grpc_api.addInvoice({
+        description: args.description,
+        fallback_addr: res.addAddress.address,
         memo: args.memo,
         value: args.tokens,
       },
@@ -58,6 +61,8 @@ module.exports = (args, cbk) => {
         if (!!err) {
           return cbk([500, 'Add invoice error', err]);
         }
+
+        console.log('ADD INVOICE', response);
 
         if (!response.payment_request) {
           return cbk([500, 'No payment request']);

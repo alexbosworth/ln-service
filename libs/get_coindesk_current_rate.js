@@ -36,7 +36,9 @@ module.exports = (args, cbk) => {
       url: `${coindeskApi}bpi/currentprice.json`,
     },
     (err, r, body) => {
-      if (!!err) { return cbk([500, 'Get price fail', err]); }
+      if (!!err) {
+        return cbk([500, 'Get price fail', err]);
+      }
 
       if (!body || !body.bpi || !body.bpi[args.currency_code]) {
         return cbk([500, 'Expected currency data', body]);
@@ -44,9 +46,11 @@ module.exports = (args, cbk) => {
 
       const rate = body.bpi[args.currency_code].rate_float;
 
-      if (!rate) { return cbk([500, 'Expected currency rate']); }
+      if (!rate) {
+        return cbk([500, 'Expected currency rate']);
+      }
 
-      const cents = parseInt((rate * centsPerUnit, intBase).toFixed());
+      const cents = parseInt(rate * centsPerUnit, intBase);
 
       return cbk(null, {cents_per_bitcoin: cents});
     });
