@@ -26,7 +26,9 @@ const rowTypes = require('./../config/row_types');
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
+  if (!args.lnd_grpc_api) {
+    return cbk([500, 'Missing lnd grpc api', args]);
+  }
 
   if (!args.payment_request) {
     return cbk([500, 'Missing payment request', args]);
@@ -80,6 +82,7 @@ module.exports = (args, cbk) => {
 
     return cbk(null, {
       confirmed: !!res.getPaymentConfirmationStatus.settled,
+      description: res.decodedPaymentRequest.description,
       destination: res.decodedPaymentRequest.destination,
       id: res.decodedPaymentRequest.id,
       routes: res.getRoutes.routes,

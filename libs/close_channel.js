@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const asyncAuto = require('async/auto');
 
 const intBase = 10;
