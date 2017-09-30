@@ -2,7 +2,6 @@ const _ = require('lodash');
 const asyncAuto = require('async/auto');
 
 const decodePaymentRequest = require('./decode_payment_request');
-const getRoutes = require('./get_routes');
 const getWalletInfo = require('./get_wallet_info');
 const lookupInvoice = require('./lookup_invoice');
 
@@ -20,7 +19,6 @@ const rowTypes = require('./../config/row_types');
     confirmed: <Settled Bool>
     destination: <Public Key String>
     id: <Payment Request Hash String>
-    routes: [{fee: <Route Fee Tokens Number>}]
     tokens: <Token Amount Number>
     type: <Type String>
   }
@@ -46,15 +44,6 @@ module.exports = (args, cbk) => {
     getWalletInfo: (cbk) => {
       return getWalletInfo({lnd_grpc_api: args.lnd_grpc_api}, cbk);
     },
-
-    getRoutes: ['decodedPaymentRequest', (res, cbk) => {
-      return getRoutes({
-        destination: res.decodedPaymentRequest.destination,
-        lnd_grpc_api: args.lnd_grpc_api,
-        tokens: res.decodedPaymentRequest.tokens,
-      },
-      cbk);
-    }],
 
     getPaymentConfirmationStatus: [
       'decodedPaymentRequest',
@@ -85,7 +74,6 @@ module.exports = (args, cbk) => {
       description: res.decodedPaymentRequest.description,
       destination: res.decodedPaymentRequest.destination,
       id: res.decodedPaymentRequest.id,
-      routes: res.getRoutes.routes,
       tokens: res.decodedPaymentRequest.tokens,
       type: res.decodedPaymentRequest.type,
     });
