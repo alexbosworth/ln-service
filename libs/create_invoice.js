@@ -17,7 +17,7 @@ const rowTypes = require('./../config/row_types');
 
   @returns via cbk
   {
-    [address]: <Backup Address String>
+    [chain_address]: <Backup Address String>
     created_at: <ISO 8601 Date String>
     id: <Payment Request Id String>
     memo: <Description String>
@@ -97,7 +97,7 @@ module.exports = (args, cbk) => {
     }
 
     return cbk(null, {
-      address: res.addAddress.address,
+      chain_address: res.addAddress.address,
       created_at: invoice.created_at,
       id: invoice.id,
       memo: invoice.memo,

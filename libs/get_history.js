@@ -53,7 +53,9 @@ module.exports = (args, cbk) => {
     }],
   },
   (err, res) => {
-    if (!!err) { return cbk(err); }
+    if (!!err) {
+      return cbk(err);
+    }
 
     return cbk(null, res.history);
   });

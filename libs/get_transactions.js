@@ -38,7 +38,7 @@ module.exports = (args, cbk) => {
       return {
         block_id: transaction.block_hash || null,
         confirmed: !!transaction.num_confirmations,
-        confirmation_count: !transaction.num_confirmations ? 0 : 1,
+        confirmation_count: transaction.num_confirmations || 0,
         created_at: new Date(dateTime).toISOString(),
         fee: parseInt(transaction.total_fees, intBase),
         id: transaction.tx_hash,
