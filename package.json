@@ -2,13 +2,13 @@
   "dependencies": {
     "async": "2.5.0",
     "body-parser": "1.18.2",
-    "compression": "1.7.0",
-    "express": "4.15.4",
+    "compression": "1.7.1",
+    "express": "4.16.1",
     "express-basic-auth": "1.1.2",
     "grpc": "1.6.0",
     "lodash": "4.17.4",
-    "morgan": "1.8.2",
-    "request": "2.82.0",
+    "morgan": "1.9.0",
+    "request": "2.83.0",
     "walnut": "0.0.2",
     "ws": "3.2.0"
   },

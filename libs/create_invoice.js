@@ -49,11 +49,12 @@ module.exports = (args, cbk) => {
     }],
 
     addInvoice: ['addAddress', 'validate', (res, cbk) => {
+      const fallbackAddr = !res.addAddress ? '' : res.addAddress.address;
       const createdAt = new Date().toISOString();
 
       return args.lnd_grpc_api.addInvoice({
         description: args.description,
-        fallback_addr: res.addAddress.address,
+        fallback_addr: fallbackAddr,
         memo: args.memo,
         value: args.tokens,
       },
