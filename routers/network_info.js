@@ -1,6 +1,10 @@
 const ExpressRouter = require('express').Router;
 
-const getNetworkInfo = require('./../libs/get_network_info');
+const libs = './../libs/';
+
+const getNetworkGraph = require(`${libs}get_network_graph`);
+const getNetworkInfo = require(`${libs}get_network_info`);
+const returnJson = require(`${libs}return_json`);
 
 /** Get a network info router.
 
@@ -20,7 +24,14 @@ module.exports = (args) => {
 
   const router = ExpressRouter({caseSensitive: true, strict: true});
 
-  router.get("/", (req, res) => {
+  router.get('/graph', (req, res) => {
+    return getNetworkGraph({
+      lnd_grpc_api: args.lnd_grpc_api,
+    },
+    returnJson({res}));
+  });
+
+  router.get('/', (req, res) => {
     return getNetworkInfo({
       lnd_grpc_api: args.lnd_grpc_api,
     },
