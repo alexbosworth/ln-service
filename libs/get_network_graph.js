@@ -20,7 +20,7 @@ const countGroupingFactor = 3;
       target: <Target Public Key String>
       to_self: <Target is Self Bool>
     }]
-    node: [{
+    nodes: [{
       alias: <Name String>
       community: <Community Grouping Number>
       id: <Node Public Key String>
