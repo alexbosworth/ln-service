@@ -25,7 +25,9 @@ module.exports = (args, cbk) => {
   if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
 
   return args.lnd_grpc_api.listPeers({}, (err, res) => {
-    if (!!err) { return cbk([500, 'Get peers error', err]); }
+    if (!!err) {
+      return cbk([500, 'Get peers error', err]);
+    }
 
     if (!res || !Array.isArray(res.peers)) {
       return cbk([500, 'Expected peers array', res]);

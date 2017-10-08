@@ -30,7 +30,9 @@ const intBase = 10;
   }]
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
+  if (!args.lnd_grpc_api) {
+    return cbk([500, 'Missing lnd grpc api', args]);
+  }
 
   return asyncAuto({
     getPending: (cbk) => {

@@ -37,7 +37,9 @@ module.exports = (args, cbk) => {
   return asyncAuto({
     getChannels: (cbk) => {
       return args.lnd_grpc_api.listChannels({}, (err, res) => {
-        if (!!err) { return cbk([500, 'Get channels error', err, res]); }
+        if (!!err) {
+          return cbk([500, 'Get channels error', err, res]);
+        }
 
         if (!res || !Array.isArray(res.channels)) {
           return cbk([500, 'Expected channels array', res]);

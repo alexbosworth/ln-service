@@ -18,6 +18,7 @@ const rowTypes = require('./../config/row_types');
   {
     confirmed: <Settled Bool>
     destination: <Public Key String>
+    expires_at: <ISO 8601 Date String>
     id: <Payment Request Hash String>
     tokens: <Token Amount Number>
     type: <Type String>
@@ -73,6 +74,7 @@ module.exports = (args, cbk) => {
       confirmed: !!res.getPaymentConfirmationStatus.settled,
       description: res.decodedPaymentRequest.description,
       destination: res.decodedPaymentRequest.destination,
+      expires_at: res.decodedPaymentRequest.expires_at,
       id: res.decodedPaymentRequest.id,
       tokens: res.decodedPaymentRequest.tokens,
       type: res.decodedPaymentRequest.type,
