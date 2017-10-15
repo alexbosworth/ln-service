@@ -71,7 +71,6 @@ module.exports = (args, cbk) => {
 
         return cbk(null, {
           created_at: createdAt,
-          description: args.description,
           id: response.r_hash.toString('hex'),
           memo: args.memo,
           payment_request: response.payment_request,
