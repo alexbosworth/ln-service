@@ -40,6 +40,10 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Send payment err', err, res]);
     }
 
+    if (!!res && res.payment_error) {
+      return cbk([500, 'Send payment fail', res.payment_error]);
+    }
+
     const transaction = {
       confirmed: true,
       fee: parseInt(res.payment_route.total_fees, intBase),
