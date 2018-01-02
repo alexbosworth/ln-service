@@ -86,12 +86,14 @@ module.exports = (args, cbk) => {
           return cbk([500, 'Expected token value', invoice]);
         }
 
+        const createTime = creationEpochDate * msPerSec;
+
         return cbk(null, {
           chain_address: invoice.fallback_addr || null,
           confirmed: invoice.settled,
-          created_at: new Date(creationEpochDate * msPerSec).toISOString(),
+          created_at: new Date(createTime).toISOString(),
           description_hash: !descHash.length ? null : descHash.toString('hex'),
-          expires_at: new Date(Date.now() + expiresInMs).toISOString(),
+          expires_at: new Date(createTime + expiresInMs).toISOString(),
           id: createHash('sha256').update(invoice.r_preimage).digest('hex'),
           memo: invoice.memo,
           outgoing: false,

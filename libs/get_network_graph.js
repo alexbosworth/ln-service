@@ -22,6 +22,7 @@ const countGroupingFactor = 3;
     }]
     nodes: [{
       alias: <Name String>
+      color: <Hex Encoded Color String>
       community: <Community Grouping Number>
       id: <Node Public Key String>
       is_self: <Node is Self Bool>
@@ -97,6 +98,7 @@ module.exports = (args, cbk) => {
 
         return {
           alias: n.alias,
+          color: n.color,
           community: !channelCount[n.pub_key] ? [].length : community,
           id: n.pub_key,
           is_self: n.pub_key === ownKey,
