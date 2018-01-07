@@ -30,7 +30,7 @@ module.exports = (args, cbk) => {
     return cbk([400, 'Expected known currency code']);
   }
 
-  if (!!centsPerBTC && Date.now() - centsPerBTC.date > usdCentsPerBitcoin) {
+  if (!!centsPerBTC && Date.now() - centsPerBTC.date > usdCentsCacheTimeMs) {
     return cbk(null, {cents_per_bitcoin: centsPerBTC.cents_per_bitcoin});
   }
 
