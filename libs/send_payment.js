@@ -50,6 +50,7 @@ module.exports = (args, cbk) => {
       hops: res.payment_route.hops.length,
       id: createHash('sha256').update(res.payment_preimage).digest('hex'),
       outgoing: true,
+      payment_secret: res.payment_preimage.toString('hex'),
       tokens: parseInt(res.payment_route.total_amt, intBase),
       type: rowTypes.channel_transaction,
     };
