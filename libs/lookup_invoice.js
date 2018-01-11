@@ -11,6 +11,7 @@ const rowTypes = require('./../config/row_types');
   {
     memo: <Description String>
     payment_request: <Payment Request String>
+    payment_secret: <Hex Encoded Payment Secret String>
     settled: <Finalized Bool>
     type: <Type String>
   }
@@ -36,8 +37,13 @@ module.exports = (args, cbk) => {
       return cbk([500, 'Missing settled', response]);
     }
 
+    if (!Buffer.isBuffer(response.r_preimage)) {
+      return cbk([500, 'Response preimage is not a buffer']);
+    }
+
     return cbk(null, {
       memo: response.memo,
+      payment_secret: response.r_preimage.toString('hex'),
       payment_request: response.payment_request,
       settled: response.settled,
       type: rowTypes.channel_transaction,

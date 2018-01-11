@@ -2,6 +2,8 @@ const asyncAuto = require('async/auto');
 
 const broadcastResponse = require('./broadcast_response');
 const createAddress = require('./create_address');
+const lookupInvoice = require('./lookup_invoice');
+
 const rowTypes = require('./../config/row_types');
 
 /** Create a channel invoice.
@@ -21,6 +23,7 @@ const rowTypes = require('./../config/row_types');
     id: <Payment Request Id String>
     memo: <Description String>
     payment_request: <Hex Encoded Payment Request String>
+    payment_secret: <Hex Encoded Payment Secret String>
     tokens: <Tokens Number>
     type: <Type String>
   }
@@ -79,29 +82,36 @@ module.exports = (args, cbk) => {
         });
       });
     }],
+
+    lookupInvoice: ['addInvoice', (res, cbk) => {
+      return lookupInvoice({
+        id: res.addInvoice.id,
+        lnd_grpc_api: args.lnd_grpc_api,
+      },
+      cbk);
+    }],
+
+    invoice: ['addAddress', 'addInvoice', 'lookupInvoice', (res, cbk) => {
+      return cbk(null, {
+        chain_address: !res.addAddress ? undefined : res.addAddress.address,
+        created_at: res.addInvoice.created_at,
+        id: res.addInvoice.id,
+        memo: res.addInvoice.memo,
+        payment_request: res.addInvoice.payment_request,
+        payment_secret: res.lookupInvoice.payment_secret,
+        tokens: res.addInvoice.tokens,
+        type: res.addInvoice.type,
+      });
+    }],
   },
   (err, res) => {
     if (!!err) {
       return cbk(err);
     }
 
-    const invoice = res.addInvoice;
+    broadcastResponse({clients: args.wss.clients, row: res.invoice});
 
-    broadcastResponse({clients: args.wss.clients, row: invoice});
-
-    if (!res.addAddress) {
-      return cbk(null, invoice);
-    }
-
-    return cbk(null, {
-      chain_address: res.addAddress.address,
-      created_at: invoice.created_at,
-      id: invoice.id,
-      memo: invoice.memo,
-      payment_request: invoice.payment_request,
-      tokens: invoice.tokens,
-      type: invoice.type,
-    });
+    return cbk(null, res.invoice);
   });
 };
 
