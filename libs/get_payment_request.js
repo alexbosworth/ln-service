@@ -76,6 +76,7 @@ module.exports = (args, cbk) => {
       destination: res.decodedPaymentRequest.destination,
       expires_at: res.decodedPaymentRequest.expires_at,
       id: res.decodedPaymentRequest.id,
+      payment_secret: res.getPaymentConfirmationStatus.payment_secret,
       tokens: res.decodedPaymentRequest.tokens,
       type: res.decodedPaymentRequest.type,
     });
