@@ -48,9 +48,7 @@ module.exports = (args, cbk) => {
     const createdAt = parseInt(res.timestamp, intBase) * msPerSec;
     const expiresInMs = parseInt(res.expiry, intBase) * msPerSec;
 
-    if (!_.isFinite(expiresInMs)) {
-      return cbk([500, 'Expected expiration time', res]);
-    }
+    const expiryDateMs = createdAt + expiresInMs;
 
     return cbk(null, {
       chain_address: res.fallback_addr || null,
@@ -58,7 +56,7 @@ module.exports = (args, cbk) => {
       description: res.description,
       description_hash: res.description_hash,
       destination: res.destination,
-      expires_at: new Date(Date.now() + expiresInMs).toISOString(),
+      expires_at: !res.expiry ? null : new Date(expiryDateMs).toISOString(),
       id: res.payment_hash,
       tokens: parseInt(res.num_satoshis, intBase),
       type: rowTypes.payment_request,
