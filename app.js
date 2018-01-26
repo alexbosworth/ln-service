@@ -6,6 +6,7 @@ const http = require('http');
 const logger = require('morgan');
 const walnut = require('walnut');
 const ws = require('ws');
+const lnd = require('lightning-node');
 
 const config = './config/';
 const libs = './libs/';
@@ -20,7 +21,6 @@ const channelsRouter = require(`${routers}channels`);
 const connectionsRouter = require(`${routers}connections`);
 const cryptoRouter = require(`${routers}crypto`);
 const exchangeRouter = require(`${routers}exchange`);
-const lndGrpcInterface = require(`${libs}lnd_grpc_interface`);
 const historyRouter = require(`${routers}history`);
 const invoicesRouter = require(`${routers}invoices`);
 const networkInfoRouter = require(`${routers}network_info`);
@@ -35,12 +35,10 @@ const transactionsRouter = require(`${routers}transactions`);
 const verifyClient = require(`${push}verify_client`);
 const walletInfoRouter = require(`${routers}wallet_info`);
 
-const lndGrpcHost = 'localhost:10009';
 const logFormat = ':method :url :status - :response-time ms - :user-agent';
 const port = process.env.PORT || 10553;
 
 const app = express();
-const lnd = lndGrpcInterface('./config/grpc.proto', lndGrpcHost);
 
 const server = http.createServer(app);
 const wss = new ws.Server({server, verifyClient});
