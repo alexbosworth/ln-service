@@ -20,13 +20,16 @@ module.exports = (args) => {
   const subscribeToInvoices = args.lnd_grpc_api.subscribeInvoices({});
 
   subscribeToInvoices.on('data', (tx) => {
+    const isSettled = !!tx.settled;
+
     return broadcastResponse({
       clients: args.wss.clients,
       row: {
-        confirmed: tx.settled,
+        confirmed: isSettled,
         id: createHash('sha256').update(tx.r_preimage).digest('hex'),
         memo: tx.memo,
         outgoing: false,
+        payment_secret: !isSettled ? undefined : tx.r_preimage.toString('hex'),
         tokens: parseInt(tx.value, intBase),
         type: rowTypes.channel_transaction,
       },
