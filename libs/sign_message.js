@@ -14,7 +14,9 @@ module.exports = (args, cbk) => {
     return cbk([500, 'Expected lnd grpc api, message']);
   }
 
-  return args.lnd_grpc_api.signMessage({msg: args.message}, (err, res) => {
+  const msg = Buffer.from(args.message);
+
+  return args.lnd_grpc_api.signMessage({msg}, (err, res) => {
     if (!!err) {
       return cbk([500, 'Unexpected sign message error', err]);
     }

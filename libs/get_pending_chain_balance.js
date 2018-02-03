@@ -1,3 +1,5 @@
+const asyncAuto = require('async/auto');
+
 const intBase = 10;
 
 /** Get pending chain balance.
@@ -10,16 +12,45 @@ const intBase = 10;
   <Pending Chain Balance Satoshis Number>
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd_grpc_api) { return cbk([500, 'Missing lnd grpc api', args]); }
+  return asyncAuto({
+    validate: cbk => {
+      if (!args.lnd_grpc_api) {
+        return cbk([500, 'Missing lnd grpc api', args]);
+      }
 
-  return args.lnd_grpc_api.pendingChannels({}, (err, res) => {
-    if (!!err) { return cbk([500, 'Get pending channels error', err]); }
+      return cbk();
+    },
 
-    if (!res || res.total_limbo_balance === undefined) {
-      return cbk([500, 'Expected total limbo balance', res]);
+    channelsLimboBalance: ['validate', (res, cbk) => {
+      return args.lnd_grpc_api.pendingChannels({}, (err, res) => {
+        if (!!err) { return cbk([500, 'Get pending channels error', err]); }
+
+        if (!res || res.total_limbo_balance === undefined) {
+          return cbk([500, 'Expected total limbo balance', res]);
+        }
+
+        return cbk(null, parseInt(res.total_limbo_balance, intBase));
+      });
+    }],
+
+    unconfirmedChainBalance: ['validate', (res, cbk) => {
+      return args.lnd_grpc_api.walletBalance({}, (err, res) => {
+        if (!!err) { return cbk([500, 'Get chain balance error', err]); }
+
+        if (!res || res.total_balance === undefined) {
+          return cbk([500, 'Expected balance', res]);
+        }
+
+        return cbk(null, parseInt(res.unconfirmed_balance, intBase));
+      });
+    }],
+  },
+  (err, res) => {
+    if (!!err) {
+      return cbk(err);
     }
 
-    return cbk(null, parseInt(res.total_limbo_balance, intBase));
+    return cbk(null, res.channelsLimboBalance + res.unconfirmedChainBalance);
   });
 };
 
