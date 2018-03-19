@@ -1,42 +1,29 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const libs = './../libs/';
-
-const returnJson = require(`${libs}return_json`);
-const signMessage = require(`${libs}sign_message`);
-const verifyMessage = require(`${libs}verify_message`);
+const {returnJson} = require('./../async-util');
+const {signMessage} = require('./../lightning');
+const {verifyMessage} = require('./../lightning');
 
 /** Get a crypto router
 
   {
-    lnd_grpc_api: <LND API>
+    lnd: <LND GRPC API Object>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => res.status(500).send();
-  }
+module.exports = ({lnd}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
-
-  router.post('/sign', (req, res) => {
-    return signMessage({
-      lnd_grpc_api: args.lnd_grpc_api,
-      message: req.body.message,
-    },
-    returnJson({res}));
+  router.post('/sign', ({body}, res) => {
+    return signMessage({lnd, message: body.message}, returnJson({res}));
   });
 
-  router.post('/verify', (req, res) => {
-    return verifyMessage({
-      lnd_grpc_api: args.lnd_grpc_api,
-      message: req.body.message,
-      signature: req.body.signature,
-    },
-    returnJson({res}));
+  router.post('/verify', ({body}, res) => {
+    const {message, signature} = body;
+
+    return verifyMessage({lnd, message, signature}, returnJson({res}));
   });
 
   return router;

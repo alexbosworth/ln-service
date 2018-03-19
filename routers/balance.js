@@ -1,27 +1,21 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const getBalance = require('./../libs/get_balance');
-const returnJson = require('./../libs/return_json');
+const {getBalance} = require('./../service');
+const {returnJson} = require('./../async-util');
 
 /** Get a balance router
 
   {
-    lnd_grpc_api: <LND API>
+    lnd: <LND GRPC API Object>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => { return res.status(500).send(); };
-  }
+module.exports = ({lnd}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
-
-  router.get('/', (req, res, next) => {
-    return getBalance({lnd_grpc_api: args.lnd_grpc_api}, returnJson({res}));
-  });
+  router.get('/', (_, res) => getBalance({lnd}, returnJson({res})));
 
   return router;
 };

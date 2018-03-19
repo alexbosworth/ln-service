@@ -1,36 +1,28 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const addPeer = require('./../libs/add_peer');
-const getPeers = require('./../libs/get_peers');
-const returnJson = require('./../libs/return_json');
+const {addPeer} = require('./../lightning');
+const {getPeers} = require('./../lightning');
+const {returnJson} = require('./../async-util');
 
 /** Get a peers router
 
   {
-    lnd_grpc_api: <LND API>
+    lnd: <LND GRPC API Object>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => {
-      return res.status(500).json({error: 'Invalid arguments'});
-    };
-  }
+module.exports = ({lnd}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
+  router.get('/', (_, res) => getPeers({lnd}, returnJson({res})));
 
-  router.get('/', (req, res) => {
-    return getPeers({lnd_grpc_api: args.lnd_grpc_api}, returnJson({res}));
-  });
-
-  router.post('/', (req, res) => {
+  router.post('/', ({body}, res) => {
     return addPeer({
-      host: req.body.host,
-      lnd_grpc_api: args.lnd_grpc_api,
-      public_key: req.body.public_key,
+      lnd,
+      host: body.host,
+      public_key: body.public_key,
     },
     returnJson({res}));
   });

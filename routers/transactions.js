@@ -1,41 +1,28 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const getTransactions = require('./../libs/get_transactions');
-const returnJson = require('./../libs/return_json');
-const sendTransaction = require('./../libs/send_transaction');
+const {getTransactions} = require('./../lightning');
+const {returnJson} = require('./../async-util');
+const {sendTransaction} = require('./../lightning');
 
 /** Get a transactions router.
 
   {
-    lnd_grpc_api: <LND API>
-    wss: <Websocket Server>
+    lnd: <LND GRPC API Object>
+    wss: <Websocket Server Object>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => { return res.status(500).send(); };
-  }
+module.exports = ({lnd, wss}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
+  router.get('/', (_, res) => getTransactions({lnd}, returnJson({res})));
 
-  router.get('/', (req, res) => {
-    return getTransactions({
-      lnd_grpc_api: args.lnd_grpc_api,
-    },
-    returnJson({res}));
-  });
+  router.post('/', ({body}, res) => {
+    const {address, tokens} = body;
 
-  router.post('/', (req, res) => {
-    return sendTransaction({
-      address: req.body.address,
-      lnd_grpc_api: args.lnd_grpc_api,
-      tokens: req.body.tokens,
-      wss: args.wss,
-    },
-    returnJson({res}));
+    return sendTransaction({address, lnd, tokens, wss}, returnJson({res}));
   });
 
   return router;

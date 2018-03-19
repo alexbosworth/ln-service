@@ -1,34 +1,38 @@
-const createHash = require('crypto').createHash;
+const {createHash} = require('crypto');
 
-const broadcastResponse = require('./../libs/broadcast_response');
-const rowTypes = require('./../config/row_types');
+const {broadcastResponse} = require('./../async-util');
+const {rowTypes} = require('./../lightning');
 
 const intBase = 10;
 
 /** Subscribe to invoices.
 
   {
-    lnd_grpc_api: <LND GRPC API Object>
+    lnd: <LND GRPC API Object>
     wss: <Web Socket Server Object>
   }
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api || !args.wss) {
-    return console.log([500, 'Invalid args']);
+module.exports = ({lnd, wss}) => {
+  if (!lnd) {
+    return console.log([500, 'ExpectedLnd']);
   }
 
-  const subscribeToInvoices = args.lnd_grpc_api.subscribeInvoices({});
+  if (!wss) {
+    return console.log([500, 'ExpectedWss']);
+  }
 
-  subscribeToInvoices.on('data', (tx) => {
+  const subscribeToInvoices = lnd.subscribeInvoices({});
+
+  subscribeToInvoices.on('data', tx => {
     const isSettled = !!tx.settled;
 
     return broadcastResponse({
       clients: args.wss.clients,
       row: {
-        confirmed: isSettled,
+        description: tx.memo,
         id: createHash('sha256').update(tx.r_preimage).digest('hex'),
-        memo: tx.memo,
-        outgoing: false,
+        is_confirmed: isSettled,
+        is_outgoing: false,
         payment_secret: !isSettled ? undefined : tx.r_preimage.toString('hex'),
         tokens: parseInt(tx.value, intBase),
         type: rowTypes.channel_transaction,
@@ -36,12 +40,18 @@ module.exports = (args) => {
     });
   });
 
-  subscribeToInvoices.on('end', () => { console.log("SUB INV END"); });
-
-  subscribeToInvoices.on('status', (status) => {
-    console.log('INV STATUS', status);
+  subscribeToInvoices.on('end', () => {
+    return console.log("SUB INV END");
   });
 
-  subscribeToInvoices.on('error', (err) => { console.log('INV ERROR', err); });
+  subscribeToInvoices.on('status', status => {
+    return console.log('INV STATUS', status);
+  });
+
+  subscribeToInvoices.on('error', err => {
+    return console.log('INV ERROR', err);
+  });
+
+  return;
 };
 

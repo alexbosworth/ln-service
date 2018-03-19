@@ -1,27 +1,21 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const createAddress = require('./../libs/create_address');
-const returnJson = require('./../libs/return_json');
+const {createAddress} = require('./../lightning');
+const {returnJson} = require('./../async-util');
 
 /** Get an addresses router
 
   {
-    lnd_grpc_api: <LND API>
+    lnd: <LND API>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => { return res.status(500).send(); };
-  }
+module.exports = ({lnd}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
-
-  router.post('/', (req, res, next) => {
-    return createAddress({lnd_grpc_api: args.lnd_grpc_api}, returnJson({res}));
-  });
+  router.post('/', (_, res) => createAddress({lnd}, returnJson({res})));
 
   return router;
 };

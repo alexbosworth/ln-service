@@ -1,42 +1,34 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const closeChannel = require('./../libs/close_channel');
-const getChannels = require('./../libs/get_channels');
-const openChannel = require('./../libs/open_channel');
-const returnJson = require('./../libs/return_json');
+const {closeChannel} = require('./../lightning');
+const {getChannels} = require('./../lightning');
+const {openChannel} = require('./../lightning');
+const {returnJson} = require('./../async-util');
 
 /** Get a channels router
 
   {
-    lnd_grpc_api: <LND API>
+    lnd: <LND API>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => { return res.status(500).send(); };
-  }
+module.exports = ({lnd}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
-
-  router.delete('/:id', (req, res, next) => {
-    return closeChannel({
-      id: req.params.id,
-      lnd_grpc_api: args.lnd_grpc_api,
-    },
-    returnJson({res}));
+  // End a channel
+  router.delete('/:id', ({params}, res) => {
+    return closeChannel({lnd, id: params.id}, returnJson({res}));
   });
 
-  router.get('/', (req, res, next) => {
-    return getChannels({lnd_grpc_api: args.lnd_grpc_api}, returnJson({res}));
-  });
+  // 
+  router.get('/', (_, res) => getChannels({lnd}, returnJson({res})));
 
-  router.post('/', (req, res, next) => {
+  router.post('/', ({body}, res, next) => {
     return openChannel({
-      lnd_grpc_api: args.lnd_grpc_api,
-      partner_public_key: req.body.partner_public_key,
+      lnd,
+      partner_public_key: body.partner_public_key,
     },
     returnJson({res}));
   });

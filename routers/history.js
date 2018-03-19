@@ -1,30 +1,21 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const getHistory = require('./../libs/get_history');
-const returnJson = require('./../libs/return_json');
+const {getHistory} = require('./../service');
+const {returnJson} = require('./../async-util');
 
 /** Get a history router
 
   {
-    lnd_grpc_api: <LND API>
+    lnd: <LND API>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => { return res.status(500).send(); };
-  }
+module.exports = ({lnd}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
-
-  router.get('/', (req, res, next) => {
-    return getHistory({
-      lnd_grpc_api: args.lnd_grpc_api,
-    },
-    returnJson({res}));
-  });
+  router.get('/', (_, res) => getHistory({lnd}, returnJson({res})));
 
   return router;
 };

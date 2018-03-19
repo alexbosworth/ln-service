@@ -1,30 +1,22 @@
-const ExpressRouter = require('express').Router;
+const {Router} = require('express');
 
-const lookupInvoice = require('./../libs/lookup_invoice');
-const returnJson = require('./../libs/return_json');
+const {getInvoice} = require('./../lightning');
+const {returnJson} = require('./../async-util');
 
 /** Get a purchase router
 
   {
-    lnd_grpc_api: <LND API>
+    lnd: <LND GRPC API Object>
   }
 
   @returns
   <Router Object>
 */
-module.exports = (args) => {
-  if (!args.lnd_grpc_api) {
-    return (req, res) => { return res.status(500).send(); };
-  }
+module.exports = ({lnd}) => {
+  const router = Router({caseSensitive: true, strict: true});
 
-  const router = ExpressRouter({caseSensitive: true, strict: true});
-
-  router.get('/:rhash', (req, res, next) => {
-    return lookupInvoice({
-      lnd_grpc_api: args.lnd_grpc_api,
-      id: req.params.rhash,
-    },
-    returnJson({res}));
+  router.get('/:id', ({params}, res) => {
+    return getInvoice({id: params.id, lnd}, returnJson({res}));
   });
 
   return router;

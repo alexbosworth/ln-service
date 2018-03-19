@@ -1,0 +1,4 @@
+{
+  "channel_limit_tokens": 16777216,
+  "grpc_ssl_cipher_suites": "HIGH+ECDSA"
+}

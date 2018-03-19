@@ -1,7 +1,7 @@
-const expressRouter = require('express').Router;
+const {Router} = require('express');
 
-const getCurrentRate = require('./../libs/get_bitcoinaverage_current_rate');
-const returnJson = require('./../libs/return_json');
+const {getCurrentRate} = require('./../service');
+const {returnJson} = require('./../async-util');
 
 /** Get an exchange router
 
@@ -11,12 +11,13 @@ const returnJson = require('./../libs/return_json');
   <Router Object>
 */
 module.exports = (args) => {
-  const router = expressRouter({caseSensitive: true, strict: true});
+  const router = Router({caseSensitive: true, strict: true});
 
-  router.get('/:currency_code/current_rate', (req, res) => {
+  router.get('/:currency_code/current_rate', ({params}, res) => {
     return getCurrentRate({
-      currency_code: req.params.currency_code,
-    }, returnJson({res}));
+      currency_code: params.currency_code,
+    },
+    returnJson({res}));
   });
 
   return router;
