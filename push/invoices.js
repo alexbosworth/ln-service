@@ -27,7 +27,7 @@ module.exports = ({lnd, wss}) => {
     const isSettled = !!tx.settled;
 
     return broadcastResponse({
-      clients: args.wss.clients,
+      clients: wss.clients,
       row: {
         description: tx.memo,
         id: createHash('sha256').update(tx.r_preimage).digest('hex'),
