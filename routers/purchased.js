@@ -16,7 +16,7 @@ module.exports = ({lnd}) => {
   const router = Router({caseSensitive: true, strict: true});
 
   router.get('/:id', ({params}, res) => {
-    return getInvoice({id: params.id, lnd}, returnJson({res}));
+    return getInvoice({lnd, id: params.id}, returnJson({res}));
   });
 
   return router;
