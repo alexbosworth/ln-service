@@ -9,21 +9,23 @@ const grpcSslCipherSuites = require('./conf/lnd').grpc_ssl_cipher_suites;
 const {GRPC_SSL_CIPHER_SUITES} = process.env;
 const {LNSERVICE_LND_DATADIR} = process.env;
 
-const certPath = join(LNSERVICE_LND_DATADIR, 'tls.cert');
-const macaroonPath = join(LNSERVICE_LND_DATADIR, 'data', 'admin.macaroon');
-
 /** GRPC interface to the Lightning Network Daemon (lnd).
 
   {
+    [cert]: <Base64 Serialized LND TLS Cert>
     host: <Host String>
+    [macaroon]: <Base64 Serialized Macaroon String>
     path: <Path String>
     [service]: <Service Name String>
   }
 
+  @throws
+  <Error> on grpc interface creation failure
+
   @returns
   <LND GRPC Api Object>
 */
-module.exports = ({host, path, service}) => {
+module.exports = ({cert, host, macaroon, path, service}) => {
   const rpc = grpc.load(path);
 
   // Exit early when the environment variable cipher suite is not correct
@@ -32,32 +34,51 @@ module.exports = ({host, path, service}) => {
   }
 
   // Exit early when there is no data directory specified
-  if (!LNSERVICE_LND_DATADIR) {
+  if ((!cert || !macaroon) && !LNSERVICE_LND_DATADIR) {
     throw new Error('ExpectedEnvVarLNSERVICE_LND_DATADIR');
   }
 
-  // Exit early when there is no TLS cert
-  if (!existsSync(certPath)) {
-    throw new Error('ExpectedTlsCert');
+  let certData;
+  let macaroonData;
+
+  if (!!cert) {
+    certData = Buffer.from(cert, 'base64');
+  } else {
+    const certPath = join(LNSERVICE_LND_DATADIR, 'tls.cert');
+
+    // Exit early when there is no TLS cert
+    if (!existsSync(certPath)) {
+      throw new Error('ExpectedTlsCert');
+    }
+
+    certData = readFileSync(certPath)
   }
 
-  // Exit early when there is no macaroon
-  if (!existsSync(macaroonPath)) {
-    throw new Error('ExpectedMacaroonFile');
+  if (!!macaroon) {
+    macaroonData = Buffer.from(macaroon, 'base64').toString('hex');
+  } else {
+    const macaroonPath = join(LNSERVICE_LND_DATADIR, 'admin.macaroon');
+
+    // Exit early when there is no macaroon
+    if (!existsSync(macaroonPath)) {
+      throw new Error('ExpectedMacaroonFile');
+    }
+
+    macaroonData = readFileSync(macaroonPath).toString('hex');
   }
 
-  const macaroon = grpc.credentials.createFromMetadataGenerator((_, cbk) => {
+  const macCreds = grpc.credentials.createFromMetadataGenerator((_, cbk) => {
     const metadata = new grpc.Metadata();
 
-    metadata.add('macaroon', readFileSync(macaroonPath).toString('hex'));
+    metadata.add('macaroon', macaroonData);
 
     return cbk(null, metadata);
   });
 
-  const ssl = grpc.credentials.createSsl(readFileSync(certPath));
+  const ssl = grpc.credentials.createSsl(certData);
 
-  const combined = grpc.credentials.combineChannelCredentials(ssl, macaroon);
+  const combined = grpc.credentials.combineChannelCredentials(ssl, macCreds);
 
-	return new rpc.lnrpc[service || 'Lightning'](host, combined);
+  return new rpc.lnrpc[service || 'Lightning'](host, combined);
 };
 
