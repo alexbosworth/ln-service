@@ -36,7 +36,7 @@ module.exports = ({address, lnd, tokens, wss}, cbk) => {
     return cbk([400, 'MissingTokens']);
   }
 
-  if (!wss) {
+  if (!Array.isArray(wss)) {
     return cbk([400, 'ExpectedWss']);
   }
 
@@ -58,7 +58,7 @@ module.exports = ({address, lnd, tokens, wss}, cbk) => {
       type: rowTypes.chain_transaction,
     };
 
-    broadcastResponse({row, clients: wss.clients});
+    broadcastResponse({row, wss});
 
     return cbk(null, row);
   });

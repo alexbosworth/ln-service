@@ -7,7 +7,7 @@ const {returnJson} = require('./../async-util');
 
   {
     lnd: <LND API Object>
-    wss: <Websocket Server>
+    wss: [<Websocket Server>]
   }
 
   @returns

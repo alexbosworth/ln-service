@@ -8,7 +8,7 @@ const intBase = 10;
 
   {
     lnd: <LND GRPC API Object>
-    wss: <Web Socket Server Object>
+    wss: [<Web Socket Server Object>]
   }
 */
 module.exports = ({lnd, wss}) => {
@@ -16,7 +16,7 @@ module.exports = ({lnd, wss}) => {
     return console.log([500, 'ExpectedLnd']);
   }
 
-  if (!wss) {
+  if (!Array.isArray(wss)) {
     return console.log([500, 'ExpectedWss']);
   }
 
@@ -24,7 +24,7 @@ module.exports = ({lnd, wss}) => {
 
   subscribeToTransactions.on('data', tx => {
     return broadcastResponse({
-      clients: wss.clients,
+      wss,
       row: {
         block_id: tx.block_hash || null,
         confirmation_count: !tx.block_hash ? 0 : 1,

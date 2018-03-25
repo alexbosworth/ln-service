@@ -9,7 +9,7 @@ const intBase = 10;
 
   {
     lnd: <LND GRPC API Object>
-    wss: <Web Socket Server Object>
+    wss: [<Web Socket Server Object>]
   }
 */
 module.exports = ({lnd, wss}) => {
@@ -17,7 +17,7 @@ module.exports = ({lnd, wss}) => {
     return console.log([500, 'ExpectedLnd']);
   }
 
-  if (!wss) {
+  if (!Array.isArray(wss)) {
     return console.log([500, 'ExpectedWss']);
   }
 
@@ -27,7 +27,7 @@ module.exports = ({lnd, wss}) => {
     const isSettled = !!tx.settled;
 
     return broadcastResponse({
-      clients: wss.clients,
+      wss,
       row: {
         description: tx.memo,
         id: createHash('sha256').update(tx.r_preimage).digest('hex'),

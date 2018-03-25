@@ -34,6 +34,7 @@ const {walletInfoRouter} = require('./routers');
 const {HOME} = process.env;
 const {PORT} = process.env;
 
+const httpsPort = 18554;
 const lndGrpcHost = 'localhost:10009';
 const logFormat = ':method :url :status - :response-time ms - :user-agent';
 const port = PORT || 10553;
@@ -45,21 +46,18 @@ const server = app
   .listen(port, () => console.log(`Listening HTTP on port: ${port}`))
   .on('error', e => console.log('Listen error', e));
 
-const wss = new WebSocketServer({server, verifyClient});
+const [cert, key] = ['cert', 'key']
+  .map(n => `${HOME}/.ln-service/tls.${n}`)
+  .map(n => readFileSync(n, 'utf8'));
 
-try {
-  const [cert, key] = ['cert', 'key']
-    .map(n => `${HOME}/.ln-service/tls.${n}`)
-    .map(n => readFileSync(n, 'utf8'));
+const httpsServer = https.createServer({cert, key}, app);
 
-  const httpsServer = https.createServer({cert, key}, app);
+const wss = [
+  new WebSocketServer({server, verifyClient}),
+  new WebSocketServer({server: httpsServer, verifyClient}),
+];
 
-  httpsServer.listen(18554);
-
-  console.log(`Listening HTTPS on port ${18554}`);
-} catch (e) {
-  console.log('Failed to start HTTPS Service');
-}
+httpsServer.listen(httpsPort);
 
 app.disable('x-powered-by');
 app.use(compress);
@@ -84,15 +82,6 @@ app.use('/v0/wallet_info', walletInfoRouter({lnd}));
 
 subscribeToInvoices({lnd, wss});
 subscribeToTransactions({lnd, wss});
-
-wss.on('connection', ws => {
-  ws.on('message', message => {
-    // FIXME: - parse messages sent through socket
-    return console.log(`received: ${message}`);
-  });
-
-  return;
-});
 
 if (process.env.NODE_ENV !== 'production') {
   walnut.check(require('./package'));

@@ -13,7 +13,7 @@ const rowTypes = require('./conf/row_types');
     [include_address]: <Return Backup Chain Address Bool>
     lnd: <LND GRPC API Object>
     tokens: <Tokens Number>
-    wss: <Web Socket Server Object>
+    wss: [<Web Socket Server Object>]
   }
 
   @returns via cbk
@@ -40,7 +40,7 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedTokens']);
       }
 
-      if (!args.wss) {
+      if (!Array.isArray(args.wss)) {
         return cbk([500, 'ExpectedWss']);
       }
 
@@ -112,7 +112,7 @@ module.exports = (args, cbk) => {
       return cbk(err);
     }
 
-    broadcastResponse({clients: args.wss.clients, row: res.invoice});
+    broadcastResponse({row: res.invoice, wss: args.wss});
 
     return cbk(null, res.invoice);
   });

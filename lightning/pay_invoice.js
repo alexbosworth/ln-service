@@ -11,7 +11,7 @@ const intBase = 10;
   {
     invoice: <Bolt 11 Invoice String>
     lnd: <LND GRPC API Object>
-    wss: <Web Socket Server Object>
+    wss: [<Web Socket Server Object>]
   }
 
   @returns via cbk
@@ -48,8 +48,6 @@ module.exports = ({invoice, lnd, wss}, cbk) => {
       return cbk([503, 'SendPaymentFail', res.payment_error]);
     }
 
-    const {clients} = wss;
-
     const row = {
       fee: parseInt(res.payment_route.total_fees, intBase),
       hop_count: res.payment_route.hops.length,
@@ -61,7 +59,7 @@ module.exports = ({invoice, lnd, wss}, cbk) => {
       type: rowTypes.channel_transaction,
     };
 
-    broadcastResponse({clients, row});
+    broadcastResponse({row, wss});
 
     return cbk(null, row);
   });

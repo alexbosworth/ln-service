@@ -2,13 +2,13 @@ const {Router} = require('express');
 
 const {getTransactions} = require('./../lightning');
 const {returnJson} = require('./../async-util');
-const {sendTransaction} = require('./../lightning');
+const {sendToChainAddress} = require('./../lightning');
 
 /** Get a transactions router.
 
   {
     lnd: <LND GRPC API Object>
-    wss: <Websocket Server Object>
+    wss: [<Websocket Server Object>]
   }
 
   @returns
@@ -22,7 +22,7 @@ module.exports = ({lnd, wss}) => {
   router.post('/', ({body}, res) => {
     const {address, tokens} = body;
 
-    return sendTransaction({address, lnd, tokens, wss}, returnJson({res}));
+    return sendToChainAddress({address, lnd, tokens, wss}, returnJson({res}));
   });
 
   return router;
