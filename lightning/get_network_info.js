@@ -1,7 +1,6 @@
 const {isNumber} = require('lodash');
 const {isString} = require('lodash');
-
-const {rowTypes} = require('./../lightning');
+const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
 

@@ -86,4 +86,3 @@ subscribeToTransactions({lnd, wss});
 if (process.env.NODE_ENV !== 'production') {
   walnut.check(require('./package'));
 }
-
