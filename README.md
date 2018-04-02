@@ -30,6 +30,7 @@ Make sure your `.bashrc` contains the following environment variables -
 ```
 export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
 export LNSERVICE_LND_DATADIR='~/.lnd/'
+export LNSERVICE_SECRET_KEY='1m5ecret4F'
 ```
 
 **Make sure to `$ source ~/.bashrc` in the window you are running the service from**
@@ -41,6 +42,7 @@ Make sure your `.bash_profile` contains the following environment variables -
 ```
 export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
 export LNSERVICE_LND_DATADIR="$(home)/Library/Application Support/Lnd/"
+export LNSERVICE_SECRET_KEY='1m5ecret4F'
 ```
 
 **Make sure to `$ source ~/.bash_profile` in the window you are running the service from**
@@ -50,6 +52,29 @@ export LNSERVICE_LND_DATADIR="$(home)/Library/Application Support/Lnd/"
 ```
 $ npm start
 ```
+
+### Making requests to ln-service
+
+`ln-service` uses Basic Authentication currently.  Make sure that the request has an authorization header that contains Base64 encoded credentials.
+
+Basic example of an authorization header -
+
+```
+Authorization: Basic {{TOKEN_GOES_HERE_WITHOUT_BRACES}}
+```
+
+To generate the Base64 encoded credentials in Chrome for example in the console you can -
+
+```
+> let username = 'test';
+> let password = '1m5secret4F';
+> btoa(`${username}:${password}`);
+// dGVzdDoxbTVlY3JldDRG
+```
+
+And then set the value of the Authorization header to the returned value `dGVzdDoxbTVlY3JldDRG`.
+
+And copy the result as the token in the above example
 
 ### Running the tests
 
