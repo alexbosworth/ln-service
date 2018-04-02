@@ -1,6 +1,7 @@
 const {Router} = require('express');
 
 const {addPeer} = require('./../lightning');
+const {disconnectPeer} = require('./../lightning');
 const {getPeers} = require('./../lightning');
 const {returnJson} = require('./../async-util');
 
@@ -25,6 +26,11 @@ module.exports = ({lnd}) => {
       public_key: body.public_key,
     },
     returnJson({res}));
+  });
+
+  // Disconnect from a peer
+  router.delete('/:public_key', ({params}, res) => {
+    return disconnectPeer({lnd, public_key: params.public_key}, returnJson({res}));
   });
 
   return router;
