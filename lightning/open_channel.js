@@ -6,6 +6,7 @@ const {returnResult} = require('./../async-util');
 const channelLimit = require('./conf/lnd').channel_limit_tokens;
 
 const staticFee = 1e3;
+const minimumChannelSize = 20000;
 
 /** Open a new channel.
 
@@ -24,7 +25,8 @@ module.exports = (args, cbk) => {
       const balance = getChainBalance.chain_balance;
       const limit = channelLimit;
 
-      const channelAmount = balance > limit ? limit : balance;
+      const maxAvailable = balance > limit ? limit : balance;
+      const channelAmount = args.local_amt ? args.local_amt : maxAvailable;
 
       const open = args.lnd.openChannel({
         local_funding_amount: channelAmount - staticFee,
