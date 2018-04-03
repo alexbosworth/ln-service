@@ -1,14 +1,5 @@
 {
-  "name": "ln-service",
-  "version": "2.0.0",
-  "description": "A RESTful API written in node.js to interact with LND",
-  "keywords": [
-    "lightning-network",
-    "lnd",
-    "rest"
-  ],
   "author": "Alex Bosworth",
-  "license": "MIT",
   "dependencies": {
     "async": "2.6.0",
     "body-parser": "1.18.2",
@@ -16,20 +7,26 @@
     "cors": "2.8.4",
     "express": "4.16.3",
     "express-basic-auth": "1.1.4",
-    "grpc": "1.10.0",
+    "grpc": "1.10.1",
     "lodash": "4.17.5",
     "morgan": "1.9.0",
     "request": "2.85.0",
     "walnut": "0.0.3",
-    "ws": "5.1.0"
+    "ws": "5.1.1"
   },
+  "description": "A RESTful API written in node.js to interact with LND",
   "engines": {
     "node": "6.13.1",
     "npm": "3.10.10"
   },
+  "keywords": [
+    "lightning-network",
+    "lnd",
+    "rest"
+  ],
+  "license": "MIT",
   "main": "server.js",
+  "name": "ln-service",
   "private": true,
-  "scripts": {
-    "start": "node server"
-  }
+  "version": "2.0.0"
 }
