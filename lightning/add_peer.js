@@ -1,9 +1,9 @@
 /** Add a peer if possible (not self, or already connected)
 
   {
-    host: <Host String>
+    host: <Host Network Address String>
     lnd: <LND GRPC API Object>
-    public_key: <Public Key String>
+    public_key: <Public Key Hex String>
   }
 */
 module.exports = (args, cbk) => {

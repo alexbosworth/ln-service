@@ -1,8 +1,8 @@
 const {Router} = require('express');
 
 const {addPeer} = require('./../lightning');
-const {disconnectPeer} = require('./../lightning');
 const {getPeers} = require('./../lightning');
+const {removePeer} = require('./../lightning');
 const {returnJson} = require('./../async-util');
 
 /** Get a peers router
@@ -17,8 +17,18 @@ const {returnJson} = require('./../async-util');
 module.exports = ({lnd}) => {
   const router = Router({caseSensitive: true, strict: true});
 
-  router.get('/', (_, res) => getPeers({lnd}, returnJson({res})));
+  /** Get the list of connected peers
+  */
+  router.get('/', ({}, res) => getPeers({lnd}, returnJson({res})));
 
+  /** Add a new peer
+
+    @bodyJson
+    {
+      host: <Host Network Address String>
+      public_key: <Public Key Hex String>
+    }
+  */
   router.post('/', ({body}, res) => {
     return addPeer({
       lnd,
@@ -28,9 +38,15 @@ module.exports = ({lnd}) => {
     returnJson({res}));
   });
 
-  // Disconnect from a peer
+  /** Disconnect from a peer
+
+    @urlParams
+    {
+      public_key: <Public Key Hex String>
+    }
+  */
   router.delete('/:public_key', ({params}, res) => {
-    return disconnectPeer({lnd, public_key: params.public_key}, returnJson({res}));
+    return removePeer({lnd, public_key: params.public_key}, returnJson({res}));
   });
 
   return router;

@@ -3,7 +3,6 @@ const closeChannel = require('./close_channel');
 const createAddress = require('./create_address');
 const createInvoice = require('./create_invoice');
 const decodeInvoice = require('./decode_invoice');
-const disconnectPeer = require('./disconnect_peer');
 const getChainBalance = require('./get_chain_balance');
 const getChannelBalance = require('./get_channel_balance');
 const getChannels = require('./get_channels');
@@ -21,6 +20,7 @@ const getWalletInfo = require('./get_wallet_info');
 const lightningDaemon = require('./lightning_daemon');
 const openChannel = require('./open_channel');
 const payInvoice = require('./pay_invoice');
+const removePeer = require('./remove_peer');
 const rowTypes = require('./conf/row_types');
 const sendToChainAddress = require('./send_to_chain_address');
 const signMessage = require('./sign_message');
@@ -33,7 +33,6 @@ module.exports = {
   createAddress,
   createInvoice,
   decodeInvoice,
-  disconnectPeer,
   getChainBalance,
   getChannelBalance,
   getChannels,
@@ -51,6 +50,7 @@ module.exports = {
   lightningDaemon,
   openChannel,
   payInvoice,
+  removePeer,
   rowTypes,
   sendToChainAddress,
   signMessage,
