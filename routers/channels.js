@@ -22,17 +22,17 @@ module.exports = ({lnd}) => {
     return closeChannel({lnd, id: params.id}, returnJson({res}));
   });
 
-  // 
+  //
   router.get('/', (_, res) => getChannels({lnd}, returnJson({res})));
 
   router.post('/', ({body}, res, next) => {
     return openChannel({
       lnd,
       partner_public_key: body.partner_public_key,
+      local_amt: body.local_amt,
     },
     returnJson({res}));
   });
 
   return router;
 };
-
