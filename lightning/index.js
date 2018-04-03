@@ -3,6 +3,7 @@ const closeChannel = require('./close_channel');
 const createAddress = require('./create_address');
 const createInvoice = require('./create_invoice');
 const decodeInvoice = require('./decode_invoice');
+const disconnectPeer = require('./disconnect_peer');
 const getChainBalance = require('./get_chain_balance');
 const getChannelBalance = require('./get_channel_balance');
 const getChannels = require('./get_channels');
@@ -32,6 +33,7 @@ module.exports = {
   createAddress,
   createInvoice,
   decodeInvoice,
+  disconnectPeer,
   getChainBalance,
   getChannelBalance,
   getChannels,
