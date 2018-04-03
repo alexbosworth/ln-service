@@ -13,6 +13,7 @@
     "async": "2.6.0",
     "body-parser": "1.18.2",
     "compression": "1.7.2",
+    "cors": "2.8.4",
     "express": "4.16.3",
     "express-basic-auth": "1.1.4",
     "grpc": "1.10.0",
@@ -27,7 +28,6 @@
     "npm": "3.10.10"
   },
   "main": "server.js",
-  "name": "ln-service",
   "private": true,
   "scripts": {
     "start": "node server"
