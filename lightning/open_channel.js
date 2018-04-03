@@ -12,21 +12,43 @@ const minimumChannelSize = 20000;
 
   {
     lnd: <LND GRPC API Object>
-    partner_public_key: <Public Key String>
+    [local_tokens]: <Local Tokens Number> // When not set, uses max possible
+    partner_public_key: <Public Key Hex String>
   }
 */
 module.exports = (args, cbk) => {
   return asyncAuto({
+    validate: cbk => {
+      // Check arguments
+      if (!args.lnd) {
+        return cbk([400, 'ExpectedLnd']);
+      }
+
+      if (!args.partner_public_key) {
+        return cbk([400, 'ExpectedPartnerPublicKey']);
+      }
+
+      if (args.local_tokens < minimumChannelSize) {
+        return cbk([400, 'ExpectedLargerChannelSize']);
+      }
+
+      if (args.local_tokens > channelLimit) {
+        return cbk([400, 'ChannelSizeExceedsChannelLimit']);
+      }
+
+      return cbk();
+    },
+
     // Get the current chain balance
     getChainBalance: cbk => getChainBalance({lnd: args.lnd}, cbk),
 
     // Open the channel
-    openChannel: ['getChainBalance', ({getChainBalance}, cbk) => {
+    openChannel: ['getChainBalance', 'validate', ({getChainBalance}, cbk) => {
       const balance = getChainBalance.chain_balance;
       const limit = channelLimit;
 
       const maxAvailable = balance > limit ? limit : balance;
-      const channelAmount = args.local_amt ? args.local_amt : maxAvailable;
+      const channelAmount = args.local_tokens ? args.local_amt : maxAvailable;
 
       const open = args.lnd.openChannel({
         local_funding_amount: channelAmount - staticFee,
