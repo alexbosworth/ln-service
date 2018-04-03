@@ -33,6 +33,7 @@ const {verifyClient} = require('./push');
 const {walletInfoRouter} = require('./routers');
 
 const {LNSERVICE_LND_DATADIR} = process.env;
+const {NODE_ENV} = process.env;
 const {PORT} = process.env;
 
 const httpsPort = 18554;
@@ -85,6 +86,7 @@ app.use('/v0/wallet_info', walletInfoRouter({lnd}));
 subscribeToInvoices({lnd, wss});
 subscribeToTransactions({lnd, wss});
 
-if (process.env.NODE_ENV !== 'production') {
+if (NODE_ENV !== 'production') {
   walnut.check(require('./package'));
 }
+
