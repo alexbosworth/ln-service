@@ -42,7 +42,7 @@ const logFormat = ':method :url :status - :response-time ms - :user-agent';
 const port = PORT || 10553;
 
 const app = express();
-const lnd = lightningDaemon({host: lndGrpcHost, path: './config/grpc.proto'});
+const lnd = lightningDaemon({host: lndGrpcHost});
 
 const server = app
   .listen(port, () => console.log(`Listening HTTP on port: ${port}`))

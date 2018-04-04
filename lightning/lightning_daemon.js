@@ -15,7 +15,6 @@ const {LNSERVICE_LND_DATADIR} = process.env;
     [cert]: <Base64 Serialized LND TLS Cert>
     host: <Host String>
     [macaroon]: <Base64 Serialized Macaroon String>
-    path: <Path String>
     [service]: <Service Name String>
   }
 
@@ -25,8 +24,8 @@ const {LNSERVICE_LND_DATADIR} = process.env;
   @returns
   <LND GRPC Api Object>
 */
-module.exports = ({cert, host, macaroon, path, service}) => {
-  const rpc = grpc.load(path);
+module.exports = ({cert, host, macaroon, service}) => {
+  const rpc = grpc.load(__dirname + '/conf/grpc.proto');
 
   // Exit early when the environment variable cipher suite is not correct
   if (GRPC_SSL_CIPHER_SUITES !== grpcSslCipherSuites) {
