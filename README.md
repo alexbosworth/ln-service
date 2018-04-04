@@ -1,5 +1,7 @@
 # Lightning Network Service
 
+[![npm version](https://badge.fury.io/js/ln-service.svg)](https://badge.fury.io/js/ln-service)
+
 ## Overview
 
 The core of this project is a gRPC interface for node.js projects, available through npm.
