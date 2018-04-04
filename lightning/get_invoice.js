@@ -1,5 +1,8 @@
 const rowTypes = require('./conf/row_types');
 
+const intBase = 10;
+const msPerSec = 1e3;
+
 /** Lookup a channel invoice.
 
   {
@@ -10,6 +13,8 @@ const rowTypes = require('./conf/row_types');
   @returns via cbk
   {
     description: <Description String>
+    expires_at: <ISO 8601 Date String>
+    id: <Invoice Id String>
     invoice: <Bolt 11 Invoice String>
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
@@ -43,8 +48,15 @@ module.exports = ({id, lnd}, cbk) => {
       return cbk([500, 'ExpectedInvoicePreimage']);
     }
 
+    const createdAt = parseInt(response.creation_date, intBase) * msPerSec;
+    const expiresInMs = parseInt(response.expiry, intBase) * msPerSec;
+
+    const expiryDateMs = createdAt + expiresInMs;
+
     return cbk(null, {
+      id,
       description: response.memo,
+      expires_at: new Date(expiryDateMs).toISOString(),
       invoice: response.payment_request,
       is_confirmed: response.settled,
       is_outgoing: false,
