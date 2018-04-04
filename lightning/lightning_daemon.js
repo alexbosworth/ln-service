@@ -56,7 +56,7 @@ module.exports = ({cert, host, macaroon, service}) => {
   if (!!macaroon) {
     macaroonData = Buffer.from(macaroon, 'base64').toString('hex');
   } else {
-    const macaroonPath = join(LNSERVICE_LND_DIR, 'data', 'admin.macaroon');
+    const macaroonPath = join(LNSERVICE_LND_DIR, 'admin.macaroon');
 
     // Exit early when there is no macaroon
     if (!existsSync(macaroonPath)) {
