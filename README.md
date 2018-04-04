@@ -2,13 +2,41 @@
 
 ## Overview
 
-This project is a node.js REST interface on top of LND that exposes functionality to client applications.
+The core of this project is a gRPC interface for node.js projects, available through npm.
+
+The project can be run alone to create a REST interface on top of LND that exposes functionality to client applications.
 
 It is recommended to not expose the REST interface directly to the dangerous internet as that gives anyone control of your node.
 
 ## Installation Instructions
 
-### PREREQUISITES:
+### As an npm package
+
+You can install the service via npm -
+
+```
+$ npm install ln-service
+```
+
+You can then interact with your LND node directly -
+
+```
+const lnService = require('ln-service');
+
+const lnd = lnService.lightningDaemon({
+  host: 'localhost:10009'
+});
+
+lnService.getWalletInfo({lnd}, (error, result) => {
+  console.log(result);
+});
+```
+
+*NOTE*: You will need to make sure you [Set the Environment Variables](#configuring-environment-variables) unless you want to pass in base64 encoded values to the lightningDaemon for the cert and macaroon.
+
+### As a stand-alone REST API
+
+#### PREREQUISITES:
 
 Please have `git` installed, and have a working github account, [preferably with SSH access](https://help.github.com/articles/connecting-to-github-with-ssh/).
 Please also make sure that you have node.js / npm installed, too.
@@ -21,7 +49,7 @@ $ cd ln-service
 $ npm install
 ```
 
-### Configuring ln-service
+### Configuring Environment Variables
 
 Linux -
 
@@ -43,13 +71,14 @@ Make sure your `.bash_profile` contains the following environment variables -
 
 **Make sure to `$ . ~/.bash_profile` in the window you are running the service from**
 
-### Running ln-service
+
+### Running REST API
 
 ```
 $ npm start
 ```
 
-### Making requests to ln-service
+### Making HTTP requests to the REST API
 
 `ln-service` uses Basic Authentication currently.  Make sure that the request has an authorization header that contains Base64 encoded credentials.
 
