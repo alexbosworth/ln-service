@@ -27,11 +27,9 @@ Linux -
 
 Make sure your `.bashrc` contains the following environment variables -
 
-```
-export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
-export LNSERVICE_LND_DATADIR='~/.lnd/'
-export LNSERVICE_SECRET_KEY='1m5ecret4F'
-```
+    export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
+    export LNSERVICE_LND_DIR='~/.lnd/'
+    export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY
 
 **Make sure to `$ source ~/.bashrc` in the window you are running the service from**
 
@@ -39,13 +37,11 @@ OSX -
 
 Make sure your `.bash_profile` contains the following environment variables -
 
-```
-export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
-export LNSERVICE_LND_DATADIR="$(home)/Library/Application Support/Lnd/"
-export LNSERVICE_SECRET_KEY='1m5ecret4F'
-```
+    export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
+    export LNSERVICE_LND_DIR="$HOME/Library/Application Support/Lnd/"
+    export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY
 
-**Make sure to `$ source ~/.bash_profile` in the window you are running the service from**
+**Make sure to `$ . ~/.bash_profile` in the window you are running the service from**
 
 ### Running ln-service
 

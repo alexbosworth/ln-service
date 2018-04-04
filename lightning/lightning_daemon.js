@@ -7,7 +7,7 @@ const grpc = require('grpc');
 const grpcSslCipherSuites = require('./conf/lnd').grpc_ssl_cipher_suites;
 
 const {GRPC_SSL_CIPHER_SUITES} = process.env;
-const {LNSERVICE_LND_DATADIR} = process.env;
+const {LNSERVICE_LND_DIR} = process.env;
 
 /** GRPC interface to the Lightning Network Daemon (lnd).
 
@@ -33,8 +33,8 @@ module.exports = ({cert, host, macaroon, service}) => {
   }
 
   // Exit early when there is no data directory specified
-  if ((!cert || !macaroon) && !LNSERVICE_LND_DATADIR) {
-    throw new Error('ExpectedEnvVarLNSERVICE_LND_DATADIR');
+  if ((!cert || !macaroon) && !LNSERVICE_LND_DIR) {
+    throw new Error('ExpectedEnvVarLNSERVICE_LND_DIR');
   }
 
   let certData;
@@ -43,7 +43,7 @@ module.exports = ({cert, host, macaroon, service}) => {
   if (!!cert) {
     certData = Buffer.from(cert, 'base64');
   } else {
-    const certPath = join(LNSERVICE_LND_DATADIR, 'tls.cert');
+    const certPath = join(LNSERVICE_LND_DIR, 'tls.cert');
 
     // Exit early when there is no TLS cert
     if (!existsSync(certPath)) {
@@ -56,7 +56,7 @@ module.exports = ({cert, host, macaroon, service}) => {
   if (!!macaroon) {
     macaroonData = Buffer.from(macaroon, 'base64').toString('hex');
   } else {
-    const macaroonPath = join(LNSERVICE_LND_DATADIR, 'admin.macaroon');
+    const macaroonPath = join(LNSERVICE_LND_DIR, 'data', 'admin.macaroon');
 
     // Exit early when there is no macaroon
     if (!existsSync(macaroonPath)) {

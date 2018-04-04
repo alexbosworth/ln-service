@@ -32,7 +32,7 @@ const {unlockWallet} = require('./lightning');
 const {verifyClient} = require('./push');
 const {walletInfoRouter} = require('./routers');
 
-const {LNSERVICE_LND_DATADIR} = process.env;
+const {LNSERVICE_LND_DIR} = process.env;
 const {NODE_ENV} = process.env;
 const {PORT} = process.env;
 
@@ -49,7 +49,7 @@ const server = app
   .on('error', e => console.log('Listen error', e));
 
 const [cert, key] = ['cert', 'key']
-  .map(n => `${LNSERVICE_LND_DATADIR}/tls.${n}`)
+  .map(n => `${LNSERVICE_LND_DIR}/tls.${n}`)
   .map(n => readFileSync(n, 'utf8'));
 
 const httpsServer = https.createServer({cert, key}, app);
