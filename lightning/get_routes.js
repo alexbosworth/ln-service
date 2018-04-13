@@ -1,5 +1,6 @@
 const {isFinite} = require('lodash');
 
+const defaultRoutesReturnCount = 10;
 const intBase = 10;
 
 const pathNotFoundErrors = [
@@ -38,7 +39,12 @@ module.exports = ({destination, lnd, tokens}, cbk) => {
     return cbk([400, 'ExpectedTokens']);
   }
 
-  return lnd.queryRoutes({amt: tokens, pub_key: destination}, (err, res) => {
+  return lnd.queryRoutes({
+    amt: tokens,
+    num_routes: defaultRoutesReturnCount,
+    pub_key: destination,
+  },
+  (err, res) => {
     // Exit early when an error indicates that no routes are possible
     if (!!err && isFinite(err.code) && !!pathNotFoundErrors[err.code]) {
       return cbk(null, {routes: []});
