@@ -25,10 +25,42 @@ const {removePeer} = require('./lightning');
 const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
 const {signMessage} = require('./lightning');
+const {subscribeToInvoices} = require('./lightning');
+const {subscribeToTransactions} = require('./lightning');
 const {unlockWallet} = require('./lightning');
 const {verifyMessage} = require('./lightning');
 
 module.exports = {
+  addPeer,
+  closeChannel,
+  createAddress,
+  createInvoice,
+  decodeInvoice,
+  getChainBalance,
+  getChannelBalance,
+  getChannels,
+  getInvoice,
+  getInvoices,
+  getNetworkGraph,
+  getNetworkInfo,
+  getPayments,
+  getPeers,
+  getPendingChainBalance,
+  getPendingChannels,
+  getRoutes,
+  getTransactions,
+  getWalletInfo,
+  lightningDaemon,
+  openChannel,
   parseInvoice,
+  payInvoice,
+  removePeer,
+  rowTypes,
+  sendToChainAddress,
+  signMessage,
+  subscribeToInvoices,
+  subscribeToTransactions,
+  unlockWallet,
+  verifyMessage,
 };
 

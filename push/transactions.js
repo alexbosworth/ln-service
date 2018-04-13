@@ -1,8 +1,6 @@
+const {subscribeToTransactions} = require('./../lightning');
+
 const {broadcastResponse} = require('./../async-util');
-
-const {rowTypes} = require('./../lightning');
-
-const intBase = 10;
 
 /** Subscribe to transactions.
 
@@ -20,33 +18,15 @@ module.exports = ({lnd, wss}) => {
     return console.log([500, 'ExpectedWss']);
   }
 
-  const subscribeToTransactions = lnd.subscribeTransactions({});
+  const subscription = subscribeToTransactions({lnd});
 
-  subscribeToTransactions.on('data', tx => {
-    return broadcastResponse({
-      wss,
-      row: {
-        block_id: tx.block_hash || null,
-        confirmation_count: !tx.block_hash ? 0 : 1,
-        confirmed: !!tx.block_hash,
-        fee: parseInt(tx.total_fees, intBase),
-        id: tx.tx_hash,
-        outgoing: parseInt(tx.amount, intBase) < 0,
-        tokens: Math.abs(parseInt(tx.amount, intBase)),
-        type: rowTypes.chain_transaction,
-      },
-    });
-  });
+  subscription.on('data', row => broadcastResponse({wss, row}));
 
-  subscribeToTransactions.on('end', () => { console.log("SUB END"); });
+  subscription.on('end', () => {});
 
-  subscribeToTransactions.on('status', status => {
-    console.log("SUB STATUS", status);
-  });
+  subscription.on('status', status => {});
 
-  subscribeToTransactions.on('error', err => {
-    console.log("SUB TX ERROR", err);
-  });
+  subscription.on('error', err => console.error('[SUBTX]', err));
 
   return;
 };

@@ -18,8 +18,8 @@ const minimumChannelSize = 20000;
 */
 module.exports = (args, cbk) => {
   return asyncAuto({
+    // Check arguments
     validate: cbk => {
-      // Check arguments
       if (!args.lnd) {
         return cbk([400, 'ExpectedLnd']);
       }

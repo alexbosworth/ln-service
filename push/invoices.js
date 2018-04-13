@@ -1,9 +1,6 @@
-const {createHash} = require('crypto');
+const {subscribeToInvoices} = require('./../lightning');
 
 const {broadcastResponse} = require('./../async-util');
-const {rowTypes} = require('./../lightning');
-
-const intBase = 10;
 
 /** Subscribe to invoices.
 
@@ -14,43 +11,22 @@ const intBase = 10;
 */
 module.exports = ({lnd, wss}) => {
   if (!lnd) {
-    return console.log([500, 'ExpectedLnd']);
+    return console.log([400, 'ExpectedLnd']);
   }
 
   if (!Array.isArray(wss)) {
-    return console.log([500, 'ExpectedWss']);
+    return console.log([400, 'ExpectedWss']);
   }
 
-  const subscribeToInvoices = lnd.subscribeInvoices({});
+  const subscription = subscribeToInvoices({lnd});
 
-  subscribeToInvoices.on('data', tx => {
-    const isSettled = !!tx.settled;
+  subscription.on('data', row => broadcastResponse({wss, row}));
 
-    return broadcastResponse({
-      wss,
-      row: {
-        description: tx.memo,
-        id: createHash('sha256').update(tx.r_preimage).digest('hex'),
-        is_confirmed: isSettled,
-        is_outgoing: false,
-        payment_secret: !isSettled ? undefined : tx.r_preimage.toString('hex'),
-        tokens: parseInt(tx.value, intBase),
-        type: rowTypes.channel_transaction,
-      },
-    });
-  });
+  subscription.on('end', () => {});
 
-  subscribeToInvoices.on('end', () => {
-    return console.log("SUB INV END");
-  });
+  subscription.on('status', status => {});
 
-  subscribeToInvoices.on('status', status => {
-    return console.log('INV STATUS', status);
-  });
-
-  subscribeToInvoices.on('error', err => {
-    return console.log('INV ERROR', err);
-  });
+  subscription.on('error', err => console.error('[SUBINVOICES]', err));
 
   return;
 };
