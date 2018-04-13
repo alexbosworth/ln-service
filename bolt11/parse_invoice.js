@@ -46,7 +46,7 @@ const timestampWordLength = 7;
     [description]: <Payment Description String>
     [description_hash]: <Payment Longer Description Hash String>
     destination: <Public Key String>
-    [expires_at]: <ISO 8601 Date String>
+    expires_at: <ISO 8601 Date String>
     id: <Payment Request Hash String>
     is_expired: <Invoice is Expired Bool>
     network: <Network Name String>
