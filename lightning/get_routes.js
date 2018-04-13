@@ -26,7 +26,7 @@ const pathNotFoundErrors = [
   }
 */
 module.exports = ({destination, lnd, tokens}, cbk) => {
-  if (!args.destination) {
+  if (!destination) {
     return cbk([400, 'ExpectedDestination']);
   }
 
@@ -34,7 +34,7 @@ module.exports = ({destination, lnd, tokens}, cbk) => {
     return cbk([500, 'ExpectedLnd']);
   }
 
-  if (!args.tokens) {
+  if (!tokens) {
     return cbk([400, 'ExpectedTokens']);
   }
 
