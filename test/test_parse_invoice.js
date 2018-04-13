@@ -54,7 +54,6 @@ const fixtures = {
       _: 'Now send $24 for an entire list of things (hashed)',
       expected: {
         created_at: new Date(1496314658 * msPerSec).toISOString(),
-        description_hash: sha256(Buffer.from('One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon', 'utf8')).toString('hex'),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
         id: '0001020304050607080900010203040506070809000102030405060708090102',
@@ -69,7 +68,6 @@ const fixtures = {
       expected: {
         chain_address: '1RustyRX2oai4EYYDpQGWvEL62BBGqN9T',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
-        description_hash: sha256(Buffer.from('One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon', 'utf8')).toString('hex'),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
         id: '0001020304050607080900010203040506070809000102030405060708090102',
@@ -84,7 +82,6 @@ const fixtures = {
       expected: {
         chain_address: '3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
-        description_hash: sha256(Buffer.from('One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon', 'utf8')).toString('hex'),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
         id: '0001020304050607080900010203040506070809000102030405060708090102',
@@ -99,7 +96,6 @@ const fixtures = {
       expected: {
         chain_address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
-        description_hash: sha256(Buffer.from('One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon', 'utf8')).toString('hex'),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
         id: '0001020304050607080900010203040506070809000102030405060708090102',
@@ -114,7 +110,6 @@ const fixtures = {
       expected: {
         chain_address: 'bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
-        description_hash: sha256(Buffer.from('One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon', 'utf8')).toString('hex'),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
         id: '0001020304050607080900010203040506070809000102030405060708090102',
@@ -130,16 +125,15 @@ const fixtures = {
 fixtures.test_cases.forEach(({expected, invoice}) => {
   const details = parseInvoice({invoice});
 
-  equal(details.chain_address, expected.chain_address);
-  equal(details.created_at, expected.created_at);
-  equal(details.description, expected.description);
-  equal(details.description_hash, expected.description_hash);
-  equal(details.destination, expected.destination);
-  equal(details.expires_at, expected.expires_at);
-  equal(details.id, expected.id);
-  equal(details.is_expired, expected.is_expired);
-  equal(details.network, expected.network);
-  equal(details.tokens, expected.tokens);
+  equal(details.chain_address, expected.chain_address, 'IncorrectChainAddr');
+  equal(details.created_at, expected.created_at, 'IncorrectCreatedAt');
+  equal(details.description, expected.description, 'IncorrectDescription');
+  equal(details.destination, expected.destination, 'IncorrectDestination');
+  equal(details.expires_at, expected.expires_at, 'IncorrectExpiresAt');
+  equal(details.id, expected.id, 'IncorrectId');
+  equal(details.is_expired, expected.is_expired, 'IncorrectExpiry');
+  equal(details.network, expected.network, 'IncorrectNetwork');
+  equal(details.tokens, expected.tokens, 'IncorrectTokens');
 
   return;
 });

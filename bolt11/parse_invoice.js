@@ -44,7 +44,6 @@ const timestampWordLength = 7;
     [chain_address]: <Fallback Chain Address String>
     created_at: <Invoice Creation Date ISO 8601 String>
     [description]: <Payment Description String>
-    [description_hash]: <Payment Longer Description Hash String>
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
     id: <Payment Request Hash String>
@@ -125,7 +124,6 @@ module.exports = ({invoice}) => {
   let wordsWithTags = words.slice(timestampWordLength)
 
   let chainAddress;
-  let descHash;
   let description;
   let expiresAt = invoiceExpiration({created_at: createdAt});
   let paymentHash;
@@ -172,18 +170,6 @@ module.exports = ({invoice}) => {
       }
       break;
 
-    case 'h': // Hash of Extended Description
-      try {
-        descHash = wordsAsBuffer({trim, words: tagWords});
-      } catch (e) {
-        throw new Error('FailedToParseDescriptionHash');
-      }
-
-      if (descHash.length !== descriptionHashByteLength) {
-        throw new Error('InvalidDescriptionHashByteLength');
-      }
-      break;
-
     case 'p': // Payment Hash
       try {
         paymentHash = wordsAsBuffer({trim, words: tagWords});
@@ -223,7 +209,6 @@ module.exports = ({invoice}) => {
     chain_address: chainAddress || undefined,
     created_at: createdAt,
     description: !!description ? description.toString('utf8') : undefined,
-    description_hash: !!descHash ? descHash.toString('hex') : undefined,
     destination: destination.toString('hex'),
     expires_at: expiresAt,
     id: paymentHash.toString('hex'),
