@@ -131,7 +131,7 @@ fixtures.test_cases.forEach(({expected, invoice}) => {
   const details = parseInvoice({invoice});
 
   equal(details.chain_address, expected.chain_address);
-  equal(details.created_at, expected.created_at, );
+  equal(details.created_at, expected.created_at);
   equal(details.description, expected.description);
   equal(details.description_hash, expected.description_hash);
   equal(details.destination, expected.destination);
