@@ -22,7 +22,7 @@
     "walnut": "0.0.3",
     "ws": "5.1.1"
   },
-  "description": "A RESTful API written in node.js to interact with LND",
+  "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
     "tap": "11.1.1"
   },
@@ -46,5 +46,6 @@
   "scripts": {
     "test": "tap test/*.js"
   },
-  "version": "2.2.3"
+  "version": "2.3.0"
 }
+

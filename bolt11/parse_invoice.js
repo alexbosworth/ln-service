@@ -171,6 +171,10 @@ module.exports = ({invoice}) => {
       break;
 
     case 'p': // Payment Hash
+      if (!!paymentHash) {
+        continue;
+      }
+
       try {
         paymentHash = wordsAsBuffer({trim, words: tagWords});
       } catch (e) {
