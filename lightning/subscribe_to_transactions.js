@@ -49,6 +49,6 @@ module.exports = ({lnd}) => {
   subscription.on('error', err => eventEmitter.emit('error', err));
   subscription.on('status', status => eventEmitter.emit('status', status));
 
-  return subscription;
+  return eventEmitter;
 };
 
