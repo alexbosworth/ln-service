@@ -133,6 +133,19 @@ const fixtures = {
       },
       invoice: 'lntb1500n1pddpjaepp54zmzde8cgt9fz4csd4y9gpjv24gxxnx6nnf58wu6p5ghlazqdnkqdz22fjkzepqg9e8g6trd3jn5gzndaex7ueqg4h8getjd9hxwgzzd96xxmmfdcsy6ctjddjhggzzv5cqzysp3mwgxdlhzxlj748qwsvmye6v062lpfnvwxmfadw3qfuktj4463nk4ms06zjculkp0sz9k3sklr3ee9x0wsya6x2takk5mpzyjpcuuspaqazd9',
     },
+    {
+      expected: {
+        created_at: '2018-04-15T03:21:40.000Z',
+        description: 'Add :zap:',
+        destination: '0220f9fae5058ec9ddb46b4839b04298affa18913f104081aedd680816fb8165e3',
+        expires_at: '2018-04-15T04:21:40.000Z',
+        id: '876243596ba7c9cc9ad8925fdb92a681143e262292f00cddf0758027117f551a',
+        is_expired: true,
+        network: 'testnet',
+        tokens: 150,
+      },
+      invoice: 'lntb1500n1pdd932ypp5sa3yxktt5lyuexkcjf0ahy4xsy2ruf3zjtcqeh0swkqzwytl25dqdq0g9jxggp60fshqwscqzysx4kfvu5a6f95zxw9lqjlv5nkvnfrwp509lhrttungj6jrthewtczr9csjl69u54dkcneq99s7ke57j9dlkufmvly5k4z7yn0c09ns0qpzlc6md',
+    },
   ],
 };
 

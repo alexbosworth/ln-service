@@ -13,6 +13,7 @@ const wordsAsBuffer = require('./words_as_buffer');
 const bech32CurrencyCodes = require('./conf/bech32_currency_codes');
 const taggedFields = require('./conf/tagged_fields');
 
+const defaultCltvExpiry = 9;
 const defaultExpirationMs = 3600000;
 const descriptionHashByteLength = 32;
 const {fromPublicKeyBuffer} = address;
@@ -124,36 +125,34 @@ module.exports = ({invoice}) => {
   let wordsWithTags = words.slice(timestampWordLength)
 
   let chainAddress;
+  let cltvExpiry = defaultCltvExpiry;
   let description;
-  let expiresAt = invoiceExpiration({created_at: createdAt});
+  let expiresAt;
   let paymentHash;
   const pubKeyFromBuf = fromPublicKeyBuffer;
+  let tagCode;
   let tagLen;
   let tagName;
   let tagWords;
 
   while (!!wordsWithTags.length) {
-    tag = taggedFields[wordsWithTags[0]];
-
-    // Cut off the tag name word
-    wordsWithTags = wordsWithTags.slice(tagNameWordLength);
+    tagCode = wordsWithTags.shift();
 
     // Determine the tag's word length
-    tagLen = wordsAsNumber({words: wordsWithTags.slice(0, tagLengthWordLen)});
-
-    // Cut off the tag data_length
-    wordsWithTags = wordsWithTags.slice(tagLengthWordLen);
+    tagLen = wordsAsNumber({
+      words: [wordsWithTags.shift(), wordsWithTags.shift()],
+    });
 
     tagWords = wordsWithTags.slice(0, tagLen);
 
     // Cut off the tag words
-    wordsWithTags = wordsWithTags.slice(tagLen);
+    wordsWithTags = wordsWithTags.slice(tagWords.length);
 
-    if (!tag) {
-      continue;
-    }
+    switch ((taggedFields[tagCode] || {}).name) {
+    case 'c': // CLTV expiry
+      cltvExpiry = wordsAsNumber({words: tagWords});
+      break;
 
-    switch (tag.name) {
     case 'd': // Description of Payment
       try {
         description = wordsAsBuffer({trim, words: tagWords});
@@ -172,7 +171,7 @@ module.exports = ({invoice}) => {
 
     case 'p': // Payment Hash
       if (!!paymentHash) {
-        continue;
+        break;
       }
 
       try {
@@ -187,13 +186,22 @@ module.exports = ({invoice}) => {
       break;
 
     case 'x': // Expiration Seconds
-      expiresAt = invoiceExpiration({created_at: createdAt, words: tagWords});
+      try {
+        expiresAt = invoiceExpiration({
+          created_at: createdAt,
+          words: tagWords
+        });
+      } catch (e) {
+        expiredAt = null;
+      }
       break;
 
     default: // Ignore unparsed tags
       break;
     }
   }
+
+  expiresAt = expiresAt || invoiceExpiration({created_at: createdAt})
 
   if (!paymentHash) {
     throw new Error('ExpectedPaymentHash');
