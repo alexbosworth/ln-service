@@ -1,6 +1,6 @@
 const rowTypes = require('./conf/row_types');
 
-const intBase = 10;
+const decBase = 10;
 const msPerSec = 1e3;
 
 /** Lookup a channel invoice.
@@ -19,6 +19,7 @@ const msPerSec = 1e3;
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
     payment_secret: <Hex Encoded Payment Secret Preimage String>
+    [tokens]: <Tokens Number>
     type: <Type String>
   }
 */
@@ -48,8 +49,8 @@ module.exports = ({id, lnd}, cbk) => {
       return cbk([500, 'ExpectedInvoicePreimage']);
     }
 
-    const createdAt = parseInt(response.creation_date, intBase) * msPerSec;
-    const expiresInMs = parseInt(response.expiry, intBase) * msPerSec;
+    const createdAt = parseInt(response.creation_date, decBase) * msPerSec;
+    const expiresInMs = parseInt(response.expiry, decBase) * msPerSec;
 
     const expiryDateMs = createdAt + expiresInMs;
 
@@ -61,6 +62,7 @@ module.exports = ({id, lnd}, cbk) => {
       is_confirmed: response.settled,
       is_outgoing: false,
       payment_secret: response.r_preimage.toString('hex'),
+      tokens: !response.value ? null : parseInt(response.value, decBase),
       type: rowTypes.channel_transaction,
     });
   });
