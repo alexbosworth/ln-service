@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const msPerSec = 1e3;
 
 /** Subscribe to transactions
 
