@@ -24,6 +24,7 @@
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
+    "nodemon": "^1.17.3",
     "tap": "11.1.1"
   },
   "engines": {
@@ -44,6 +45,7 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
+    "start": "nodemon server.js",
     "test": "tap test/*.js"
   },
   "version": "3.0.4"
