@@ -12,6 +12,7 @@ const rowTypes = require('./conf/row_types');
     [description]: <Invoice Description String>
     [include_address]: <Return Backup Chain Address Bool>
     lnd: <LND GRPC API Object>
+    payment_secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
     wss: [<Web Socket Server Object>]
   }
@@ -30,6 +31,15 @@ const rowTypes = require('./conf/row_types');
 */
 module.exports = (args, cbk) => {
   return asyncAuto({
+    // Payment secret for the invoice
+    preimage: cbk => {
+      if (!args.payment_secret) {
+        return cbk();
+      }
+
+      return cbk(null, Buffer.from(args.payment_secret, 'hex'));
+    },
+
     // Check arguments
     validate: cbk => {
       if (!args.lnd) {
@@ -48,20 +58,21 @@ module.exports = (args, cbk) => {
     },
 
     // Add address for the fallback address
-    addAddress: ['validate', (_, cbk) => {
+    addAddress: ['validate', ({}, cbk) => {
       const {lnd} = args;
 
       return !args.include_address ? cbk() : createAddress({lnd}, cbk);
     }],
 
     // Add invoice
-    addInvoice: ['addAddress', ({addAddress}, cbk) => {
+    addInvoice: ['addAddress', 'preimage', ({addAddress, preimage}, cbk) => {
       const fallbackAddr = !addAddress ? '' : addAddress.address;
       const createdAt = new Date().toISOString();
 
       return args.lnd.addInvoice({
         fallback_addr: fallbackAddr,
         memo: args.description,
+        r_preimage: preimage || undefined,
         value: args.tokens,
       },
       (err, response) => {
