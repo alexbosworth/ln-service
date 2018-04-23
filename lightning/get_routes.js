@@ -1,7 +1,11 @@
+const BN = require('bn.js');
 const {isFinite} = require('lodash');
+
+const {routesFromQueryRoutes} = require('./../lnd');
 
 const defaultRoutesReturnCount = 10;
 const intBase = 10;
+const msatsPerToken = 1e3;
 
 const pathNotFoundErrors = [
   'noPathFound',
@@ -54,23 +58,11 @@ module.exports = ({destination, lnd, tokens}, cbk) => {
       return cbk([503, 'UnexpectedQueryRoutesError', err]);
     }
 
-    if (!res || !Array.isArray(res.routes)) {
-      return cbk([503, 'ExpectedRoutes']);
+    try {
+      return cbk(null, routesFromQueryRoutes({response: res}));
+    } catch (e) {
+      return cbk([503, 'InvalidGetRoutesResponse', e]);
     }
-
-    const invalidRoutes = res.routes
-      .map(route => parseInt(route.total_fees, intBase))
-      .filter(fees => !isFinite(fees));
-
-    if (!!invalidRoutes.length) {
-      return cbk([503, 'ExpectedValidRoutes']);
-    }
-
-    const routes = res.routes.map(route => {
-      return {fee: parseInt(route.total_fees, intBase)};
-    });
-
-    return cbk(null, {routes});
   });
 };
 
