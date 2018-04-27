@@ -11,6 +11,8 @@ const minimumChannelSize = 20000;
 /** Open a new channel.
 
   {
+    [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
+    [give_tokens]: <Tokens to Give To Partner Number>
     lnd: <LND GRPC API Object>
     [local_tokens]: <Local Tokens Number> // When not set, uses max possible
     partner_public_key: <Public Key Hex String>
@@ -50,10 +52,20 @@ module.exports = (args, cbk) => {
       const maxAvailable = balance > limit ? limit : balance;
       const channelAmount = args.local_tokens ? args.local_amt : maxAvailable;
 
-      const open = args.lnd.openChannel({
+      const options = {
         local_funding_amount: channelAmount - staticFee,
         node_pubkey: Buffer.from(args.partner_public_key, 'hex'),
-      });
+      }
+
+      if (!!args.chain_fee_tokens_per_vbyte) {
+        options.sat_per_byte = chain_fee_tokens_per_vbyte;
+      }
+
+      if (!!args.give_tokens) {
+        options.push_sat = args.give_tokens;
+      }
+
+      const open = args.lnd.openChannel(options);
 
       open.on('data', chan => {
         switch (chan.update) {
