@@ -4,17 +4,19 @@ const {broadcastResponse} = require('./../async-util');
 const createAddress = require('./create_address');
 const getInvoice = require('./get_invoice');
 
+const msPerSec = 1e3;
 const rowTypes = require('./conf/row_types');
 
 /** Create a channel invoice.
 
   {
     [description]: <Invoice Description String>
+    [expires_at]: <Expires At ISO 8601 Date String>
     [include_address]: <Return Backup Chain Address Bool>
     lnd: <LND GRPC API Object>
     payment_secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
-    wss: [<Web Socket Server Object>]
+    [wss]: [<Web Socket Server Object>]
   }
 
   @returns via cbk
@@ -50,8 +52,8 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedTokens']);
       }
 
-      if (!Array.isArray(args.wss)) {
-        return cbk([500, 'ExpectedWss']);
+      if (!!args.wss && !Array.isArray(args.wss)) {
+        return cbk([500, 'ExpectedWssArray']);
       }
 
       return cbk();
@@ -67,9 +69,13 @@ module.exports = (args, cbk) => {
     // Add invoice
     addInvoice: ['addAddress', 'preimage', ({addAddress, preimage}, cbk) => {
       const fallbackAddr = !addAddress ? '' : addAddress.address;
-      const createdAt = new Date().toISOString();
+      const createdAt = new Date();
+      const expireAt = !args.expires_at ? null : Date.parse(args.expires_at);
+
+      const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
       return args.lnd.addInvoice({
+        expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
         fallback_addr: fallbackAddr,
         memo: args.description,
         r_preimage: preimage || undefined,
@@ -89,7 +95,7 @@ module.exports = (args, cbk) => {
         }
 
         return cbk(null, {
-          created_at: createdAt,
+          created_at: createdAt.toISOString(),
           description: args.description,
           id: response.r_hash.toString('hex'),
           invoice: response.payment_request,
@@ -123,7 +129,9 @@ module.exports = (args, cbk) => {
       return cbk(err);
     }
 
-    broadcastResponse({row: res.invoice, wss: args.wss});
+    if (!!args.wss) {
+      broadcastResponse({row: res.invoice, wss: args.wss});
+    }
 
     return cbk(null, res.invoice);
   });

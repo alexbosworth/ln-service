@@ -31,6 +31,7 @@ module.exports = ({lnd, wss}) => {
       lnd,
       wss,
       description: body.description,
+      expires_at: body.expires_at,
       include_address: body.include_address,
       tokens: body.tokens,
     },
