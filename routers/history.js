@@ -1,21 +1,21 @@
-const {Router} = require('express');
-
 const {getHistory} = require('./../service');
 const {returnJson} = require('./../async-util');
+const Router = require('./router');
 
 /** Get a history router
 
   {
-    lnd: <LND API>
+    lnd: <LND API Object>
+    log: <Log Function>
   }
 
   @returns
   <Router Object>
 */
-module.exports = ({lnd}) => {
-  const router = Router({caseSensitive: true, strict: true});
+module.exports = ({lnd, log}) => {
+  const router = Router({});
 
-  router.get('/', (_, res) => getHistory({lnd}, returnJson({res})));
+  router.get('/', ({}, res) => getHistory({lnd}, returnJson({log, res})));
 
   return router;
 };

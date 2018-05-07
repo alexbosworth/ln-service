@@ -1,21 +1,22 @@
-const {Router} = require('express');
-
 const {getWalletInfo} = require('./../lightning');
 const {returnJson} = require('./../async-util');
+const Router = require('./router');
 
 /** Get a wallet info router
 
   {
     lnd: <LND GRPC API Object>
+    log: <Log Function>
   }
 
   @returns
   <Router Object>
 */
-module.exports = ({lnd}) => {
-  const router = Router({caseSensitive: true, strict: true});
+module.exports = ({lnd, log}) => {
+  const router = Router({});
 
-  router.get('/', (_, res) => getWalletInfo({lnd}, returnJson({res})));
+  // Get overall wallet info
+  router.get('/', ({}, res) => getWalletInfo({lnd}, returnJson({log, res})));
 
   return router;
 };

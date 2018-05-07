@@ -23,7 +23,7 @@ const intBase = 10;
     type: <Type String>
   }
 */
-module.exports = ({address, lnd, tokens, wss}, cbk) => {
+module.exports = ({address, lnd, log, tokens, wss}, cbk) => {
   if (!address) {
     return cbk([400, 'ExpectedAddress']);
   }
@@ -36,8 +36,12 @@ module.exports = ({address, lnd, tokens, wss}, cbk) => {
     return cbk([400, 'MissingTokens']);
   }
 
-  if (!Array.isArray(wss)) {
-    return cbk([400, 'ExpectedWss']);
+  if (!!wss && !Array.isArray(wss)) {
+    return cbk([400, 'ExpectedWssArray']);
+  }
+
+  if (!!wss && !log) {
+    return cbk([400, 'ExpectedLogFunction']);
   }
 
   return lnd.sendCoins({addr: address, amount: tokens}, (err, res) => {
@@ -58,7 +62,9 @@ module.exports = ({address, lnd, tokens, wss}, cbk) => {
       type: rowTypes.chain_transaction,
     };
 
-    broadcastResponse({row, wss});
+    if (!!wss) {
+      broadcastResponse({log, row, wss});
+    }
 
     return cbk(null, row);
   });

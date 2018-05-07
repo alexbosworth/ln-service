@@ -1,21 +1,21 @@
-const {Router} = require('express');
-
 const {getBalance} = require('./../service');
 const {returnJson} = require('./../async-util');
+const Router = require('./router');
 
 /** Get a balance router
 
   {
     lnd: <LND GRPC API Object>
+    log: <Log Function>
   }
 
   @returns
   <Router Object>
 */
-module.exports = ({lnd}) => {
-  const router = Router({caseSensitive: true, strict: true});
+module.exports = ({lnd, log}) => {
+  const router = Router({});
 
-  router.get('/', (_, res) => getBalance({lnd}, returnJson({res})));
+  router.get('/', ({}, res) => getBalance({lnd}, returnJson({log, res})));
 
   return router;
 };

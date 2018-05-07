@@ -1,25 +1,25 @@
-const {Router} = require('express');
-
 const {addPeer} = require('./../lightning');
 const {getPeers} = require('./../lightning');
 const {removePeer} = require('./../lightning');
 const {returnJson} = require('./../async-util');
+const Router = require('./router');
 
 /** Get a peers router
 
   {
     lnd: <LND GRPC API Object>
+    log: <Log Function>
   }
 
   @returns
   <Router Object>
 */
-module.exports = ({lnd}) => {
-  const router = Router({caseSensitive: true, strict: true});
+module.exports = ({lnd, log}) => {
+  const router = Router({});
 
   /** Get the list of connected peers
   */
-  router.get('/', ({}, res) => getPeers({lnd}, returnJson({res})));
+  router.get('/', ({}, res) => getPeers({lnd}, returnJson({log, res})));
 
   /** Add a new peer
 
@@ -35,7 +35,7 @@ module.exports = ({lnd}) => {
       host: body.host,
       public_key: body.public_key,
     },
-    returnJson({res}));
+    returnJson({log, res}));
   });
 
   /** Disconnect from a peer
@@ -46,7 +46,11 @@ module.exports = ({lnd}) => {
     }
   */
   router.delete('/:public_key', ({params}, res) => {
-    return removePeer({lnd, public_key: params.public_key}, returnJson({res}));
+    return removePeer({
+      lnd,
+      public_key: params.public_key,
+    },
+    returnJson({log, res}));
   });
 
   return router;

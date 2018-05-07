@@ -1,3 +1,5 @@
+const {log} = console;
+
 const basicAuth = require('express-basic-auth');
 const bodyParser = require('body-parser');
 const compress = require('compression')();
@@ -45,8 +47,8 @@ const app = express();
 const lnd = lightningDaemon({host: lndGrpcHost});
 
 const server = app
-  .listen(port, () => console.log(`Listening HTTP on port: ${port}`))
-  .on('error', e => console.log('Listen error', e));
+  .listen(port, () => log(null, `Listening HTTP on port: ${port}`))
+  .on('error', e => log([500, 'ListenError']));
 
 const [cert, key] = ['cert', 'key']
   .map(n => `${LNSERVICE_LND_DIR}/tls.${n}`)
@@ -68,23 +70,23 @@ app.use(bodyParser.json());
 app.use(logger(logFormat));
 app.use(basicAuth({authorizer, authorizeAsync: true}));
 
-app.use('/v0/addresses', addressesRouter({lnd}));
-app.use('/v0/balance', balanceRouter({lnd}));
-app.use('/v0/channels', channelsRouter({lnd}));
-app.use('/v0/connections', connectionsRouter({lnd}));
-app.use('/v0/crypto', cryptoRouter({lnd}));
-app.use('/v0/exchange', exchangeRouter({}));
-app.use('/v0/history', historyRouter({lnd}));
-app.use('/v0/invoices', invoicesRouter({lnd, wss}));
-app.use('/v0/network_info', networkInfoRouter({lnd}));
-app.use('/v0/payments', paymentsRouter({lnd, wss}));
-app.use('/v0/peers', peersRouter({lnd}));
-app.use('/v0/purchased', purchasedRouter({lnd}));
-app.use('/v0/transactions', transactionsRouter({lnd, wss}));
-app.use('/v0/wallet_info', walletInfoRouter({lnd}));
+app.use('/v0/addresses', addressesRouter({lnd, log}));
+app.use('/v0/balance', balanceRouter({lnd, log}));
+app.use('/v0/channels', channelsRouter({lnd, log}));
+app.use('/v0/connections', connectionsRouter({lnd, log}));
+app.use('/v0/crypto', cryptoRouter({lnd, log}));
+app.use('/v0/exchange', exchangeRouter({log}));
+app.use('/v0/history', historyRouter({lnd, log}));
+app.use('/v0/invoices', invoicesRouter({lnd, log, wss}));
+app.use('/v0/network_info', networkInfoRouter({lnd, log}));
+app.use('/v0/payments', paymentsRouter({lnd, log, wss}));
+app.use('/v0/peers', peersRouter({lnd, log}));
+app.use('/v0/purchased', purchasedRouter({lnd, log}));
+app.use('/v0/transactions', transactionsRouter({lnd, log, wss}));
+app.use('/v0/wallet_info', walletInfoRouter({lnd, log}));
 
-subscribeToInvoices({lnd, wss});
-subscribeToTransactions({lnd, wss});
+subscribeToInvoices({lnd, log, wss});
+subscribeToTransactions({lnd, log, wss});
 
 if (NODE_ENV !== 'production') {
   walnut.check(require('./package'));

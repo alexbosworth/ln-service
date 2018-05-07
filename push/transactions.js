@@ -8,25 +8,29 @@ const {broadcastResponse} = require('./../async-util');
     lnd: <LND GRPC API Object>
     wss: [<Web Socket Server Object>]
   }
+
+  @throws
+  <Error on Invalid Arguments>
 */
-module.exports = ({lnd, wss}) => {
+module.exports = ({lnd, log, wss}) => {
   if (!lnd) {
-    return console.log([500, 'ExpectedLnd']);
+    throw new Error('ExpectedLnd');
+  }
+
+  if (!log) {
+    throw new Error('ExpectedLogFunction');
   }
 
   if (!Array.isArray(wss)) {
-    return console.log([500, 'ExpectedWss']);
+    throw new Error('ExpectedWebSocketServers');
   }
 
   const subscription = subscribeToTransactions({lnd});
 
-  subscription.on('data', row => broadcastResponse({wss, row}));
-
+  subscription.on('data', row => broadcastResponse({log, row, wss}));
   subscription.on('end', () => {});
-
-  subscription.on('status', status => {});
-
-  subscription.on('error', err => console.error('[SUBTX]', err));
+  subscription.on('error', err => log([503, 'SubscribeTransactionsErr', err]));
+  subscription.on('status', ({}) => {});
 
   return;
 };

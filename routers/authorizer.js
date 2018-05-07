@@ -1,8 +1,13 @@
-const secretKey = process.env.LNSERVICE_SECRET_KEY;
+const {LNSERVICE_SECRET_KEY} = process.env;
 
 /** Authorize a user
 */
-module.exports = (username, password, cbk) => {
-  return cbk(null, !!secretKey && password === secretKey);
+module.exports = (_, password, cbk) => {
+  // A secret key is required for authentication success
+  if (!LNSERVICE_SECRET_KEY) {
+    return cbk(null, false);
+  }
+
+  return cbk(null, password === LNSERVICE_SECRET_KEY);
 };
 

@@ -1,24 +1,26 @@
-const {Router} = require('express');
-
 const {getNetworkGraph} = require('./../lightning');
 const {getNetworkInfo} = require('./../lightning');
 const {returnJson} = require('./../async-util');
+const Router = require('./router');
 
 /** Get a network info router.
 
   {
     lnd: <LND GRPC API Object>
+    log: <Log Function>
   }
 
   @returns
   <Router Object>
 */
-module.exports = ({lnd}) => {
-  const router = Router({caseSensitive: true, strict: true});
+module.exports = ({lnd, log}) => {
+  const router = Router({});
 
-  router.get('/graph', (_, res) => getNetworkGraph({lnd}, returnJson({res})));
+  router.get('/graph', ({}, res) => {
+    return getNetworkGraph({lnd}, returnJson({log, res}));
+  });
 
-  router.get('/', (_, res) => getNetworkInfo({lnd}, returnJson({res})));
+  router.get('/', ({}, res) => getNetworkInfo({lnd}, returnJson({log, res})));
 
   return router;
 };

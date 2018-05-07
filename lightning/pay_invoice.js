@@ -11,7 +11,8 @@ const intBase = 10;
   {
     invoice: <Bolt 11 Invoice String>
     lnd: <LND GRPC API Object>
-    wss: [<Web Socket Server Object>]
+    [log]: <Log Function> // Required if wss is set
+    [wss]: [<Web Socket Server Object>]
   }
 
   @returns via cbk
@@ -26,7 +27,7 @@ const intBase = 10;
     type: <Type String>
   }]
 */
-module.exports = ({invoice, lnd, wss}, cbk) => {
+module.exports = ({invoice, lnd, log, wss}, cbk) => {
   if (!invoice) {
     return cbk([400, 'ExpectedInvoice']);
   }
@@ -35,8 +36,12 @@ module.exports = ({invoice, lnd, wss}, cbk) => {
     return cbk([500, 'ExpectedLnd']);
   }
 
-  if (!wss) {
-    return cbk([500, 'ExpectedWebSocketServer']);
+  if (!!wss && !Array.isArray(wss)) {
+    return cbk([500, 'ExpectedWebSocketServerArray']);
+  }
+
+  if (!!wss && !log) {
+    return cbk([500, 'ExpectedLogFunction']);
   }
 
   return lnd.sendPaymentSync({payment_request: invoice}, (err, res) => {
@@ -59,7 +64,9 @@ module.exports = ({invoice, lnd, wss}, cbk) => {
       type: rowTypes.channel_transaction,
     };
 
-    broadcastResponse({row, wss});
+    if (!!wss) {
+      broadcastResponse({log, row, wss});
+    }
 
     return cbk(null, row);
   });

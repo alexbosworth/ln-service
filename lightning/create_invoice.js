@@ -14,6 +14,7 @@ const rowTypes = require('./conf/row_types');
     [expires_at]: <Expires At ISO 8601 Date String>
     [include_address]: <Return Backup Chain Address Bool>
     lnd: <LND GRPC API Object>
+    [log]: <Log Function> // Required when WSS is passed
     payment_secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
     [wss]: [<Web Socket Server Object>]
@@ -54,6 +55,10 @@ module.exports = (args, cbk) => {
 
       if (!!args.wss && !Array.isArray(args.wss)) {
         return cbk([500, 'ExpectedWssArray']);
+      }
+
+      if (!!args.wss && !args.log) {
+        return cbk([500, 'ExpectedLogFunction']);
       }
 
       return cbk();
@@ -130,7 +135,7 @@ module.exports = (args, cbk) => {
     }
 
     if (!!args.wss) {
-      broadcastResponse({row: res.invoice, wss: args.wss});
+      broadcastResponse({log: args.log, row: res.invoice, wss: args.wss});
     }
 
     return cbk(null, res.invoice);

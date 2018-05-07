@@ -3,13 +3,12 @@ const {OPEN} = require('ws');
 /** Broadcast a response to web socket clients.
 
   {
+    log: <Log Function>
     row: <Data Object>
     wss: [<Web Socket Server Object>]
   }
 */
-module.exports = ({row, wss}) => {
-  console.log('BROADCAST', row);
-
+module.exports = ({log, row, wss}) => {
   const stringifiedRow = JSON.stringify(row);
 
   return wss.forEach(w => {
@@ -20,7 +19,7 @@ module.exports = ({row, wss}) => {
       }
 
       try { client.send(stringifiedRow); } catch (err) {
-        console.log('BROADCAST ERROR', err);
+        return log([500, 'BroadcastFailure', err]);
       }
 
       return;
