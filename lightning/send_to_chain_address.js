@@ -51,7 +51,7 @@ module.exports = ({address, lnd, tokens, wss}, cbk) => {
 
     const row = {
       confirmation_count: 0,
-      id: response.txid,
+      id: res.txid,
       is_confirmed: false,
       is_outgoing: true,
       tokens: parseInt(args.tokens, intBase),
