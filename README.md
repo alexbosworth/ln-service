@@ -12,7 +12,82 @@ It is recommended to not expose the REST interface directly to the dangerous int
 
 ## Installation Instructions
 
-### As an npm package
+The service can run in two modes:
+
+1. As a library that can be used directly with GRPC against LND
+2. A standalone REST service that uses a simplified authentication for RPC calls.
+
+The direct GRPC mode is recommended.
+
+### Install LND and/or your Bitcoin Chain Daemon
+
+https://github.com/lightningnetwork/lnd/blob/master/docs/INSTALL.md
+
+If using Bitcoin Core, the following ~/.bitcoin/bitcon.conf configuration is recommended:
+
+```
+assumevalid= // plug in the current best block hash
+daemon=1
+datadir=/blockchain/.bitcoin/data
+dbcache=3000
+disablewallet=1
+maxuploadtarget=1000
+nopeerbloomfilters=1
+peerbloomfilters=0
+permitbaremultisig=0
+rpcpassword= // make a strong password
+rpcuser=bitcoinrpc
+server=1
+testnet=1 // Set as applicable
+txindex=1
+zmqpubrawblock=tcp://127.0.0.1:28332
+zmqpubrawtx=tcp://127.0.0.1:28332
+```
+
+Sample LND configuration options (~/.lnd/lnd.conf)
+
+```
+[Application Options]
+externalip=IP
+maxpendingchannels=10
+minchansize=250000
+rpclisten=0.0.0.0:10009
+tlsextraip=IP
+
+[autopilot]
+autopilot.active=1
+autopilot.maxchannels=10
+autopilot.minchansize=250000
+autopilot.allocation=0.8
+
+[Bitcoin]
+bitcoin.active=1
+bitcoin.feerate=1000
+bitcoin.node=bitcoind
+bitcoin.testnet=1
+
+[bitcoind]
+bitcoind.rpcpass= // Password for bitcoind
+bitcoind.rpcuser=bitcoinrpc
+bitcoind.zmqpath=tcp://127.0.0.1:28332
+```
+
+### Export Credentials (if using GRPC direct mode)
+
+```
+base64 ~/.lnd/admin.macaroon
+
+base64 ~/.lnd/tls.cert
+```
+
+You will need these variables to authenticate with LND.
+
+Make sure:
+- If you are accessing the LND remotely that you added the external IP in conf
+- If you added the external IP in the conf after starting LND regen the files (stop LND and then move or delete the files and LND will regen)
+- Don't include newline artifacts in your base64 values
+
+### Using as an npm package
 
 You can install the service via npm -
 
@@ -36,7 +111,15 @@ lnService.getWalletInfo({lnd}, (error, result) => {
 
 *NOTE*: You will need to make sure you [Set the Environment Variables](#configuring-environment-variables) unless you want to pass in base64 encoded values to the lightningDaemon for the cert and macaroon.
 
-### As a stand-alone REST API
+If you have encoded the values, use them to instantiate the lightningDaemon object.
+
+    const lnd = lnService.lightningDaemon({
+      cert: 'base64 encoded tls.cert'
+      host: 'localhost:10009'
+      macaroon: 'base64 encoded admin.macaroon'
+    });
+
+### Using as a stand-alone REST API
 
 #### PREREQUISITES:
 
@@ -52,6 +135,9 @@ $ npm install
 ```
 
 ### Configuring Environment Variables
+
+**In NPM installed direct GRPC mode only `GRPC_SSL_CIPHER_SUITES` environment
+variable is needed**
 
 Linux -
 
@@ -72,7 +158,6 @@ Make sure your `.bash_profile` contains the following environment variables -
     export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY
 
 **Make sure to `$ . ~/.bash_profile` in the window you are running the service from**
-
 
 ### Running REST API
 
