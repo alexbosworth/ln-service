@@ -1,6 +1,6 @@
 const {payInvoice} = require('./../lightning');
 const {returnJson} = require('./../async-util');
-const Router = require('./Router');
+const Router = require('./router');
 
 /** Get a payments router.
 
