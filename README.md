@@ -179,8 +179,9 @@ To generate the Base64 encoded credentials in Chrome for example in the console 
 
 ```
 > let username = 'test';
+// username can be anything.
 > let password = '1m5secret4F';
-// password must match the LNSERVICE_SECRET_KEY in your environment variables. username can be anything.
+// password must match the LNSERVICE_SECRET_KEY in your environment variables.
 > btoa(`${username}:${password}`);
 // dGVzdDoxbTVlY3JldDRG
 ```
