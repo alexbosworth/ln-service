@@ -23,7 +23,7 @@ The direct GRPC mode is recommended.
 
 https://github.com/lightningnetwork/lnd/blob/master/docs/INSTALL.md
 
-If using Bitcoin Core, the following ~/.bitcoin/bitcon.conf configuration is recommended:
+If using Bitcoin Core, the following ~/.bitcoin/bitcoin.conf configuration is recommended:
 
 ```
 assumevalid= // plug in the current best block hash
