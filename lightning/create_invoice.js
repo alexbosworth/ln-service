@@ -65,10 +65,15 @@ module.exports = (args, cbk) => {
     },
 
     // Add address for the fallback address
-    addAddress: ['validate', ({}, cbk) => {
+    addAddress: ['validate', async ({}, cbk) => {
       const {lnd} = args;
 
-      return !args.include_address ? cbk() : createAddress({lnd}, cbk);
+      if(!args.include_address) {
+        return cbk();
+      } else{
+        const address = await createAddress({lnd});
+        return cbk(null, address);
+      } 
     }],
 
     // Add invoice
@@ -141,4 +146,3 @@ module.exports = (args, cbk) => {
     return cbk(null, res.invoice);
   });
 };
-
