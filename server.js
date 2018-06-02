@@ -37,9 +37,12 @@ const {walletInfoRouter} = require('./routers');
 const {LNSERVICE_LND_DIR} = process.env;
 const {NODE_ENV} = process.env;
 const {PORT} = process.env;
+const {LND_HOST, LND_PORT} = process.env;
 
 const httpsPort = 18554;
-const lndGrpcHost = 'localhost:10009';
+const lndHost = LND_HOST || 'localhost';
+const lndPort = LND_PORT || 10009;
+const lndGrpcHost = `${lndHost}:${lndPort}`;
 const logFormat = ':method :url :status - :response-time ms - :user-agent';
 const port = PORT || 10553;
 
