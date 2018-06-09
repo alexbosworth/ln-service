@@ -66,7 +66,6 @@ const fixtures = {
     {
       _: 'On mainnet, with fallback address 1RustyRX2oai4EYYDpQGWvEL62BBGqN9T with extra routing info',
       expected: {
-        chain_address: '1RustyRX2oai4EYYDpQGWvEL62BBGqN9T',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
@@ -80,7 +79,6 @@ const fixtures = {
     {
       _: 'On mainnet, with fallback (P2SH) address 3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX',
       expected: {
-        chain_address: '3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
@@ -94,7 +92,6 @@ const fixtures = {
     {
       _: 'On mainnet, with fallback (P2WPKH) address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
       expected: {
-        chain_address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
@@ -108,7 +105,6 @@ const fixtures = {
     {
       _: 'On mainnet, with fallback (P2WSH) address bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3',
       expected: {
-        chain_address: 'bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3',
         created_at: new Date(1496314658 * msPerSec).toISOString(),
         destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
         expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
@@ -152,7 +148,6 @@ const fixtures = {
 fixtures.test_cases.forEach(({expected, invoice}) => {
   const details = parseInvoice({invoice});
 
-  equal(details.chain_address, expected.chain_address, 'IncorrectChainAddr');
   equal(details.created_at, expected.created_at, 'IncorrectCreatedAt');
   equal(details.description, expected.description, 'IncorrectDescription');
   equal(details.destination, expected.destination, 'IncorrectDestination');

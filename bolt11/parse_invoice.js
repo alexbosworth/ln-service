@@ -6,7 +6,6 @@ const {recover} = require('secp256k1');
 
 const hrpAsTokens = require('./hrp_as_tokens');
 const invoiceExpiration = require('./invoice_expiration');
-const wordsAsAddress = require('./words_as_address');
 const wordsAsNumber = require('./words_as_number');
 const wordsAsBuffer = require('./words_as_buffer');
 
@@ -42,7 +41,6 @@ const timestampWordLength = 7;
 
   @returns
   {
-    [chain_address]: <Fallback Chain Address String>
     created_at: <Invoice Creation Date ISO 8601 String>
     [description]: <Payment Description String>
     destination: <Public Key String>
@@ -124,7 +122,6 @@ module.exports = ({invoice}) => {
   // Cut off the timestamp words
   let wordsWithTags = words.slice(timestampWordLength)
 
-  let chainAddress;
   let cltvExpiry = defaultCltvExpiry;
   let description;
   let expiresAt;
@@ -158,14 +155,6 @@ module.exports = ({invoice}) => {
         description = wordsAsBuffer({trim, words: tagWords});
       } catch (e) {
         throw new Error('InvalidDescription');
-      }
-      break;
-
-    case 'f': // Fallback Address
-      try {
-        chainAddress = wordsAsAddress({network, words: tagWords});
-      } catch (e) {
-        throw new Error('InvalidFallbackAddress');
       }
       break;
 
@@ -218,7 +207,6 @@ module.exports = ({invoice}) => {
 
   return {
     network,
-    chain_address: chainAddress || undefined,
     created_at: createdAt,
     description: !!description ? description.toString('utf8') : undefined,
     destination: destination.toString('hex'),
