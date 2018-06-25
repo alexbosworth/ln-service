@@ -39,7 +39,15 @@ module.exports = ({response}) => {
   }
 
   const invalidRoute = routes.find(route => {
-    return typeof route.total_fees_msat !== 'string';
+    if (typeof route.total_fees_msat !== 'string') {
+      return true;
+    }
+
+    if (typeof route.total_time_lock !== 'number') {
+      return true;
+    }
+
+    return false;
   });
 
   if (!!invalidRoute) {
@@ -50,7 +58,10 @@ module.exports = ({response}) => {
     routes: routes.map(route => {
       const totalFeesMsat = new BN(route.total_fees_msat, decBase);
 
-      return {fee: totalFeesMsat.div(msatsPerToken).toNumber()};
+      return {
+        fee: totalFeesMsat.div(msatsPerToken).toNumber(),
+        timeout: route.total_time_lock,
+      };
     }),
   };
 };

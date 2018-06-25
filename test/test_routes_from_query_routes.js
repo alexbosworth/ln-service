@@ -24,13 +24,13 @@ const tests = [
   {
     _: 'Invalid fees',
     error: 'ExpectedValidRoutes',
-    response: {routes: [{total_fees_msat: null}]},
+    response: {routes: [{total_fees_msat: null, total_time_lock: 31337}]},
   },
 
   {
     _: 'Valid routes',
-    expected: {routes: [{fee: 1}]},
-    response: {routes: [{total_fees_msat: '1000'}]},
+    expected: {routes: [{fee: 1, timeout: 31337}]},
+    response: {routes: [{total_fees_msat: '1000', total_time_lock: 31337}]},
   },
 ];
 
