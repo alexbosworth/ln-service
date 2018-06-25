@@ -9,6 +9,7 @@ const msatsPerToken = new BN(1e3, 10);
     response: {
       routes: [{
         total_fees_msat: <Route Total Fees MSats String>
+        total_time_lock: <Route Total Timelock Number>
       }]
     }
   }
@@ -20,6 +21,7 @@ const msatsPerToken = new BN(1e3, 10);
   {
     routes: [{
       fee: <Route Fee Tokens Number>
+      timeout: <Timeout Block Height Number>
     }]
   }
 */

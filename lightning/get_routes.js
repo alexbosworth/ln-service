@@ -27,6 +27,7 @@ const pathNotFoundErrors = [
   {
     routes: [{
       fee: <Route Fee Tokens Number>
+      timeout: <Timeout Block Height Number>
     }]
   }
 */
