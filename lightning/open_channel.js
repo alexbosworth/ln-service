@@ -49,8 +49,9 @@ module.exports = (args, cbk) => {
       const balance = getChainBalance.chain_balance;
       const limit = channelLimit;
 
-      const maxAvailable = balance > limit ? limit : balance;
-      const channelAmount = args.local_tokens ? args.local_amt : maxAvailable;
+      const maxTokens = balance > limit ? limit : balance;
+
+      const channelAmount = args.local_tokens ? args.local_tokens : maxTokens;
 
       const options = {
         local_funding_amount: channelAmount - staticFee,
