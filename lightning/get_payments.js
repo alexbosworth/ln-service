@@ -67,7 +67,7 @@ module.exports = ({lnd}, cbk) => {
         }
 
         if (typeof payment.fee !== 'string') {
-          return cbk([503, 'Expected fee']);
+          return cbk([503, 'ExpectedPaymentFee', payment]);
         }
 
         if (!Array.isArray(payment.path)) {

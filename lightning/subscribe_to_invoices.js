@@ -42,7 +42,13 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedCreationDate'));
     }
 
-    if (!Buffer.isBuffer(invoice.description_hash)) {
+    if (!invoice.description_hash) {
+      return eventEmitter.emit('error', new Error('ExpectedDescriptionHash'));
+    }
+
+    const descriptionHash = invoice.description_hash;
+
+    if (!!descriptionHash.length && !Buffer.isBuffer(descriptionHash)) {
       return eventEmitter.emit('error', new Error('ExpectedDescriptionHash'));
     }
 
@@ -58,7 +64,7 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedInvoicePreimage'));
     }
 
-    if (!Buffer.isBuffer(invoice.receipt)) {
+    if (!!invoice.receipt.length && !Buffer.isBuffer(invoice.receipt)) {
       return eventEmitter.emit('error', new Error('ExpectedInvoiceReceipt'));
     }
 

@@ -80,7 +80,7 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedExpirationTime', invoice]);
         }
 
-        if (!Buffer.isBuffer(invoice.description_hash)) {
+        if (!!descHash.length && !Buffer.isBuffer(invoice.description_hash)) {
           return cbk([503, 'ExpectedDescriptionHashBuffer', invoice]);
         }
 

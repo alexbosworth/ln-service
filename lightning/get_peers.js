@@ -56,7 +56,7 @@ module.exports = ({lnd}, cbk) => {
         }
 
         if (peer.inbound !== true && peer.inbound !== false) {
-          return cbk([503, 'ExpectedPeerInbound']);
+          return cbk([503, 'ExpectedPeerInbound', peer]);
         }
 
         if (typeof peer.ping_time !== 'string') {

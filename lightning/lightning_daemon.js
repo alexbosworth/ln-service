@@ -3,6 +3,7 @@ const {join} = require('path');
 const {readFileSync} = require('fs');
 
 const grpc = require('grpc');
+const {loadSync} = require('@grpc/proto-loader');
 
 const grpcSslCipherSuites = require('./conf/lnd').grpc_ssl_cipher_suites;
 
@@ -25,7 +26,15 @@ const {LNSERVICE_LND_DIR} = process.env;
   <LND GRPC Api Object>
 */
 module.exports = ({cert, host, macaroon, service}) => {
-  const rpc = grpc.load(__dirname + '/conf/grpc.proto');
+  const packageDefinition = loadSync(__dirname + '/conf/grpc.proto', {
+    defaults: true,
+    enums: String,
+    keepCase: true,
+    longs: String,
+    oneofs: true,
+  });
+
+  const rpc = grpc.loadPackageDefinition(packageDefinition);
 
   // Exit early when the environment variable cipher suite is not correct
   if (GRPC_SSL_CIPHER_SUITES !== grpcSslCipherSuites) {

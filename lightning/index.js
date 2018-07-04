@@ -6,6 +6,7 @@ const decodeInvoice = require('./decode_invoice');
 const getChainBalance = require('./get_chain_balance');
 const getChannelBalance = require('./get_channel_balance');
 const getChannels = require('./get_channels');
+const getFeeRates = require('./get_fee_rates');
 const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
 const getNetworkGraph = require('./get_network_graph');
@@ -38,6 +39,7 @@ module.exports = {
   getChainBalance,
   getChannelBalance,
   getChannels,
+  getFeeRates,
   getInvoice,
   getInvoices,
   getNetworkGraph,
