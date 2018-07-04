@@ -28,7 +28,6 @@ const intBase = 10;
       sent: <Sent Satoshis Number>
       transaction_id: <Blockchain Transaction Id>
       transaction_vout: <Blockchain Transaction Vout Number>
-      transfers_count: <Channel Transfers Total Number>
       unsettled_balance: <Unsettled Balance Satoshis Number>
     }]
   }
@@ -38,7 +37,7 @@ module.exports = ({lnd}, cbk) => {
     // Check arguments
     validate: cbk => {
       if (!lnd || !lnd.listChannels) {
-        return cbk([500, 'ExpectedLnd']);
+        return cbk([400, 'ExpectedLndToGetChannels']);
       }
 
       return cbk();
@@ -59,6 +58,7 @@ module.exports = ({lnd}, cbk) => {
       });
     }],
 
+    // Map channel response to channels list
     mappedChannels: ['getChannels', ({getChannels}, cbk) => {
       return asyncMap(getChannels, (channel, cbk) => {
         if (!Array.isArray(channel.pending_htlcs)) {
@@ -138,13 +138,13 @@ module.exports = ({lnd}, cbk) => {
           sent: parseInt(channel.total_satoshis_sent, intBase),
           transaction_id: transactionId,
           transaction_vout: parseInt(vout, intBase),
-          transfers_count: parseInt(channel.num_updates, intBase),
           unsettled_balance: parseInt(channel.unsettled_balance, intBase),
         });
       },
       cbk);
     }],
 
+    // Final channels result
     channels: ['mappedChannels', ({mappedChannels}, cbk) => {
       return cbk(null, {channels: mappedChannels});
     }],
