@@ -18,9 +18,10 @@ module.exports = ({lnd, log, wss}) => {
 
   // Send a payment
   router.post('/', ({body}, res) => {
+    const {fee} = body;
     const {invoice} = body;
 
-    return payInvoice({invoice, lnd, log, wss}, returnJson({log, res}));
+    return payInvoice({fee, invoice, lnd, log, wss}, returnJson({log, res}));
   });
 
   return router;

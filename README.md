@@ -149,7 +149,7 @@ Make sure your `.bashrc` contains the following environment variables -
 
 **Make sure to `$ source ~/.bashrc` in the window you are running the service from**
 
-OSX -
+MacOS -
 
 Make sure your `.bash_profile` contains the following environment variables -
 

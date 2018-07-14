@@ -9,6 +9,7 @@ const intBase = 10;
 /** Send a channel payment.
 
   {
+    [fee]: <Maximum Additional Fee Tokens To Pay Number>
     invoice: <Bolt 11 Invoice String>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required if wss is set
@@ -27,7 +28,7 @@ const intBase = 10;
     type: <Type String>
   }]
 */
-module.exports = ({invoice, lnd, log, wss}, cbk) => {
+module.exports = ({fee, invoice, lnd, log, wss}, cbk) => {
   if (!invoice) {
     return cbk([400, 'ExpectedInvoice']);
   }
@@ -44,7 +45,13 @@ module.exports = ({invoice, lnd, log, wss}, cbk) => {
     return cbk([500, 'ExpectedLogFunction']);
   }
 
-  return lnd.sendPaymentSync({payment_request: invoice}, (err, res) => {
+  const params = {payment_request: invoice};
+
+  if (!!fee) {
+    params.fee_limit = {fixed: fee};
+  }
+
+  return lnd.sendPaymentSync(params, (err, res) => {
     if (!!err) {
       return cbk([503, 'SendPaymentErr', err, res]);
     }
