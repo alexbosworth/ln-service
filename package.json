@@ -10,7 +10,7 @@
     "bitcoinjs-lib": "3.3.2",
     "body-parser": "1.18.3",
     "bn.js": "4.11.8",
-    "compression": "1.7.2",
+    "compression": "1.7.3",
     "cors": "2.8.4",
     "express": "4.16.3",
     "express-basic-auth": "1.1.5",
@@ -47,5 +47,5 @@
     "start": "node server.js",
     "test": "tap test/*.js"
   },
-  "version": "8.0.0"
+  "version": "8.1.0"
 }

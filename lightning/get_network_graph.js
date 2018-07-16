@@ -22,6 +22,7 @@ const countGroupingFactor = 3;
       to_self: <Target is Self Bool>
     }]
     nodes: [{
+      addresses: [<Network Address String>]
       alias: <Name String>
       color: <Hex Encoded Color String>
       community: <Community Grouping Number>
@@ -47,7 +48,7 @@ module.exports = ({lnd}, cbk) => {
     },
 
     // Get network graph
-    getGraph: ['validate', (_, cbk) => {
+    getGraph: ['validate', ({}, cbk) => {
       return lnd.describeGraph({}, (err, networkGraph) => {
         if (!!err) {
           return cbk([503, 'GetNetworkGraphError', err]);
@@ -101,6 +102,7 @@ module.exports = ({lnd}, cbk) => {
         const community = Math.round(count / countGroupingFactor);
 
         return {
+          addresses: n.addresses.map(n => n.addr),
           alias: n.alias,
           color: n.color,
           community: !channelCount[n.pub_key] ? [].length : community,
