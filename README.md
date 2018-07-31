@@ -157,7 +157,7 @@ Make sure your `.bash_profile` contains the following environment variables -
     export LNSERVICE_LND_DIR="$HOME/Library/Application Support/Lnd/"
     export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY
 
-**Make sure to `$ . ~/.bash_profile` in the window you are running the service from**
+**Make sure to `$ source ~/.bash_profile` in the window you are running the service from**
 
 ### Running REST API
 
