@@ -1,11 +1,13 @@
 const BN = require('bn.js');
 
 const divisors = require('./conf/divisors');
+const bnDivDecimals = require('./bn_div_decimals');
 
 const decBase = 10;
 const divisibilityMarkerLen = 1;
 const maxMilliTokens = '2100000000000000';
 const tokenDivisibility = new BN(1e8, 10);
+const maxMillitokensDec = 3;
 
 /** Given a Bech32 "HRP" or Human Readable Part, return the number of tokens
 
@@ -37,10 +39,17 @@ module.exports = ({hrp}) => {
   }
 
   let tok;
+  let mtok;
+  let decimals = '000';
   const val = new BN(value, decBase);
 
   if (!!divisor) {
-    tok = val.mul(tokenDivisibility).div(new BN(divisors[divisor], decBase));
+    const BNDivisor = new BN(divisors[divisor], decBase);
+    const divmod = val.mul(tokenDivisibility).divmod(BNDivisor);
+    tok = divmod.div;
+    if (divmod.mod.toString() != '0') {
+      decimals = bnDivDecimals(divmod.mod, BNDivisor, maxMillitokensDec);
+    }
   } else {
     tok = val.mul(tokenDivisibility);
   }
@@ -49,6 +58,8 @@ module.exports = ({hrp}) => {
     throw new Error('TokenCountExceedsMaximumValue');
   }
 
-  return tok.toNumber();
-};
+  mtok = `${tok.toString()}${decimals}`;
+  const BNmtok = new BN(mtok, decBase);
 
+  return { tokens: tok.toNumber(), mtokens: BNmtok.toNumber() };
+};

@@ -142,6 +142,20 @@ const fixtures = {
       },
       invoice: 'lntb1500n1pdd932ypp5sa3yxktt5lyuexkcjf0ahy4xsy2ruf3zjtcqeh0swkqzwytl25dqdq0g9jxggp60fshqwscqzysx4kfvu5a6f95zxw9lqjlv5nkvnfrwp509lhrttungj6jrthewtczr9csjl69u54dkcneq99s7ke57j9dlkufmvly5k4z7yn0c09ns0qpzlc6md',
     },
+    {
+      expected: {
+        created_at: new Date(1533923529 * msPerSec).toISOString(),
+        description: '',
+        destination: '032bb4f2cd2bf877429f1d79f91de0794e4a3b7b772febbf60fc21bb3475f7cd5e',
+        expires_at: new Date((1533923529 + 172800) * msPerSec).toISOString(),
+        id: '5c23c315170c4fc9b1020641651aae17021d7f2488160fc759bbcb666af771c6',
+        is_expired: true,
+        network: 'testnet',
+        tokens: 493,
+        mtokens: 493020,
+      },
+      invoice: 'lntb4930200p1pdkm5xfrzjqwfn3p9278ttzzpe0e00uhyxhned3j5d9acqak5emwfpflp8z2cng99y0sqqqgcqqqqqqqlgqqqqqeqqjqfppqvzxxvnahw6gkj9aqpptktxpt6906cn2sdqqxqy9gcqpp5ts3ux9ghp38unvgzqeqk2x4wzupp6ley3qtql36eh09kv6hhw8rqlsewhluvdsc05q8pcfwnrfplrglgzlzqmgkzamrhvxj8lep7hhajx6pu5s3ay6pjunw679nx9nrvkdl52n9l273ah4rxwm4tj8fcjcqqh4ku2d',
+    },
   ],
 };
 
@@ -156,7 +170,9 @@ fixtures.test_cases.forEach(({expected, invoice}) => {
   equal(details.is_expired, expected.is_expired, 'IncorrectExpiry');
   equal(details.network, expected.network, 'IncorrectNetwork');
   equal(details.tokens, expected.tokens, 'IncorrectTokens');
+  if (expected.mtokens) {
+    equal(details.mtokens, expected.mtokens, 'IncorrectMilliTokens');
+  }
 
   return;
 });
-
