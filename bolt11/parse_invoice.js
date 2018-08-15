@@ -104,10 +104,15 @@ module.exports = ({invoice}) => {
     throw new Error('UnknownCurrencyCode');
   }
 
-  let tokens;
+  let tokens = null;
+  let mtokens = null;
 
   try {
-    tokens = !value ? null : hrpAsTokens({hrp: `${value}${valueDivisor}`});
+    if (value) {
+      const tok = hrpAsTokens({hrp: `${value}${valueDivisor}`});
+      mtokens = tok.mtokens;
+      tokens = tok.tokens;
+    }
   } catch (e) {
     throw new Error('ExpectedValidHrp');
   }
@@ -214,6 +219,6 @@ module.exports = ({invoice}) => {
     id: paymentHash.toString('hex'),
     is_expired: expiresAt < new Date().toISOString(),
     tokens: tokens,
+    mtokens: mtokens,
   };
 };
-
