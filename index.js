@@ -2,6 +2,8 @@ const {addPeer} = require('./lightning');
 const {closeChannel} = require('./lightning');
 const {createAddress} = require('./lightning');
 const {createInvoice} = require('./lightning');
+const {createSeed} = require('./lightning');
+const {createWallet} = require('./lightning');
 const {decodeInvoice} = require('./lightning');
 const {decodeShortChannelId} = require('./bolt07');
 const {encodeShortChannelId} = require('./bolt07');
@@ -39,6 +41,8 @@ module.exports = {
   closeChannel,
   createAddress,
   createInvoice,
+  createSeed,
+  createWallet,
   decodeInvoice,
   decodeShortChannelId,
   encodeShortChannelId,
