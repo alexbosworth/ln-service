@@ -6,7 +6,7 @@
 
 The core of this project is a gRPC interface for node.js projects, available through npm.
 
-The project can be run alone to create a REST interface on top of LND that exposes functionality to client applications.
+The project can be run alone to create a simplified REST interface on top of LND that exposes functionality to client applications.
 
 It is recommended to not expose the REST interface directly to the dangerous internet as that gives anyone control of your node.
 
@@ -14,7 +14,7 @@ It is recommended to not expose the REST interface directly to the dangerous int
 
 The service can run in two modes:
 
-1. As a library that can be used directly with GRPC against LND
+1. As a library that can be used directly with [GRPC](https://grpc.io/) against LND
 2. A standalone REST service that uses a simplified authentication for RPC calls.
 
 The direct GRPC mode is recommended.
@@ -39,9 +39,8 @@ rpcpassword= // make a strong password
 rpcuser=bitcoinrpc
 server=1
 testnet=1 // Set as applicable
-txindex=1
 zmqpubrawblock=tcp://127.0.0.1:28332
-zmqpubrawtx=tcp://127.0.0.1:28332
+zmqpubrawtx=tcp://127.0.0.1:28333
 ```
 
 Sample LND configuration options (~/.lnd/lnd.conf)
@@ -65,11 +64,6 @@ bitcoin.active=1
 bitcoin.feerate=1000
 bitcoin.node=bitcoind
 bitcoin.testnet=1
-
-[bitcoind]
-bitcoind.rpcpass= // Password for bitcoind
-bitcoind.rpcuser=bitcoinrpc
-bitcoind.zmqpath=tcp://127.0.0.1:28332
 ```
 
 ### Export Credentials (if using GRPC direct mode)
@@ -91,23 +85,19 @@ Make sure:
 
 You can install the service via npm -
 
-```
-$ npm install ln-service
-```
+    $ npm install ln-service
 
 You can then interact with your LND node directly -
 
-```
-const lnService = require('ln-service');
+    const lnService = require('ln-service');
 
-const lnd = lnService.lightningDaemon({
-  host: 'localhost:10009'
-});
+    const lnd = lnService.lightningDaemon({
+      host: 'localhost:10009'
+    });
 
-lnService.getWalletInfo({lnd}, (error, result) => {
-  console.log(result);
-});
-```
+    lnService.getWalletInfo({lnd}, (error, result) => {
+      console.log(result);
+    });
 
 *NOTE*: You will need to make sure you [Set the Environment Variables](#configuring-environment-variables) unless you want to pass in base64 encoded values to the lightningDaemon for the cert and macaroon.
 
@@ -128,11 +118,9 @@ Please also make sure that you have node.js / npm installed, too.
 The best way to install it for personal use is [NVM](https://github.com/creationix/nvm#verify-installation).
 Willingness to report bugs?
 
-```
-$ git clone https://github.com/alexbosworth/ln-service.git
-$ cd ln-service
-$ npm install
-```
+    git clone https://github.com/alexbosworth/ln-service.git
+    cd ln-service
+    npm install
 
 ### Configuring Environment Variables
 
@@ -141,7 +129,7 @@ variable is needed**
 
 Linux -
 
-Make sure your `.bashrc` contains the following environment variables -
+Make sure your `.bashrc` or `~/.profile` contains the following environment variables -
 
     export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
     export LNSERVICE_LND_DIR='~/.lnd/'
@@ -151,7 +139,7 @@ Make sure your `.bashrc` contains the following environment variables -
 
 MacOS -
 
-Make sure your `.bash_profile` contains the following environment variables -
+Make sure your `~/.bash_profile` contains the following environment variables -
 
     export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
     export LNSERVICE_LND_DIR="$HOME/Library/Application Support/Lnd/"
@@ -161,9 +149,7 @@ Make sure your `.bash_profile` contains the following environment variables -
 
 ### Running REST API
 
-```
-$ npm start
-```
+    $ npm start
 
 ### Making HTTP requests to the REST API
 
@@ -171,20 +157,16 @@ $ npm start
 
 Basic example of an authorization header -
 
-```
-Authorization: Basic {{TOKEN_GOES_HERE_WITHOUT_BRACES}}
-```
+    Authorization: Basic {{TOKEN_GOES_HERE_WITHOUT_BRACES}}
 
 To generate the Base64 encoded credentials in Chrome for example in the console you can -
 
-```
-> let username = 'test';
-// username can be anything.
-> let password = '1m5secret4F';
-// password must match the LNSERVICE_SECRET_KEY in your environment variables.
-> btoa(`${username}:${password}`);
-// dGVzdDoxbTVlY3JldDRG
-```
+    > let username = 'test';
+    // username can be anything.
+    > let password = '1m5secret4F';
+    // password must match the LNSERVICE_SECRET_KEY in your environment variables.
+    > btoa(`${username}:${password}`);
+    // dGVzdDoxbTVlY3JldDRG
 
 And then set the value of the Authorization header to the returned value `dGVzdDoxbTVlY3JldDRG`.
 
@@ -192,6 +174,5 @@ And copy the result as the token in the above example
 
 ### Running the tests
 
-```
-$ npm test
-```
+    $ npm test
+
