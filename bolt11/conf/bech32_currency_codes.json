@@ -1,5 +1,6 @@
 {
   "bc": "bitcoin",
+  "bcrt": "regtest",
   "ltc": "litecoin",
   "tb": "testnet"
 }
