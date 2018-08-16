@@ -15,7 +15,7 @@ const rowTypes = require('./conf/row_types');
     [include_address]: <Return Backup Chain Address Bool>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
-    payment_secret: <Payment Secret Hex String>
+    [payment_secret]: <Payment Secret Hex String>
     tokens: <Tokens Number>
     [wss]: [<Web Socket Server Object>]
   }
