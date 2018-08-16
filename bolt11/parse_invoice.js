@@ -47,8 +47,9 @@ const timestampWordLength = 7;
     expires_at: <ISO 8601 Date String>
     id: <Payment Request Hash String>
     is_expired: <Invoice is Expired Bool>
+    [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
     network: <Network Name String>
-    [tokens]: <Requested Tokens Number>
+    [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
   }
 */
 module.exports = ({invoice}) => {
@@ -222,3 +223,4 @@ module.exports = ({invoice}) => {
     mtokens: mtokens,
   };
 };
+

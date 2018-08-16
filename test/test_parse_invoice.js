@@ -150,9 +150,9 @@ const fixtures = {
         expires_at: new Date((1533923529 + 172800) * msPerSec).toISOString(),
         id: '5c23c315170c4fc9b1020641651aae17021d7f2488160fc759bbcb666af771c6',
         is_expired: true,
+        mtokens: '493020',
         network: 'testnet',
         tokens: 493,
-        mtokens: 493020,
       },
       invoice: 'lntb4930200p1pdkm5xfrzjqwfn3p9278ttzzpe0e00uhyxhned3j5d9acqak5emwfpflp8z2cng99y0sqqqgcqqqqqqqlgqqqqqeqqjqfppqvzxxvnahw6gkj9aqpptktxpt6906cn2sdqqxqy9gcqpp5ts3ux9ghp38unvgzqeqk2x4wzupp6ley3qtql36eh09kv6hhw8rqlsewhluvdsc05q8pcfwnrfplrglgzlzqmgkzamrhvxj8lep7hhajx6pu5s3ay6pjunw679nx9nrvkdl52n9l273ah4rxwm4tj8fcjcqqh4ku2d',
     },
@@ -176,3 +176,4 @@ fixtures.test_cases.forEach(({expected, invoice}) => {
 
   return;
 });
+
