@@ -1,10 +1,8 @@
-const {crypto} = require('bitcoinjs-lib');
 const {equal} = require('tap');
 
 const {parseInvoice} = require('./../index');
 
 const msPerSec = 1e3;
-const {sha256} = crypto;
 
 const fixtures = {
   test_cases: [

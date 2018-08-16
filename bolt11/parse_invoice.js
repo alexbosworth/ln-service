@@ -1,7 +1,6 @@
-const {address} = require('bitcoinjs-lib');
-const {crypto} = require('bitcoinjs-lib');
+const {createHash} = require('crypto');
+
 const {decode} = require('bech32');
-const {ECPair} = require('bitcoinjs-lib');
 const {recover} = require('secp256k1');
 
 const hrpAsTokens = require('./hrp_as_tokens');
@@ -15,13 +14,11 @@ const taggedFields = require('./conf/tagged_fields');
 const defaultCltvExpiry = 9;
 const defaultExpirationMs = 3600000;
 const descriptionHashByteLength = 32;
-const {fromPublicKeyBuffer} = address;
 const lnPrefix = 'ln';
 const msPerSec = 1e3;
 const paymentHashByteLength = 32;
 const recoveryFlagByteLength = 1;
 const recoveryFlags = [0, 1, 2, 3];
-const {sha256} = crypto;
 const sigByteLength = 64;
 const sigWordsCount = 104;
 const tagLengthWordLen = 2;
@@ -126,7 +123,6 @@ module.exports = ({invoice}) => {
   let description;
   let expiresAt;
   let paymentHash;
-  const pubKeyFromBuf = fromPublicKeyBuffer;
   let tagCode;
   let tagLen;
   let tagName;
@@ -196,14 +192,14 @@ module.exports = ({invoice}) => {
     throw new Error('ExpectedPaymentHash');
   }
 
-  const hashToSign = sha256(
+  const hash = createHash('sha256').update(
     Buffer.concat([
       Buffer.from(prefix, 'utf8'),
       wordsAsBuffer({words: wordsWithoutSig}),
     ])
   );
 
-  const destination = recover(hashToSign, sigBuffer, recoveryFlag, true);
+  const destination = recover(hash.digest(), sigBuffer, recoveryFlag, true);
 
   return {
     network,
