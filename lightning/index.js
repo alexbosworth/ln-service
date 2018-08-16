@@ -2,6 +2,8 @@ const addPeer = require('./add_peer');
 const closeChannel = require('./close_channel');
 const createAddress = require('./create_address');
 const createInvoice = require('./create_invoice');
+const createSeed = require('./create_seed');
+const createWallet = require('./create_wallet');
 const decodeInvoice = require('./decode_invoice');
 const getChainBalance = require('./get_chain_balance');
 const getChannelBalance = require('./get_channel_balance');
@@ -35,6 +37,8 @@ module.exports = {
   closeChannel,
   createAddress,
   createInvoice,
+  createSeed,
+  createWallet,
   decodeInvoice,
   getChainBalance,
   getChannelBalance,

@@ -1,10 +1,13 @@
 const BN = require('bn.js');
 
+const dividedRemainder = require('./divided_remainder');
 const divisors = require('./conf/divisors');
 
 const decBase = 10;
 const divisibilityMarkerLen = 1;
 const maxMilliTokens = '2100000000000000';
+const maxTokenDivisibility = 3;
+const noDecimals = '000';
 const tokenDivisibility = new BN(1e8, 10);
 
 /** Given a Bech32 "HRP" or Human Readable Part, return the number of tokens
@@ -17,10 +20,15 @@ const tokenDivisibility = new BN(1e8, 10);
   <Error> when HRP is invalid
 
   @returns
-  <Tokens Number>
+  {
+    mtokens: <Complete Channel Tokens Big Number String>
+    tokens: <On-Chain Tokens Number>
+  }
 */
 module.exports = ({hrp}) => {
+  let decimals;
   let divisor;
+  let tokens;
   let value;
 
   if (hrp.slice(-divisibilityMarkerLen).match(/^[munp]$/)) {
@@ -36,19 +44,31 @@ module.exports = ({hrp}) => {
     throw new Error('InvalidAmount');
   }
 
-  let tok;
   const val = new BN(value, decBase);
 
+  // HRPs can encode values smaller than tokens on the chain can represent
   if (!!divisor) {
-    tok = val.mul(tokenDivisibility).div(new BN(divisors[divisor], decBase));
+    const div = new BN(divisors[divisor], decBase);
+
+    const divmod = val.mul(tokenDivisibility).divmod(div);
+    const max = maxTokenDivisibility;
+
+    const isMilliTokens = divmod.mod.toString() !== '0';
+    const {mod} = divmod;
+
+    decimals = !isMilliTokens ? noDecimals : dividedRemainder({div, mod, max});
+    tokens = divmod.div;
   } else {
-    tok = val.mul(tokenDivisibility);
+    decimals = noDecimals;
+    tokens = val.mul(tokenDivisibility);
   }
 
-  if (tok.gt(new BN(maxMilliTokens, decBase))) {
+  if (tokens.gt(new BN(maxMilliTokens, decBase))) {
     throw new Error('TokenCountExceedsMaximumValue');
   }
 
-  return tok.toNumber();
+  return {
+    mtokens: `${tokens.toString()}${decimals}`,
+    tokens: tokens.toNumber(),
+  };
 };
-

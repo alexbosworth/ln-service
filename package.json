@@ -13,7 +13,7 @@
     "cors": "2.8.4",
     "express": "4.16.3",
     "express-basic-auth": "1.1.5",
-    "grpc": "1.14.0",
+    "grpc": "1.14.1",
     "lodash": "4.17.10",
     "morgan": "1.9.0",
     "request": "2.88.0",
@@ -27,7 +27,7 @@
   },
   "engines": {
     "node": ">=8.11.3",
-    "npm": "6.1.0"
+    "npm": "6.4.0"
   },
   "keywords": [
     "lightning",
