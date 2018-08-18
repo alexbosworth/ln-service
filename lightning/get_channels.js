@@ -19,8 +19,9 @@ const intBase = 10;
       commit_transaction_weight: <Commit Transaction Weight Number>
       id: <Channel Id String>
       is_active: <Channel Active Bool>
-      is_closing: <Channel Closing Bool>
-      is_opening: <Channel Opening Bool>
+      is_closing: <Channel Is Closing Bool>
+      is_opening: <Channel Is Opening Bool>
+      is_private: <Channel Is Private Bool>
       local_balance: <Local Balance Satoshis Number>
       partner_public_key: <Channel Partner Public Key String>
       received: <Received Satoshis Number>
@@ -69,28 +70,16 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedChannelActiveState', channel]);
         }
 
-        if (!channel.remote_pubkey) {
-          return cbk([503, 'ExpectedRemotePubkey', channel]);
-        }
-
-        if (!channel.channel_point) {
-          return cbk([503, 'ExpectedChannelPoint', channel]);
+        if (channel.capacity === undefined) {
+          return cbk([503, 'ExpectedChannelCapacity', channel]);
         }
 
         if (!channel.chan_id) {
           return cbk([503, 'ExpectedChanId', channel]);
         }
 
-        if (channel.capacity === undefined) {
-          return cbk([503, 'ExpectedChannelCapacity', channel]);
-        }
-
-        if (channel.local_balance === undefined) {
-          return cbk([503, 'ExpectedLocalBalance', channel]);
-        }
-
-        if (channel.remote_balance === undefined) {
-          return cbk([503, 'ExpectedRemoteBalance', channel]);
+        if (!channel.channel_point) {
+          return cbk([503, 'ExpectedChannelPoint', channel]);
         }
 
         if (channel.commit_fee === undefined) {
@@ -105,20 +94,36 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedFeePerKw', channel]);
         }
 
-        if (channel.unsettled_balance === undefined) {
-          return cbk([503, 'ExpectedUnsettledBalance', channel]);
+        if (channel.local_balance === undefined) {
+          return cbk([503, 'ExpectedLocalBalance', channel]);
         }
 
-        if (channel.total_satoshis_sent === undefined) {
-          return cbk([503, 'ExpectedTotalSatoshisSent', channel]);
+        if (channel.num_updates === undefined) {
+          return cbk([503, 'ExpectedNumUpdates', channel]);
+        }
+
+        if (channel.private !== true && channel.private !== false) {
+          return cbk([503, 'ExpectedChannelPrivateStatus']);
+        }
+
+        if (channel.remote_balance === undefined) {
+          return cbk([503, 'ExpectedRemoteBalance', channel]);
+        }
+
+        if (!channel.remote_pubkey) {
+          return cbk([503, 'ExpectedRemotePubkey', channel]);
         }
 
         if (channel.total_satoshis_received === undefined) {
           return cbk([503, 'ExpectedTotalSatoshisReceived', channel]);
         }
 
-        if (channel.num_updates === undefined) {
-          return cbk([503, 'ExpectedNumUpdates', channel]);
+        if (channel.total_satoshis_sent === undefined) {
+          return cbk([503, 'ExpectedTotalSatoshisSent', channel]);
+        }
+
+        if (channel.unsettled_balance === undefined) {
+          return cbk([503, 'ExpectedUnsettledBalance', channel]);
         }
 
         const [transactionId, vout] = channel.channel_point.split(':');
@@ -131,6 +136,7 @@ module.exports = ({lnd}, cbk) => {
           is_active: channel.active,
           is_closing: false,
           is_opening: false,
+          is_private: channel.private,
           local_balance: parseInt(channel.local_balance, intBase),
           partner_public_key: channel.remote_pubkey,
           received: parseInt(channel.total_satoshis_received, intBase),
