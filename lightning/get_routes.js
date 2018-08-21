@@ -31,7 +31,15 @@ const pathNotFoundErrors = [
       timeout: <Timeout Block Height Number>
       tokens: <Total Tokens Number>
       mtokens: <Total MilliTokens String>
-      hops: <Hops Array>
+      hops: [{
+        chan_id: <Unique channel ID>
+        chan_capacity: <Channel capacity>
+        amt_to_forward: <Tokens to be forwarded>
+        fee: <Hop fee>
+        expiry: <Hop expiry time in seconds>
+        amt_to_forward_msat: <MilliTokens to be forwarded>
+        fee_msat: <Hop fee MilliTokens>
+      }]
     }]
   }
 */
