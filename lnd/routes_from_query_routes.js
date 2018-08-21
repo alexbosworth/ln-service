@@ -8,7 +8,11 @@ const msatsPerToken = new BN(1e3, 10);
   {
     response: {
       routes: [{
+        total_fees: <Route Fee Tokens String>
+        total_amt: <Total Tokens Number>
+        hops: <Route Hops Array>
         total_fees_msat: <Route Total Fees MSats String>
+        total_amt_msat: <Route Total MSats String>
         total_time_lock: <Route Total Timelock Number>
       }]
     }
@@ -21,7 +25,19 @@ const msatsPerToken = new BN(1e3, 10);
   {
     routes: [{
       fee: <Route Fee Tokens Number>
+      fee_mtokens: <Route Fee MilliTokens String>
       timeout: <Timeout Block Height Number>
+      tokens: <Total Tokens Number>
+      mtokens: <Total MilliTokens String>
+      hops: [{
+        chan_id: <Unique channel ID>
+        chan_capacity: <Channel capacity>
+        amt_to_forward: <Tokens to be forwarded>
+        fee: <Hop fee>
+        expiry: <Hop expiry time in seconds>
+        amt_to_forward_msat: <MilliTokens to be forwarded>
+        fee_msat: <Hop fee MilliTokens>
+      }]
     }]
   }
 */
@@ -59,12 +75,16 @@ module.exports = ({response}) => {
   return {
     routes: routes.map(route => {
       const totalFeesMsat = new BN(route.total_fees_msat, decBase);
+      const totalAmtMsat = new BN(route.total_amt_msat, decBase);
 
       return {
         fee: totalFeesMsat.div(msatsPerToken).toNumber(),
+        fee_mtokens: totalFeesMsat.toString(),
         timeout: route.total_time_lock,
+        tokens: totalAmtMsat.div(msatsPerToken).toNumber(),
+        mtokens: totalAmtMsat.toString(),
+        hops: route.hops,
       };
     }),
   };
 };
-
