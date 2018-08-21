@@ -27,7 +27,11 @@ const pathNotFoundErrors = [
   {
     routes: [{
       fee: <Route Fee Tokens Number>
+      fee_mtokens: <Route Fee MilliTokens String>
       timeout: <Timeout Block Height Number>
+      tokens: <Total Tokens Number>
+      mtokens: <Total MilliTokens String>
+      hops: <Hops Array>
     }]
   }
 */
@@ -66,4 +70,3 @@ module.exports = ({destination, lnd, tokens}, cbk) => {
     }
   });
 };
-
