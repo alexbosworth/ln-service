@@ -22,6 +22,7 @@ const getTransactions = require('./get_transactions');
 const getWalletInfo = require('./get_wallet_info');
 const lightningDaemon = require('./lightning_daemon');
 const openChannel = require('./open_channel');
+const pay = require('./pay');
 const payInvoice = require('./pay_invoice');
 const removePeer = require('./remove_peer');
 const rowTypes = require('./conf/row_types');
@@ -57,6 +58,7 @@ module.exports = {
   getWalletInfo,
   lightningDaemon,
   openChannel,
+  pay,
   payInvoice,
   removePeer,
   rowTypes,

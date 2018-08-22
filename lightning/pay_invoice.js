@@ -4,7 +4,7 @@ const {broadcastResponse} = require('./../async-util');
 
 const rowTypes = require('./conf/row_types');
 
-const intBase = 10;
+const decBase = 10;
 
 /** Send a channel payment.
 
@@ -17,16 +17,18 @@ const intBase = 10;
   }
 
   @returns via cbk
-  [{
+  {
     fee: <Fee Paid Tokens Number>
+    fee_mtokens: <Fee Paid MilliTokens String>
     hop_count: <Hop Count Number>
     id: <Payment Hash Hex String>
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
+    mtokens: <MilliTokens Paid String>
     payment_secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
     type: <Type String>
-  }]
+  }
 */
 module.exports = ({fee, invoice, lnd, log, wss}, cbk) => {
   if (!invoice) {
@@ -61,13 +63,15 @@ module.exports = ({fee, invoice, lnd, log, wss}, cbk) => {
     }
 
     const row = {
-      fee: parseInt(res.payment_route.total_fees, intBase),
+      fee: parseInt(res.payment_route.total_fees, decBase),
+      fee_mtokens: res.payment_route.total_fees_msat,
       hop_count: res.payment_route.hops.length,
       id: createHash('sha256').update(res.payment_preimage).digest('hex'),
       is_confirmed: true,
       is_outgoing: true,
+      mtokens: res.payment_route.total_amt_msat,
       payment_secret: res.payment_preimage.toString('hex'),
-      tokens: parseInt(res.payment_route.total_amt, intBase),
+      tokens: parseInt(res.payment_route.total_amt, decBase),
       type: rowTypes.channel_transaction,
     };
 

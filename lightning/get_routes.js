@@ -3,6 +3,7 @@ const {isFinite} = require('lodash');
 
 const {routesFromQueryRoutes} = require('./../lnd');
 
+const defaultFinalCltvDelta = 144;
 const defaultRoutesReturnCount = 10;
 const intBase = 10;
 const msatsPerToken = 1e3;
@@ -20,6 +21,7 @@ const pathNotFoundErrors = [
   {
     destination: <Send Destination Hex Encoded Public Key String>
     lnd: <LND GRPC API Object>
+    [timeout]: <Final CLTV Timeout Blocks Delta Number>
     tokens: <Tokens to Send Number>
   }
 
@@ -32,8 +34,8 @@ const pathNotFoundErrors = [
       timeout: <Timeout Block Height Number>
       tokens: <Total Tokens Number>
       hops: [{
-        channel_id: <Unique Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
+        channel_id: <BOLT 07 Encoded Channel Id String>
         fee: <Fee Number>
         fee_mtokens: <Fee MilliTokens String>
         forward: <Forward Tokens Number>
@@ -43,7 +45,7 @@ const pathNotFoundErrors = [
     }]
   }
 */
-module.exports = ({destination, lnd, tokens}, cbk) => {
+module.exports = ({destination, lnd, timeout, tokens}, cbk) => {
   if (!destination) {
     return cbk([400, 'ExpectedDestination']);
   }
@@ -58,6 +60,7 @@ module.exports = ({destination, lnd, tokens}, cbk) => {
 
   return lnd.queryRoutes({
     amt: tokens,
+    final_cltv_delta: timeout || defaultFinalCltvDelta,
     num_routes: defaultRoutesReturnCount,
     pub_key: destination,
   },

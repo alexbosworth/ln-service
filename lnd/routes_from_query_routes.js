@@ -11,8 +11,8 @@ const msatsPerToken = new BN(1e3, 10);
         hops: [{
           amt_to_forward: <Amount to Forward Tokens String>
           amt_to_forward_msat: <Amount to Forward MilliTokens String>
-          chan_id: <Channel Id String>
           chan_capacity: <Channel Capacity Tokens String>
+          chan_id: <BOLT 07 Channel Id String>
           expiry: <Expiration Height Number>
           fee: <Fee Tokens String>
           fee_msat: <Fee MilliTokens String>
@@ -38,7 +38,7 @@ const msatsPerToken = new BN(1e3, 10);
       mtokens: <Total MilliTokens String>
       tokens: <Total Tokens Number>
       hops: [{
-        channel_id: <Unique Channel Id String>
+        channel_id: <BOLT 07 Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
         fee: <Fee Number>
         fee_mtokens: <Fee MilliTokens String>
