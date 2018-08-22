@@ -49,7 +49,7 @@ module.exports = ({id, lnd, routes}, cbk) => {
     return cbk([400, 'ExpectedRoutesToExecutePaymentOver']);
   }
 
-	lnd.sendToRouteSync({
+  lnd.sendToRouteSync({
     routes: routes.map(route => {
       return {
         hops: route.hops.map(hop => {
@@ -125,6 +125,6 @@ module.exports = ({id, lnd, routes}, cbk) => {
       tokens: parseInt(res.payment_route.total_amt, decBase),
       type: rowTypes.channel_transaction,
     });
-	});
+  });
 };
 
