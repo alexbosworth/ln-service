@@ -28,17 +28,18 @@ const pathNotFoundErrors = [
     routes: [{
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee MilliTokens String>
+      mtokens: <Total MilliTokens String>
       timeout: <Timeout Block Height Number>
       tokens: <Total Tokens Number>
-      mtokens: <Total MilliTokens String>
       hops: [{
-        chan_id: <Unique channel ID>
-        chan_capacity: <Channel capacity>
-        amt_to_forward: <Tokens to be forwarded>
-        fee: <Hop fee>
+        channel_id: <Unique Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
         expiry: <Hop expiry time in seconds>
-        amt_to_forward_msat: <MilliTokens to be forwarded>
-        fee_msat: <Hop fee MilliTokens>
+        fee: <Fee Number>
+        fee_mtokens: <Fee MilliTokens String>
+        forward: <Forward Tokens Number>
+        forward_mtokens: <Forward MilliTokens String>
+        timeout: <Timeout Block Height Number>
       }]
     }]
   }
@@ -78,3 +79,4 @@ module.exports = ({destination, lnd, tokens}, cbk) => {
     }
   });
 };
+

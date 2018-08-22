@@ -8,11 +8,19 @@ const msatsPerToken = new BN(1e3, 10);
   {
     response: {
       routes: [{
-        total_fees: <Route Fee Tokens String>
+        hops: [{
+          amt_to_forward: <Amount to Forward Tokens String>
+          amt_to_forward_msat: <Amount to Forward MilliTokens String>
+          chan_id: <Channel Id String>
+          chan_capacity: <Channel Capacity Tokens String>
+          expiry: <Expiration Height Number>
+          fee: <Fee Tokens String>
+          fee_msat: <Fee MilliTokens String>
+        }]
         total_amt: <Total Tokens Number>
-        hops: <Route Hops Array>
-        total_fees_msat: <Route Total Fees MSats String>
-        total_amt_msat: <Route Total MSats String>
+        total_amt_msat: <Route Total MilliTokens String>
+        total_fees: <Route Fee Tokens String>
+        total_fees_msat: <Route Total Fees MilliTokens String>
         total_time_lock: <Route Total Timelock Number>
       }]
     }
@@ -27,16 +35,17 @@ const msatsPerToken = new BN(1e3, 10);
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee MilliTokens String>
       timeout: <Timeout Block Height Number>
-      tokens: <Total Tokens Number>
       mtokens: <Total MilliTokens String>
+      tokens: <Total Tokens Number>
       hops: [{
-        chan_id: <Unique channel ID>
-        chan_capacity: <Channel capacity>
-        amt_to_forward: <Tokens to be forwarded>
-        fee: <Hop fee>
+        channel_id: <Unique Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
         expiry: <Hop expiry time in seconds>
-        amt_to_forward_msat: <MilliTokens to be forwarded>
-        fee_msat: <Hop fee MilliTokens>
+        fee: <Fee Number>
+        fee_mtokens: <Fee MilliTokens String>
+        forward: <Forward Tokens Number>
+        forward_mtokens: <Forward MilliTokens String>
+        timeout: <Timeout Block Height Number>
       }]
     }]
   }
@@ -65,6 +74,10 @@ module.exports = ({response}) => {
       return true;
     }
 
+    if (!Array.isArray(route.hops)) {
+      return true;
+    }
+
     return false;
   });
 
@@ -80,11 +93,22 @@ module.exports = ({response}) => {
       return {
         fee: totalFeesMsat.div(msatsPerToken).toNumber(),
         fee_mtokens: totalFeesMsat.toString(),
+        hops: route.hops.map(h => {
+          return {
+            channel_capacity: new BN(h.chan_capacity, decBase).toNumber(),
+            channel_id: h.chan_id,
+            fee: new BN(h.fee, decBase).toNumber(),
+            fee_mtokens: new BN(h.fee_msat, decBase).toString(),
+            forward: new BN(h.amt_to_forward, decBase).toNumber(),
+            forward_mtokens: new BN(h.amt_to_forward_msat, decBase).toString(),
+            timeout: h.expiry,
+          };
+        }),
         timeout: route.total_time_lock,
         tokens: totalAmtMsat.div(msatsPerToken).toNumber(),
         mtokens: totalAmtMsat.toString(),
-        hops: route.hops,
       };
     }),
   };
 };
+
