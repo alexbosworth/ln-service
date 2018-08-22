@@ -34,7 +34,6 @@ const pathNotFoundErrors = [
       hops: [{
         channel_id: <Unique Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
-        expiry: <Hop expiry time in seconds>
         fee: <Fee Number>
         fee_mtokens: <Fee MilliTokens String>
         forward: <Forward Tokens Number>
