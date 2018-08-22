@@ -50,6 +50,7 @@ module.exports = ({id, lnd, routes}, cbk) => {
   }
 
   lnd.sendToRouteSync({
+    payment_hash_string: id,
     routes: routes.map(route => {
       return {
         hops: route.hops.map(hop => {
@@ -70,7 +71,6 @@ module.exports = ({id, lnd, routes}, cbk) => {
         total_time_lock: route.timeout,
       };
     }),
-    payment_hash_string: id,
   },
   (err, res) => {
     if (!!err) {
