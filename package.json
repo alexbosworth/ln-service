@@ -17,7 +17,7 @@
     "lodash": "4.17.10",
     "morgan": "1.9.0",
     "request": "2.88.0",
-    "secp256k1": "3.5.0",
+    "secp256k1": "3.5.2",
     "walnut": "0.0.4",
     "ws": "6.0.0"
   },
@@ -46,5 +46,5 @@
     "start": "node server.js",
     "test": "tap test/*.js"
   },
-  "version": "8.3.0"
+  "version": "9.0.0"
 }
