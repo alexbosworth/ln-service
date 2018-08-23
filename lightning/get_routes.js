@@ -20,6 +20,8 @@ const pathNotFoundErrors = [
 
   {
     destination: <Send Destination Hex Encoded Public Key String>
+    [fee]: <Maximum Fee Tokens Number>
+    [limit]: <Limit Results Count Number>
     lnd: <LND GRPC API Object>
     [timeout]: <Final CLTV Timeout Blocks Delta Number>
     tokens: <Tokens to Send Number>
@@ -45,7 +47,7 @@ const pathNotFoundErrors = [
     }]
   }
 */
-module.exports = ({destination, lnd, timeout, tokens}, cbk) => {
+module.exports = ({destination, fee, limit, lnd, timeout, tokens}, cbk) => {
   if (!destination) {
     return cbk([400, 'ExpectedDestination']);
   }
@@ -60,8 +62,9 @@ module.exports = ({destination, lnd, timeout, tokens}, cbk) => {
 
   return lnd.queryRoutes({
     amt: tokens,
+    fee_limit: !fee ? undefined : {fee_limit: fee},
     final_cltv_delta: timeout || defaultFinalCltvDelta,
-    num_routes: defaultRoutesReturnCount,
+    num_routes: limit || defaultRoutesReturnCount,
     pub_key: destination,
   },
   (err, res) => {
