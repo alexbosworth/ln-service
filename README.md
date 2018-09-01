@@ -28,13 +28,8 @@ If using Bitcoin Core, the following ~/.bitcoin/bitcoin.conf configuration is re
 ```
 assumevalid= // plug in the current best block hash
 daemon=1
-datadir=/blockchain/.bitcoin/data
 dbcache=3000
 disablewallet=1
-maxuploadtarget=1000
-nopeerbloomfilters=1
-peerbloomfilters=0
-permitbaremultisig=0
 rpcpassword= // make a strong password
 rpcuser=bitcoinrpc
 server=1
@@ -48,75 +43,55 @@ Sample LND configuration options (~/.lnd/lnd.conf)
 ```
 [Application Options]
 externalip=IP
-maxpendingchannels=10
-minchansize=250000
 rpclisten=0.0.0.0:10009
 tlsextraip=IP
 
-[autopilot]
-autopilot.active=1
-autopilot.maxchannels=10
-autopilot.minchansize=250000
-autopilot.allocation=0.8
-
 [Bitcoin]
 bitcoin.active=1
-bitcoin.feerate=1000
+bitcoin.mainnet=1
 bitcoin.node=bitcoind
-bitcoin.testnet=1
 ```
 
-### Export Credentials (if using GRPC direct mode)
-
-```
-base64 ~/.lnd/admin.macaroon
-
-base64 ~/.lnd/tls.cert
-```
-
-You will need these variables to authenticate with LND.
-
-Make sure:
-- If you are accessing the LND remotely that you added the external IP in conf
-- If you added the external IP in the conf after starting LND regen the files (stop LND and then move or delete the files and LND will regen)
-- Don't include newline artifacts in your base64 values
-
-### Using as an npm package
+### Using in GRPC mode as an npm package
 
 You can install the service via npm -
 
     $ npm install ln-service
 
-You can then interact with your LND node directly -
+Run base64 on the tls.cert and admin.macaroon files to get the encoded
+authentication data to create the LND connection. You can find these files in
+the LND directory. (~/.lnd or ~/Library/Application Support/Lnd)
+
+    $ base64 tls.cert
+    $ base64 data/chain/bitcoin/mainnet/admin.macaroon
+
+Be careful to avoid copying any newline characters.
+
+You can then interact with your LND node directly:
 
     const lnService = require('ln-service');
 
     const lnd = lnService.lightningDaemon({
-      host: 'localhost:10009'
+      cert: 'base64 encoded tls.cert',
+      host: 'localhost:10009',
+      macaroon: 'base64 encoded admin.macaroon',
     });
 
     lnService.getWalletInfo({lnd}, (error, result) => {
       console.log(result);
     });
 
-*NOTE*: You will need to make sure you [Set the Environment Variables](#configuring-environment-variables) unless you want to pass in base64 encoded values to the lightningDaemon for the cert and macaroon.
+If you are interacting with your node remotely, make sure to set:
 
-If you have encoded the values, use them to instantiate the lightningDaemon object.
+    tlsextraip=YOURIP
 
-    const lnd = lnService.lightningDaemon({
-      cert: 'base64 encoded tls.cert'
-      host: 'localhost:10009'
-      macaroon: 'base64 encoded admin.macaroon'
-    });
+In the lnd.conf file for your LND, and regenerate TLS certs by deleting them.
+
+If using a domain for your LND, use the domain option:
+
+    tlsextradomain=YOURDOMAIN
 
 ### Using as a stand-alone REST API
-
-#### PREREQUISITES:
-
-Please have `git` installed, and have a working github account, [preferably with SSH access](https://help.github.com/articles/connecting-to-github-with-ssh/).
-Please also make sure that you have node.js / npm installed, too.
-The best way to install it for personal use is [NVM](https://github.com/creationix/nvm#verify-installation).
-Willingness to report bugs?
 
     git clone https://github.com/alexbosworth/ln-service.git
     cd ln-service
@@ -127,25 +102,30 @@ Willingness to report bugs?
 **In NPM installed direct GRPC mode only `GRPC_SSL_CIPHER_SUITES` environment
 variable is needed**
 
-Linux -
+    export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
 
-Make sure your `.bashrc` or `~/.profile` contains the following environment variables -
+In REST mode:
+
+For convenience in REST mode, you can make a .env file with `KEY=VALUE` pairs
+instead of setting environment variables.
+
+Environment variables:
 
     export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
+    export LNSERVICE_CHAIN="bitcoin" // or litecoin
     export LNSERVICE_LND_DIR='~/.lnd/'
-    export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY
+    export LNSERVICE_NETWORK="testnet" // or mainnet
+    export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY!
 
-**Make sure to `$ source ~/.bashrc` in the window you are running the service from**
+Setting environment variables in Linux:
 
-MacOS -
+- Edit `.bashrc` or `~/.profile`
+- `$ source ~/.bashrc` in the window you are running the service from
 
-Make sure your `~/.bash_profile` contains the following environment variables -
+Setting environment variables in MacOS:
 
-    export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
-    export LNSERVICE_LND_DIR="$HOME/Library/Application Support/Lnd/"
-    export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY
-
-**Make sure to `$ . ~/.bash_profile` in the window you are running the service from**
+- Edit `~/.bash_profile`
+- `$ . ~/.bash_profile` in the window you are running the service from
 
 ### Running REST API
 
