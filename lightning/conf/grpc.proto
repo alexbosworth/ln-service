@@ -22,7 +22,7 @@ package lnrpc;
  * 
  * More information on how exactly the gRPC documentation is generated from
  * this proto file can be found here:
- * https://github.com/MaxFangX/lightning-api
+ * https://github.com/lightninglabs/lightning-api
  */
 
 // The WalletUnlocker service is used to set up a wallet password for
@@ -464,7 +464,14 @@ service Lightning {
 
     /**
     SubscribeInvoices returns a uni-directional stream (sever -> client) for
-    notifying the client of newly added/settled invoices.
+    notifying the client of newly added/settled invoices. The caller can
+    optionally specify the add_index and/or the settle_index. If the add_index
+    is specified, then we'll first start by sending add invoice events for all
+    invoices with an add_index greater than the specified value.  If the
+    settle_index is specified, the next, we'll send out all settle events for
+    invoices with a settle_index greater than the specified value.  One or both
+    of these fields can be set. If no fields are set, then we'll only send out
+    the latest add/settle events.
     */
     rpc SubscribeInvoices (InvoiceSubscription) returns (stream Invoice) {
         option (google.api.http) = {
@@ -1122,11 +1129,10 @@ message PendingUpdate {
 }
 
 message OpenChannelRequest {
-
     /// The pubkey of the node to open a channel with
     bytes node_pubkey = 2 [json_name = "node_pubkey"];
 
-    /// The hex encoded pubkey of the node to open a channel with 
+    /// The hex encoded pubkey of the node to open a channel with
     string node_pubkey_string = 3 [json_name = "node_pubkey_string"];
 
     /// The number of satoshis the wallet should commit to the channel
@@ -1149,6 +1155,9 @@ message OpenChannelRequest {
 
     /// The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.
     uint32 remote_csv_delay = 10 [json_name = "remote_csv_delay"];
+
+    /// The minimum number of confirmations each one of your outputs used for the funding transaction must satisfy.
+    int32 min_confs = 11 [json_name = "min_confs"];
 }
 message OpenStatusUpdate {
     oneof update {
@@ -1435,6 +1444,7 @@ message RoutingPolicy {
     int64 min_htlc = 2 [json_name = "min_htlc"];
     int64 fee_base_msat = 3 [json_name = "fee_base_msat"];
     int64 fee_rate_milli_msat = 4 [json_name = "fee_rate_milli_msat"];
+    bool disabled = 5 [json_name = "disabled"];
 }
 
 /**
@@ -1642,6 +1652,32 @@ message Invoice {
 
     /// Whether this invoice should include routing hints for private channels.
     bool private = 15 [json_name = "private"];
+
+    /**
+    The "add" index of this invoice. Each newly created invoice will increment
+    this index making it monotonically increasing. Callers to the
+    SubscribeInvoices call can use this to instantly get notified of all added
+    invoices with an add_index greater than this one.
+    */
+    uint64 add_index = 16 [json_name = "add_index"];
+
+    /**
+    The "settle" index of this invoice. Each newly settled invoice will
+    increment this index making it monotonically increasing. Callers to the
+    SubscribeInvoices call can use this to instantly get notified of all
+    settled invoices with an settle_index greater than this one.
+    */
+    uint64 settle_index = 17 [json_name = "settle_index"];
+
+    /**
+    The amount that was accepted for this invoice. This will ONLY be set if
+    this invoice has been settled. We provide this field as if the invoice was
+    created with a zero value, then we need to record what amount was
+    ultimately accepted. Additionally, it's possible that the sender paid MORE
+    that was specified in the original invoice. So we'll record that here as
+    well.
+    */
+    int64 amt_paid = 18 [json_name = "amt_paid"];
 }
 message AddInvoiceResponse {
     bytes r_hash = 1 [json_name = "r_hash"];
@@ -1652,6 +1688,14 @@ message AddInvoiceResponse {
     payment to the recipient.
     */
     string payment_request = 2 [json_name = "payment_request"];
+
+    /**
+    The "add" index of this invoice. Each newly created invoice will increment
+    this index making it monotonically increasing. Callers to the
+    SubscribeInvoices call can use this to instantly get notified of all added
+    invoices with an add_index greater than this one.
+    */
+    uint64 add_index = 16 [json_name = "add_index"];
 }
 message PaymentHash {
     /**
@@ -1663,15 +1707,51 @@ message PaymentHash {
     /// The payment hash of the invoice to be looked up.
     bytes r_hash = 2 [json_name = "r_hash"];
 }
+
 message ListInvoiceRequest {
-    /// Toggles if all invoices should be returned, or only those that are currently unsettled.
-    bool pending_only = 1;
+    /// If set, only unsettled invoices will be returned in the response.
+    bool pending_only = 1 [json_name = "pending_only"];
+
+    /**
+    The offset in the time series to start at. As each response can only contain
+    50k invoices, callers can use this to skip around within a packed time
+    series.
+    */
+    uint32 index_offset = 4 [json_name = "index_offset"];
+
+    /// The max number of invoices to return in the response to this query.
+    uint32 num_max_invoices = 5 [json_name = "num_max_invoices"];
 }
 message ListInvoiceResponse {
+    /**
+    A list of invoices from the time slice of the time series specified in the
+    request.
+    */
     repeated Invoice invoices = 1 [json_name = "invoices"];
+
+    /**
+    The index of the last time in the set of returned invoices. Can be used to
+    seek further, pagination style.
+    */
+    uint32 last_index_offset = 2 [json_name = "last_index_offset"];
 }
 
 message InvoiceSubscription {
+    /**
+    If specified (non-zero), then we'll first start by sending out
+    notifications for all added indexes with an add_index greater than this
+    value. This allows callers to catch up on any events they missed while they
+    weren't connected to the streaming RPC.
+    */
+    uint64 add_index = 1 [json_name = "add_index"];
+
+    /**
+    If specified (non-zero), then we'll first start by sending out
+    notifications for all settled indexes with an settle_index greater than
+    this value. This allows callers to catch up on any events they missed while
+    they weren't connected to the streaming RPC.
+    */
+    uint64 settle_index = 2 [json_name = "settle_index"];
 }
 
 
