@@ -47,6 +47,6 @@
     "start": "node server.js",
     "test": "tap test/*.js"
   },
-  "version": "10.0.0"
+  "version": "10.0.1"
 }
 
