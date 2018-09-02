@@ -45,7 +45,6 @@ module.exports = ({log, wss}) => {
     throw new Error('ExpectedTlsCert');
   }
   if (!existsSync(macaroonPath)) {
-    console.log("MACAROON PATH", macaroonPath);
     throw new Error('ExpectedMacaroonFile');
   }
 
