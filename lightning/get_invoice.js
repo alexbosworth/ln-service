@@ -1,4 +1,5 @@
 const rowTypes = require('./conf/row_types');
+const promise_helper = require('../async-util');
 
 const decBase = 10;
 const msPerSec = 1e3;
@@ -25,28 +26,28 @@ const msPerSec = 1e3;
 */
 module.exports = ({id, lnd}, cbk) => {
   if (!id) {
-    return cbk([400, 'ExpectedId']);
+    return promise_helper([400, 'ExpectedId'], cbk);
   }
 
   if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+    return promise_helper([500, 'ExpectedLnd']);
   }
 
   return lnd.lookupInvoice({r_hash_str: id}, (err, response) => {
     if (!!err) {
-      return cbk([500, 'LookupInvoiceErr', err]);
+      return promise_helper([500, 'LookupInvoiceErr', err]);
     }
 
     if (response.memo === undefined) {
-      return cbk([500, 'ExpectedMemo', response]);
+      return promise_helper([500, 'ExpectedMemo', response]);
     }
 
     if (response.settled !== false && response.settled !== true) {
-      return cbk([500, 'MissingSettled', response]);
+      return promise_helper([500, 'MissingSettled', response]);
     }
 
     if (!Buffer.isBuffer(response.r_preimage)) {
-      return cbk([500, 'ExpectedInvoicePreimage']);
+      return promise_helper([500, 'ExpectedInvoicePreimage']);
     }
 
     const createdAt = parseInt(response.creation_date, decBase) * msPerSec;
@@ -54,7 +55,7 @@ module.exports = ({id, lnd}, cbk) => {
 
     const expiryDateMs = createdAt + expiresInMs;
 
-    return cbk(null, {
+    return promise_helper(null, {
       id,
       description: response.memo,
       expires_at: new Date(expiryDateMs).toISOString(),
