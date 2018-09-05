@@ -37,6 +37,8 @@ const {subscribeToTransactions} = require('./lightning');
 const {unlockWallet} = require('./lightning');
 const {verifyMessage} = require('./lightning');
 
+const service = require('./service');
+
 module.exports = {
   addPeer,
   closeChannel,
@@ -76,5 +78,6 @@ module.exports = {
   subscribeToTransactions,
   unlockWallet,
   verifyMessage,
+  service
 };
 

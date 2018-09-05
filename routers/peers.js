@@ -1,7 +1,7 @@
 const {addPeer} = require('./../lightning');
 const {getPeers} = require('./../lightning');
 const {removePeer} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const {returnJson, returnError} = require('./../async-util');
 const Router = require('./router');
 
 /** Get a peers router
@@ -34,8 +34,11 @@ module.exports = ({lnd, log}) => {
       lnd,
       host: body.host,
       public_key: body.public_key,
-    },
-    returnJson({log, res}));
+    }).then(result => {
+      returnJson({log, res});
+    }).catch(errorObj => {
+      returnError(errorObj, log, res);
+    });
   });
 
   /** Disconnect from a peer
@@ -49,8 +52,11 @@ module.exports = ({lnd, log}) => {
     return removePeer({
       lnd,
       public_key: params.public_key,
-    },
-    returnJson({log, res}));
+    }).then(res => {
+      returnJson({log, res}));
+    }).catch(errorObj => {
+      returnError(errorObj, log, res);
+    });
   });
 
   return router;
