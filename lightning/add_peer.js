@@ -6,40 +6,39 @@
     public_key: <Public Key Hex String>
   }
 */
-module.exports = (args, cbk) => {
-  if (!args.host) {
-    return cbk([400, 'ExpectedHost']);
-  }
-
-  if (!args.lnd) {
-    return cbk([500, 'ExpectedLnd']);
-  }
-
-  if (!args.public_key) {
-    return cbk([400, 'ExpectedPublicKey']);
-  }
-
-  return args.lnd.connectPeer({
-    addr: {host: args.host, pubkey: args.public_key},
-    perm: true,
-  },
-  (err, response) => {
-    // Exit early when the peer is already added
-    if (!!err && !!err.message && /already.connected.to/.test(err.message)) {
-      return cbk();
+module.exports = (args) => {
+  return new Promise((resolve, reject) => {
+    if (!args.host) {
+      return reject([400, 'ExpectedHost']);
     }
 
-    // Exit early when the peer is the self-peer
-    if (!!err && !!err.message && /connection.to.self/.test(err.message)) {
-      return cbk();
+    if (!args.lnd) {
+      return reject([500, 'ExpectedLnd']);
     }
 
-    if (!!err) {
-      return cbk([503, 'AddPeerError', err]);
+    if (!args.public_key) {
+      return reject([400, 'ExpectedPublicKey']);
     }
+    args.lnd.connectPeer({
+      addr: {host: args.host, pubkey: args.public_key},
+      perm: true,
+    },
+    (err, response) => {
+      // Exit early when the peer is already added
+      if (!!err && !!err.message && /already.connected.to/.test(err.message)) {
+        return resolve();
+      }
 
-    return cbk();
+      // Exit early when the peer is the self-peer
+      if (!!err && !!err.message && /connection.to.self/.test(err.message)) {
+        return resolve();
+      }
+
+      if (!!err) {
+        return reject([503, 'AddPeerError', err]);
+      }
+
+      return resolve();
+    });
   });
 };
-
-

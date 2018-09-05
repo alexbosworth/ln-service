@@ -5,24 +5,25 @@
     public_key: <Public Key Hex String>
   }
 */
-module.exports = (args, cbk) => {
-  if (!args.lnd) {
-    return cbk([500, 'ExpectedLnd']);
-  }
-
-  if (!args.public_key) {
-    return cbk([400, 'ExpectedPublicKey']);
-  }
-
-  return args.lnd.disconnectPeer({
-    pub_key: args.public_key
-  },
-  (err, response) => {
-    if (!!err) {
-      return cbk([503, 'ErrorRemovingPeer', err]);
+module.exports = (args) => {
+  return new Promise((resolve, reject) => {
+    if (!args.lnd) {
+      return reject([500, 'ExpectedLnd']);
     }
 
-    return cbk();
+    if (!args.public_key) {
+      return reject([400, 'ExpectedPublicKey']);
+    }
+
+    args.lnd.disconnectPeer({
+      pub_key: args.public_key
+    },
+    (err, response) => {
+      if (!!err) {
+        return reject([503, 'ErrorRemovingPeer', err]);
+      }
+
+      return resolve();
+    });
   });
 };
-

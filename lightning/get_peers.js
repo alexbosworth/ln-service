@@ -1,6 +1,3 @@
-const asyncAuto = require('async/auto');
-const asyncMap = require('async/map');
-
 const {returnResult} = require('./../async-util');
 
 const peerType = require('./conf/row_types').peer;
@@ -29,53 +26,51 @@ const msPerSec = 1e3;
     }]
   }
 */
-module.exports = ({lnd}, cbk) => {
-  return asyncAuto({
+module.exports = ({lnd}) => {
+  return new Promise((resolve, reject) => {
     // List the set of connected peers
-    listPeers: cbk => lnd.listPeers({}, (err, res) => {
-      return !!err ? cbk([503, 'GetPeersErr', err]) : cbk(null, res);
-    }),
-
-    // Check the list of peers and map into final format
-    peers: ['listPeers', ({listPeers}, cbk) => {
+    lnd.listPeers({}, (err, res) => {
+      return !!err ? reject([503, 'GetPeersErr', err]) : resolve(res);
+    });
+  }).then(listPeers => {
       if (!listPeers || !Array.isArray(listPeers.peers)) {
-        return cbk([503, 'ExpectedPeersArray', listPeers]);
+        return Promise.reject([503, 'ExpectedPeersArray', listPeers]);
       }
 
-      return asyncMap(listPeers.peers, (peer, cbk) => {
+      let finalPeers = listPeers.peers.map(peer => {
         if (typeof peer.address !== 'string') {
-          return cbk([503, 'ExpectedPeerAddress']);
+          return Promise.reject([503, 'ExpectedPeerAddress']);
         }
 
         if (typeof peer.bytes_recv !== 'string') {
-          return cbk([503, 'ExpectedBytesRecv']);
+          return Promise.reject([503, 'ExpectedBytesRecv']);
         }
 
         if (typeof peer.bytes_sent !== 'string') {
-          return cbk([503, 'ExpectedBytesSent']);
+          return Promise.reject([503, 'ExpectedBytesSent']);
         }
 
         if (peer.inbound !== true && peer.inbound !== false) {
-          return cbk([503, 'ExpectedPeerInbound', peer]);
+          return Promise.reject([503, 'ExpectedPeerInbound', peer]);
         }
 
         if (typeof peer.ping_time !== 'string') {
-          return cbk([503, 'ExpectedPingTime']);
+          return Promise.reject([503, 'ExpectedPingTime']);
         }
 
         if (typeof peer.pub_key !== 'string') {
-          return cbk([503, 'ExpectedPublicKey']);
+          return Promise.reject([503, 'ExpectedPublicKey']);
         }
 
         if (typeof peer.sat_recv !== 'string') {
-          return cbk([503, 'ExpectedSatRecv']);
+          return Promise.reject([503, 'ExpectedSatRecv']);
         }
 
         if (typeof peer.sat_sent !== 'string') {
-          return cbk([503, 'ExpectedSatSent']);
+          return Promise.reject([503, 'ExpectedSatSent']);
         }
 
-        return cbk(null, {
+        return {
           bytes_received: parseInt(peer.bytes_recv, intBase),
           bytes_sent: parseInt(peer.bytes_sent, intBase),
           is_inbound: peer.inbound,
@@ -85,15 +80,9 @@ module.exports = ({lnd}, cbk) => {
           tokens_received: parseInt(peer.sat_recv, intBase),
           tokens_sent: parseInt(peer.sat_sent, intBase),
           type: peerType,
-        });
-      },
-      cbk);
-    }],
+        };
+      });
 
-    finalPeers: ['peers', ({peers}, cbk) => {
-      return cbk(null, {peers});
-    }],
-  },
-  returnResult({of: 'finalPeers'}, cbk));
+      Promise.resolve(finalPeers);
+    });
 };
-
