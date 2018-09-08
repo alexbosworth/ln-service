@@ -7,18 +7,18 @@
   }
 */
 module.exports = async (args) => {
-  if (!args.host) {
-    throw new Error([400, 'ExpectedHost']);
-  }
-
-  if (!args.lnd) {
-    throw new Error([500, 'ExpectedLnd']);
-  }
-
-  if (!args.public_key) {
-    throw new Error([400, 'ExpectedPublicKey']);
-  }
   let result = await new Promise((resolve, reject) => {
+    if (!args.host) {
+      return reject([400, 'ExpectedHost']);
+    }
+
+    if (!args.lnd) {
+      return reject([500, 'ExpectedLnd']);
+    }
+
+    if (!args.public_key) {
+      return reject([400, 'ExpectedPublicKey']);
+    }
     args.lnd.connectPeer({
       addr: {host: args.host, pubkey: args.public_key},
       perm: true,
