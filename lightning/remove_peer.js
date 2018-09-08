@@ -5,8 +5,8 @@
     public_key: <Public Key Hex String>
   }
 */
-module.exports = (args) => {
-  return new Promise((resolve, reject) => {
+module.exports = async (args) => {
+  return await new Promise((resolve, reject) => {
     if (!args.lnd) {
       return reject([500, 'ExpectedLnd']);
     }

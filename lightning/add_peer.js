@@ -6,24 +6,23 @@
     public_key: <Public Key Hex String>
   }
 */
-module.exports = (args) => {
-  return new Promise((resolve, reject) => {
-    if (!args.host) {
-      return reject([400, 'ExpectedHost']);
-    }
+module.exports = async (args) => {
+  if (!args.host) {
+    throw new Error([400, 'ExpectedHost']);
+  }
 
-    if (!args.lnd) {
-      return reject([500, 'ExpectedLnd']);
-    }
+  if (!args.lnd) {
+    throw new Error([500, 'ExpectedLnd']);
+  }
 
-    if (!args.public_key) {
-      return reject([400, 'ExpectedPublicKey']);
-    }
+  if (!args.public_key) {
+    throw new Error([400, 'ExpectedPublicKey']);
+  }
+  let result = await new Promise((resolve, reject) => {
     args.lnd.connectPeer({
       addr: {host: args.host, pubkey: args.public_key},
       perm: true,
-    },
-    (err, response) => {
+    }, (err, response) => {
       // Exit early when the peer is already added
       if (!!err && !!err.message && /already.connected.to/.test(err.message)) {
         return resolve();
@@ -38,7 +37,9 @@ module.exports = (args) => {
         return reject([503, 'AddPeerError', err]);
       }
 
-      return resolve();
+      return resolve(response);
     });
   });
+
+  return result;
 };
