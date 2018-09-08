@@ -16,6 +16,7 @@ const {getInvoice} = require('./lightning');
 const {getInvoices} = require('./lightning');
 const {getNetworkGraph} = require('./lightning');
 const {getNetworkInfo} = require('./lightning');
+const {getNode} = require('./lightning');
 const {getPayments} = require('./lightning');
 const {getPeers} = require('./lightning');
 const {getPendingChainBalance} = require('./lightning');
@@ -56,6 +57,7 @@ module.exports = {
   getInvoices,
   getNetworkGraph,
   getNetworkInfo,
+  getNode,
   getPayments,
   getPeers,
   getPendingChainBalance,

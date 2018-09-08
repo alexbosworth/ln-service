@@ -13,6 +13,7 @@ const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
 const getNetworkGraph = require('./get_network_graph');
 const getNetworkInfo = require('./get_network_info');
+const getNode = require('./get_node');
 const getPayments = require('./get_payments');
 const getPeers = require('./get_peers');
 const getPendingChainBalance = require('./get_pending_chain_balance');
@@ -49,6 +50,7 @@ module.exports = {
   getInvoices,
   getNetworkGraph,
   getNetworkInfo,
+  getNode,
   getPayments,
   getPeers,
   getPendingChainBalance,
