@@ -1,104 +1,73 @@
 const asyncAuto = require('async/auto');
 const {isFinite} = require('lodash');
 
+const getChannel = require('./get_channel');
 const {returnResult} = require('./../async-util');
-
-const intBase = 10;
-const separatorChar = ':';
 
 /** Close a channel.
 
   {
-    id: <Channel Id String>
+    [id]: <Channel Id String>
+    [is_force_close]: <Is Force Close Bool>
     lnd: <LND GRPC API Object>
+    [transaction_id]: <Transaction Id Hex String>
+    [transaction_vout]: <Transaction Output Index Number>
   }
-
-  @returns via cbk
-  {}
 */
-module.exports = ({id, lnd}, cbk) => {
+module.exports = (args, cbk) => {
   return asyncAuto({
+    // Check arguments
     validate: cbk => {
-      if (!lnd) {
-        return cbk([500, 'ExpectedLnd']);
+      const txId = args.transaction_id;
+      const vout = args.transaction_vout;
+
+      const isDirectClose = !!txId && vout !== undefined;
+
+      if (!args.id && !isDirectClose) {
+        return cbk([400, 'ExpectedIdOfChannelToClose', args]);
+      }
+
+      if (!args.lnd) {
+        return cbk([400, 'ExpectedLndToExecuteChannelClose']);
       }
 
       return cbk();
     },
 
-    getChannel: cbk => {
-      if (!id) {
-        return cbk([400, 'ExpectedChannelId']);
+    // Get a single channel
+    getChannel: ['validate', ({}, cbk) => {
+      if (!args.id) {
+        return cbk(null, {
+          transaction_id: args.transaction_id,
+          transaction_vout: args.transaction_vout,
+        });
       }
 
-      return lnd.getChanInfo({chan_id: id}, (err, response) => {
-        if (!!err) {
-          return cbk([503, 'GetChanErr', err]);
-        }
+      return getChannel({id: args.id, lnd: args.lnd}, cbk);
+    }],
 
-        if (!response) {
-          return cbk([503, 'ExpectedResponse']);
-        }
-
-        if (!response.chan_point) {
-          return cbk([503, 'ExpectedOutpoint']);
-        }
-
-        const [transactionId, vout] = response.chan_point.split(separatorChar);
-
-        if (!transactionId) {
-          return cbk([503, 'ExpectedTransactionId']);
-        }
-
-        if (!isFinite(parseInt(vout, intBase))) {
-          return cbk([503, 'ExpectedVout']);
-        }
-
-        return cbk(null, {
-          transaction_id: transactionId,
-          transaction_vout: parseInt(vout, intBase),
-        });
-      });
-    },
-
+    // Close out the channel
     closeChannel: ['getChannel', ({getChannel}, cbk) => {
       let transactionId = getChannel.transaction_id;
       let transactionVout = getChannel.transaction_vout;
 
-      // FIXME: - make this use the stream API properly
-
       const txId = transactionId.match(/.{2}/g).reverse().join('');
 
-      const closeChannel = lnd.closeChannel({
+      const closeChannel = args.lnd.closeChannel({
         channel_point: {
-          funding_txid: Buffer.from(txId, 'hex'),
+          funding_txid_bytes: Buffer.from(txId, 'hex'),
           output_index: transactionVout,
         },
+        force: !!args.is_force_close,
       });
 
-      closeChannel.on('data', chan => {
-        if (chan.update === 'close_pending') {
-          const txId = chan.close_pending.txid.toString('hex');
+      closeChannel.on('data', chan => {});
 
-          console.log({
-            transaction_id: txId.match(/.{2}/g).reverse().join(''),
-            type: 'channel_closing',
-            vout: chan.close_pending.output_index,
-          });
-        } else {
-          console.log('CLOSE CHAN', chan);
-        }
-      });
+      closeChannel.on('end', () => {});
 
-      closeChannel.on('end', () => {
-        return console.log('END CLOSE CHANNEL');
-      });
+      closeChannel.on('error', err => {});
 
-      closeChannel.on('error', err => {
-        return console.log('CLOSE CHAN ERR', err);
-      });
-
-      closeChannel.on('status', s => { console.log('CLOSING', s); });
+      closeChannel.on('status', s => {});
 
       return cbk();
     }],

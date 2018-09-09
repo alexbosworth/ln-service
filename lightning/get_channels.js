@@ -8,6 +8,10 @@ const intBase = 10;
 /** Get channels
 
   {
+    [is_active]: <Limit Results To Only Active Channels Bool> // false
+    [is_offline]: <Limit Results To Only Offline Channels Bool> // false
+    [is_private]: <Limit Results To Only Private Channels Bool> // false
+    [is_public]: <Limit Results To Only Public Channels Bool> // false
     lnd: {listChannels: <Function>}
   }
 
@@ -33,11 +37,11 @@ const intBase = 10;
     }]
   }
 */
-module.exports = ({lnd}, cbk) => {
+module.exports = (args, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd || !lnd.listChannels) {
+      if (!args.lnd || !args.lnd.listChannels) {
         return cbk([400, 'ExpectedLndToGetChannels']);
       }
 
@@ -45,8 +49,14 @@ module.exports = ({lnd}, cbk) => {
     },
 
     // Get channels
-    getChannels: ['validate', (_, cbk) => {
-      return lnd.listChannels({}, (err, res) => {
+    getChannels: ['validate', ({}, cbk) => {
+      return args.lnd.listChannels({
+        active_only: !!args.is_active ? true : undefined,
+        inactive_only: !!args.is_offline ? true : undefined,
+        private_only: !!args.is_private ? true : undefined,
+        public_only: !!args.is_public ? true : undefined,
+      },
+      (err, res) => {
         if (!!err) {
           return cbk([503, 'GetChannelsErr', err, res]);
         }

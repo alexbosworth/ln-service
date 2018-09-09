@@ -8,10 +8,12 @@ const {decodeInvoice} = require('./lightning');
 const {decodeShortChannelId} = require('./bolt07');
 const {encodeShortChannelId} = require('./bolt07');
 const {getChainBalance} = require('./lightning');
+const {getChannel} = require('./lightning');
 const {getChannelBalance} = require('./lightning');
 const {getChannelUtilization} = require('./reporting');
 const {getChannels} = require('./lightning');
 const {getFeeRates} = require('./lightning');
+const {getInactiveChannels} = require('./lightning');
 const {getInvoice} = require('./lightning');
 const {getInvoices} = require('./lightning');
 const {getNetworkGraph} = require('./lightning');
@@ -49,10 +51,12 @@ module.exports = {
   decodeShortChannelId,
   encodeShortChannelId,
   getChainBalance,
+  getChannel,
   getChannelBalance,
   getChannelUtilization,
   getChannels,
   getFeeRates,
+  getInactiveChannels,
   getInvoice,
   getInvoices,
   getNetworkGraph,

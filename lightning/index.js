@@ -6,9 +6,11 @@ const createSeed = require('./create_seed');
 const createWallet = require('./create_wallet');
 const decodeInvoice = require('./decode_invoice');
 const getChainBalance = require('./get_chain_balance');
+const getChannel = require('./get_channel');
 const getChannelBalance = require('./get_channel_balance');
 const getChannels = require('./get_channels');
 const getFeeRates = require('./get_fee_rates');
+const getInactiveChannels = require('./get_inactive_channels');
 const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
 const getNetworkGraph = require('./get_network_graph');
@@ -43,9 +45,11 @@ module.exports = {
   createWallet,
   decodeInvoice,
   getChainBalance,
+  getChannel,
   getChannelBalance,
   getChannels,
   getFeeRates,
+  getInactiveChannels,
   getInvoice,
   getInvoices,
   getNetworkGraph,
