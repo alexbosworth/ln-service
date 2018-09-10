@@ -32,8 +32,12 @@ module.exports = (args, cbk) => {
   }
 
   args.lnd.getNodeInfo({pub_key: args.public_key}, (err, res) => {
+    if (!!err && err.details === 'unable to find node') {
+      return cbk([404, 'NodeIsUnknown']);
+    }
+
     if (!!err) {
-      return cbk([503, 'FailedToRetrieveNodeDetails']);
+      return cbk([503, 'FailedToRetrieveNodeDetails', err]);
     }
 
     if (!res.node) {
