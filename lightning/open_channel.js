@@ -54,6 +54,7 @@ module.exports = (args, cbk) => {
     // Open the channel
     openChannel: ['getChainBalance', 'validate', ({getChainBalance}, cbk) => {
       const balance = getChainBalance.chain_balance;
+      let isAnnounced = false;
       const limit = channelLimit;
 
       const maxTokens = balance > limit ? limit : balance;
@@ -81,6 +82,12 @@ module.exports = (args, cbk) => {
           break;
 
         case 'chan_pending':
+          if (isAnnounced) {
+            break;
+          }
+
+          isAnnounced = true;
+
           return cbk(null, {
             transaction_id: chan.chan_pending.txid.reverse().toString('hex'),
             transaction_vout: chan.chan_pending.output_index,
@@ -101,6 +108,12 @@ module.exports = (args, cbk) => {
       channelOpen.on('error', err => {});
 
       channelOpen.on('status', n => {
+        if (isAnnounced) {
+          return;
+        }
+
+        isAnnounced = true;
+
         if (!n || !n.details) {
           return cbk([503, 'UnknownChannelOpenStatus']);
         }
