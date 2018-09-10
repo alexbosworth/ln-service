@@ -19,7 +19,7 @@ const msPerSec = 1e3;
     capacity: <Node Total Capacity Tokens Number>
     channel_count: <Known Node Channels Number>
     color: <RGB Hex Color String>
-    updated_at: <Last Update ISO 8601 Date String>
+    [updated_at]: <Last Known Update ISO 8601 Date String>
   }
 */
 module.exports = (args, cbk) => {
@@ -52,7 +52,7 @@ module.exports = (args, cbk) => {
       return cbk([503, 'ExpectedNodeColor']);
     }
 
-    if (!res.node.last_update) {
+    if (res.node.last_update === undefined) {
       return cbk([503, 'ExpectedNodeLastUpdateTimestamp']);
     }
 
@@ -68,6 +68,8 @@ module.exports = (args, cbk) => {
       return cbk([503, 'ExpectedTotalCapacityForNode']);
     }
 
+    const updatedAt = res.node.last_update * msPerSec;
+
     return cbk(null, {
       addresses: res.node.addresses.map(({addr, network}) => {
         return {address: addr, type: network};
@@ -76,7 +78,7 @@ module.exports = (args, cbk) => {
       capacity: parseInt(res.total_capacity, decBase),
       channel_count: res.num_channels,
       color: res.node.color,
-      updated_at: new Date(res.node.last_update * msPerSec).toISOString(),
+      updated_at: !!updatedAt ? new Date(updatedAt).toISOString() : undefined,
     });
   });
 };

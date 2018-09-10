@@ -12,6 +12,7 @@ const {getChannel} = require('./lightning');
 const {getChannelBalance} = require('./lightning');
 const {getChannelUtilization} = require('./reporting');
 const {getChannels} = require('./lightning');
+const {getClosedChannels} = require('./lightning');
 const {getFeeRates} = require('./lightning');
 const {getInactiveChannels} = require('./lightning');
 const {getInvoice} = require('./lightning');
@@ -55,6 +56,7 @@ module.exports = {
   getChannelBalance,
   getChannelUtilization,
   getChannels,
+  getClosedChannels,
   getFeeRates,
   getInactiveChannels,
   getInvoice,

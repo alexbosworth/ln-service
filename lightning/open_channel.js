@@ -17,6 +17,13 @@ const minimumChannelSize = 20000;
     [local_tokens]: <Local Tokens Number> // When not set, uses max possible
     partner_public_key: <Public Key Hex String>
   }
+
+  @returns via cbk
+  {
+    transaction_id: <Funding Transaction Id String>
+    transaction_vout: <Funding Transaction Output Index>
+    type: <Type> // 'channel_pending'
+  }
 */
 module.exports = (args, cbk) => {
   return asyncAuto({
@@ -66,45 +73,56 @@ module.exports = (args, cbk) => {
         options.push_sat = args.give_tokens;
       }
 
-      const open = args.lnd.openChannel(options);
+      const channelOpen = args.lnd.openChannel(options);
 
-      open.on('data', chan => {
+      channelOpen.on('data', chan => {
         switch (chan.update) {
         case 'chan_open':
-          const chanOpenTxId = chan.chan_open.channel_point.funding_txid
-            .toString('hex').match(/.{2}/g).reverse().join('');
-
-          console.log({
-            transaction_id: chanOpenTxId,
-            type: 'channel_open',
-            vout: chan.chan_open.channel_point.output_index,
-          });
           break;
 
         case 'chan_pending':
-          const chanPendingTxId = chan.chan_pending.txid.toString('hex')
-            .match(/.{2}/g).reverse().join('')
-
-          console.log({
-            transaction_id: chanPendingTxId,
+          return cbk(null, {
+            transaction_id: chan.chan_pending.txid.reverse().toString('hex'),
+            transaction_vout: chan.chan_pending.output_index,
             type: 'channel_pending',
-            vout: chan.chan_pending.output_index,
-          });
+          })
+          break;
+
+        case 'confirmation':
           break;
 
         default:
-          console.log('CHANNEL UPDATE', chan);
           break;
         }
       });
 
-      open.on('end', () => console.log("END OPEN CHANNEL SEND"));
-      open.on('error', err => console.log("OPEN CHANNEL ERROR", err));
-      open.on('status', n => console.log("OPEN CHANNEL STATUS", n));
+      channelOpen.on('end', () => {});
 
-      return cbk();
+      channelOpen.on('error', err => {});
+
+      channelOpen.on('status', n => {
+        if (!n || !n.details) {
+          return cbk([503, 'UnknownChannelOpenStatus']);
+        }
+
+        switch (n.details) {
+        case 'Multiple channels unsupported':
+          return cbk([503, 'RemoteNodeDoesNotSupportMultipleChannels']);
+
+        case 'peer disconnected':
+          return cbk([503, 'RemotePeerDisconnected']);
+
+        case 'Synchronizing blockchain':
+          return cbk([503, 'RemoteNodeSyncing']);
+
+        default:
+          return cbk([503, 'FailedToOpenChannel', n]);
+        }
+      });
+
+      return;
     }],
   },
-  returnResult({}, cbk));
+  returnResult({of: 'openChannel'}, cbk));
 };
 
