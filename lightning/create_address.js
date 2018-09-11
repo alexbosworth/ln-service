@@ -13,20 +13,20 @@ const rowTypes = require('./conf/row_types');
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
-  }
-
-  return lnd.newAddress({type: 1}, (err, response) => {
-    if (!!err) {
-      return cbk([503, 'CreateAddressError', err]);
+  return new Promise((resolve, reject) => {
+    if (!lnd) {
+      reject([500, 'ExpectedLnd']);
+    } else {
+      lnd.newAddress({type: 1}, (err, response) => {
+        if (!!err) {
+          reject([503, 'CreateAddressError', err]);
+        } else if (!response || !response.address) {
+          reject([503, 'ExpectedAddressResponse', response]);
+        } else {
+          resolve({address: response.address, type: rowTypes.address});
+        }
+      });
     }
-
-    if (!response || !response.address) {
-      return cbk([503, 'ExpectedAddressResponse', response]);
-    }
-
-    return cbk(null, {address: response.address, type: rowTypes.address});
   });
 };
 
