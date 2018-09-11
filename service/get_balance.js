@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
 
-const {getChainBalance} = require('./../lightning');
-const {getChannelBalance} = require('./../lightning');
-const {getPendingChainBalance} = require('./../lightning');
-const {getPendingChannels} = require('./../lightning');
+const getChainBalance = require('./../getChainBalance');
+const getChannelBalance = require('./../getChannelBalance');
+const getPendingChainBalance = require('./../getPendingChainBalance');
+const getPendingChannels = require('./../getPendingChannels');
 const {returnResult} = require('./../async-util');
 const {rowTypes} = require('./../lightning');
 
@@ -25,20 +25,20 @@ const {rowTypes} = require('./../lightning');
 module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Get chain balances
-    getChainBalance: cbk => getChainBalance({lnd}, cbk),
+    getChainBalance: async cbk => getChainBalance({lnd}),
 
     // Get channel balances
-    getChannelBalance: cbk => getChannelBalance({lnd}, cbk),
+    getChannelBalance: async cbk => getChannelBalance({lnd}),
 
     // Get pending chain balances
-    getPendingChain: cbk => getPendingChainBalance({lnd}, cbk),
+    getPendingChain: async cbk => getPendingChainBalance({lnd}),
 
     // Get pending channels
-    getPendingChannels: cbk => getPendingChannels({lnd}, cbk),
+    getPendingChannels: async cbk => getPendingChannels({lnd}),
 
     // Pending channel balance
-    pendingChannelBalance: ['getPendingChannels', (res, cbk) => {
-      const pendingChannelBalance = res.getPendingChannels.pending_channels
+    pendingChanBalance: ['getPendingChannels', ({getPendingChannels}, cbk) => {
+      const pendingChannelBalance = getPendingChannels.pending_channels
         .filter(channel => channel.is_opening)
         .map(channel => channel.local_balance)
         .reduce((sum, val) => sum + val, 0);
@@ -51,14 +51,14 @@ module.exports = ({lnd}, cbk) => {
       'getChainBalance',
       'getChannelBalance',
       'getPendingChain',
-      'pendingChannelBalance',
+      'pendingChanBalance',
       (res, cbk) =>
     {
       return cbk(null, {
         chain_balance: res.getChainBalance.chain_balance,
         channel_balance: res.getChannelBalance.channel_balance,
         pending_chain_balance: res.getPendingChain.pending_chain_balance,
-        pending_channel_balance: res.pendingChannelBalance,
+        pending_channel_balance: res.pendingChanBalance,
         type: rowTypes.balances,
       });
     }],

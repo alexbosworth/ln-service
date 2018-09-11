@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
 const {sortBy} = require('lodash');
 
-const {getInvoices} = require('./../lightning');
-const {getPayments} = require('./../lightning');
-const {getTransactions} = require('./../lightning');
+const getInvoices = require('./../getInvoices');
+const getPayments = require('./../getPayments');
+const getChainTransactions = require('./../getChainTransactions');
 const {returnResult} = require('./../async-util');
 
 /** Get history: a combination of chain transactions, invoices and payments.
@@ -38,13 +38,13 @@ const {returnResult} = require('./../async-util');
 module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Get incoming invoices
-    getInvoices: cbk => getInvoices({lnd}, cbk),
+    getInvoices: async cbk => getInvoices({lnd}),
 
     // Get outgoing payments
-    getPayments: cbk => getPayments({lnd}, cbk),
+    getPayments: async cbk => getPayments({lnd}),
 
     // Get chain transactions
-    getTransactions: cbk => getTransactions({lnd}, cbk),
+    getTransactions: async cbk => getChainTransactions({lnd}),
 
     // Combined history
     history: ['getInvoices', 'getPayments', 'getTransactions', (res, cbk) => {

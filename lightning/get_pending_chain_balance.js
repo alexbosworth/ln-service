@@ -12,7 +12,7 @@ const intBase = 10;
 
   @returns via cbk
   {
-    pending_chain_balance: <Pending Chain Balance Satoshis Number>
+    pending_chain_balance: <Pending Chain Balance Tokens Number>
   }
 */
 module.exports = ({lnd}, cbk) => {

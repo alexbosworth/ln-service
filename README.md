@@ -70,16 +70,24 @@ Be careful to avoid copying any newline characters.
 You can then interact with your LND node directly:
 
     const lnService = require('ln-service');
-
+    
     const lnd = lnService.lightningDaemon({
       cert: 'base64 encoded tls.cert',
       host: 'localhost:10009',
       macaroon: 'base64 encoded admin.macaroon',
     });
-
+    
     lnService.getWalletInfo({lnd}, (error, result) => {
       console.log(result);
     });
+
+Promises are also supported to allow async/await syntax
+
+    const getWalletInfo = require('ln-service/getWalletInfo');
+    
+    const walletInfo = await getWalletInfo({lnd});
+    
+    console.log(walletInfo.public_key);
 
 If you are interacting with your node remotely, make sure to set:
 

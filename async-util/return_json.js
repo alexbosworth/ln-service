@@ -1,3 +1,7 @@
+const {isArray} = Array;
+
+const defaultErrorMessage = 'ServerError';
+
 /** Return JSON or error for Express result.
 
   {
@@ -14,12 +18,12 @@
 */
 module.exports = ({log, res}) => {
   return (err, json) => {
-    if (Array.isArray(err)) {
-      const [statusCode, errorMessage] = err;
+    if (isArray(err) || (!!err && err.message.split(','))) {
+      const [code, msg] = isArray(err) ? err : err.message.split(',');
 
       log(err);
 
-      return res.status(statusCode).send(errorMessage || 'ServerError');
+      return res.status(code).send(msg || defaultErrorMessage);
     }
 
     if (!json) {

@@ -1,4 +1,4 @@
-const intBase = 10;
+const decBase = 10;
 const smallTokenUnitsPerBigUnit = 1e8;
 
 /** Get balance on the chain.
@@ -27,7 +27,7 @@ module.exports = ({lnd}, cbk) => {
     }
 
     return cbk(null, {
-      chain_balance: parseInt(res.confirmed_balance, intBase),
+      chain_balance: parseInt(res.confirmed_balance, decBase),
     });
   });
 };

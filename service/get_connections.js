@@ -2,9 +2,9 @@ const asyncAuto = require('async/auto');
 const {groupBy} = require('lodash');
 const {uniq} = require('lodash');
 
-const {getChannels} = require('./../lightning');
-const {getPeers} = require('./../lightning');
-const {getPendingChannels} = require('./../lightning');
+const getChannels = require('./../getChannels');
+const getPeers = require('./../getPeers');
+const getPendingChannels = require('./../getPendingChannels');
 const {returnResult} = require('./../async-util');
 const {rowTypes} = require('./../lightning');
 
@@ -47,14 +47,15 @@ const {rowTypes} = require('./../lightning');
 module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Get channels
-    getChannels: cbk => getChannels({lnd}, cbk),
+    getChannels: async cbk => getChannels({lnd}),
 
     // Get peers
-    getPeers: cbk => getPeers({lnd}, cbk),
+    getPeers: async cbk => getPeers({lnd}),
 
     // Get pending channels
-    pending: cbk => getPendingChannels({lnd}, cbk),
+    pending: async cbk => getPendingChannels({lnd}),
 
+    // Final list of connections
     connections: [
       'getChannels',
       'getPeers',
