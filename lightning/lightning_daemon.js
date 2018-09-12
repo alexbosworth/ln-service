@@ -35,7 +35,7 @@ module.exports = ({cert, host, macaroon, service}) => {
     throw new Error('ExpectedGrpcHostWithPortString');
   }
 
-  if (!macaroon) {
+  if (!macaroon && service !== 'WalletUnlocker') {
     throw new Error('ExpectedBase64EncodedGrpcMacaroonFile');
   }
 

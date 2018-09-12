@@ -26,6 +26,10 @@ module.exports = ({lnd}, cbk) => {
   }
 
   return lnd.getInfo({}, (err, res) => {
+    if (!!err && err.details === 'unknown service lnrpc.Lightning') {
+      return cbk([503, 'LndLocked']);
+    }
+
     if (!!err) {
       return cbk([503, 'GetWalletInfoErr', err]);
     }

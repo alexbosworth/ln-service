@@ -19,7 +19,9 @@ const lndHost = LND_HOST || 'localhost';
 
 /** Get the Lightning Daemon connection
 
-  {}
+  {
+    [is_unlocker]: <Is Unlocker Connection Bool>
+  }
 
   @throws
   <Lightning Daemon Connection Failure>
@@ -29,8 +31,20 @@ const lndHost = LND_HOST || 'localhost';
     lnd: <Lightning Network Daemon GRPC Connection Object>
   }
 */
-module.exports = ({log, wss}) => {
+module.exports = args => {
   const certPath = join(LNSERVICE_LND_DIR, tlsCertFileName);
+  const host = `${lndHost}:${lndGrpcPort}`;
+
+  if (!existsSync(certPath)) {
+    throw new Error('ExpectedTlsCert');
+  }
+
+  const cert = readFileSync(certPath).toString('base64');
+
+  // Exit early with unauthenticated connection when in unlocker mode
+  if (!!args.is_unlocker) {
+    return lightningDaemon({cert, host, service: 'WalletUnlocker'});
+  }
 
   const macaroonPath = join(
     LNSERVICE_LND_DIR,
@@ -41,17 +55,12 @@ module.exports = ({log, wss}) => {
     adminMacaroonFileName
   );
 
-  if (!existsSync(certPath)) {
-    throw new Error('ExpectedTlsCert');
-  }
   if (!existsSync(macaroonPath)) {
     throw new Error('ExpectedMacaroonFile');
   }
 
-  return lightningDaemon({
-    cert: readFileSync(certPath).toString('base64'),
-    host: `${lndHost}:${lndGrpcPort}`,
-    macaroon: readFileSync(macaroonPath).toString('base64'),
-  });
+  const macaroon = readFileSync(macaroonPath).toString('base64');
+
+  return lightningDaemon({cert, host, macaroon});
 };
 

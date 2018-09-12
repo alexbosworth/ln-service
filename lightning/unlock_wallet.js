@@ -7,16 +7,20 @@
 */
 module.exports = ({lnd, password}, cbk) => {
   if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+    return cbk([400, 'ExpectedLnd']);
   }
 
   if (!password) {
-    return cbk([500, 'ExpectedUnlockPassword']);
+    return cbk([400, 'ExpectedUnlockPassword']);
   }
 
   return lnd.unlockWallet({wallet_password: Buffer.from(password)}, err => {
+    if (!!err && err.details === 'invalid passphrase for master public key') {
+      return cbk([401, 'InvalidWalletUnlockPassword']);
+    }
+
     if (!!err) {
-      return cbk([500, 'UnexpectedUnlockWalletErr', err]);
+      return cbk([503, 'UnexpectedUnlockWalletErr', err]);
     }
 
     return cbk();
