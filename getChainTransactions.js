@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getTransactions} = require('./lightning');
+const {getChainTransactions} = require('./lightning');
 
 /** Get Blockchain transactions.
 
@@ -8,7 +8,7 @@ const {getTransactions} = require('./lightning');
     lnd: <Object>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     transactions: [{
       [block_id]: <Block Hash String>
@@ -23,5 +23,5 @@ const {getTransactions} = require('./lightning');
     }]
   }
 */
-module.exports = promisify(getTransactions);
+module.exports = promisify(getChainTransactions);
 

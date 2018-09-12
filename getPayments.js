@@ -8,7 +8,7 @@ const {getPayments} = require('./lightning');
     lnd: <Object>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     payments: [{
       created_at: <ISO8601 Date String>

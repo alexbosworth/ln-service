@@ -6,6 +6,7 @@ const createSeed = require('./create_seed');
 const createWallet = require('./create_wallet');
 const decodeInvoice = require('./decode_invoice');
 const getChainBalance = require('./get_chain_balance');
+const getChainTransactions = require('./get_chain_transactions');
 const getChannel = require('./get_channel');
 const getChannelBalance = require('./get_channel_balance');
 const getChannels = require('./get_channels');
@@ -22,7 +23,6 @@ const getPeers = require('./get_peers');
 const getPendingChainBalance = require('./get_pending_chain_balance');
 const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
-const getTransactions = require('./get_transactions');
 const getWalletInfo = require('./get_wallet_info');
 const lightningDaemon = require('./lightning_daemon');
 const openChannel = require('./open_channel');
@@ -46,6 +46,7 @@ module.exports = {
   createWallet,
   decodeInvoice,
   getChainBalance,
+  getChainTransactions,
   getChannel,
   getChannelBalance,
   getChannels,
@@ -62,7 +63,6 @@ module.exports = {
   getPendingChainBalance,
   getPendingChannels,
   getRoutes,
-  getTransactions,
   getWalletInfo,
   lightningDaemon,
   openChannel,

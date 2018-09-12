@@ -8,7 +8,7 @@ const {getInvoices} = require('./lightning');
     lnd: <LND GRPC API Object>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     invoices: [{
       chain_address: <Fallback Chain Address String>

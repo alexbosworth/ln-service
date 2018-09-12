@@ -8,7 +8,7 @@ const {getWalletInfo} = require('./lightning');
     lnd: <LND GRPC API Object>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     active_channels_count: <Active Channels Count Number>
     block_height: <Best Chain Height Number>

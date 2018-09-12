@@ -26,7 +26,7 @@ const msPerSec = 1e3;
 */
 module.exports = ({lnd}, cbk) => {
   if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+    return cbk([400, 'ExpectedLnd']);
   }
 
   return lnd.getTransactions({}, (err, res) => {
@@ -35,7 +35,7 @@ module.exports = ({lnd}, cbk) => {
     }
 
     if (!res || !Array.isArray(res.transactions)) {
-      return cbk([500, 'Expected transactions', res]);
+      return cbk([500, 'ExpectedTransactionsList', res]);
     }
 
     const transactions = res.transactions.map(transaction => {

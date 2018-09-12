@@ -8,7 +8,7 @@ const {getPeers} = require('./lightning');
     lnd: <LND GRPC API Object>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     peers: [{
       bytes_received: <Bytes Received Number>

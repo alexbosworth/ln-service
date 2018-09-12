@@ -8,7 +8,7 @@ const rowTypes = require('./conf/row_types');
 
   @returns via cbk
   {
-    address: <Address String>
+    address: <Chain Address String>
     type: <Type String>
   }
 */

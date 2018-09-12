@@ -15,7 +15,7 @@ const {createInvoice} = require('./lightning');
     [wss]: [<Web Socket Server Object>]
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     [chain_address]: <Backup Address String>
     created_at: <ISO 8601 Date String>

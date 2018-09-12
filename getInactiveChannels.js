@@ -1,15 +1,12 @@
 const {promisify} = require('util');
 
-const {getChannels} = require('./lightning');
+const {getInactiveChannels} = require('./lightning');
 
-/** Get channels
+/** Get inactive channels attached to inactive nodes
 
   {
-    [is_active]: <Limit Results To Only Active Channels Bool> // false
-    [is_offline]: <Limit Results To Only Offline Channels Bool> // false
-    [is_private]: <Limit Results To Only Private Channels Bool> // false
-    [is_public]: <Limit Results To Only Public Channels Bool> // false
-    lnd: {listChannels: <Function>}
+    inactive_since: <Last Update Before ISO 8601 Date String>
+    lnd: <LND GRPC API Object>
   }
 
   @returns via Promise
@@ -34,5 +31,5 @@ const {getChannels} = require('./lightning');
     }]
   }
 */
-module.exports = promisify(getChannels);
+module.exports = promisify(getInactiveChannels);
 

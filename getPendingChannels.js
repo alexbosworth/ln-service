@@ -11,7 +11,7 @@ const {getPendingChannels} = require('./lightning');
     lnd: <Object>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     pending_channels: [{
       id: <Channel Id String>

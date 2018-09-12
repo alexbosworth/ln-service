@@ -8,7 +8,7 @@ const countGroupingFactor = 3;
 /** Get network graph
 
   {
-    lnd: <Object>
+    lnd: <LND GRPC API Object>
   }
 
   @returns via cbk
