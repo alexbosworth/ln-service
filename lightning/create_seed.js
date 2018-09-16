@@ -21,7 +21,7 @@ module.exports = ({lnd, passphrase}, cbk) => {
 
   return lnd.genSeed({aezeed_passphrase: seedPassphrase}, (err, res) => {
     if (!!err || !res) {
-      return cbk([503, 'UnexpectedUnlockWalletErr', err]);
+      return cbk([503, 'UnexpectedCreateSeedErr', err]);
     }
 
     if (!Array.isArray(res.cipher_seed_mnemonic)) {
