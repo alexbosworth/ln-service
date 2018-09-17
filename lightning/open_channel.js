@@ -118,6 +118,10 @@ module.exports = (args, cbk) => {
           return cbk([503, 'UnknownChannelOpenStatus']);
         }
 
+        if (/^Unknown.chain/.test(n.details)) {
+          return cbk([503, 'ChainUnsupported']);
+        }
+
         switch (n.details) {
         case 'Multiple channels unsupported':
           return cbk([503, 'RemoteNodeDoesNotSupportMultipleChannels']);
