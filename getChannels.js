@@ -25,6 +25,12 @@ const {getChannels} = require('./lightning');
       is_private: <Channel Is Private Bool>
       local_balance: <Local Balance Satoshis Number>
       partner_public_key: <Channel Partner Public Key String>
+      pending_payments: [{
+        id: <Payment Preimage Hash Hex String>
+        is_outgoing: <Payment Is Outgoing Bool>
+        timeout: <Chain Height Expiration Number>
+        tokens: <Payment Tokens Number>
+      }]
       received: <Received Satoshis Number>
       remote_balance: <Remote Balance Satoshis Number>
       sent: <Sent Satoshis Number>

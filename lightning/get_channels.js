@@ -3,7 +3,7 @@ const asyncMap = require('async/map');
 
 const {returnResult} = require('./../async-util');
 
-const intBase = 10;
+const decBase = 10;
 
 /** Get channels
 
@@ -28,6 +28,12 @@ const intBase = 10;
       is_private: <Channel Is Private Bool>
       local_balance: <Local Balance Satoshis Number>
       partner_public_key: <Channel Partner Public Key String>
+      pending_payments: [{
+        id: <Payment Preimage Hash Hex String>
+        is_outgoing: <Payment Is Outgoing Bool>
+        timeout: <Chain Height Expiration Number>
+        tokens: <Payment Tokens Number>
+      }]
       received: <Received Satoshis Number>
       remote_balance: <Remote Balance Satoshis Number>
       sent: <Sent Satoshis Number>
@@ -112,6 +118,10 @@ module.exports = (args, cbk) => {
           return cbk([503, 'ExpectedNumUpdates', channel]);
         }
 
+        if (!Array.isArray(channel.pending_htlcs)) {
+          return cbk([503, 'ExpectedChannelPendingHtlcs']);
+        }
+
         if (channel.private !== true && channel.private !== false) {
           return cbk([503, 'ExpectedChannelPrivateStatus']);
         }
@@ -139,22 +149,28 @@ module.exports = (args, cbk) => {
         const [transactionId, vout] = channel.channel_point.split(':');
 
         return cbk(null, {
-          capacity: parseInt(channel.capacity, intBase),
-          commit_transaction_fee: parseInt(channel.commit_fee, intBase),
-          commit_transaction_weight: parseInt(channel.commit_weight, intBase),
+          capacity: parseInt(channel.capacity, decBase),
+          commit_transaction_fee: parseInt(channel.commit_fee, decBase),
+          commit_transaction_weight: parseInt(channel.commit_weight, decBase),
           id: channel.chan_id,
           is_active: channel.active,
           is_closing: false,
           is_opening: false,
           is_private: channel.private,
-          local_balance: parseInt(channel.local_balance, intBase),
+          local_balance: parseInt(channel.local_balance, decBase),
           partner_public_key: channel.remote_pubkey,
-          received: parseInt(channel.total_satoshis_received, intBase),
-          remote_balance: parseInt(channel.remote_balance, intBase),
-          sent: parseInt(channel.total_satoshis_sent, intBase),
+          pending_payments: channel.pending_htlcs.map(n => ({
+            id: n.hash_lock.toString('hex'),
+            is_outgoing: !n.incoming,
+            timeout: n.expiration_height,
+            tokens: parseInt(n.amount, decBase),
+          })),
+          received: parseInt(channel.total_satoshis_received, decBase),
+          remote_balance: parseInt(channel.remote_balance, decBase),
+          sent: parseInt(channel.total_satoshis_sent, decBase),
           transaction_id: transactionId,
-          transaction_vout: parseInt(vout, intBase),
-          unsettled_balance: parseInt(channel.unsettled_balance, intBase),
+          transaction_vout: parseInt(vout, decBase),
+          unsettled_balance: parseInt(channel.unsettled_balance, decBase),
         });
       },
       cbk);
