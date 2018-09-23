@@ -63,6 +63,7 @@ module.exports = (args, cbk) => {
 
       const options = {
         local_funding_amount: channelAmount - staticFee,
+        min_confs: 1,
         node_pubkey: Buffer.from(args.partner_public_key, 'hex'),
       }
 
