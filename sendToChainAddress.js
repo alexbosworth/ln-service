@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {sendToChainAddress} = require('./lightning');
+const {sendToChainAddress} = require('./');
 
 /** Send tokens in a blockchain transaction.
 

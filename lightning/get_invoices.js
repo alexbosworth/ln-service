@@ -8,10 +8,9 @@ const {isString} = require('lodash');
 const {sortBy} = require('lodash');
 
 const {returnResult} = require('./../async-util');
-
 const rowTypes = require('./conf/row_types');
 
-const intBase = 10;
+const decBase = 10;
 const msPerSec = 1e3;
 
 /** Get all created invoices.
@@ -32,7 +31,16 @@ const msPerSec = 1e3;
       id: <Payment Hash String>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
-      invoice: <Bolt 11 Invoice String>
+      is_private: <Invoice is Private Bool>
+      request: <Bolt 11 Invoice String>
+      routes: [{
+        base_fee_mtokens: <Base Routing Fee In MilliTokens Number>
+        channel_id: <Channel Id String>
+        cltv_delta: <CLTV Blocks Delta Number>
+        fee_rate: <Fee Rate In MilliTokens Per Million Number>
+        public_key: <Public Key Hex String>
+      }]
+      secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
       type: <Type String>
     }]
@@ -67,10 +75,14 @@ module.exports = ({lnd}, cbk) => {
     // Mapped invoices
     mappedInvoices: ['listInvoices', ({listInvoices}, cbk) => {
       return asyncMap(listInvoices, (invoice, cbk) => {
-        const creationEpochDate = parseInt(invoice.creation_date, intBase);
+        const creationEpochDate = parseInt(invoice.creation_date, decBase);
         const descHash = invoice.description_hash;
-        const expiresInMs = parseInt(invoice.expiry, intBase) * msPerSec;
+        const expiresInMs = parseInt(invoice.expiry, decBase) * msPerSec;
         let settledDate = undefined;
+
+        if (!invoice.cltv_expiry) {
+          return cbk([503, 'ExpectedCltvExpiryForInvoice']);
+        }
 
         if (!isFinite(creationEpochDate)) {
           return cbk([503, 'ExpectedCreationDate', invoice]);
@@ -84,6 +96,10 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedDescriptionHashBuffer', invoice]);
         }
 
+        if (invoice.private === undefined) {
+          return cbk([503, 'ExpectedInvoicePrivateStatus', invoice]);
+        }
+
         if (!isString(invoice.payment_request)) {
           return cbk([503, 'ExpectedPaymentRequest', invoice]);
         }
@@ -93,33 +109,78 @@ module.exports = ({lnd}, cbk) => {
         }
 
         if (!!invoice.settle_date) {
-          const settledEpochDate = parseInt(invoice.settle_date, intBase);
+          const settledEpochDate = parseInt(invoice.settle_date, decBase);
 
-          settledDate = new Date(settledEpochDate).toISOString();
+          settledDate = new Date(settledEpochDate * msPerSec).toISOString();
         }
 
         if (!isBoolean(invoice.settled)) {
           return cbk([503, 'ExpectedInvoiceSettlementStatus', invoice]);
         }
 
-        if (!isFinite(parseInt(invoice.value, intBase))) {
+        if (!isFinite(parseInt(invoice.value, decBase))) {
           return cbk([503, 'ExpectedTokenValue', invoice]);
         }
 
-        const createTime = creationEpochDate * msPerSec;
+        const createTimeMs = creationEpochDate * msPerSec;
+        let routes;
+
+        try {
+          routes = invoice.route_hints.map(route => {
+            if (!Array.isArray(route.hop_hints)) {
+              throw new Error('ExpectedRouteHopHints');
+            }
+
+            return route.hop_hints.map(hop => {
+              if (!hop.chan_id) {
+                throw new Error('ExpectedRouteHopChannelId');
+              }
+
+              if (hop.cltv_expiry_delta === undefined) {
+                throw new Error('ExpectedRouteHopCltvExpiryDelta');
+              }
+
+              if (!hop.fee_base_msat) {
+                throw new Error('ExpectedRouteHopBaseFee');
+              }
+
+              if (hop.fee_proportional_millionths === undefined) {
+                throw new Error('ExpectedRouteHopFeeRate');
+              }
+
+              if (!hop.node_id) {
+                throw new Error('ExpectedRouteHopPublicKey');
+              }
+
+              return {
+                base_fee_mtokens: hop.fee_base_msat,
+                channel_id: hop.chan_id,
+                cltv_delta: hop.cltv_expiry_delta,
+                fee_rate: hop.fee_proportional_millionths,
+                public_key: hop.node_id,
+              };
+            });
+          });
+        } catch (err) {
+          return cbk([503, err.message, res]);
+        }
 
         return cbk(null, {
+          routes,
           chain_address: invoice.fallback_addr || null,
+          cltv_delta: parseInt(invoice.cltv_expiry, decBase),
           confirmed_at: settledDate,
-          created_at: new Date(createTime).toISOString(),
+          created_at: new Date(createTimeMs).toISOString(),
           description: invoice.memo,
           description_hash: !descHash.length ? null : descHash.toString('hex'),
-          expires_at: new Date(createTime + expiresInMs).toISOString(),
-          id: createHash('sha256').update(invoice.r_preimage).digest('hex'),
+          expires_at: new Date(createTimeMs + expiresInMs).toISOString(),
+          id: invoice.r_hash.toString('hex'),
           is_confirmed: invoice.settled,
           is_outgoing: false,
-          invoice: invoice.payment_request,
-          tokens: parseInt(invoice.value, intBase),
+          is_private: !!invoice.private,
+          request: invoice.payment_request,
+          secret: invoice.r_preimage.toString('hex'),
+          tokens: parseInt(invoice.value, decBase),
           type: rowTypes.channel_transaction,
         });
       },

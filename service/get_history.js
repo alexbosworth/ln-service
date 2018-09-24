@@ -29,7 +29,7 @@ const {returnResult} = require('./../async-util');
       id: <Id String>
       [is_confirmed]: <Invoice is Confirmed Bool>
       [is_outgoing]: <Invoice is Outgoing Bool>
-      invoice: <Bolt 11 Invoice String>
+      request: <BOLT 11 Payment Request String>
       tokens: <Tokens Number>
       type: <Type String>
     }]

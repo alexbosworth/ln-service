@@ -12,11 +12,13 @@ const rowTypes = require('./conf/row_types');
   {
     [description]: <Invoice Description String>
     [expires_at]: <Expires At ISO 8601 Date String>
-    [include_address]: <Return Backup Chain Address Bool>
+    [internal_description]: <Internal Description String>
+    [is_fallback_included]: <Is Fallback Address Included Bool>
+    [is_fallback_nested]: <Is Fallback Address Nested Bool>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
-    [payment_secret]: <Payment Secret Hex String>
-    tokens: <Tokens Number>
+    [secret]: <Payment Secret Hex String>
+    [tokens]: <Tokens Number>
     [wss]: [<Web Socket Server Object>]
   }
 
@@ -25,9 +27,9 @@ const rowTypes = require('./conf/row_types');
     [chain_address]: <Backup Address String>
     created_at: <ISO 8601 Date String>
     description: <Description String>
-    id: <Payment Request Id String>
-    invoice: <Hex Encoded Invoice String>
-    payment_secret: <Hex Encoded Payment Secret String>
+    id: <Payment Hash Hex String>
+    request: <BOLT 11 Encoded Payment Request String>
+    secret: <Hex Encoded Payment Secret String>
     tokens: <Tokens Number>
     type: <Type String>
   }
@@ -36,21 +38,17 @@ module.exports = (args, cbk) => {
   return asyncAuto({
     // Payment secret for the invoice
     preimage: cbk => {
-      if (!args.payment_secret) {
+      if (!args.secret) {
         return cbk();
       }
 
-      return cbk(null, Buffer.from(args.payment_secret, 'hex'));
+      return cbk(null, Buffer.from(args.secret, 'hex'));
     },
 
     // Check arguments
     validate: cbk => {
       if (!args.lnd) {
         return cbk([500, 'ExpectedLnd']);
-      }
-
-      if (!args.tokens) {
-        return cbk([400, 'ExpectedTokens']);
       }
 
       if (!!args.wss && !Array.isArray(args.wss)) {
@@ -66,25 +64,33 @@ module.exports = (args, cbk) => {
 
     // Add address for the fallback address
     addAddress: ['validate', ({}, cbk) => {
+      // Exit early when no fallback address is needed
+      if (!args.is_fallback_included) {
+        return cbk();
+      }
+
+      const format = !!args.is_fallback_nested ? 'np2wpkh' : 'p2wpkh';
       const {lnd} = args;
 
-      return !args.include_address ? cbk() : createAddress({lnd}, cbk);
+      return !args.include_address ? cbk() : createAddress({format, lnd}, cbk);
     }],
 
     // Add invoice
     addInvoice: ['addAddress', 'preimage', ({addAddress, preimage}, cbk) => {
-      const fallbackAddr = !addAddress ? '' : addAddress.address;
+      const fallbackAddress = !addAddress ? '' : addAddress.address;
       const createdAt = new Date();
       const expireAt = !args.expires_at ? null : Date.parse(args.expires_at);
+      const receipt = Buffer.from(args.internal_description || '', 'utf8');
 
       const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
       return args.lnd.addInvoice({
         expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
-        fallback_addr: fallbackAddr,
+        fallback_addr: fallbackAddress,
         memo: args.description,
         r_preimage: preimage || undefined,
-        value: args.tokens,
+        receipt: !!receipt.length ? receipt : undefined,
+        value: args.tokens || undefined,
       },
       (err, response) => {
         if (!!err) {
@@ -92,7 +98,7 @@ module.exports = (args, cbk) => {
         }
 
         if (!response.payment_request) {
-          return cbk([503, 'ExpectedPayReq']);
+          return cbk([503, 'ExpectedPaymentRequestForCreatedInvoice']);
         }
 
         if (!Buffer.isBuffer(response.r_hash)) {
@@ -103,8 +109,8 @@ module.exports = (args, cbk) => {
           created_at: createdAt.toISOString(),
           description: args.description,
           id: response.r_hash.toString('hex'),
-          invoice: response.payment_request,
-          tokens: args.tokens,
+          request: response.payment_request,
+          tokens: args.tokens || 0,
           type: rowTypes.invoice,
         });
       });
@@ -122,9 +128,9 @@ module.exports = (args, cbk) => {
         created_at: res.addInvoice.created_at,
         description: res.addInvoice.description,
         id: res.addInvoice.id,
-        invoice: res.addInvoice.invoice,
-        payment_secret: res.getInvoice.payment_secret,
-        tokens: res.addInvoice.tokens,
+        request: res.addInvoice.request,
+        secret: res.getInvoice.secret,
+        tokens: res.addInvoice.tokens || 0,
         type: res.addInvoice.type,
       });
     }],

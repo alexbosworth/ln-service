@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getChainTransactions} = require('./lightning');
+const {getChainTransactions} = require('./');
 
 /** Get Blockchain transactions.
 

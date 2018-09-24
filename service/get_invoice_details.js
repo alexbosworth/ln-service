@@ -1,6 +1,6 @@
 const asyncAuto = require('async/auto');
 
-const {decodeInvoice} = require('./../lightning');
+const {decodePaymentRequest} = require('./../lightning');
 const {getInvoice} = require('./../lightning');
 const {getWalletInfo} = require('./../lightning');
 const {returnResult} = require('./../async-util');
@@ -10,8 +10,8 @@ const invoiceType = require('./../lightning').rowTypes.invoice;
 /** Get payment request
 
   {
-    invoice: <Bolt 11 Invoice String>
     lnd: <LND GRPC API Object>
+    request: <BOLT 11 Payment Request String>
   }
 
   @returns via cbk
@@ -22,38 +22,40 @@ const invoiceType = require('./../lightning').rowTypes.invoice;
     id: <Payment Request Hash String>
     [is_confirmed]: <Settled Bool>
     [is_outgoing]: <Is Outgoing Bool>
-    [payment_secret]: <Payment Secret String>
+    [secret]: <Payment Preimage Hex String>
     tokens: <Token Amount Number>
     type: <Type String>
   }
 */
-module.exports = ({invoice, lnd}, cbk) => {
+module.exports = ({lnd, request}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!invoice) {
-        return cbk([400, 'ExpectedInvoice']);
+      if (!lnd) {
+        return cbk([400, 'ExpectedLndForInvoiceDetailsLookup']);
       }
 
-      if (!lnd) {
-        return cbk([500, 'ExpectedLnd']);
+      if (!request) {
+        return cbk([400, 'ExpectedPaymentRequestForInvoiceDetailsLookup']);
       }
 
       return cbk();
     },
 
-    // Get the decoded invoice
-    decodedInvoice: ['validate', (_, cbk) => {
-      return decodeInvoice({lnd, invoice}, cbk);
+    // Get the decoded payment request
+    decodedPaymentRequest: ['validate', ({}, cbk) => {
+      return decodePaymentRequest({lnd, request}, cbk);
     }],
 
     // Get wallet info
-    getWalletInfo: ['validate', (_, cbk) => getWalletInfo({lnd}, cbk)],
+    getWalletInfo: ['validate', ({}, cbk) => {
+      return getWalletInfo({lnd}, cbk);
+    }],
 
-    // Get extended invoice details from the db
-    getInvoice: ['decodedInvoice', 'getWalletInfo', (res, cbk) => {
-      const {destination} = res.decodedInvoice;
-      const {id} = res.decodedInvoice;
+    // Get extended invoice details if this is one of our own invoices
+    getInvoice: ['decodedPaymentRequest', 'getWalletInfo', (res, cbk) => {
+      const {destination} = res.decodedPaymentRequest;
+      const {id} = res.decodedPaymentRequest;
 
       // Exit early when no information on the payment request is available.
       if (res.getWalletInfo.public_key !== destination) {
@@ -64,16 +66,16 @@ module.exports = ({invoice, lnd}, cbk) => {
     }],
 
     // Final details about the invoice
-    invoiceDetails: ['decodedInvoice', 'getInvoice', (res, cbk) => {
+    invoiceDetails: ['decodedPaymentRequest', 'getInvoice', (res, cbk) => {
       return cbk(null, {
-        description: res.decodedInvoice.description,
-        destination: res.decodedInvoice.destination,
-        expires_at: res.decodedInvoice.expires_at,
-        id: res.decodedInvoice.id,
+        description: res.decodedPaymentRequest.description,
+        destination: res.decodedPaymentRequest.destination,
+        expires_at: res.decodedPaymentRequest.expires_at,
+        id: res.decodedPaymentRequest.id,
         is_confirmed: res.getInvoice.is_confirmed,
         is_outgoing: res.getInvoice.is_outgoing,
-        payment_secret: res.getInvoice.payment_secret,
-        tokens: res.decodedInvoice.tokens,
+        secret: res.getInvoice.secret,
+        tokens: res.decodedPaymentRequest.tokens,
         type: invoiceType,
       });
     }],

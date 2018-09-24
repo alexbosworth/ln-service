@@ -29,7 +29,7 @@ module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd) {
+      if (!lnd || !lnd.feeReport) {
         return cbk([400, 'ExpectedLndForFeeRatesRequest']);
       }
 

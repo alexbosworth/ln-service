@@ -3,7 +3,7 @@ const wordsAsNumber = require('./words_as_number');
 const defaultSeconds = 3600;
 const msPerSec = 1e3;
 
-/** Derive an expiration time for an invoice based on its creation time
+/** Derive an expiration time for a payment request based on its creation time
 
   {
     created_at: <Created At ISO 8601 Date String>

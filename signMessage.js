@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {signMessage} = require('./lightning');
+const {signMessage} = require('./');
 
 /** Sign a message
 

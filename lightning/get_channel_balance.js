@@ -1,4 +1,4 @@
-const intBase = 10;
+const decBase = 10;
 
 /** Get balance across channels.
 
@@ -8,24 +8,36 @@ const intBase = 10;
 
   @returns via cbk
   {
-    channel_balance: <Channels Balance Tokens>
+    channel_balance: <Channels Balance Tokens Number>
+    pending_balance: <Pending Channels Balance Tokens Number>
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd) {
-    return cbk([500, 'ExpectedLndApi']);
+  if (!lnd || !lnd.channelBalance) {
+    return cbk([500, 'ExpectedLndApiForChannelBalanceQuery']);
   }
 
   return lnd.channelBalance({}, (err, res) => {
     if (!!err) {
-      return cbk([503, 'ChannelBalanceErr', err]);
+      return cbk([503, 'UnexpectedGetChannelBalanceError', err]);
     }
 
-    if (!res || res.balance === undefined) {
-      return cbk([503, 'ExpectedBalance', res]);
+    if (!res) {
+      return cbk([503, 'ExpectedGetChannelBalanceResponse']);
     }
 
-    return cbk(null, {channel_balance: parseInt(res.balance, intBase)});
+    if (res.balance === undefined) {
+      return cbk([503, 'ExpectedChannelBalance', res]);
+    }
+
+    if (res.pending_open_balance === undefined) {
+      return cbk([503, 'ExpectedPendingOpenBalance', res]);
+    }
+
+    return cbk(null, {
+      channel_balance: parseInt(res.balance, decBase),
+      pending_balance: parseInt(res.pending_open_balance, decBase),
+    });
   });
 };
 

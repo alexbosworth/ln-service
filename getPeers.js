@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getPeers} = require('./lightning');
+const {getPeers} = require('./');
 
 /** Get connected peers.
 

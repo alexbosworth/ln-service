@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {openChannel} = require('./lightning');
+const {openChannel} = require('./');
 
 /** Open a new channel.
 

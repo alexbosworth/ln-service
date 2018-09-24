@@ -14,7 +14,7 @@ const expectedMnemonicLength = 24;
 */
 module.exports = ({lnd, passphrase}, cbk) => {
   if (!lnd) {
-    return cbk([400, 'ExpectedLnd']);
+    return cbk([400, 'ExpectedLndForSeedCreation']);
   }
 
   const seedPassphrase = !passphrase ? undefined : Buffer.from(passphrase);

@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getNode} = require('./lightning');
+const {getNode} = require('./');
 
 /** Get information about a node
 

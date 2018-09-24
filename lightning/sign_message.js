@@ -11,21 +11,21 @@
   }
 */
 module.exports = ({lnd, message}, cbk) => {
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+  if (!lnd || !lnd.signMessage) {
+    return cbk([400, 'ExpectedLndToSignMessage']);
   }
 
   if (!message) {
-    return cbk([500, 'ExpectedMessageToSign']);
+    return cbk([400, 'ExpectedMessageToSign']);
   }
 
-  return lnd.signMessage({msg: Buffer.from(message)}, (err, res) => {
+  return lnd.signMessage({msg: Buffer.from(message, 'utf8')}, (err, res) => {
     if (!!err) {
-      return cbk([500, 'UnexpectedSignMessageError', err]);
+      return cbk([503, 'UnexpectedSignMessageError', err]);
     }
 
     if (!res.signature) {
-      return cbk([500, 'ExpectedSignature', res]);
+      return cbk([503, 'ExpectedSignatureForMessageSignRequest', res]);
     }
 
     return cbk(null, {signature: res.signature});

@@ -4,6 +4,9 @@ const getWalletInfo = require('./get_wallet_info');
 const {returnResult} = require('./../async-util');
 
 const countGroupingFactor = 3;
+const decBase = 10;
+const msPerSec = 1e3
+const outpointSeparatorChar = ':';
 
 /** Get network graph
 
@@ -16,19 +19,29 @@ const countGroupingFactor = 3;
     edges: [{
       capacity: <Channel Capacity Tokens Number>
       from_self: <Channel Link From Self Bool>
-      last_update: <Last Update Epoch Seconds Number>
+      id: <Channel Id String>
+      policies: [{
+        base_fee_mtokens: <Bae Fee MilliTokens String>
+        cltv_delta: <CLTV Height Delta Number>
+        fee_rate: <Fee Rate In MilliTokens Per Million Number>
+        is_disabled: <Edge is Disabled Bool>
+        minimum_htlc_mtokens: <Minimum HTLC MilliTokens String>
+      }]
       source: <Source Public Key String>
       target: <Target Public Key String>
       to_self: <Target is Self Bool>
+      transaction_id: <Funding Transaction Id String>
+      transaction_output_index: <Funding Transaction Output Index Number>
+      updated_at: <Last Update Epoch ISO 8601 Date String>
     }]
     nodes: [{
-      addresses: [<Network Address String>]
       alias: <Name String>
       color: <Hex Encoded Color String>
       community: <Community Grouping Number>
       id: <Node Public Key String>
       is_self: <Node is Self Bool>
-      last_update: <Last Updated Seconds Number>
+      sockets: [<Network Address and Port String>]
+      updated_at: <Last Updated ISO 8601 Date String>
     }]
     own_node: {
       channel_count: <Total Channels Count Number>
@@ -40,8 +53,8 @@ module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd) {
-        return cbk([500, 'ExpectedLnd']);
+      if (!lnd || !lnd.describeGraph) {
+        return cbk([400, 'ExpectedLndForGetNetworkGraphRequest']);
       }
 
       return cbk();
@@ -71,7 +84,7 @@ module.exports = ({lnd}, cbk) => {
     }],
 
     // Get wallet info
-    getWalletInfo: ['validate', (_, cbk) => getWalletInfo({lnd}, cbk)],
+    getWalletInfo: ['validate', ({}, cbk) => getWalletInfo({lnd}, cbk)],
 
     // Network graph
     graph: ['getGraph', 'getWalletInfo', ({getGraph, getWalletInfo}, cbk) => {
@@ -86,13 +99,29 @@ module.exports = ({lnd}, cbk) => {
           return channelCount[n]++;
         });
 
+        const [txId, vout] = n.chan_point.split(outpointSeparatorChar);
+
+        const policies = [n.node1_policy, n.node2_policy].map(n => {
+          return {
+            base_fee_mtokens: n.fee_base_msat,
+            cltv_delta: n.time_lock_delta,
+            fee_rate: parseInt(n.fee_rate_milli_sat, decBase),
+            is_disabled: !!n.disabled,
+            minimum_htlc_mtokens: n.min_htlc,
+          };
+        });
+
         return {
-          capacity: n.capacity,
+          policies,
+          capacity: parseInt(n.capacity, decBase),
           from_self: n.node1_pub === ownKey,
-          last_update: n.last_update,
+          id: n.channel_id,
           source: n.node1_pub,
           target: n.node2_pub,
           to_self: n.node2_pub === ownKey,
+          transaction_id: txId,
+          transaction_output_index: parseInt(vout, decBase),
+          updated_at: new Date(n.last_update * msPerSec).toISOString(),
         };
       });
 
@@ -102,13 +131,13 @@ module.exports = ({lnd}, cbk) => {
         const community = Math.round(count / countGroupingFactor);
 
         return {
-          addresses: n.addresses.map(n => n.addr),
           alias: n.alias,
           color: n.color,
           community: !channelCount[n.pub_key] ? [].length : community,
           id: n.pub_key,
           is_self: n.pub_key === ownKey,
-          last_update: n.last_update,
+          sockets: n.addresses.map(n => n.addr),
+          updated_at: new Date(n.last_update).toISOString(),
         };
       });
 

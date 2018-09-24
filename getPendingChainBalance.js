@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getPendingChainBalance} = require('./lightning');
+const {getPendingChainBalance} = require('./');
 
 /** Get pending chain balance.
 

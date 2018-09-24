@@ -2,7 +2,7 @@ const {promisify} = require('util');
 
 const {getRoutes} = require('./lightning');
 
-/** Get invoice payment routes
+/** Get payment routes
 
   {
     destination: <Send Destination Hex Encoded Public Key String>

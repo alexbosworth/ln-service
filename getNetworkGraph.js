@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getNetworkGraph} = require('./lightning');
+const {getNetworkGraph} = require('./');
 
 /** Get network graph
 

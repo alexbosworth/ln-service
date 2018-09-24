@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {createSeed} = require('./lightning');
+const {createSeed} = require('./');
 
 /** Create a wallet seed
 

@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getPayments} = require('./lightning');
+const {getPayments} = require('./');
 
 /** Get payments made through channels.
 

@@ -52,12 +52,12 @@ module.exports = ({destination, fee, limit, lnd, timeout, tokens}, cbk) => {
     return cbk([400, 'ExpectedDestination']);
   }
 
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+  if (!lnd || !lnd.queryRoutes) {
+    return cbk([400, 'ExpectedLndForGetRoutesRequest']);
   }
 
   if (!tokens) {
-    return cbk([400, 'ExpectedTokens']);
+    return cbk([400, 'ExpectedTokensForRoutesQuery']);
   }
 
   return lnd.queryRoutes({
@@ -79,8 +79,8 @@ module.exports = ({destination, fee, limit, lnd, timeout, tokens}, cbk) => {
 
     try {
       return cbk(null, routesFromQueryRoutes({response: res}));
-    } catch (e) {
-      return cbk([503, 'InvalidGetRoutesResponse', e]);
+    } catch (err) {
+      return cbk([503, 'InvalidGetRoutesResponse', err]);
     }
   });
 };

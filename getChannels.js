@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getChannels} = require('./lightning');
+const {getChannels} = require('./');
 
 /** Get channels
 

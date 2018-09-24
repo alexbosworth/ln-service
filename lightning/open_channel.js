@@ -1,9 +1,8 @@
 const asyncAuto = require('async/auto');
 
+const channelLimit = require('./conf/lnd').channel_limit_tokens;
 const getChainBalance = require('./get_chain_balance');
 const {returnResult} = require('./../async-util');
-
-const channelLimit = require('./conf/lnd').channel_limit_tokens;
 
 const staticFee = 1e3;
 const minimumChannelSize = 20000;
@@ -21,15 +20,15 @@ const minimumChannelSize = 20000;
   @returns via cbk
   {
     transaction_id: <Funding Transaction Id String>
-    transaction_vout: <Funding Transaction Output Index>
-    type: <Type> // 'channel_pending'
+    transaction_vout: <Funding Transaction Output Index Number>
+    type: <Row Type String> // 'channel_pending'
   }
 */
 module.exports = (args, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!args.lnd) {
+      if (!args.lnd || !args.lnd.openChannel) {
         return cbk([400, 'ExpectedLnd']);
       }
 
@@ -92,7 +91,7 @@ module.exports = (args, cbk) => {
           return cbk(null, {
             transaction_id: chan.chan_pending.txid.reverse().toString('hex'),
             transaction_vout: chan.chan_pending.output_index,
-            type: 'channel_pending',
+            type: 'open_channel_pending',
           })
           break;
 

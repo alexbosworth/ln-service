@@ -1,4 +1,4 @@
-const {payInvoice} = require('./../lightning');
+const {pay} = require('./../lightning');
 const {returnJson} = require('./../async-util');
 const Router = require('./router');
 
@@ -16,12 +16,18 @@ const Router = require('./router');
 module.exports = ({lnd, log, wss}) => {
   const router = Router({});
 
-  // Send a payment
+  /** Send a payment
+
+    {
+      [fee]: <Maximum Routing Fee To Pay Number>
+      request: <BOLT 11 Payment Request String>
+    }
+  */
   router.post('/', ({body}, res) => {
     const {fee} = body;
-    const {invoice} = body;
+    const {request} = body;
 
-    return payInvoice({fee, invoice, lnd, log, wss}, returnJson({log, res}));
+    return pay({fee, lnd, log, request, wss}, returnJson({log, res}));
   });
 
   return router;

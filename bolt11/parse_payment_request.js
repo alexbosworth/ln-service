@@ -4,7 +4,7 @@ const {decode} = require('bech32');
 const {recover} = require('secp256k1');
 
 const hrpAsTokens = require('./hrp_as_tokens');
-const invoiceExpiration = require('./invoice_expiration');
+const paymentRequestExpiration = require('./payment_request_expiration');
 const wordsAsNumber = require('./words_as_number');
 const wordsAsBuffer = require('./words_as_buffer');
 
@@ -25,16 +25,16 @@ const tagLengthWordLen = 2;
 const tagNameWordLength = 1;
 const timestampWordLength = 7;
 
-/** Parse a BOLT 11 invoice into its component data
+/** Parse a BOLT 11 payment request into its component data
 
   Note: either description or description_hash will be returned
 
   {
-    invoice: <BOLT 11 Invoice String>
+    request: <BOLT 11 Payment Request String>
   }
 
   @throws
-  <Error> on parse invoice failure
+  <Error> on parse payment request failure
 
   @returns
   {
@@ -49,12 +49,16 @@ const timestampWordLength = 7;
     [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
   }
 */
-module.exports = ({invoice}) => {
-  if (invoice.slice(0, lnPrefix.length) !== lnPrefix) {
+module.exports = ({request}) => {
+  if (!request) {
+    throw new Error('ExpectedPaymentRequest');
+  }
+
+  if (request.slice(0, lnPrefix.length) !== lnPrefix) {
     throw new Error('ExpectedLnPrefix');
   }
 
-  const {prefix, words} = decode(invoice, Number.MAX_SAFE_INTEGER);
+  const {prefix, words} = decode(request, Number.MAX_SAFE_INTEGER);
 
   // Separate the signature words (fixed length) from the rest of the data
   const sigWords = words.slice(-sigWordsCount);
@@ -65,8 +69,8 @@ module.exports = ({invoice}) => {
 
   try {
     sigBuffer = wordsAsBuffer({trim, words: sigWords});
-  } catch (e) {
-    throw e;
+  } catch (err) {
+    throw err;
   }
 
   // There is a recovery flag at the end of the signature buffer
@@ -178,11 +182,10 @@ module.exports = ({invoice}) => {
 
     case 'x': // Expiration Seconds
       try {
-        expiresAt = invoiceExpiration({
-          created_at: createdAt,
-          words: tagWords
-        });
-      } catch (e) {
+        const words = tagWords;
+
+        expiresAt = paymentRequestExpiration({words, created_at: createdAt});
+      } catch (err) {
         expiredAt = null;
       }
       break;
@@ -192,7 +195,7 @@ module.exports = ({invoice}) => {
     }
   }
 
-  expiresAt = expiresAt || invoiceExpiration({created_at: createdAt})
+  expiresAt = expiresAt || paymentRequestExpiration({created_at: createdAt});
 
   if (!paymentHash) {
     throw new Error('ExpectedPaymentHash');

@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getClosedChannels} = require('./lightning');
+const {getClosedChannels} = require('./');
 
 /** Get closed out channels
 

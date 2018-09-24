@@ -34,8 +34,8 @@ const intBase = 10;
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+  if (!lnd || !lnd.pendingChannels) {
+    return cbk([400, 'ExpectedLndForPendingChannelsRequest']);
   }
 
   return asyncAuto({

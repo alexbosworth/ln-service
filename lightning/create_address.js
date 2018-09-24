@@ -1,32 +1,45 @@
+const addressFormats = require('./conf/address_formats');
 const rowTypes = require('./conf/row_types');
 
 /** Create a new receive address.
 
   {
+    format: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
     lnd: <LND GRPC API Object>
   }
 
   @returns via cbk
   {
     address: <Chain Address String>
-    type: <Type String>
+    type: <Row Type String>
   }
 */
-module.exports = ({lnd}, cbk) => {
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+module.exports = ({format, lnd}, cbk) => {
+  if (!format || addressFormats[format] === undefined) {
+    return cbk([400, 'ExpectedKnownAddressFormat']);
   }
 
-  return lnd.newAddress({type: 1}, (err, response) => {
+  if (!lnd) {
+    return cbk([400, 'ExpectedLndForAddressCreation']);
+  }
+
+  return lnd.newAddress({type: addressFormats[format]}, (err, response) => {
     if (!!err) {
       return cbk([503, 'CreateAddressError', err]);
     }
 
-    if (!response || !response.address) {
-      return cbk([503, 'ExpectedAddressResponse', response]);
+    if (!response) {
+      return cbk([503, 'ExpectedResponseForAddressCreation']);
     }
 
-    return cbk(null, {address: response.address, type: rowTypes.address});
+    if (!response.address) {
+      return cbk([503, 'ExpectedAddressInCreateAddressResponse', response]);
+    }
+
+    return cbk(null, {
+      address: response.address,
+      type: rowTypes.chain_address,
+    });
   });
 };
 

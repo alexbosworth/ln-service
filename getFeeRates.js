@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getFeeRates} = require('./lightning');
+const {getFeeRates} = require('./');
 
 /** Get a rundown on fees for channels
 

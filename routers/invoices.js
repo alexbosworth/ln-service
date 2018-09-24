@@ -20,10 +20,10 @@ module.exports = ({lnd, log, wss}) => {
 
   router.get('/', ({}, res) => getInvoices({lnd}, returnJson({log, res})));
 
-  router.get('/:invoice', ({params}, res) => {
-    const {invoice} = params;
+  router.get('/:request', ({params}, res) => {
+    const {request} = params;
 
-    return getInvoiceDetails({invoice, lnd}, returnJson({log, res}));
+    return getInvoiceDetails({lnd, request}, returnJson({log, res}));
   });
 
   router.post('/', ({body}, res) => {
@@ -33,7 +33,7 @@ module.exports = ({lnd, log, wss}) => {
       wss,
       description: body.description,
       expires_at: body.expires_at,
-      include_address: body.include_address,
+      is_fallback_included: body.is_fallback_included,
       tokens: body.tokens,
     },
     returnJson({log, res}));

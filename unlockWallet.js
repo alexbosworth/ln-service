@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {unlockWallet} = require('./lightning');
+const {unlockWallet} = require('./');
 
 /** Unlock the wallet
 

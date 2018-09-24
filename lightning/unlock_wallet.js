@@ -1,3 +1,5 @@
+const invalidPasswordError = 'invalid passphrase for master public key';
+
 /** Unlock the wallet
 
   {
@@ -14,8 +16,10 @@ module.exports = ({lnd, password}, cbk) => {
     return cbk([400, 'ExpectedUnlockPassword']);
   }
 
-  return lnd.unlockWallet({wallet_password: Buffer.from(password)}, err => {
-    if (!!err && err.details === 'invalid passphrase for master public key') {
+  const walletPassword = Buffer.from(password, 'utf8');
+
+  return lnd.unlockWallet({wallet_password: walletPassword}, err => {
+    if (!!err && err.details === invalidPasswordError) {
       return cbk([401, 'InvalidWalletUnlockPassword']);
     }
 

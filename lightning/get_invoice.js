@@ -6,8 +6,8 @@ const msPerSec = 1e3;
 /** Lookup a channel invoice.
 
   {
-    lnd: <LND GRPC API Object>
     id: <Payment Hash Id Hex String>
+    lnd: <LND GRPC API Object>
   }
 
   @returns via cbk
@@ -15,10 +15,10 @@ const msPerSec = 1e3;
     description: <Description String>
     expires_at: <ISO 8601 Date String>
     id: <Invoice Id String>
-    invoice: <Bolt 11 Invoice String>
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
-    payment_secret: <Hex Encoded Payment Secret Preimage String>
+    request: <BOLT 11 Encoded Payment Request String>
+    secret: <Hex Encoded Payment Secret Preimage String>
     [tokens]: <Tokens Number>
     type: <Type String>
   }
@@ -34,19 +34,23 @@ module.exports = ({id, lnd}, cbk) => {
 
   return lnd.lookupInvoice({r_hash_str: id}, (err, response) => {
     if (!!err) {
-      return cbk([500, 'LookupInvoiceErr', err]);
+      return cbk([503, 'LookupInvoiceErr', err]);
     }
 
     if (response.memo === undefined) {
-      return cbk([500, 'ExpectedMemo', response]);
+      return cbk([503, 'ExpectedMemo', response]);
+    }
+
+    if (!response.payment_request) {
+      return cbk([503, 'ExpectedPaymentRequestForInvoice']);
     }
 
     if (response.settled !== false && response.settled !== true) {
-      return cbk([500, 'MissingSettled', response]);
+      return cbk([503, 'MissingSettled', response]);
     }
 
     if (!Buffer.isBuffer(response.r_preimage)) {
-      return cbk([500, 'ExpectedInvoicePreimage']);
+      return cbk([503, 'ExpectedInvoicePreimage']);
     }
 
     const createdAt = parseInt(response.creation_date, decBase) * msPerSec;
@@ -58,10 +62,10 @@ module.exports = ({id, lnd}, cbk) => {
       id,
       description: response.memo,
       expires_at: new Date(expiryDateMs).toISOString(),
-      invoice: response.payment_request,
       is_confirmed: response.settled,
       is_outgoing: false,
-      payment_secret: response.r_preimage.toString('hex'),
+      request: response.payment_request,
+      secret: response.r_preimage.toString('hex'),
       tokens: !response.value ? null : parseInt(response.value, decBase),
       type: rowTypes.channel_transaction,
     });

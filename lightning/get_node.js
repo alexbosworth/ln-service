@@ -11,14 +11,14 @@ const msPerSec = 1e3;
 
   @returns via cbk
   {
-    addresses: [{
-      address: <Address String>
-      type: <Address Network Type String>
-    }]
     alias: <Node Alias String>
     capacity: <Node Total Capacity Tokens Number>
     channel_count: <Known Node Channels Number>
     color: <RGB Hex Color String>
+    sockets: [{
+      address: <Host and Port String>
+      type: <Socket Type String>
+    }]
     [updated_at]: <Last Known Update ISO 8601 Date String>
   }
 */
@@ -48,6 +48,20 @@ module.exports = (args, cbk) => {
       return cbk([503, 'ExpectedArrayOfNodeAddressForNodeDetails']);
     }
 
+    try {
+      res.node.addresses.forEach(({addr, network}) => {
+        if (!addr) {
+          throw new Error('ExpectedNodeAddress');
+        }
+
+        if (!network) {
+          throw new Error('ExpectedNodeNetwork');
+        }
+      });
+    } catch (err) {
+      return cbk([503, err.message]);
+    }
+
     if (res.node.alias === undefined) {
       return cbk([503, 'ExpectedNodeAliasFromNodeDetails']);
     }
@@ -75,13 +89,13 @@ module.exports = (args, cbk) => {
     const updatedAt = res.node.last_update * msPerSec;
 
     return cbk(null, {
-      addresses: res.node.addresses.map(({addr, network}) => {
-        return {address: addr, type: network};
-      }),
       alias: res.node.alias,
       capacity: parseInt(res.total_capacity, decBase),
       channel_count: res.num_channels,
       color: res.node.color,
+      sockets: res.node.addresses.map(({addr, network}) => {
+        return {socket: addr, type: network};
+      }),
       updated_at: !!updatedAt ? new Date(updatedAt).toISOString() : undefined,
     });
   });

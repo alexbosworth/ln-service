@@ -1,5 +1,6 @@
 const {isNumber} = require('lodash');
 const {isString} = require('lodash');
+
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
@@ -18,12 +19,12 @@ const decBase = 10;
     minimum_channel_size: <Tokens Number>
     node_count: <Node Count Number>
     total_capacity: <Total Capacity Number>
-    type: <Type String>
+    type: <Row Type String>
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+  if (!lnd || !lnd.getNetworkInfo) {
+    return cbk([400, 'ExpectedLndForNetworkInfoRequest']);
   }
 
   return lnd.getNetworkInfo({}, (err, networkInfo) => {

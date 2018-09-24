@@ -1,25 +1,40 @@
 const {createHash} = require('crypto');
 
+const {broadcastResponse} = require('./../async-util');
+const payPaymentRequest = require('./pay_payment_request');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
 
-/** Make a payment using defined routes
+/** Make a payment.
+
+  Either a payment path or an invoice is required
 
   {
-    id: <Payment Hash String>
+    [fee]: <Maximum Additional Fee Tokens To Pay Number>
     lnd: <LND GRPC API Object>
-    routes: [{
-      hops: [{
-        channel_capacity: <Channel Capacity Tokens Number>
-        channel_id: <Unique Channel Id String>
-        fee: <Fee Number>
-        fee_mtokens: <Fee MilliTokens String>
-        forward: <Forward Tokens Number>
-        forward_mtokens: <Forward MilliTokens String>
-        timeout: <Timeout Block Height Number>
+    [log]: <Log Function> // Required if wss is set
+    [path]: {
+      id: <Payment Hash Hex String>
+      routes: [{
+        fee: <Total Fee Tokens To Pay Number>
+        fee_mtokens: <Total Fee MilliTokens To Pay String>
+        hops: [{
+          channel_capacity: <Channel Capacity Tokens Number>
+          channel_id: <Unique Channel Id String>
+          fee: <Fee Number>
+          fee_mtokens: <Fee MilliTokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward MilliTokens String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total MilliTokens To Pay String>
+        timeout: <Expiration Block Height Number>
+        tokens: <Total Tokens To Pay Number>
       }]
-    }]
+    }
+    [request]: <BOLT 11 Payment Request String>
+    [wss]: [<Web Socket Server Object>]
   }
 
   @returns via cbk
@@ -31,46 +46,57 @@ const decBase = 10;
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
     mtokens: <MilliTokens Paid String>
-    payment_secret: <Payment Secret Hex String>
+    secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
     type: <Type String>
   }
 */
-module.exports = ({id, lnd, routes}, cbk) => {
-  if (!id) {
-    return cbk([400, 'ExpectedPaymentHashStringToExecutePayment']);
+module.exports = ({fee, lnd, log, path, request, wss}, cbk) => {
+  if (!path && !request) {
+    return cbk([400, 'ExpectedPathOrRequestToPay']);
   }
 
-  if (!lnd || !lnd.sendToRouteSync) {
+  if (!lnd || !lnd.sendPaymentSync || !lnd.sendToRouteSync) {
     return cbk([400, 'ExpectedLndForPaymentExecution']);
   }
 
-  if (!Array.isArray(routes) || !routes.length) {
+  if (!!path && !path.id) {
+    return cbk([400, 'ExpectedPaymentHashStringToExecutePayment']);
+  }
+
+  if (!!path && (!Array.isArray(routes) || !routes.length)) {
     return cbk([400, 'ExpectedRoutesToExecutePaymentOver']);
+  }
+
+  // Exit early when the invoice is defined
+  if (!path) {
+    return payPaymentRequest({fee, lnd, log, request, wss}, cbk);
   }
 
   lnd.sendToRouteSync({
     payment_hash_string: id,
-    routes: routes.map(route => {
-      return {
-        hops: route.hops.map(hop => {
-          return {
-            amt_to_forward: hop.forward.toString(),
-            amt_to_forward_msat: hop.forward_mtokens,
-            chan_id: hop.channel_id,
-            chan_capacity: hop.channel_capacity.toString(),
-            expiry: hop.timeout,
-            fee: hop.fee.toString(),
-            fee_msat: hop.fee_mtokens,
-          };
-        }),
-        total_amt: route.tokens.toString(),
-        total_amt_msat: route.mtokens,
-        total_fees: route.fee.toString(),
-        total_fees_msat: route.fee_mtokens,
-        total_time_lock: route.timeout,
-      };
-    }),
+    routes: path.routes
+      .filter(route => fee === undefined || route.fee <= fee)
+      .map(route => {
+        return {
+          hops: route.hops.map(hop => {
+            return {
+              amt_to_forward: hop.forward.toString(),
+              amt_to_forward_msat: hop.forward_mtokens,
+              chan_id: hop.channel_id,
+              chan_capacity: hop.channel_capacity.toString(),
+              expiry: hop.timeout,
+              fee: hop.fee.toString(),
+              fee_msat: hop.fee_mtokens,
+            };
+          }),
+          total_amt: route.tokens.toString(),
+          total_amt_msat: route.mtokens,
+          total_fees: route.fee.toString(),
+          total_fees_msat: route.fee_mtokens,
+          total_time_lock: route.timeout,
+        };
+      }),
   },
   (err, res) => {
     if (!!err) {
@@ -113,7 +139,7 @@ module.exports = ({id, lnd, routes}, cbk) => {
       return cbk([503, 'ExpectedRouteFeesMilliTokensPaidValue']);
     }
 
-    return cbk(null, {
+    const row = {
       fee: parseInt(res.payment_route.total_fees, decBase),
       fee_mtokens: res.payment_route.total_fees_msat,
       hop_count: res.payment_route.hops.length,
@@ -121,10 +147,16 @@ module.exports = ({id, lnd, routes}, cbk) => {
       is_confirmed: true,
       is_outgoing: true,
       mtokens: res.payment_route.total_amt_msat,
-      payment_secret: res.payment_preimage.toString('hex'),
+      secret: res.payment_preimage.toString('hex'),
       tokens: parseInt(res.payment_route.total_amt, decBase),
       type: rowTypes.channel_transaction,
-    });
+    };
+
+    if (!!wss) {
+      broadcastResponse({log, row, wss});
+    }
+
+    return cbk(null, row);
   });
 };
 

@@ -1,4 +1,4 @@
-const parseInvoice = require('./parse_invoice');
+const parsePaymentRequest = require('./parse_payment_request');
 
-module.exports = {parseInvoice};
+module.exports = {parsePaymentRequest};
 

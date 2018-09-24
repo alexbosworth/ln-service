@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getInvoices} = require('./lightning');
+const {getInvoices} = require('./');
 
 /** Get all created invoices.
 
@@ -20,9 +20,9 @@ const {getInvoices} = require('./lightning');
       id: <Payment Hash String>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
-      invoice: <Bolt 11 Invoice String>
+      request: <BOLT 11 Payment Request String>
       tokens: <Tokens Number>
-      type: <Type String>
+      type: <Row Type String>
     }]
   }
 */

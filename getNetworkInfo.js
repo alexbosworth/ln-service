@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getNetworkInfo} = require('./lightning');
+const {getNetworkInfo} = require('./');
 
 /** Get network info
 

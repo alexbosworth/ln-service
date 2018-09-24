@@ -3,7 +3,7 @@ const {join} = require('path');
 const grpc = require('grpc');
 const {loadSync} = require('@grpc/proto-loader');
 
-const grpcSslCipherSuites = require('./conf/lnd').grpc_ssl_cipher_suites;
+const expectedSslConfiguration = require('./conf/lnd').grpc_ssl_cipher_suites;
 
 const confDir = 'conf';
 const defaultServiceType = 'Lightning';
@@ -50,7 +50,7 @@ module.exports = ({cert, host, macaroon, service}) => {
   const rpc = grpc.loadPackageDefinition(packageDefinition);
 
   // Exit early when GRPC_SSL_CIPHER_SUITES cipher suite is not correct
-  if (GRPC_SSL_CIPHER_SUITES !== grpcSslCipherSuites) {
+  if (GRPC_SSL_CIPHER_SUITES !== expectedSslConfiguration) {
     throw new Error('ExpectedGrpcSslCipherSuitesEnvVar');
   }
 

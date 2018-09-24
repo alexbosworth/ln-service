@@ -4,7 +4,7 @@ const createAddress = require('./create_address');
 const createInvoice = require('./create_invoice');
 const createSeed = require('./create_seed');
 const createWallet = require('./create_wallet');
-const decodeInvoice = require('./decode_invoice');
+const decodePaymentRequest = require('./decode_payment_request');
 const getChainBalance = require('./get_chain_balance');
 const getChainTransactions = require('./get_chain_transactions');
 const getChannel = require('./get_channel');
@@ -12,7 +12,6 @@ const getChannelBalance = require('./get_channel_balance');
 const getChannels = require('./get_channels');
 const getClosedChannels = require('./get_closed_channels');
 const getFeeRates = require('./get_fee_rates');
-const getInactiveChannels = require('./get_inactive_channels');
 const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
 const getNetworkGraph = require('./get_network_graph');
@@ -27,7 +26,6 @@ const getWalletInfo = require('./get_wallet_info');
 const lightningDaemon = require('./lightning_daemon');
 const openChannel = require('./open_channel');
 const pay = require('./pay');
-const payInvoice = require('./pay_invoice');
 const removePeer = require('./remove_peer');
 const rowTypes = require('./conf/row_types');
 const sendToChainAddress = require('./send_to_chain_address');
@@ -44,7 +42,7 @@ module.exports = {
   createInvoice,
   createSeed,
   createWallet,
-  decodeInvoice,
+  decodePaymentRequest,
   getChainBalance,
   getChainTransactions,
   getChannel,
@@ -52,7 +50,6 @@ module.exports = {
   getChannels,
   getClosedChannels,
   getFeeRates,
-  getInactiveChannels,
   getInvoice,
   getInvoices,
   getNetworkGraph,
@@ -67,7 +64,6 @@ module.exports = {
   lightningDaemon,
   openChannel,
   pay,
-  payInvoice,
   removePeer,
   rowTypes,
   sendToChainAddress,

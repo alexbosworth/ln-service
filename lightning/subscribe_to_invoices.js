@@ -24,7 +24,7 @@ const msPerSec = 1e3;
     id: <Invoice Id Hex String>
     is_confirmed: <Invoice is Confirmed Bool>
     is_outgoing: <Invoice is Outgoing Bool>
-    payment_secret: <Payment Secret Hex String>
+    secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
     type: <Row Type String>
   }
@@ -74,7 +74,6 @@ module.exports = ({lnd}) => {
 
     const confirmedAt = parseInt(invoice.settle_date, decBase);
     const createdAt = parseInt(invoice.creation_date, decBase);
-    const paymentSecret = invoice.r_preimage.toString('hex');
 
     const expiresAt = createdAt + parseInt(invoice.expiry)
 
@@ -86,7 +85,7 @@ module.exports = ({lnd}) => {
       id: invoice.r_hash.toString('hex'),
       is_confirmed: true,
       is_outgoing: false,
-      payment_secret: paymentSecret,
+      secret: invoice.r_preimage.toString('hex'),
       tokens: parseInt(invoice.value, decBase),
       type: rowTypes.channel_transaction,
     });

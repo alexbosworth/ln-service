@@ -1,3 +1,5 @@
+const utf8 = 'utf8';
+
 /** Create a wallet
 
   {
@@ -8,7 +10,7 @@
   }
 */
 module.exports = ({lnd, passphrase, password, seed}, cbk) => {
-  if (!lnd) {
+  if (!lnd || !lnd.initWallet) {
     return cbk([400, 'ExpectedLndForWalletCreation']);
   }
 
@@ -21,9 +23,9 @@ module.exports = ({lnd, passphrase, password, seed}, cbk) => {
   }
 
   return lnd.initWallet({
-    aezeed_passphrase: !passphrase ? undefined : Buffer.from(passphrase),
+    aezeed_passphrase: !passphrase ? undefined : Buffer.from(passphrase, utf8),
     cipher_seed_mnemonic: seed.split(' '),
-    wallet_password: Buffer.from(password),
+    wallet_password: Buffer.from(password, utf8),
   },
   err => {
     if (!!err) {

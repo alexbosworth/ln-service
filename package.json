@@ -25,7 +25,11 @@
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
-    "tap": "12.0.1"
+    "bitcoinjs-lib": "4.0.2",
+    "openport": "0.0.5",
+    "rimraf": "2.6.2",
+    "tap": "12.0.1",
+    "uuid": "3.3.0"
   },
   "engines": {
     "node": "8.12.0",

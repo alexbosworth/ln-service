@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getInvoice} = require('./lightning');
+const {getInvoice} = require('./');
 
 /** Lookup a channel invoice.
 
@@ -13,11 +13,11 @@ const {getInvoice} = require('./lightning');
   {
     description: <Description String>
     expires_at: <ISO 8601 Date String>
-    id: <Invoice Id String>
-    invoice: <Bolt 11 Invoice String>
+    id: <Invoice Payment Hash Hex String>
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
-    payment_secret: <Hex Encoded Payment Secret Preimage String>
+    request: <Bolt 11 Payment Request String>
+    secret: <Hex Encoded Payment Secret Preimage Hex String>
     [tokens]: <Tokens Number>
     type: <Type String>
   }

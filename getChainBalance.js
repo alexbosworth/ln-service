@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getChainBalance} = require('./lightning');
+const {getChainBalance} = require('./');
 
 /** Get balance
 

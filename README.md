@@ -164,3 +164,9 @@ And copy the result as the token in the above example
 
     $ npm test
 
+#### Integration Tests
+
+btcd and lnd are required to execute the integration tests.
+
+    $ tap test/integration/*.js
+

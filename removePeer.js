@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {removePeer} = require('./lightning');
+const {removePeer} = require('./');
 
 /** Remove a peer if possible (no active or pending channels)
 

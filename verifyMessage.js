@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {verifyMessage} = require('./lightning');
+const {verifyMessage} = require('./');
 
 /** Verify a message was signed by a known pubkey
 

@@ -1,5 +1,4 @@
 const decBase = 10;
-const smallTokenUnitsPerBigUnit = 1e8;
 
 /** Get balance on the chain.
 
@@ -9,12 +8,12 @@ const smallTokenUnitsPerBigUnit = 1e8;
 
   @returns via cbk
   {
-    chain_balance: <Chain Balance Tokens>
+    chain_balance: <Confirmed Chain Balance Tokens Number>
   }
 */
 module.exports = ({lnd}, cbk) => {
   if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+    return cbk([400, 'ExpectedLndToRetrieveChainBalance']);
   }
 
   return lnd.walletBalance({}, (err, res) => {
@@ -22,7 +21,11 @@ module.exports = ({lnd}, cbk) => {
       return cbk([503, 'GetBalanceErr', err]);
     }
 
-    if (!res || res.confirmed_balance === undefined) {
+    if (!res) {
+      return cbk([503, 'ExpectedChainBalanceResponse']);
+    }
+
+    if (res.confirmed_balance === undefined) {
       return cbk([503, 'ExpectedConfirmedBalance', res]);
     }
 

@@ -32,17 +32,17 @@ module.exports = ({id, lnd}, cbk) => {
     return cbk([400, 'ExpectedChannelIdToGet']);
   }
 
-  if (!lnd) {
+  if (!lnd || !lnd.getChanInfo) {
     return cbk([400, 'ExpectedLndToGetChannelDetails']);
   }
 
   return lnd.getChanInfo({chan_id: id}, (err, response) => {
     if (!!err) {
-      return cbk([503, 'GetChanErr', err]);
+      return cbk([503, 'UnexpectedGetChannelInfoError', err]);
     }
 
     if (!response) {
-      return cbk([503, 'ExpectedResponse']);
+      return cbk([503, 'ExpectedGetChannelResponse']);
     }
 
     if (!response.capacity) {

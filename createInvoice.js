@@ -1,16 +1,18 @@
 const {promisify} = require('util');
 
-const {createInvoice} = require('./lightning');
+const {createInvoice} = require('./');
 
 /** Create a channel invoice.
 
   {
     [description]: <Invoice Description String>
     [expires_at]: <Expires At ISO 8601 Date String>
-    [include_address]: <Return Backup Chain Address Bool>
+    [internal_description]: <Internal Description String>
+    [is_fallback_included]: <Is Fallback Address Included Bool>
+    [is_fallback_nested]: <Is Fallback Address Nested Bool>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
-    [payment_secret]: <Payment Secret Hex String>
+    [secret]: <Payment Secret Hex String>
     tokens: <Tokens Number>
     [wss]: [<Web Socket Server Object>]
   }
@@ -21,8 +23,8 @@ const {createInvoice} = require('./lightning');
     created_at: <ISO 8601 Date String>
     description: <Description String>
     id: <Payment Request Id String>
-    invoice: <Hex Encoded Invoice String>
-    payment_secret: <Hex Encoded Payment Secret String>
+    request: <BOLT 11 Encoded Payment Request String>
+    secret: <Hex Encoded Payment Secret String>
     tokens: <Tokens Number>
     type: <Type String>
   }

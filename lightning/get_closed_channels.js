@@ -37,7 +37,7 @@ const outpointSeparator = ':';
 */
 module.exports = (args, cbk) => {
   if (!args.lnd || !args.lnd.closedChannels) {
-    return cbk([400, 'Expected'])
+    return cbk([400, 'ExpectedLndApiForGetClosedChannelsRequest'])
   }
 
   args.lnd.closedChannels({

@@ -12,27 +12,27 @@
   }
 */
 module.exports = ({lnd, message, signature}, cbk) => {
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+  if (!lnd || !lnd.verifyMessage) {
+    return cbk([400, 'ExpectedLndForVerifyMessage']);
   }
 
   if (!message) {
-    return cbk([400, 'ExpectedMessage']);
+    return cbk([400, 'ExpectedMessageToVerify']);
   }
 
   if (!signature) {
-    return cbk([400, 'ExpectedSignature']);
+    return cbk([400, 'ExpectedSignatureToVerifyAgainst']);
   }
 
-  const msg = Buffer.from(message);
+  const msg = Buffer.from(message, 'utf8');
 
   return lnd.verifyMessage({msg, signature}, (err, res) => {
     if (!!err) {
-      return cbk([500, 'UnexpectedVerifyMessageError', err]);
+      return cbk([503, 'UnexpectedVerifyMessageError', err]);
     }
 
     if (!res.pubkey) {
-      return cbk([500, 'ExpectedPublicKey', res]);
+      return cbk([503, 'ExpectedPublicKey', res]);
     }
 
     if (!res.valid) {

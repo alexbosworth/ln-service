@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {createWallet} = require('./lightning');
+const {createWallet} = require('./');
 
 /** Create a wallet
 

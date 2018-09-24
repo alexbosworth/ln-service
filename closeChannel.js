@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {closeChannel} = require('./lightning');
+const {closeChannel} = require('./');
 
 /** Close a channel.
 

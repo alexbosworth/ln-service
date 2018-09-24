@@ -31,6 +31,14 @@ module.exports = ({lnd}) => {
   const subscription = lnd.subscribeTransactions({});
 
   subscription.on('data', tx => {
+    if (!tx || !tx.time_stamp) {
+      return eventEmitter.emit('error', new Error('ExpectedTxTimestamp'));
+    }
+
+    if (!tx.tx_hash) {
+      return eventEmitter.emit('error', new Error('ExpectedTransactionId'));
+    }
+
     const createdAt = parseInt(tx.time_stamp, decBase);
 
     return eventEmitter.emit('data', {

@@ -64,7 +64,7 @@ module.exports = (args, cbk) => {
       },
       (err, res) => {
         if (!!err) {
-          return cbk([503, 'GetChannelsErr', err, res]);
+          return cbk([503, 'UnexpectedGetChannelsError', err]);
         }
 
         if (!res || !Array.isArray(res.channels)) {

@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {pay} = require('./lightning');
+const {pay} = require('./');
 
 /** Make a payment using defined routes
 
@@ -29,7 +29,7 @@ const {pay} = require('./lightning');
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
     mtokens: <MilliTokens Paid String>
-    payment_secret: <Payment Secret Hex String>
+    secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
     type: <Type String>
   }

@@ -1,11 +1,12 @@
+const {round} = Math;
+
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 
+const peerType = require('./conf/row_types').peer;
 const {returnResult} = require('./../async-util');
 
-const peerType = require('./conf/row_types').peer;
-
-const intBase = 10;
+const decBase = 10;
 const msPerSec = 1e3;
 
 /** Get connected peers.
@@ -20,12 +21,12 @@ const msPerSec = 1e3;
       bytes_received: <Bytes Received Number>
       bytes_sent: <Bytes Sent Number>
       is_inbound: <Is Inbound Peer Bool>
-      network_address: <Network Address String>
       ping_time: <Milliseconds Number>
       public_key: <Public Key String>
-      tokens_received: <Amount Received Satoshis Number>
-      tokens_sent: <Amount Sent Satoshis Number>
-      type: <Type String>
+      socket: <Network Address And Port String>
+      tokens_received: <Amount Received Tokens Number>
+      tokens_sent: <Amount Sent Tokens Number>
+      type: <Row Type String>
     }]
   }
 */
@@ -33,7 +34,7 @@ module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // List the set of connected peers
     listPeers: cbk => lnd.listPeers({}, (err, res) => {
-      return !!err ? cbk([503, 'GetPeersErr', err]) : cbk(null, res);
+      return !!err ? cbk([503, 'UnexpectedGetPeersErr', err]) : cbk(null, res);
     }),
 
     // Check the list of peers and map into final format
@@ -76,14 +77,14 @@ module.exports = ({lnd}, cbk) => {
         }
 
         return cbk(null, {
-          bytes_received: parseInt(peer.bytes_recv, intBase),
-          bytes_sent: parseInt(peer.bytes_sent, intBase),
+          bytes_received: parseInt(peer.bytes_recv, decBase),
+          bytes_sent: parseInt(peer.bytes_sent, decBase),
           is_inbound: peer.inbound,
-          network_address: peer.address,
-          ping_time: Math.round(parseInt(peer.ping_time, intBase) / msPerSec),
+          ping_time: round(parseInt(peer.ping_time, decBase) / msPerSec),
           public_key: peer.pub_key,
-          tokens_received: parseInt(peer.sat_recv, intBase),
-          tokens_sent: parseInt(peer.sat_sent, intBase),
+          socket: peer.address,
+          tokens_received: parseInt(peer.sat_recv, decBase),
+          tokens_sent: parseInt(peer.sat_sent, decBase),
           type: peerType,
         });
       },
