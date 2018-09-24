@@ -52,5 +52,5 @@
     "start": "node server.js",
     "test": "tap test/*.js"
   },
-  "version": "15.3.0"
+  "version": "16.0.0"
 }

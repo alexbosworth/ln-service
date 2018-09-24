@@ -28,7 +28,7 @@ const {getRoutes} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
 const {lightningDaemon} = require('./lightning');
 const {openChannel} = require('./lightning');
-const {parseInvoice} = require('./bolt11');
+const {parsePaymentRequest} = require('./bolt11');
 const {pay} = require('./lightning');
 const {removePeer} = require('./lightning');
 const {rowTypes} = require('./lightning');
@@ -70,7 +70,7 @@ module.exports = {
   getWalletInfo,
   lightningDaemon,
   openChannel,
-  parseInvoice,
+  parsePaymentRequest,
   pay,
   removePeer,
   rowTypes,
