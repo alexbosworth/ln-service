@@ -4,41 +4,31 @@ const {readFileSync} = require('fs');
 const {test} = require('tap');
 
 const addPeer = require('./../../addPeer');
-const {connectChainNode} = require('./../macros');
-const {generateBlocks} = require('./../macros');
+const connectChainNode = promisify(require('./../macros').connectChainNode);
+const generateBlocks = promisify(require('./../macros').generateBlocks);
 const getPeers = require('./../../getPeers');
 const getWalletInfo = require('./../../getWalletInfo');
+const removePeer = require('./../../removePeer');
 const {spawnLnd} = require('./../macros');
 
 const pass = 'pass';
 const user = 'user';
 
-// Adding peers should result in a connected peer
-test(`Add a peer`, async ({end, equal}) => {
+// Removing peers should result in a removed peer
+test(`Remove a peer`, async ({end, equal}) => {
   const lnds = [await promisify(spawnLnd)({}), await promisify(spawnLnd)({})];
 
   const [control, target] = lnds;
 
   const cert = readFileSync(control.chain_rpc_cert);
+  const connect = `${target.listen_ip}:${target.chain_listen_port}`;
+  const host = control.listen_ip;
+  const port = control.chain_rpc_port;
   const targetNode = await getWalletInfo({lnd: target.lnd});
 
-  await promisify(connectChainNode)({
-    cert,
-    pass,
-    user,
-    host: control.listen_ip,
-    port: control.chain_rpc_port,
-    connect: `${target.listen_ip}:${target.chain_listen_port}`,
-  });
+  await connectChainNode({cert, connect, host, pass, port, user});
 
-  await promisify(generateBlocks)({
-    cert,
-    pass,
-    user,
-    count: 100,
-    host: control.listen_ip,
-    port: control.chain_rpc_port,
-  });
+  await generateBlocks({cert, host, pass, port, user, count: 100});
 
   const controlWallet = await getWalletInfo({lnd: control.lnd});
   const targetWallet = await getWalletInfo({lnd: target.lnd});
@@ -54,13 +44,19 @@ test(`Add a peer`, async ({end, equal}) => {
     socket: `${target.listen_ip}:${target.listen_port}`,
   });
 
+  await promisify(setTimeout)(2000);
+
   const {peers} = await getPeers({lnd: control.lnd});
 
   const [targetPeer] = peers;
 
   equal(targetPeer.public_key, targetWallet.public_key, 'Peer is added');
 
-  await promisify(setTimeout)(1000);
+  await removePeer({lnd: control.lnd, public_key: targetPeer.public_key});
+
+  const postRemovalPeers = await getPeers({lnd: control.lnd});
+
+  equal(postRemovalPeers.peers.length, 0, 'Peer is removed');
 
   lnds.forEach(({kill}) => kill());
 
