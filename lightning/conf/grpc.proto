@@ -389,6 +389,19 @@ service Lightning {
         };
     }
 
+    /** lncli: `abandonchannel`
+    AbandonChannel removes all channel state from the database except for a
+    close summary. This method can be used to get rid of permanently unusable
+    channels due to bugs fixed in newer versions of lnd. Only available
+    when in debug builds of lnd.
+    */
+    rpc AbandonChannel (AbandonChannelRequest) returns (AbandonChannelResponse) {
+        option (google.api.http) = {
+            delete: "/v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}"
+        };
+    }
+
+
     /** lncli: `sendpayment`
     SendPayment dispatches a bi-directional streaming RPC for sending payments
     through the Lightning Network. A single RPC invocation creates a persistent
@@ -443,7 +456,14 @@ service Lightning {
 
     /** lncli: `listinvoices`
     ListInvoices returns a list of all the invoices currently stored within the
-    database. Any active debug invoices are ignored.
+    database. Any active debug invoices are ignored. It has full support for
+    paginated responses, allowing users to query for specific invoices through
+    their add_index. This can be done by using either the first_index_offset or
+    last_index_offset fields included in the response as the index_offset of the
+    next request. The reversed flag is set by default in order to paginate
+    backwards. If you wish to paginate forwards, you must explicitly set the
+    flag to false. If none of the parameters are specified, then the last 100
+    invoices will be returned.
     */
     rpc ListInvoices (ListInvoiceRequest) returns (ListInvoiceResponse) {
         option (google.api.http) = {
@@ -984,6 +1004,7 @@ message ChannelCloseSummary {
         REMOTE_FORCE_CLOSE = 2;
         BREACH_CLOSE = 3;
         FUNDING_CANCELED = 4;
+        ABANDONED = 5;
     }
 
     /// Details on how the channel was closed.
@@ -996,6 +1017,7 @@ message ClosedChannelsRequest {
     bool remote_force = 3;
     bool breach = 4;
     bool funding_canceled = 5;
+    bool abandoned = 6;
 }
 
 message ClosedChannelsResponse { 
@@ -1669,15 +1691,28 @@ message Invoice {
     */
     uint64 settle_index = 17 [json_name = "settle_index"];
 
+    /// Deprecated, use amt_paid_sat or amt_paid_msat.
+    int64 amt_paid = 18 [json_name = "amt_paid", deprecated = true];
+
     /**
-    The amount that was accepted for this invoice. This will ONLY be set if
-    this invoice has been settled. We provide this field as if the invoice was
-    created with a zero value, then we need to record what amount was
-    ultimately accepted. Additionally, it's possible that the sender paid MORE
-    that was specified in the original invoice. So we'll record that here as
-    well.
+    The amount that was accepted for this invoice, in satoshis. This will ONLY
+    be set if this invoice has been settled. We provide this field as if the
+    invoice was created with a zero value, then we need to record what amount
+    was ultimately accepted. Additionally, it's possible that the sender paid
+    MORE that was specified in the original invoice. So we'll record that here
+    as well.
     */
-    int64 amt_paid = 18 [json_name = "amt_paid"];
+    int64 amt_paid_sat = 19 [json_name = "amt_paid_sat"];
+
+    /**
+    The amount that was accepted for this invoice, in millisatoshis. This will
+    ONLY be set if this invoice has been settled. We provide this field as if
+    the invoice was created with a zero value, then we need to record what
+    amount was ultimately accepted. Additionally, it's possible that the sender
+    paid MORE that was specified in the original invoice. So we'll record that
+    here as well.
+    */
+    int64 amt_paid_msat = 20 [json_name = "amt_paid_msat"];
 }
 message AddInvoiceResponse {
     bytes r_hash = 1 [json_name = "r_hash"];
@@ -1713,14 +1748,19 @@ message ListInvoiceRequest {
     bool pending_only = 1 [json_name = "pending_only"];
 
     /**
-    The offset in the time series to start at. As each response can only contain
-    50k invoices, callers can use this to skip around within a packed time
-    series.
+    The index of an invoice that will be used as either the start or end of a
+    query to determine which invoices should be returned in the response.
     */
-    uint32 index_offset = 4 [json_name = "index_offset"];
+    uint64 index_offset = 4 [json_name = "index_offset"];
 
     /// The max number of invoices to return in the response to this query.
-    uint32 num_max_invoices = 5 [json_name = "num_max_invoices"];
+    uint64 num_max_invoices = 5 [json_name = "num_max_invoices"];
+
+    /**
+    If set, the invoices returned will result from seeking backwards from the
+    specified index offset. This can be used to paginate backwards.
+    */
+    bool reversed = 6 [json_name = "reversed"];
 }
 message ListInvoiceResponse {
     /**
@@ -1730,10 +1770,16 @@ message ListInvoiceResponse {
     repeated Invoice invoices = 1 [json_name = "invoices"];
 
     /**
-    The index of the last time in the set of returned invoices. Can be used to
-    seek further, pagination style.
+    The index of the last item in the set of returned invoices. This can be used
+    to seek further, pagination style.
     */
-    uint32 last_index_offset = 2 [json_name = "last_index_offset"];
+    uint64 last_index_offset = 2 [json_name = "last_index_offset"];
+
+    /**
+    The index of the last item in the set of returned invoices. This can be used
+    to seek backwards, pagination style.
+    */
+    uint64 first_index_offset = 3 [json_name = "first_index_offset"];
 }
 
 message InvoiceSubscription {
@@ -1788,6 +1834,14 @@ message DeleteAllPaymentsRequest {
 
 message DeleteAllPaymentsResponse {
 }
+
+message AbandonChannelRequest {
+    ChannelPoint channel_point = 1;
+}
+
+message AbandonChannelResponse {
+}
+
 
 message DebugLevelRequest {
     bool show = 1;

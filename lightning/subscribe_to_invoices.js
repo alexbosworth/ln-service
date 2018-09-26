@@ -52,7 +52,7 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedDescriptionHash'));
     }
 
-    if (invoice.settled !== true) {
+    if (invoice.settled !== true && invoice.settled !== false) {
       return eventEmitter.emit('error', new Error('ExpectedInvoiceSettled'));
     }
 
@@ -83,7 +83,7 @@ module.exports = ({lnd}) => {
       description: invoice.memo || '',
       expires_at: new Date(expiresAt * msPerSec).toISOString(),
       id: invoice.r_hash.toString('hex'),
-      is_confirmed: true,
+      is_confirmed: invoice.settled,
       is_outgoing: false,
       secret: invoice.r_preimage.toString('hex'),
       tokens: parseInt(invoice.value, decBase),

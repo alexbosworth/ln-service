@@ -37,6 +37,7 @@ const {signMessage} = require('./lightning');
 const {subscribeToInvoices} = require('./lightning');
 const {subscribeToTransactions} = require('./lightning');
 const {unlockWallet} = require('./lightning');
+const {updateRoutingFees} = require('./lightning');
 const {verifyMessage} = require('./lightning');
 
 module.exports = {
@@ -79,6 +80,7 @@ module.exports = {
   subscribeToInvoices,
   subscribeToTransactions,
   unlockWallet,
+  updateRoutingFees,
   verifyMessage,
 };
 

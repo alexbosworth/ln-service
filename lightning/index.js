@@ -33,6 +33,7 @@ const signMessage = require('./sign_message');
 const subscribeToInvoices = require('./subscribe_to_invoices');
 const subscribeToTransactions = require('./subscribe_to_transactions');
 const unlockWallet = require('./unlock_wallet');
+const updateRoutingFees = require('./update_routing_fees');
 const verifyMessage = require('./verify_message');
 
 module.exports = {
@@ -71,6 +72,7 @@ module.exports = {
   subscribeToInvoices,
   subscribeToTransactions,
   unlockWallet,
+  updateRoutingFees,
   verifyMessage,
 };
 

@@ -11,12 +11,16 @@ const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const defaultLimit = 100;
+const lastPageFirstIndexOffset = 1;
 const msPerSec = 1e3;
 
 /** Get all created invoices.
 
   {
+    [limit]: <Page Result Limit Number>
     lnd: <LND GRPC API Object>
+    [token]: <Opaque Paging Token String>
   }
 
   @returns via cbk
@@ -32,6 +36,8 @@ const msPerSec = 1e3;
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      received: <Received Tokens Number>
+      received: <Received MilliTokens String>
       request: <Bolt 11 Invoice String>
       routes: [{
         base_fee_mtokens: <Base Routing Fee In MilliTokens Number>
@@ -44,22 +50,46 @@ const msPerSec = 1e3;
       tokens: <Tokens Number>
       type: <Type String>
     }]
+    [next]: <Paging Token String>
   }
 */
-module.exports = ({lnd}, cbk) => {
+module.exports = ({limit, lnd, token}, cbk) => {
   return asyncAuto({
     // Validate arguments
     validate: cbk => {
       if (!lnd) {
-        return cbk([500, 'ExpectedLnd']);
+        return cbk([400, 'ExpectedLndForInvoiceListing']);
+      }
+
+      if (!!limit && !!token) {
+        return cbk([400, 'UnexpectedLimitWhenPagingInvoicesWithToken']);
       }
 
       return cbk();
     },
 
     // Get the list of invoices
-    listInvoices: ['validate', (_, cbk) => {
-      return lnd.listInvoices({}, (err, res) => {
+    listInvoices: ['validate', ({}, cbk) => {
+      let resultsLimit = limit || defaultLimit;
+      let offset;
+
+      if (!!token) {
+        try {
+          const pagingToken = JSON.parse(token);
+
+          offset = pagingToken.offset;
+          resultsLimit = pagingToken.limit;
+        } catch (err) {
+          return cbk([400, 'ExpectedValidPagingToken', err, token]);
+        }
+      }
+
+      return lnd.listInvoices({
+        index_offset: offset || 0,
+        num_max_invoices: resultsLimit,
+        reversed: true,
+      },
+      (err, res) => {
         if (!!err) {
           return cbk([503, 'GetInvoiceErr', err]);
         }
@@ -68,20 +98,39 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'Expected invoices', res]);
         }
 
-        return cbk(null, res.invoices);
+        if (typeof res.last_index_offset !== 'string') {
+          return cbk([503, 'ExpectedLastIndexOffset']);
+        }
+
+        const offset = parseInt(res.first_index_offset, decBase);
+
+        const token = JSON.stringify({offset, limit: resultsLimit});
+
+        return cbk(null, {
+          token: offset === lastPageFirstIndexOffset ? undefined : token,
+          invoices: res.invoices,
+        });
       });
     }],
 
     // Mapped invoices
     mappedInvoices: ['listInvoices', ({listInvoices}, cbk) => {
-      return asyncMap(listInvoices, (invoice, cbk) => {
+      return asyncMap(listInvoices.invoices, (invoice, cbk) => {
         const creationEpochDate = parseInt(invoice.creation_date, decBase);
         const descHash = invoice.description_hash;
         const expiresInMs = parseInt(invoice.expiry, decBase) * msPerSec;
         let settledDate = undefined;
 
+        if (!invoice.amt_paid_msat) {
+          return cbk([503, 'ExpectedInvoiceAmountPaidMilliTokens', invoice]);
+        }
+
+        if (!invoice.amt_paid_sat) {
+          return cbk([503, 'ExpectedInvoiceAmountPaid', invoice]);
+        }
+
         if (!invoice.cltv_expiry) {
-          return cbk([503, 'ExpectedCltvExpiryForInvoice']);
+          return cbk([503, 'ExpectedCltvExpiryForInvoice', invoice]);
         }
 
         if (!isFinite(creationEpochDate)) {
@@ -167,9 +216,9 @@ module.exports = ({lnd}, cbk) => {
 
         return cbk(null, {
           routes,
-          chain_address: invoice.fallback_addr || null,
+          chain_address: invoice.fallback_addr || undefined,
           cltv_delta: parseInt(invoice.cltv_expiry, decBase),
-          confirmed_at: settledDate,
+          confirmed_at: !!invoice.settled ? settledDate : undefined,
           created_at: new Date(createTimeMs).toISOString(),
           description: invoice.memo,
           description_hash: !descHash.length ? null : descHash.toString('hex'),
@@ -178,6 +227,8 @@ module.exports = ({lnd}, cbk) => {
           is_confirmed: invoice.settled,
           is_outgoing: false,
           is_private: !!invoice.private,
+          received: parseInt(invoice.amt_paid_sat, decBase),
+          received_mtokens: invoice.amt_paid_msat,
           request: invoice.payment_request,
           secret: invoice.r_preimage.toString('hex'),
           tokens: parseInt(invoice.value, decBase),
@@ -188,8 +239,15 @@ module.exports = ({lnd}, cbk) => {
     }],
 
     // Sorted invoices
-    sortedInvoices: ['mappedInvoices', ({mappedInvoices}, cbk) => {
-      return cbk(null, {invoices: sortBy(mappedInvoices, 'created_at')});
+    sortedInvoices: [
+      'listInvoices',
+      'mappedInvoices',
+      ({listInvoices, mappedInvoices}, cbk) =>
+    {
+      return cbk(null, {
+        invoices: sortBy(mappedInvoices, 'created_at').reverse(),
+        next: !!mappedInvoices.length ? listInvoices.token : undefined,
+      });
     }],
   },
   returnResult({of: 'sortedInvoices'}, cbk));
