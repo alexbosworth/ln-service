@@ -1,6 +1,7 @@
-const rpc = require('./rpc');
+const asyncAuto = require('async/auto');
+const asyncMap = require('async/map');
 
-const cmd = 'generate';
+const rpc = require('./rpc');
 
 /** Connect to node
 
@@ -12,16 +13,89 @@ const cmd = 'generate';
     port: <RPC Port Number>
     user: <RPC Username String>
   }
+
+  @return via cbk
+  {
+    blocks: [<Block Hash Hex String>]
+  }
 */
 module.exports = ({cert, count, host, pass, port, user}, cbk) => {
-  const params = [count];
+  return asyncAuto({
+    // Check arguments
+    validate: cbk => {
+      if (!cert) {
+        return cbk([400, 'ExpectedChainRpcCertForGenerateBlocks']);
+      }
 
-  return rpc({cert, cmd, host, params, pass, port, user}, (err, res) => {
+      if (!count) {
+        return cbk([400, 'ExpectedBlocksToGenerateCount']);
+      }
+
+      if (!host) {
+        return cbk([400, 'ExpectedChainRpcHostForGenerateBlocks']);
+      }
+
+      if (!pass) {
+        return cbk([400, 'ExpectedChainRpcPassForGenerateBlocks']);
+      }
+
+      if (!port) {
+        return cbk([400, 'ExpectedChainRpcPortForGenerateBlocks']);
+      }
+
+      if (!user) {
+        return cbk([400, 'ExpectedChainRpcUserForGenerateBlocks']);
+      }
+
+      return cbk();
+    },
+
+    // Generate blocks
+    generate: ['validate', ({}, cbk) => {
+      const cmd = 'generate';
+      const params = [count];
+
+      return rpc({cert, cmd, host, params, pass, port, user}, (err, res) => {
+        if (!!err) {
+          return cbk([503, 'UnexpectedErrorGeneratingBlocks']);
+        }
+
+        if (!Array.isArray(res)) {
+          return cbk([503, 'ExpectedBlockHashesForBlockGeneration']);
+        }
+
+        return cbk(null, res);
+      });
+    }],
+
+    // Get blocks with transaction ids
+    blocks: ['generate', ({generate}, cbk) => {
+      const cmd = 'getblock';
+
+      return asyncMap(generate, (blockId, cbk) => {
+        const params = [blockId];
+
+        return rpc({cert, cmd, host, params, pass, port, user}, (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrorGettingBlock']);
+          }
+
+          if (!res || !Array.isArray(res.tx)) {
+            return cbk([503, 'ExpectedBlockTransactionsForBlock', res]);
+          }
+
+          return cbk(null, {id: blockId, transaction_ids: res.tx});
+        });
+      },
+      cbk);
+    }],
+  },
+  (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorGeneratingBlocks']);
+      return cbk(err);
     }
 
-    return cbk();
+    return cbk(null, {blocks: res.blocks})
   });
 };
 

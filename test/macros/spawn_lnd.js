@@ -13,7 +13,9 @@ const {lightningDaemon} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
 
 const adminMacaroonFileName = 'admin.macaroon';
+const chainPass = 'pass';
 const chainRpcCertName = 'rpc.cert';
+const chainUser = 'user';
 const invoiceMacaroonFileName = 'invoice.macaroon';
 const lightningDaemonExecFileName = 'lnd';
 const lightningDaemonLogPath = 'logs/';
@@ -32,9 +34,16 @@ const startWalletTimeoutMs = 4500;
 
   @returns via cbk
   {
+    chain_listen_port: <Chain Listen Port Number>
+    chain_rpc_cert: <RPC Cert Path String>
+    chain_rpc_pass: <Chain RPC Password String>
+    chain_rpc_port: <RPC Port Number>
+    chain_rpc_user: <Chain RPC Username String>
     kill: <Stop Function> ({}, err => {})
+    listen_ip: <Listen Ip String>
     listen_port: <Listen Port Number>
     lnd: <LND GRPC API Object>
+    mining_key: <Mining Rewards Private Key WIF Encoded String>
   }
 */
 module.exports = ({network}, cbk) => {
@@ -60,6 +69,7 @@ module.exports = ({network}, cbk) => {
       const keyPair = ECPair.makeRandom({network: networks.testnet});
 
       return cbk(null, {
+        private_key: keyPair.toWIF(),
         public_key: keyPair.publicKey,
       });
     },
@@ -91,8 +101,8 @@ module.exports = ({network}, cbk) => {
         '--btcd.dir', dir,
         '--btcd.rpccert', join(dir, chainRpcCertName),
         '--btcd.rpchost', `${localhost}:${spawnChainDaemon.rpc_port}`,
-        '--btcd.rpcpass', 'pass',
-        '--btcd.rpcuser', 'user',
+        '--btcd.rpcpass', chainPass,
+        '--btcd.rpcuser', chainUser,
         '--datadir', dir,
         '--externalip', `${localhost}:${getPorts.listen}`,
         '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
@@ -223,9 +233,12 @@ module.exports = ({network}, cbk) => {
       lnd,
       chain_listen_port: res.spawnChainDaemon.listen_port,
       chain_rpc_cert: res.spawnChainDaemon.rpc_cert,
+      chain_rpc_pass: chainPass,
       chain_rpc_port: res.spawnChainDaemon.rpc_port,
+      chain_rpc_user: chainUser,
       listen_ip: localhost,
       listen_port: res.getPorts.listen,
+      mining_key: res.miningKey.private_key,
     });
   });
 };

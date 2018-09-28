@@ -4,6 +4,7 @@ const channelLimit = require('./conf/lnd').channel_limit_tokens;
 const getChainBalance = require('./get_chain_balance');
 const {returnResult} = require('./../async-util');
 
+const defaultMinConfs = 1;
 const staticFee = 1e3;
 const minimumChannelSize = 20000;
 
@@ -29,7 +30,7 @@ module.exports = (args, cbk) => {
     // Check arguments
     validate: cbk => {
       if (!args.lnd || !args.lnd.openChannel) {
-        return cbk([400, 'ExpectedLnd']);
+        return cbk([400, 'ExpectedLndForChannelOpen']);
       }
 
       if (!args.partner_public_key) {
@@ -62,7 +63,7 @@ module.exports = (args, cbk) => {
 
       const options = {
         local_funding_amount: channelAmount - staticFee,
-        min_confs: 1,
+        min_confs: defaultMinConfs,
         node_pubkey: Buffer.from(args.partner_public_key, 'hex'),
       }
 

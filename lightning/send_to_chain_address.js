@@ -3,6 +3,7 @@ const {broadcastResponse} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const initialConfirmationCount = 0;
 
 /** Send tokens in a blockchain transaction.
 
@@ -66,7 +67,7 @@ module.exports = (args, cbk) => {
     }
 
     const row = {
-      confirmation_count: 0,
+      confirmation_count: initialConfirmationCount,
       id: res.txid,
       is_confirmed: false,
       is_outgoing: true,

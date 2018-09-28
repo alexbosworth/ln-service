@@ -56,9 +56,11 @@ test(`Add a peer`, async ({end, equal}) => {
 
   const {peers} = await getPeers({lnd: control.lnd});
 
+  equal(peers.length, [target].length, 'A peer is added');
+
   const [targetPeer] = peers;
 
-  equal(targetPeer.public_key, targetWallet.public_key, 'Peer is added');
+  equal(targetPeer.public_key, targetWallet.public_key, 'Target is added');
 
   await promisify(setTimeout)(1000);
 
