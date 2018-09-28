@@ -1,5 +1,3 @@
-const {promisify} = require('util');
-
 const {test} = require('tap');
 
 const createInvoice = require('./../../createInvoice');
@@ -10,7 +8,7 @@ const limit = 1;
 
 // createInvoice should result in a created invoice
 test(`Create an invoice`, async ({end, equal}) => {
-  const {kill, lnd} = await promisify(spawnLnd)({});
+  const {kill, lnd} = await spawnLnd({});
 
   const invoices = [
     await createInvoice({lnd, description: '3'}),

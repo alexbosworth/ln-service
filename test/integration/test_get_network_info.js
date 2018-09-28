@@ -1,5 +1,3 @@
-const {promisify} = require('util');
-
 const {test} = require('tap');
 
 const getNetworkInfo = require('./../../getNetworkInfo');
@@ -7,7 +5,7 @@ const {spawnLnd} = require('./../macros');
 
 // Getting the network info should return basic network statistics
 test(`Get network info`, async ({end, equal}) => {
-  const {kill, lnd} = await promisify(spawnLnd)({});
+  const {kill, lnd} = await spawnLnd({});
 
   const result = await getNetworkInfo({lnd});
 

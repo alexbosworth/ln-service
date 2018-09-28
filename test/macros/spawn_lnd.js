@@ -26,6 +26,7 @@ const lightningWalletPassword = 'password';
 const lndWalletUnlockerService = 'WalletUnlocker';
 const localhost = '127.0.0.1';
 const readMacaroonFileName = 'readonly.macaroon';
+const startPortRange = 34593;
 const startWalletTimeoutMs = 4500;
 
 /** Spawn an lnd instance
@@ -51,7 +52,7 @@ module.exports = ({network}, cbk) => {
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
       const count = 3;
-      const startingPort = 34567 + Math.round(Math.random() * 1000);
+      const startingPort = startPortRange + Math.round(Math.random() * 1000);
 
       return openPortFinder.find({count, startingPort}, (err, ports) => {
         if (!!err) {
@@ -70,7 +71,7 @@ module.exports = ({network}, cbk) => {
 
       return cbk(null, {
         private_key: keyPair.toWIF(),
-        public_key: keyPair.publicKey,
+        public_key: keyPair.publicKey.toString('hex'),
       });
     },
 

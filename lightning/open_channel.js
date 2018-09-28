@@ -68,7 +68,7 @@ module.exports = (args, cbk) => {
       }
 
       if (!!args.chain_fee_tokens_per_vbyte) {
-        options.sat_per_byte = chain_fee_tokens_per_vbyte;
+        options.sat_per_byte = args.chain_fee_tokens_per_vbyte;
       }
 
       if (!!args.give_tokens) {

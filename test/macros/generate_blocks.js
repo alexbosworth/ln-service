@@ -3,6 +3,8 @@ const asyncMap = require('async/map');
 
 const rpc = require('./rpc');
 
+const generatedBlocksDelayMs = 4000;
+
 /** Connect to node
 
   {
@@ -64,7 +66,7 @@ module.exports = ({cert, count, host, pass, port, user}, cbk) => {
           return cbk([503, 'ExpectedBlockHashesForBlockGeneration']);
         }
 
-        return cbk(null, res);
+        return setTimeout(() => cbk(null, res), generatedBlocksDelayMs);
       });
     }],
 

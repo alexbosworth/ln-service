@@ -1,14 +1,13 @@
-const {promisify} = require('util');
 const {readFileSync} = require('fs');
 
 const {test} = require('tap');
 
-const createAddress = require('./../../createAddress');
-const generateBlocks = promisify(require('./../macros').generateBlocks);
-const getChainBalance = require('./../../getChainBalance');
 const {chainSendTransaction} = require('./../macros');
-const mineTransaction = promisify(require('./../macros').mineTransaction);
-const spawnLnd = promisify(require('./../macros').spawnLnd);
+const createAddress = require('./../../createAddress');
+const {generateBlocks} = require('./../macros');
+const getChainBalance = require('./../../getChainBalance');
+const {mineTransaction} = require('./../macros');
+const {spawnLnd} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -39,25 +38,24 @@ test(`Get the chain balance`, async ({end, equal}) => {
   }
 
   // Generate some funds for LND
-  {
-    const {blocks} = await generateBlocks({cert, count, host, pass, port, user});
+  const {blocks} = await generateBlocks({cert, count, host, pass, port, user});
 
-    const [block] = blocks;
+  const [block] = blocks;
 
-    const [coinbaseTransaction] = block.transaction_ids;
+  const [coinbaseTransaction] = block.transaction_ids;
 
-    const {transaction} = await promisify(chainSendTransaction)({
-      tokens,
-      destination: address,
-      fee: defaultFee,
-      private_key: node.mining_key,
-      spend_transaction_id: coinbaseTransaction,
-      spend_vout: defaultVout,
-    });
+  const {transaction} = chainSendTransaction({
+    tokens,
+    destination: address,
+    fee: defaultFee,
+    private_key: node.mining_key,
+    spend_transaction_id: coinbaseTransaction,
+    spend_vout: defaultVout,
+  });
 
-    await mineTransaction({cert, host, pass, port, transaction, user});
-  }
+  await mineTransaction({cert, host, pass, port, transaction, user});
 
+  // Check that the balance is updated
   const postDeposit = await getChainBalance({lnd});
 
   equal(postDeposit.chain_balance, tokens - defaultFee, 'Deposited funds');

@@ -1,5 +1,3 @@
-const {promisify} = require('util');
-
 const {test} = require('tap');
 
 const getWalletInfo = require('./../../getWalletInfo');
@@ -11,7 +9,7 @@ const walletInfoType = 'wallet';
 
 // Getting the wallet info should return info about the wallet
 test(`Get wallet info`, async ({end, equal}) => {
-  const {kill, lnd} = await promisify(spawnLnd)({});
+  const {kill, lnd} = await spawnLnd({});
 
   const result = await getWalletInfo({lnd});
 

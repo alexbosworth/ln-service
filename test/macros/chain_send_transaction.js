@@ -27,30 +27,30 @@ const {SIGHASH_ALL} = Transaction;
     tokens: <Tokens to Spend Number>
   }
 
-  @returns via cbk
+  @returns
   {
     transaction: <Transaction Hex Serialized String>
   }
 */
 module.exports = (args, cbk) => {
   if (!args.destination) {
-    return cbk([400, 'ExpectedDestinationAddressToSendTokensTo']);
+    throw new Error('ExpectedDestinationAddressToSendTokensTo');
   }
 
   if (!args.private_key) {
-    return cbk([400, 'ExpectedPrivateKeyToAuthorizeSend']);
+    throw new Error('ExpectedPrivateKeyToAuthorizeSend');
   }
 
   if (!args.spend_transaction_id) {
-    return cbk([400, 'ExpectedOutpointTxIdToSpend']);
+    throw new Error('ExpectedOutpointTxIdToSpend');
   }
 
   if (args.spend_vout === undefined) {
-    return cbk([400, 'ExpectedOutpointVoutToSpend']);
+    throw new Error('ExpectedOutpointVoutToSpend');
   }
 
   if (!args.tokens) {
-    return cbk([400, 'ExpectedTokenCountToSend']);
+    throw new Error('ExpectedTokenCountToSend');
   }
 
   const network = networks[defaultNetwork];
@@ -63,7 +63,7 @@ module.exports = (args, cbk) => {
   try {
     txBuilder.addOutput(args.destination, (args.tokens - (args.fee || 0)));
   } catch (err) {
-    return cbk([400, 'ErrorAddingOutputToSendOnChainTransaction', err]);
+    throw new Error('ErrorAddingOutputToSendOnChainTransaction');
   }
 
   [keyPair].forEach((k, i) => txBuilder.sign(i, k));
@@ -95,6 +95,6 @@ module.exports = (args, cbk) => {
     return;
   });
 
-  return cbk(null, {transaction: tx.toHex()});
+  return {transaction: tx.toHex()};
 };
 

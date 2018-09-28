@@ -1,5 +1,3 @@
-const {promisify} = require('util');
-
 const {test} = require('tap');
 
 const getWalletInfo = require('./../../getWalletInfo');
@@ -11,7 +9,7 @@ const message = 'message';
 
 // Sign message should return a signature for the message
 test(`Sign message`, async ({end, equal}) => {
-  const {kill, lnd} = await promisify(spawnLnd)({});
+  const {kill, lnd} = await spawnLnd({});
 
   const {signature} = await signMessage({lnd, message});
   const wallet = await getWalletInfo({lnd});

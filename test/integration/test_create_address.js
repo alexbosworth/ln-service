@@ -1,5 +1,3 @@
-const {promisify} = require('util');
-
 const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
@@ -13,7 +11,7 @@ const regtestBech32AddressHrp = 'bcrt';
 
 // Creating addresses should result in addresses
 test(`Create address results in address creation`, async ({end, equal}) => {
-  const {kill, lnd} = await promisify(spawnLnd)({});
+  const {kill, lnd} = await spawnLnd({});
 
   const np2wpkh = await createAddress({lnd, format: 'np2wpkh'});
   const p2wpkh = await createAddress({lnd, format: 'p2wpkh'});

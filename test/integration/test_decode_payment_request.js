@@ -1,5 +1,3 @@
-const {promisify} = require('util');
-
 const {test} = require('tap');
 
 const createInvoice = require('./../../createInvoice');
@@ -14,7 +12,7 @@ const tokens = 4194304;
 
 // decodePaymentRequest should result in a decoded payment request
 test(`Decode a payment request`, async ({end, equal}) => {
-  const {kill, lnd} = await promisify(spawnLnd)({});
+  const {kill, lnd} = await spawnLnd({});
 
   const {request} = await createInvoice({
     description,
