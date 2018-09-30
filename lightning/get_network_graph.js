@@ -21,11 +21,11 @@ const outpointSeparatorChar = ':';
       from_self: <Channel Link From Self Bool>
       id: <Channel Id String>
       policies: [{
-        base_fee_mtokens: <Bae Fee MilliTokens String>
-        cltv_delta: <CLTV Height Delta Number>
-        fee_rate: <Fee Rate In MilliTokens Per Million Number>
-        is_disabled: <Edge is Disabled Bool>
-        minimum_htlc_mtokens: <Minimum HTLC MilliTokens String>
+        [base_fee_mtokens]: <Bae Fee MilliTokens String>
+        [cltv_delta]: <CLTV Height Delta Number>
+        [fee_rate]: <Fee Rate In MilliTokens Per Million Number>
+        [is_disabled]: <Edge is Disabled Bool>
+        [minimum_htlc_mtokens]: <Minimum HTLC MilliTokens String>
       }]
       source: <Source Public Key String>
       target: <Target Public Key String>
@@ -101,13 +101,17 @@ module.exports = ({lnd}, cbk) => {
 
         const [txId, vout] = n.chan_point.split(outpointSeparatorChar);
 
-        const policies = [n.node1_policy, n.node2_policy].map(n => {
+        const policies = [n.node1_policy, n.node2_policy].map(policy => {
+          if (!policy) {
+            return {};
+          }
+
           return {
-            base_fee_mtokens: n.fee_base_msat,
-            cltv_delta: n.time_lock_delta,
-            fee_rate: parseInt(n.fee_rate_milli_sat, decBase),
-            is_disabled: !!n.disabled,
-            minimum_htlc_mtokens: n.min_htlc,
+            base_fee_mtokens: policy.fee_base_msat,
+            cltv_delta: policy.time_lock_delta,
+            fee_rate: parseInt(policy.fee_rate_milli_sat, decBase),
+            is_disabled: !!policy.disabled,
+            minimum_htlc_mtokens: policy.min_htlc,
           };
         });
 
