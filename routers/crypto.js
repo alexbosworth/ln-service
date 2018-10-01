@@ -13,7 +13,7 @@ const Router = require('./router');
   @returns
   <Router Object>
 */
-module.exports = ({lnd}) => {
+module.exports = ({lnd, log}) => {
   const router = Router({});
 
   router.post('/sign', ({body}, res) => {
