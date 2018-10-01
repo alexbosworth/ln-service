@@ -37,13 +37,13 @@ const msPerSec = 1e3;
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
       received: <Received Tokens Number>
-      received: <Received MilliTokens String>
+      received: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
       routes: [{
-        base_fee_mtokens: <Base Routing Fee In MilliTokens Number>
+        base_fee_mtokens: <Base Routing Fee In Millitokens Number>
         channel_id: <Channel Id String>
         cltv_delta: <CLTV Blocks Delta Number>
-        fee_rate: <Fee Rate In MilliTokens Per Million Number>
+        fee_rate: <Fee Rate In Millitokens Per Million Number>
         public_key: <Public Key Hex String>
       }]
       secret: <Secret Preimage Hex String>
@@ -122,7 +122,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
         let settledDate = undefined;
 
         if (!invoice.amt_paid_msat) {
-          return cbk([503, 'ExpectedInvoiceAmountPaidMilliTokens', invoice]);
+          return cbk([503, 'ExpectedInvoiceAmountPaidMillitokens', invoice]);
         }
 
         if (!invoice.amt_paid_sat) {

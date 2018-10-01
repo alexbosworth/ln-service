@@ -21,11 +21,11 @@ const outpointSeparatorChar = ':';
       from_self: <Channel Link From Self Bool>
       id: <Channel Id String>
       policies: [{
-        [base_fee_mtokens]: <Bae Fee MilliTokens String>
+        [base_fee_mtokens]: <Bae Fee Millitokens String>
         [cltv_delta]: <CLTV Height Delta Number>
-        [fee_rate]: <Fee Rate In MilliTokens Per Million Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         [is_disabled]: <Edge is Disabled Bool>
-        [minimum_htlc_mtokens]: <Minimum HTLC MilliTokens String>
+        [minimum_htlc_mtokens]: <Minimum HTLC Millitokens String>
       }]
       source: <Source Public Key String>
       target: <Target Public Key String>

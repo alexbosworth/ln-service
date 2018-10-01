@@ -1,4 +1,4 @@
-const {createAddress} = require('./../lightning');
+const {createChainAddress} = require('./../lightning');
 const {returnJson} = require('./../async-util');
 const Router = require('./router');
 
@@ -16,7 +16,9 @@ module.exports = ({lnd, log}) => {
   const router = Router({});
 
   // Add an address
-  router.post('/', ({}, res) => createAddress({lnd}, returnJson({log, res})));
+  router.post('/', ({}, res) => {
+    return createChainAddress({lnd}, returnJson({log, res}));
+  });
 
   return router;
 };

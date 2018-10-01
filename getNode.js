@@ -11,14 +11,14 @@ const {getNode} = require('./');
 
   @returns via Promise
   {
-    addresses: [{
-      address: <Address String>
-      type: <Address Network Type String>
-    }]
     alias: <Node Alias String>
     capacity: <Node Total Capacity Tokens Number>
     channel_count: <Known Node Channels Number>
     color: <RGB Hex Color String>
+    sockets: [{
+      socket: <Host and Port String>
+      type: <Address Network Type String>
+    }]
     [updated_at]: <Last Known Update ISO 8601 Date String>
   }
 */

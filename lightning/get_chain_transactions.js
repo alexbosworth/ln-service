@@ -1,11 +1,11 @@
-const {abs} = Math;
-
 const transactionRowType = require('./conf/row_types').chain_transaction;
 
+const {abs} = Math;
 const decBase = 10;
 const msPerSec = 1e3;
+const noFee = '0';
 
-/** Get Blockchain transactions.
+/** Get chain transactions.
 
   {
     lnd: <LND GRPC Object>
@@ -35,7 +35,7 @@ module.exports = ({lnd}, cbk) => {
 
   return lnd.getTransactions({}, (err, res) => {
     if (!!err) {
-      return cbk([503, 'GetTransactionsErr', err]);
+      return cbk([503, 'UnexpectedGetChainTransactionsError', err]);
     }
 
     if (!res) {
@@ -83,12 +83,12 @@ module.exports = ({lnd}, cbk) => {
         const dateTime = parseInt(transaction.time_stamp, decBase) * msPerSec;
         const totalFees = transaction.total_fees;
 
-        const outputAddresses = transaction.dest_addresses.map(n => {
-          if (!n) {
+        const outputAddresses = transaction.dest_addresses.map(address => {
+          if (!address) {
             throw new Error('ExpectedDestinationAddress');
           }
 
-          return n;
+          return address;
         });
 
         return {
@@ -96,7 +96,7 @@ module.exports = ({lnd}, cbk) => {
           confirmation_count: transaction.num_confirmations || undefined,
           confirmation_height: transaction.block_height || undefined,
           created_at: new Date(dateTime).toISOString(),
-          fee: totalFees === '0' ? undefined : parseInt(totalFees, decBase),
+          fee: totalFees === noFee ? undefined : parseInt(totalFees, decBase),
           id: transaction.tx_hash,
           is_confirmed: !!transaction.num_confirmations,
           is_outgoing: (parseInt(transaction.amount, decBase) < 0),

@@ -3,6 +3,7 @@ const {isFinite} = require('lodash');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const defaultExp = 1000 * 60 * 60;
 const msPerSec = 1e3;
 
 /** Get decoded payment request
@@ -21,10 +22,10 @@ const msPerSec = 1e3;
     expires_at: <ISO 8601 Date String>
     id: <Payment Hash String>
     routes: [{
-      base_fee_mtokens: <Base Routing Fee In MilliTokens Number>
+      base_fee_mtokens: <Base Routing Fee In Millitokens Number>
       channel_id: <Channel Id String>
       cltv_delta: <CLTV Blocks Delta Number>
-      fee_rate: <Fee Rate In MilliTokens Per Million Number>
+      fee_rate: <Fee Rate In Millitokens Per Million Number>
       public_key: <Public Key Hex String>
     }]
     tokens: <Requested Tokens Number>
@@ -70,7 +71,7 @@ module.exports = ({lnd, request}, cbk) => {
     }
 
     const createdAtMs = parseInt(res.timestamp, decBase) * msPerSec;
-    const expiresInMs = parseInt(res.expiry, decBase) * msPerSec;
+    const expiresInMs = parseInt(res.expiry, decBase) * msPerSec || defaultExp;
 
     const expiryDateMs = createdAtMs + expiresInMs;
 
@@ -123,7 +124,7 @@ module.exports = ({lnd, request}, cbk) => {
       description: res.description,
       description_hash: res.description_hash,
       destination: res.destination,
-      expires_at: !res.expiry ? null : new Date(expiryDateMs).toISOString(),
+      expires_at: new Date(expiryDateMs).toISOString(),
       id: res.payment_hash,
       minimum_final_htlc_cltv_delta: res.cltv_expiry || undefined,
       tokens: parseInt(res.num_satoshis, decBase),

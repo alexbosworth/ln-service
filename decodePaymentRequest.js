@@ -18,10 +18,10 @@ const {decodePaymentRequest} = require('./');
     expires_at: <ISO 8601 Date String>
     id: <Payment Hash String>
     routes: [{
-      base_fee_mtokens: <Base Routing Fee In MilliTokens Number>
+      base_fee_mtokens: <Base Routing Fee In Millitokens Number>
       channel_id: <Channel Id String>
       cltv_delta: <CLTV Blocks Delta Number>
-      fee_rate: <Fee Rate In MilliTokens Per Million Number>
+      fee_rate: <Fee Rate In Millitokens Per Million Number>
       public_key: <Public Key Hex String>
     }]
     tokens: <Requested Tokens Number>

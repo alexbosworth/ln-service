@@ -18,17 +18,17 @@ const decBase = 10;
       id: <Payment Hash Hex String>
       routes: [{
         fee: <Total Fee Tokens To Pay Number>
-        fee_mtokens: <Total Fee MilliTokens To Pay String>
+        fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel_capacity: <Channel Capacity Tokens Number>
           channel_id: <Unique Channel Id String>
           fee: <Fee Number>
-          fee_mtokens: <Fee MilliTokens String>
+          fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
-          forward_mtokens: <Forward MilliTokens String>
+          forward_mtokens: <Forward Millitokens String>
           timeout: <Timeout Block Height Number>
         }]
-        mtokens: <Total MilliTokens To Pay String>
+        mtokens: <Total Millitokens To Pay String>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
       }]
@@ -40,12 +40,18 @@ const decBase = 10;
   @returns via cbk
   {
     fee: <Fee Paid Tokens Number>
-    fee_mtokens: <Fee Paid MilliTokens String>
-    hop_count: <Hop Count Number>
+    fee_mtokens: <Fee Paid Millitokens String>
+    hops: [{
+      channel_capacity: <Hop Channel Capacity Tokens Number>
+      channel_id: <Hop Channel Id String>
+      fee_mtokens: <Hop Forward Fee Millitokens String>
+      forward_mtokens: <Hop Forwarded Millitokens String>
+      timeout: <Hop CLTV Expiry Block Height Number>
+    }]
     id: <Payment Hash Hex String>
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
-    mtokens: <MilliTokens Paid String>
+    mtokens: <Millitokens Paid String>
     secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
     type: <Type String>
@@ -128,7 +134,7 @@ module.exports = ({fee, lnd, log, path, request, wss}, cbk) => {
     }
 
     if (res.payment_route.total_amt_msat === undefined) {
-      return cbk([503, 'ExpectedPaymentTotalMilliTokensSentAmount']);
+      return cbk([503, 'ExpectedPaymentTotalMillitokensSentAmount']);
     }
 
     if (res.payment_route.total_fees === undefined) {
@@ -136,13 +142,21 @@ module.exports = ({fee, lnd, log, path, request, wss}, cbk) => {
     }
 
     if (res.payment_route.total_fees_msat === undefined) {
-      return cbk([503, 'ExpectedRouteFeesMilliTokensPaidValue']);
+      return cbk([503, 'ExpectedRouteFeesMillitokensPaidValue']);
     }
 
     const row = {
       fee: parseInt(res.payment_route.total_fees, decBase),
       fee_mtokens: res.payment_route.total_fees_msat,
-      hop_count: res.payment_route.hops.length,
+      hops: res.payment_route.hops.map(hop => {
+        return {
+          channel_capacity: parseInt(hop.chan_capacity, decBase),
+          channel_id: hop.chan_id,
+          fee_mtokens: hop.fee_msat,
+          forward_mtokens: hop.amt_to_forward_msat,
+          timeout: hop.expiry,
+        };
+      }),
       id: createHash('sha256').update(res.payment_preimage).digest('hex'),
       is_confirmed: true,
       is_outgoing: true,

@@ -5,7 +5,7 @@ const {test} = require('tap');
 const addPeer = require('./../../addPeer');
 const {chainSendTransaction} = require('./../macros');
 const {connectChainNode} = require('./../macros');
-const createAddress = require('./../../createAddress');
+const createChainAddress = require('./../../createChainAddress');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const getPeers = require('./../../getPeers');
@@ -55,7 +55,7 @@ test(`Open channel`, async ({end, equal}) => {
   const controlWallet = await getWalletInfo({lnd: control.lnd});
   const targetWallet = await getWalletInfo({lnd: target.lnd});
 
-  const {address} = await createAddress({format, lnd: control.lnd});
+  const {address} = await createChainAddress({format, lnd: control.lnd});
 
   await delay(1000);
 

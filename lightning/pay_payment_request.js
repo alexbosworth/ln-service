@@ -18,18 +18,18 @@ const decBase = 10;
   @returns via cbk
   {
     fee: <Fee Paid Tokens Number>
-    fee_mtokens: <Fee Paid MilliTokens String>
+    fee_mtokens: <Fee Paid Millitokens String>
     hops: [{
       channel_capacity: <Hop Channel Capacity Tokens Number>
       channel_id: <Hop Channel Id String>
-      fee_mtokens: <Hop Forward Fee MilliTokens String>
-      forward_mtokens: <Hop Forwarded MilliTokens String>
+      fee_mtokens: <Hop Forward Fee Millitokens String>
+      forward_mtokens: <Hop Forwarded Millitokens String>
       timeout: <Hop CLTV Expiry Block Height Number>
     }]
     id: <Payment Hash Hex String>
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
-    mtokens: <MilliTokens Paid String>
+    mtokens: <Millitokens Paid String>
     secret: <Payment Preimage Hex String>
     tokens: <Tokens Number>
     type: <Row Type String>
@@ -80,7 +80,7 @@ module.exports = ({fee, lnd, log, request, wss}, cbk) => {
     }
 
     if (!res.payment_route.total_fees_msat) {
-      return cbk([503, 'ExpectedPaymentFeesPaidInMilliTokens']);
+      return cbk([503, 'ExpectedPaymentFeesPaidInMillitokens']);
     }
 
     const row = {

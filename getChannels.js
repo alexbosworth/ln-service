@@ -34,7 +34,7 @@ const {getChannels} = require('./');
       received: <Received Satoshis Number>
       remote_balance: <Remote Balance Satoshis Number>
       sent: <Sent Satoshis Number>
-      transaction_id: <Blockchain Transaction Id>
+      transaction_id: <Blockchain Transaction Id String>
       transaction_vout: <Blockchain Transaction Vout Number>
       unsettled_balance: <Unsettled Balance Satoshis Number>
     }]

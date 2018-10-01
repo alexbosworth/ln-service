@@ -13,7 +13,7 @@ const {createInvoice} = require('./');
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
     [secret]: <Payment Secret Hex String>
-    tokens: <Tokens Number>
+    [tokens]: <Tokens Number>
     [wss]: [<Web Socket Server Object>]
   }
 

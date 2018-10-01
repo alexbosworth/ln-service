@@ -2,7 +2,7 @@ const {promisify} = require('util');
 
 const {getChainTransactions} = require('./');
 
-/** Get Blockchain transactions.
+/** Get chain transactions.
 
   {
     lnd: <Object>

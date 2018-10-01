@@ -1,7 +1,7 @@
 const asyncAuto = require('async/auto');
 
 const {broadcastResponse} = require('./../async-util');
-const createAddress = require('./create_address');
+const createChainAddress = require('./create_chain_address');
 const getInvoice = require('./get_invoice');
 
 const msPerSec = 1e3;
@@ -72,7 +72,11 @@ module.exports = (args, cbk) => {
       const format = !!args.is_fallback_nested ? 'np2wpkh' : 'p2wpkh';
       const {lnd} = args;
 
-      return !args.include_address ? cbk() : createAddress({format, lnd}, cbk);
+      if (!args.include_address) {
+        return cbk();
+      }
+
+      return createChainAddress({format, lnd}, cbk);
     }],
 
     // Add invoice

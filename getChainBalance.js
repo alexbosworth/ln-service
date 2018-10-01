@@ -10,7 +10,7 @@ const {getChainBalance} = require('./');
 
   @returns via Promise
   {
-    chain_balance: <Chain Balance Tokens>
+    chain_balance: <Confirmed Chain Balance Tokens Number>
   }
 */
 module.exports = promisify(getChainBalance);

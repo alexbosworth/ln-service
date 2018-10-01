@@ -14,12 +14,12 @@ const {getPeers} = require('./');
       bytes_received: <Bytes Received Number>
       bytes_sent: <Bytes Sent Number>
       is_inbound: <Is Inbound Peer Bool>
-      network_address: <Network Address String>
       ping_time: <Milliseconds Number>
       public_key: <Public Key String>
-      tokens_received: <Amount Received Satoshis Number>
-      tokens_sent: <Amount Sent Satoshis Number>
-      type: <Type String>
+      socket: <Network Address And Port String>
+      tokens_received: <Amount Received Tokens Number>
+      tokens_sent: <Amount Sent Tokens Number>
+      type: <Row Type String>
     }]
   }
 */

@@ -3,7 +3,7 @@ const {readFileSync} = require('fs');
 const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
-const createAddress = require('./../../createAddress');
+const createChainAddress = require('./../../createChainAddress');
 const {generateBlocks} = require('./../macros');
 const getChainBalance = require('./../../getChainBalance');
 const {mineTransaction} = require('./../macros');
@@ -28,7 +28,7 @@ test(`Get the chain balance`, async ({end, equal}) => {
   const {lnd} = node;
   const user = node.chain_rpc_user;
 
-  const {address} = await createAddress({format, lnd});
+  const {address} = await createChainAddress({format, lnd});
 
   // The initial chain balance should be zero
   {

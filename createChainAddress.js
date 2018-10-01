@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {createAddress} = require('./');
+const {createChainAddress} = require('./');
 
 /** Create a new receive address.
 
@@ -15,5 +15,5 @@ const {createAddress} = require('./');
     type: <Row Type String>
   }
 */
-module.exports = promisify(createAddress);
+module.exports = promisify(createChainAddress);
 

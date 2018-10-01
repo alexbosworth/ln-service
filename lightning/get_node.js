@@ -16,7 +16,7 @@ const msPerSec = 1e3;
     channel_count: <Known Node Channels Number>
     color: <RGB Hex Color String>
     sockets: [{
-      address: <Host and Port String>
+      socket: <Host and Port String>
       type: <Socket Type String>
     }]
     [updated_at]: <Last Known Update ISO 8601 Date String>

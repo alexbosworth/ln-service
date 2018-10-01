@@ -34,12 +34,20 @@ const timestampWordLength = 7;
   }
 
   @throws
-  <Error> on parse payment request failure
+  <ExpectedLnPrefix Error>
+  <ExpectedPaymentHash Error>
+  <ExpectedPaymentRequest Error>
+  <ExpectedValidHrp Error>
+  <FailedToParsePaymentHash Error>
+  <InvalidInvoicePrefix Error>
+  <InvalidOrMissingSignature Error>
+  <InvalidPaymentHashByteLength Error>
+  <UnknownCurrencyCode Error>
 
   @returns
   {
     created_at: <Invoice Creation Date ISO 8601 String>
-    [description]: <Payment Description String>
+    [description]: <Description String>
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
     id: <Payment Request Hash String>
@@ -119,7 +127,7 @@ module.exports = ({request}) => {
     throw new Error('ExpectedValidHrp');
   }
 
-  const timestampWords = words.slice(0, timestampWordLength);
+  const timestampWords = wordsWithoutSig.slice(0, timestampWordLength);
 
   // Timestamp - left padded 0 bits
   const timestampMs = wordsAsNumber({words: timestampWords}) * msPerSec;
@@ -127,9 +135,10 @@ module.exports = ({request}) => {
   const createdAt = new Date(timestampMs).toISOString();
 
   // Cut off the timestamp words
-  let wordsWithTags = words.slice(timestampWordLength)
+  let wordsWithTags = wordsWithoutSig.slice(timestampWordLength)
 
-  let cltvExpiry = defaultCltvExpiry;
+  let cltvDelta = defaultCltvExpiry;
+  let descHash;
   let description;
   let expiresAt;
   let paymentHash;
@@ -153,14 +162,22 @@ module.exports = ({request}) => {
 
     switch ((taggedFields[tagCode] || {}).name) {
     case 'c': // CLTV expiry
-      cltvExpiry = wordsAsNumber({words: tagWords});
+      cltvDelta = wordsAsNumber({words: tagWords});
       break;
 
     case 'd': // Description of Payment
       try {
-        description = wordsAsBuffer({trim, words: tagWords});
-      } catch (e) {
+        description = wordsAsBuffer({trim, words: tagWords}).toString('utf8');
+      } catch (err) {
         throw new Error('InvalidDescription');
+      }
+      break;
+
+    case 'h':
+      try {
+        descHash = wordsAsBuffer({trim, words: tagWords});
+      } catch (err) {
+        throw new Error('FailedToParseDescriptionHash');
       }
       break;
 
@@ -171,7 +188,7 @@ module.exports = ({request}) => {
 
       try {
         paymentHash = wordsAsBuffer({trim, words: tagWords});
-      } catch (e) {
+      } catch (err) {
         throw new Error('FailedToParsePaymentHash');
       }
 
@@ -212,14 +229,16 @@ module.exports = ({request}) => {
 
   return {
     network,
+    cltv_delta: cltvDelta || undefined,
     created_at: createdAt,
-    description: !!description ? description.toString('utf8') : undefined,
+    description: description || undefined,
+    destination_hash: descHash || undefined,
     destination: destination.toString('hex'),
     expires_at: expiresAt,
     id: paymentHash.toString('hex'),
     is_expired: expiresAt < new Date().toISOString(),
-    tokens: tokens,
-    mtokens: mtokens,
+    tokens: tokens || undefined,
+    mtokens: mtokens || undefined,
   };
 };
 

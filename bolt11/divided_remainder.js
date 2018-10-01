@@ -1,6 +1,7 @@
 const BN = require('bn.js');
 
 const bigTen = new BN(10, 10);
+const start = '';
 
 /** Big number decimal number divided decimal remainder string
 
@@ -21,6 +22,6 @@ module.exports = ({mod, div, max}) => {
 
     return accumulator + bigDiv.div.toString();
   },
-  new String());
+  start);
 };
 

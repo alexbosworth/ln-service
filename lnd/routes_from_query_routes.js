@@ -10,17 +10,17 @@ const msatsPerToken = new BN(1e3, 10);
       routes: [{
         hops: [{
           amt_to_forward: <Amount to Forward Tokens String>
-          amt_to_forward_msat: <Amount to Forward MilliTokens String>
+          amt_to_forward_msat: <Amount to Forward Millitokens String>
           chan_capacity: <Channel Capacity Tokens String>
           chan_id: <BOLT 07 Channel Id String>
           expiry: <Expiration Height Number>
           fee: <Fee Tokens String>
-          fee_msat: <Fee MilliTokens String>
+          fee_msat: <Fee Millitokens String>
         }]
         total_amt: <Total Tokens Number>
-        total_amt_msat: <Route Total MilliTokens String>
+        total_amt_msat: <Route Total Millitokens String>
         total_fees: <Route Fee Tokens String>
-        total_fees_msat: <Route Total Fees MilliTokens String>
+        total_fees_msat: <Route Total Fees Millitokens String>
         total_time_lock: <Route Total Timelock Number>
       }]
     }
@@ -33,17 +33,17 @@ const msatsPerToken = new BN(1e3, 10);
   {
     routes: [{
       fee: <Route Fee Tokens Number>
-      fee_mtokens: <Route Fee MilliTokens String>
+      fee_mtokens: <Route Fee Millitokens String>
       timeout: <Timeout Block Height Number>
-      mtokens: <Total MilliTokens String>
+      mtokens: <Total Millitokens String>
       tokens: <Total Tokens Number>
       hops: [{
         channel_id: <BOLT 07 Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
         fee: <Fee Number>
-        fee_mtokens: <Fee MilliTokens String>
+        fee_mtokens: <Fee Millitokens String>
         forward: <Forward Tokens Number>
-        forward_mtokens: <Forward MilliTokens String>
+        forward_mtokens: <Forward Millitokens String>
         timeout: <Timeout Block Height Number>
       }]
     }]

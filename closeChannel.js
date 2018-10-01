@@ -4,6 +4,8 @@ const {closeChannel} = require('./');
 
 /** Close a channel.
 
+  Either an id or a transaction id / transaction output index is required
+
   {
     [id]: <Channel Id String>
     [is_force_close]: <Is Force Close Bool>

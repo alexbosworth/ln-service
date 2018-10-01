@@ -7,7 +7,7 @@ const {addPeer} = require('./');
   {
     lnd: <LND GRPC API Object>
     public_key: <Public Key Hex String>
-    socket: <Host Network Address And Optional Port String>
+    socket: <Host Network Address And Optional Port String> // ip:port
   }
 */
 module.exports = promisify(addPeer);

@@ -17,9 +17,9 @@ module.exports = ({lnd, passphrase}, cbk) => {
     return cbk([400, 'ExpectedLndForSeedCreation']);
   }
 
-  const seedPassphrase = !passphrase ? undefined : Buffer.from(passphrase);
+  const pass = !passphrase ? undefined : Buffer.from(passphrase, 'utf8');
 
-  return lnd.genSeed({aezeed_passphrase: seedPassphrase}, (err, res) => {
+  return lnd.genSeed({aezeed_passphrase: pass}, (err, res) => {
     if (!!err || !res) {
       return cbk([503, 'UnexpectedCreateSeedErr', err]);
     }

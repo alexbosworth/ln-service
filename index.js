@@ -1,6 +1,6 @@
 const {addPeer} = require('./lightning');
 const {closeChannel} = require('./lightning');
-const {createAddress} = require('./lightning');
+const {createChainAddress} = require('./lightning');
 const {createInvoice} = require('./lightning');
 const {createSeed} = require('./lightning');
 const {createWallet} = require('./lightning');
@@ -43,7 +43,7 @@ const {verifyMessage} = require('./lightning');
 module.exports = {
   addPeer,
   closeChannel,
-  createAddress,
+  createChainAddress,
   createInvoice,
   createSeed,
   createWallet,

@@ -15,11 +15,11 @@ const separatorChar = ':';
   {
     capacity: <Maximum Tokens Number>
     policies: [{
-      base_fee_mtokens: <Base Fee MilliTokens String>
+      base_fee_mtokens: <Base Fee Millitokens String>
       cltv_delta: <Locktime Delta Number>
-      fee_rate: <Fees Charged Per Million Number>
+      fee_rate: <Fees Charged Per Million Tokens Number>
       is_disabled: <Channel Is Disabled Bool>
-      minimum_htlc_mtokens: <Minimum HTLC MilliTokens Value String>
+      minimum_htlc_mtokens: <Minimum HTLC Millitokens Value String>
       public_key: <Node Public Key String>
     }]
     transaction_id: <Transaction Id Hex String>

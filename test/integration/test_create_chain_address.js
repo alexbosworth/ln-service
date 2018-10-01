@@ -1,7 +1,7 @@
 const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
-const createAddress = require('./../../createAddress');
+const createChainAddress = require('./../../createChainAddress');
 const {spawnLnd} = require('./../macros');
 
 const chainAddressRowType = 'chain_address';
@@ -13,8 +13,8 @@ const regtestBech32AddressHrp = 'bcrt';
 test(`Create address results in address creation`, async ({end, equal}) => {
   const {kill, lnd} = await spawnLnd({});
 
-  const np2wpkh = await createAddress({lnd, format: 'np2wpkh'});
-  const p2wpkh = await createAddress({lnd, format: 'p2wpkh'});
+  const np2wpkh = await createChainAddress({lnd, format: 'np2wpkh'});
+  const p2wpkh = await createChainAddress({lnd, format: 'p2wpkh'});
 
   const nativeAddress = address.fromBech32(p2wpkh.address);
   const nestedAddress = address.fromBase58Check(np2wpkh.address);
