@@ -1,6 +1,6 @@
 const asyncAuto = require('async/auto');
 
-const {decodeShortChannelId} = require('./../bolt07');
+const decodeShortChannelId = require('./../bolt07').decode_from_number;
 const {getChannels} = require('./../lightning');
 const {getNetworkGraph} = require('./../lightning');
 const {returnResult} = require('./../async-util');
