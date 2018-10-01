@@ -13,7 +13,7 @@ const {decodePaymentRequest} = require('./');
   {
     chain_address: <Fallback Chain Address String>
     description: <Payment Description String>
-    destination_hash: <Payment Longer Description Hash String>
+    description_hash: <Payment Longer Description Hash Hex String>
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
     id: <Payment Hash String>

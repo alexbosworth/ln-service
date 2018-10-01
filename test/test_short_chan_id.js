@@ -1,6 +1,6 @@
 const {equal} = require('tap');
 
-const {decodeShortChannelId} = require('./../bolt07');
+const {decodeFromNumber} = require('./../bolt07');
 const {encodeShortChannelId} = require('./../bolt07');
 
 const tests = [
@@ -24,7 +24,7 @@ const tests = [
 tests.forEach(test => {
   const id = encodeShortChannelId(test);
 
-  const components = decodeShortChannelId({id});
+  const components = decodeFromNumber({id});
 
   equal(components.block_height, test.block_height);
   equal(components.block_index, test.block_index);

@@ -10,7 +10,7 @@ const trimByteLength = 1;
   }
 
   @throws
-  <Error> on decode issue
+  <ExpectedWordsArray Error>
 
   @returns
   <Decoded Buffer Object>

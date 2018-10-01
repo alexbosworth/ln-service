@@ -5,6 +5,7 @@ const {recover} = require('secp256k1');
 
 const hrpAsTokens = require('./hrp_as_tokens');
 const paymentRequestExpiration = require('./payment_request_expiration');
+const wordsAsHopHints = require('./words_as_hop_hints');
 const wordsAsNumber = require('./words_as_number');
 const wordsAsBuffer = require('./words_as_buffer');
 
@@ -48,12 +49,20 @@ const timestampWordLength = 7;
   {
     created_at: <Invoice Creation Date ISO 8601 String>
     [description]: <Description String>
+    [description_hash]: <Description Hash Hex String>
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
     id: <Payment Request Hash String>
     is_expired: <Invoice is Expired Bool>
     [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
     network: <Network Name String>
+    [routes]: [{
+      base_fee_mtokens: <Base Fee Millitokens String>
+      channel_id: <Short Channel Id String>
+      cltv_delta: <Final CLTV Expiration Blocks Delta Number>
+      fee_rate: <Fee Rate Millitokens Per Million Number>
+      public_key: <Public Key Hex String>
+    }]
     [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
   }
 */
@@ -142,6 +151,7 @@ module.exports = ({request}) => {
   let description;
   let expiresAt;
   let paymentHash;
+  let routes;
   let tagCode;
   let tagLen;
   let tagName;
@@ -173,9 +183,9 @@ module.exports = ({request}) => {
       }
       break;
 
-    case 'h':
+    case 'h': // Description of Payment Hash
       try {
-        descHash = wordsAsBuffer({trim, words: tagWords});
+        descHash = wordsAsBuffer({trim, words: tagWords}).toString('hex');
       } catch (err) {
         throw new Error('FailedToParseDescriptionHash');
       }
@@ -194,6 +204,14 @@ module.exports = ({request}) => {
 
       if (paymentHash.length !== paymentHashByteLength) {
         throw new Error('InvalidPaymentHashByteLength');
+      }
+      break;
+
+    case 'r': // Route Hop Hints
+      try {
+        routes = wordsAsHopHints({words: tagWords}).routes;
+      } catch (err) {
+        throw new Error('FailedToParseRoutingHopHints');
       }
       break;
 
@@ -232,11 +250,12 @@ module.exports = ({request}) => {
     cltv_delta: cltvDelta || undefined,
     created_at: createdAt,
     description: description || undefined,
-    destination_hash: descHash || undefined,
+    description_hash: descHash || undefined,
     destination: destination.toString('hex'),
     expires_at: expiresAt,
     id: paymentHash.toString('hex'),
     is_expired: expiresAt < new Date().toISOString(),
+    routes: !routes ? undefined : routes,
     tokens: tokens || undefined,
     mtokens: mtokens || undefined,
   };

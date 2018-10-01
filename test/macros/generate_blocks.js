@@ -3,7 +3,7 @@ const asyncMap = require('async/map');
 
 const rpc = require('./rpc');
 
-const generatedBlocksDelayMs = 4000;
+const generatedBlocksDelayMs = 5000;
 
 /** Connect to node
 
