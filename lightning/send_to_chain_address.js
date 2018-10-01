@@ -50,8 +50,8 @@ module.exports = (args, cbk) => {
   return lnd.sendCoins({
     addr: args.address,
     amount: args.tokens,
-    fee_tokens_per_vbyte: args.fee_tokens_per_vbyte || undefined,
-    conf_target: args.target_confirmations || undefined,
+    sat_per_byte: args.fee_tokens_per_vbyte || undefined,
+    target_conf: args.target_confirmations || undefined,
   },
   (err, res) => {
     if (!!err) {
