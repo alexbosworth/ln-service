@@ -47,7 +47,7 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedLogFunctionForChainSendWebSocketAnnouncement']);
   }
 
-  return lnd.sendCoins({
+  return args.lnd.sendCoins({
     addr: args.address,
     amount: args.tokens,
     sat_per_byte: args.fee_tokens_per_vbyte || undefined,
