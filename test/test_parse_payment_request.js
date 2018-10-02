@@ -88,6 +88,7 @@ const tests = [
   {
     description: 'On mainnet, with fallback address 1RustyRX2oai4EYYDpQGWvEL62BBGqN9T with extra routing info',
     expected: {
+      chain_addresses: ['1RustyRX2oai4EYYDpQGWvEL62BBGqN9T'],
       cltv_delta: 9,
       created_at: new Date(1496314658 * msPerSec).toISOString(),
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
@@ -120,6 +121,7 @@ const tests = [
   {
     description: 'On mainnet, with fallback (P2SH) address 3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX',
     expected: {
+      chain_addresses: ['3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX'],
       cltv_delta: 9,
       created_at: new Date(1496314658 * msPerSec).toISOString(),
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
@@ -136,6 +138,7 @@ const tests = [
   {
     description: 'On mainnet, with fallback (P2WPKH) address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
     expected: {
+      chain_addresses: ['bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4'],
       cltv_delta: 9,
       created_at: new Date(1496314658 * msPerSec).toISOString(),
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
@@ -152,6 +155,7 @@ const tests = [
   {
     description: 'On mainnet, with fallback (P2WSH) address bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3',
     expected: {
+      chain_addresses: ['bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3'],
       cltv_delta: 9,
       created_at: new Date(1496314658 * msPerSec).toISOString(),
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
@@ -184,6 +188,7 @@ const tests = [
   {
     description: 'Partial tokens',
     expected: {
+      chain_addresses: ['tb1qvzxxvnahw6gkj9aqpptktxpt6906cn2svvhayd'],
       cltv_delta: 9,
       created_at: new Date(1533923529 * msPerSec).toISOString(),
       destination: '032bb4f2cd2bf877429f1d79f91de0794e4a3b7b772febbf60fc21bb3475f7cd5e',
@@ -206,9 +211,10 @@ const tests = [
 ];
 
 tests.forEach(({description, expected, request}) => {
-  return test(description, ({end, equal}) => {
+  return test(description, ({deepIs, end, equal}) => {
     const details = parsePaymentRequest({request});
 
+    deepIs(details.chain_addresses, expected.chain_addresses, 'Parse address');
     equal(details.cltv_delta, expected.cltv_delta, 'Parse cltv delta');
     equal(details.created_at, expected.created_at, 'Parse created at date');
     equal(details.description, expected.description, 'Parse description');

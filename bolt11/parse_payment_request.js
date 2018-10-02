@@ -5,6 +5,7 @@ const {recover} = require('secp256k1');
 
 const hrpAsTokens = require('./hrp_as_tokens');
 const paymentRequestExpiration = require('./payment_request_expiration');
+const wordsAsChainAddress = require('./words_as_chain_address');
 const wordsAsHopHints = require('./words_as_hop_hints');
 const wordsAsNumber = require('./words_as_number');
 const wordsAsBuffer = require('./words_as_buffer');
@@ -47,6 +48,8 @@ const timestampWordLength = 7;
 
   @returns
   {
+    [chain_addresses]: [<Chain Address String>]
+    cltv_delta: <CLTV Delta Number>
     created_at: <Invoice Creation Date ISO 8601 String>
     [description]: <Description String>
     [description_hash]: <Description Hash Hex String>
@@ -146,6 +149,7 @@ module.exports = ({request}) => {
   // Cut off the timestamp words
   let wordsWithTags = wordsWithoutSig.slice(timestampWordLength)
 
+  let chainAddresses;
   let cltvDelta = defaultCltvExpiry;
   let descHash;
   let description;
@@ -180,6 +184,19 @@ module.exports = ({request}) => {
         description = wordsAsBuffer({trim, words: tagWords}).toString('utf8');
       } catch (err) {
         throw new Error('InvalidDescription');
+      }
+      break;
+
+    case 'f': // On-chain fallback address
+      try {
+        const words = tagWords;
+        chainAddresses = chainAddresses || [];
+
+        const address = wordsAsChainAddress({network, words}).chain_address;
+
+        chainAddresses.push(address);
+      } catch (err) {
+        throw new Error('FailedToParseFallbackAddress');
       }
       break;
 
@@ -247,6 +264,7 @@ module.exports = ({request}) => {
 
   return {
     network,
+    chain_addresses: chainAddresses || undefined,
     cltv_delta: cltvDelta || undefined,
     created_at: createdAt,
     description: description || undefined,
@@ -255,9 +273,9 @@ module.exports = ({request}) => {
     expires_at: expiresAt,
     id: paymentHash.toString('hex'),
     is_expired: expiresAt < new Date().toISOString(),
+    mtokens: mtokens || undefined,
     routes: !routes ? undefined : routes,
     tokens: tokens || undefined,
-    mtokens: mtokens || undefined,
   };
 };
 
