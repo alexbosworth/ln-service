@@ -2,6 +2,9 @@ const {createChainAddress} = require('./../lightning');
 const {returnJson} = require('./../async-util');
 const Router = require('./router');
 
+const addressFormats = require('./../lightning/conf/address_formats');
+const defaultFormat = Object.keys(addressFormats).find(key => addressFormats[key] === 1);
+
 /** Get an addresses router
 
   {
@@ -16,8 +19,9 @@ module.exports = ({lnd, log}) => {
   const router = Router({});
 
   // Add an address
-  router.post('/', ({}, res) => {
-    return createChainAddress({lnd}, returnJson({log, res}));
+  router.post('/', ({body}, res) => {
+    const format = body.format || defaultFormat;
+    return createChainAddress({lnd, format}, returnJson({log, res}));
   });
 
   return router;
