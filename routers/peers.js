@@ -4,6 +4,8 @@ const {removePeer} = require('./../lightning');
 const {returnJson} = require('./../async-util');
 const Router = require('./router');
 
+const defaultLightningPort = 9735;
+
 /** Get a peers router
 
   {
@@ -26,19 +28,15 @@ module.exports = ({lnd, log}) => {
     @bodyJson
     {
       host: <Host Network Address String>
+      [port]: <Port Number>
       public_key: <Public Key Hex String>
     }
   */
   router.post('/', ({body}, res) => {
-    const host = body.host;
-    const port = body.port || 9735;
+    const pubKey = body.public_key;
+    const socket = `${body.host}:${body.port || defaultLightningPort}`;
 
-    return addPeer({
-      lnd,
-      socket: `${host}:${port}`,
-      public_key: body.public_key,
-    },
-    returnJson({log, res}));
+    return addPeer({lnd, socket, public_key: pubKey}, returnJson({log, res}));
   });
 
   /** Disconnect from a peer
@@ -49,11 +47,9 @@ module.exports = ({lnd, log}) => {
     }
   */
   router.delete('/:public_key', ({params}, res) => {
-    return removePeer({
-      lnd,
-      public_key: params.public_key,
-    },
-    returnJson({log, res}));
+    const pubKey = params.public_key;
+
+    return removePeer({lnd, public_key: pubKey}, returnJson({log, res}));
   });
 
   return router;
