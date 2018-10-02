@@ -30,9 +30,12 @@ module.exports = ({lnd, log}) => {
     }
   */
   router.post('/', ({body}, res) => {
+    const host = body.host;
+    const port = body.port || 9735;
+
     return addPeer({
       lnd,
-      host: body.host,
+      socket: `${host}:${port}`,
       public_key: body.public_key,
     },
     returnJson({log, res}));
