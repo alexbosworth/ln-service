@@ -1,9 +1,8 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const asyncMapSeries = require('async/timesSeries');
 
 const rpc = require('./rpc');
-
-const generatedBlocksDelayMs = 7000;
 
 /** Connect to node
 
@@ -55,19 +54,24 @@ module.exports = ({cert, count, host, pass, port, user}, cbk) => {
     // Generate blocks
     generate: ['validate', ({}, cbk) => {
       const cmd = 'generate';
-      const params = [count];
+      const params = [[count].length];
 
-      return rpc({cert, cmd, host, params, pass, port, user}, (err, res) => {
-        if (!!err) {
-          return cbk([503, 'UnexpectedErrorGeneratingBlocks']);
-        }
+      return asyncMapSeries(count, ({}, cbk) => {
+        return rpc({cert, cmd, host, params, pass, port, user}, (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrorGeneratingBlocks']);
+          }
 
-        if (!Array.isArray(res)) {
-          return cbk([503, 'ExpectedBlockHashesForBlockGeneration']);
-        }
+          if (!Array.isArray(res)) {
+            return cbk([503, 'ExpectedBlockHashesForBlockGeneration']);
+          }
 
-        return setTimeout(() => cbk(null, res), generatedBlocksDelayMs);
-      });
+          const [blockId] = res;
+
+          return cbk(null, blockId);
+        });
+      },
+      cbk);
     }],
 
     // Get blocks with transaction ids
