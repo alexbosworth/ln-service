@@ -76,7 +76,7 @@ module.exports = (args, cbk) => {
     };
 
     if (!!args.wss) {
-      broadcastResponse({args.log, row, args.wss});
+      broadcastResponse({log: args.log, row, wss: args.wss});
     }
 
     return cbk(null, row);
