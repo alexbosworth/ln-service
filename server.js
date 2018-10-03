@@ -1,10 +1,5 @@
 const {log} = console;
 
-const http = require('http');
-const https = require('https');
-const {join} = require('path');
-const {readFileSync} = require('fs');
-
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
 const basicAuth = require('express-basic-auth');
@@ -15,7 +10,6 @@ const cors = require('cors');
 const express = require('express');
 const logger = require('morgan');
 const walnut = require('walnut');
-const WebSocketServer = require('ws').Server;
 
 const {addressesRouter} = require('./routers');
 const {authorizer} = require('./routers');
@@ -39,22 +33,20 @@ const {subscribeToInvoices} = require('./push');
 const {subscribeToTransactions} = require('./push');
 const {transactionsRouter} = require('./routers');
 const {unlockWallet} = require('./lightning');
-const {verifyClient} = require('./push');
 const {walletInfoRouter} = require('./routers');
 const {walletPasswordPrompt} = require('./service');
 
 const app = express();
-const httpsPort = 18554;
-const {LNSERVICE_LND_DIR} = process.env;
 const logFormat = ':method :url :status - :response-time ms - :user-agent';
 const {NODE_ENV} = process.env;
-const port = process.env.PORT || 10553;
 const unlockDelayMs = 1000;
 const unlockerLnd = localLnd({is_unlocker: true});
 
 if (NODE_ENV !== 'production') {
   walnut.check(require('./package'));
 }
+
+module.exports = app;
 
 return asyncAuto({
   // Determine if the wallet is locked
@@ -87,24 +79,8 @@ return asyncAuto({
 
   // Start API server
   startServer: ['unlockWallet', ({}, cbk) => {
-    const server = app
-      .listen(port, () => log(null, `Listening HTTP on port: ${port}`))
-      .on('error', err => log([500, 'ListenError', err]));
-
-    const [cert, key] = ['cert', 'key']
-      .map(extension => join(LNSERVICE_LND_DIR, `tls.${extension}`))
-      .map(n => readFileSync(n, 'utf8'));
-
-    const httpsServer = https.createServer({cert, key}, app);
-
-    const wss = [
-      new WebSocketServer({server, verifyClient}),
-      new WebSocketServer({server: httpsServer, verifyClient}),
-    ];
-
+    const wss = [];
     const lnd = localLnd({});
-
-    httpsServer.listen(httpsPort);
 
     app.disable('x-powered-by');
     app.use(compress);
@@ -131,6 +107,7 @@ return asyncAuto({
     subscribeToInvoices({lnd, log, wss});
     subscribeToTransactions({lnd, log, wss});
 
+    app.wss = wss;
     return cbk();
   }],
 },
@@ -141,4 +118,3 @@ err => {
 
   return;
 });
-
