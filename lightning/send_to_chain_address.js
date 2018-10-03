@@ -75,8 +75,8 @@ module.exports = (args, cbk) => {
       type: rowTypes.chain_transaction,
     };
 
-    if (!!wss) {
-      broadcastResponse({log, row, wss});
+    if (!!args.wss) {
+      broadcastResponse({args.log, row, args.wss});
     }
 
     return cbk(null, row);
