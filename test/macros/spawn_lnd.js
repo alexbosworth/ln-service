@@ -229,6 +229,11 @@ module.exports = ({network}, cbk) => {
       return;
     };
 
+    process.on('uncaughtException', err => {
+      kill();
+      process.exit(1)
+    });
+
     return cbk(null, {
       kill,
       lnd,

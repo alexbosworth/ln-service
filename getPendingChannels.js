@@ -8,7 +8,7 @@ const {getPendingChannels} = require('./');
   a channel may be opening, closing, or active.
 
   {
-    lnd: <Object>
+    lnd: <LND GRPC API Object>
   }
 
   @returns via Promise

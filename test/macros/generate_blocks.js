@@ -1,8 +1,12 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const asyncMapSeries = require('async/timesSeries');
+const asyncRetry = require('async/retry');
 
 const rpc = require('./rpc');
+
+const retryMs = 200;
+const retryTimes = 10;
 
 /** Connect to node
 
@@ -79,19 +83,22 @@ module.exports = ({cert, count, host, pass, port, user}, cbk) => {
       const cmd = 'getblock';
 
       return asyncMap(generate, (blockId, cbk) => {
-        const params = [blockId];
+        const opts = {cert, cmd, host, pass, port, user, params: [blockId]};
 
-        return rpc({cert, cmd, host, params, pass, port, user}, (err, res) => {
-          if (!!err) {
-            return cbk([503, 'UnexpectedErrorGettingBlock']);
-          }
+        return asyncRetry({interval: retryMs, times: retryTimes}, cbk => {
+          return rpc(opts, (err, res) => {
+            if (!!err) {
+              return cbk([503, 'UnexpectedErrorGettingBlock']);
+            }
 
-          if (!res || !Array.isArray(res.tx)) {
-            return cbk([503, 'ExpectedBlockTransactionsForBlock', res]);
-          }
+            if (!res || !Array.isArray(res.tx)) {
+              return cbk([503, 'ExpectedBlockTransactionsForBlock', res]);
+            }
 
-          return cbk(null, {id: blockId, transaction_ids: res.tx});
-        });
+            return cbk(null, {id: blockId, transaction_ids: res.tx});
+          });
+        },
+        cbk);
       },
       cbk);
     }],

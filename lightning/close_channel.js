@@ -126,7 +126,7 @@ module.exports = (args, cbk) => {
 
         switch (n.details) {
         default:
-          return cbk([503, 'FailedToOpenChannel', n]);
+          return cbk([503, 'FailedToCloseChannel', n]);
         }
       });
 
