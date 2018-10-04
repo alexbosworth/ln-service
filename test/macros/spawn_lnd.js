@@ -26,7 +26,7 @@ const lightningWalletPassword = 'password';
 const lndWalletUnlockerService = 'WalletUnlocker';
 const localhost = '127.0.0.1';
 const readMacaroonFileName = 'readonly.macaroon';
-const startPortRange = 34593;
+const startPortRange = 5432;
 const startWalletTimeoutMs = 4500;
 
 /** Spawn an lnd instance
