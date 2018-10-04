@@ -15,6 +15,7 @@ const notFoundIndex = -1;
 const {p2pkh} = payments;
 const rpcServerReady = /RPC.server.listening/;
 const unableToStartServer = /Unable.to.start.server/;
+const startPortRange = 6543;
 
 /** Start a BTCSuite Type Daemon
 
@@ -58,7 +59,7 @@ module.exports = (args, cbk) => {
     // Find open ports for the listen and RPC ports
     getPorts: cbk => {
       const count = 2;
-      const startingPort = 34567 + Math.round(Math.random() * 1000);
+      const startingPort = startPortRange + Math.round(Math.random() * 1000);
 
       return openPortFinder.find({count, startingPort}, (err, ports) => {
         if (!!err) {
