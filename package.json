@@ -51,7 +51,7 @@
   },
   "scripts": {
     "integration-tests": "tap test/integration/*.js",
-    "start": "node server.js",
+    "start": "node bin/www",
     "test": "tap test/*.js"
   },
   "version": "17.8.0"
