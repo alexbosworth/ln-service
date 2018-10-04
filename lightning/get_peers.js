@@ -1,5 +1,3 @@
-const {round} = Math;
-
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 
@@ -8,6 +6,7 @@ const {returnResult} = require('./../async-util');
 
 const decBase = 10;
 const msPerSec = 1e3;
+const {round} = Math;
 
 /** Get connected peers.
 

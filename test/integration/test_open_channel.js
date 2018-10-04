@@ -11,7 +11,7 @@ const giftTokens = 1000;
 const txIdHexLength = 32 * 2;
 
 // Opening a channel should open a channel
-test(`Open channel`, async ({end, equal}) => {
+test(`Open channel`, async ({afterEach, end, equal}) => {
   const cluster = await createCluster({});
 
   const channelOpen = await openChannel({

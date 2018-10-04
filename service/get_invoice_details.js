@@ -3,9 +3,8 @@ const asyncAuto = require('async/auto');
 const {decodePaymentRequest} = require('./../lightning');
 const {getInvoice} = require('./../lightning');
 const {getWalletInfo} = require('./../lightning');
-const {returnResult} = require('./../async-util');
-
 const invoiceType = require('./../lightning').rowTypes.invoice;
+const {returnResult} = require('./../async-util');
 
 /** Get payment request
 

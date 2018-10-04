@@ -3,15 +3,14 @@ const {createHash} = require('crypto');
 const {decode} = require('bech32');
 const {recover} = require('secp256k1');
 
+const bech32CurrencyCodes = require('./conf/bech32_currency_codes');
 const hrpAsTokens = require('./hrp_as_tokens');
 const paymentRequestExpiration = require('./payment_request_expiration');
+const taggedFields = require('./conf/tagged_fields');
 const wordsAsChainAddress = require('./words_as_chain_address');
 const wordsAsHopHints = require('./words_as_hop_hints');
 const wordsAsNumber = require('./words_as_number');
 const wordsAsBuffer = require('./words_as_buffer');
-
-const bech32CurrencyCodes = require('./conf/bech32_currency_codes');
-const taggedFields = require('./conf/tagged_fields');
 
 const defaultCltvExpiry = 9;
 const defaultExpirationMs = 3600000;

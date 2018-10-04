@@ -1,6 +1,5 @@
-const {isArray} = Array;
-
 const defaultErrorMessage = 'ServerError';
+const {isArray} = Array;
 
 /** Return JSON or error for Express result.
 

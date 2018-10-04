@@ -3,9 +3,12 @@
   "chain_address": "chain_address",
   "chain_transaction": "chain_transaction",
   "channel_transaction": "channel_transaction",
+  "channel_update": "channel_update",
+  "closed_channel": "closed_channel",
   "connection": "connection",
   "invoice": "invoice",
   "network_info": "network_info",
+  "node_update": "node_update",
   "payment_request": "payment_request",
   "peer": "peer",
   "wallet": "wallet"

@@ -35,6 +35,7 @@ const {paymentsRouter} = require('./routers');
 const {peersRouter} = require('./routers');
 const {purchasedRouter} = require('./routers');
 const {rowTypes} = require('./lightning');
+const {subscribeToGraph} = require('./push');
 const {subscribeToInvoices} = require('./push');
 const {subscribeToTransactions} = require('./push');
 const {transactionsRouter} = require('./routers');
@@ -128,6 +129,7 @@ return asyncAuto({
     app.use('/v0/transactions', transactionsRouter({lnd, log, wss}));
     app.use('/v0/wallet_info', walletInfoRouter({lnd, log}));
 
+    subscribeToGraph({lnd, log, wss});
     subscribeToInvoices({lnd, log, wss});
     subscribeToTransactions({lnd, log, wss});
 

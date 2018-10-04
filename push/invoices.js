@@ -1,6 +1,5 @@
-const {subscribeToInvoices} = require('./../lightning');
-
 const {broadcastResponse} = require('./../async-util');
+const {subscribeToInvoices} = require('./../lightning');
 
 /** Subscribe to invoices.
 

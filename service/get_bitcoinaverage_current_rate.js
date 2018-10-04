@@ -3,12 +3,11 @@ const {includes} = require('lodash');
 const request = require('request');
 
 const api = 'https://apiv2.bitcoinaverage.com/';
+let centsPerBTC = null;
 const centsPerUnit = 100;
 const intBase = 10;
 const remoteServiceTimeoutMs = 20 * 1000;
 const usdCentsCacheTimeMs = 10 * 60 * 1000;
-
-let centsPerBTC = null;
 
 /** Get the number of cents for a Bitcoin from BitcoinAverage
 

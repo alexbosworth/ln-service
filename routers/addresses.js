@@ -2,8 +2,7 @@ const {createChainAddress} = require('./../lightning');
 const {returnJson} = require('./../async-util');
 const Router = require('./router');
 
-const addressFormats = require('./../lightning/conf/address_formats');
-const defaultFormat = Object.keys(addressFormats).find(key => addressFormats[key] === 1);
+const defaultFormat = 'np2wpkh';
 
 /** Get an addresses router
 

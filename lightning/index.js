@@ -30,6 +30,7 @@ const removePeer = require('./remove_peer');
 const rowTypes = require('./conf/row_types');
 const sendToChainAddress = require('./send_to_chain_address');
 const signMessage = require('./sign_message');
+const subscribeToGraph = require('./subscribe_to_graph');
 const subscribeToInvoices = require('./subscribe_to_invoices');
 const subscribeToTransactions = require('./subscribe_to_transactions');
 const unlockWallet = require('./unlock_wallet');
@@ -69,6 +70,7 @@ module.exports = {
   rowTypes,
   sendToChainAddress,
   signMessage,
+  subscribeToGraph,
   subscribeToInvoices,
   subscribeToTransactions,
   unlockWallet,

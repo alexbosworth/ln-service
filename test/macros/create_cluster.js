@@ -149,6 +149,14 @@ module.exports = ({}, cbk) => {
     }],
   },
   (err, res) => {
+    if (!!err && !!res.control) {
+      res.control.kill();
+    }
+
+    if (!!err && !!res.target) {
+      res.target.kill();
+    }
+
     if (!!err) {
       return cbk(err);
     }

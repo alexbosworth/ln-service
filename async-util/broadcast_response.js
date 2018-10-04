@@ -1,5 +1,7 @@
 const {OPEN} = require('ws');
 
+const {stringify} = JSON;
+
 /** Broadcast a response to web socket clients.
 
   {
@@ -9,7 +11,7 @@ const {OPEN} = require('ws');
   }
 */
 module.exports = ({log, row, wss}) => {
-  const stringifiedRow = JSON.stringify(row);
+  const stringifiedRow = stringify(row);
 
   return wss.forEach(w => {
     // Client is a Set not an array so .filter cannot be used
@@ -18,11 +20,11 @@ module.exports = ({log, row, wss}) => {
         return;
       }
 
-      try { client.send(stringifiedRow); } catch (err) {
+      try {
+        return client.send(stringifiedRow);
+      } catch (err) {
         return log([500, 'BroadcastFailure', err]);
       }
-
-      return;
     });
   });
 };

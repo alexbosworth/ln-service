@@ -2,9 +2,8 @@ const asyncRetry = require('async/retry');
 const request = require('request');
 
 const API = 'https://api.coindesk.com/v1/';
+const decBase = 10;
 const REMOTE_SERVICE_TIMEOUT_MS = 20 * 1000;
-
-const intBase = 10;
 
 /** Get the number of USD cents for a Bitcoin
 
@@ -44,7 +43,7 @@ module.exports = ({time}, cbk) => {
         return go_on([503, 'ExpectedPrice', body]);
       }
 
-      const centsPerBtc = parseInt((body.bpi[start] * 100, intBase).toFixed());
+      const centsPerBtc = parseInt((body.bpi[start] * 100, decBase).toFixed());
 
       return cbk(null, {cents_per_bitcoin: centsPerBtc});
     });

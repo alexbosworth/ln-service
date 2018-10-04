@@ -1,7 +1,7 @@
 const {broadcastResponse} = require('./../async-util');
-const {subscribeToTransactions} = require('./../lightning');
+const {subscribeToGraph} = require('./../lightning');
 
-/** Subscribe to transactions.
+/** Subscribe to channel graph updates.
 
   {
     lnd: <LND GRPC API Object>
@@ -13,22 +13,22 @@ const {subscribeToTransactions} = require('./../lightning');
 */
 module.exports = ({lnd, log, wss}) => {
   if (!lnd) {
-    throw new Error('ExpectedLnd');
+    throw new Error('ExpectedLndForChannelGraphSubscription');
   }
 
   if (!log) {
-    throw new Error('ExpectedLogFunction');
+    throw new Error('ExpectedLogFunctionForChannelGraphUpdates');
   }
 
   if (!Array.isArray(wss)) {
-    throw new Error('ExpectedWebSocketServers');
+    throw new Error('ExpectedWebSocketServersForChannelGraphSubscription');
   }
 
-  const subscription = subscribeToTransactions({lnd});
+  const subscription = subscribeToGraph({lnd});
 
   subscription.on('data', row => broadcastResponse({log, row, wss}));
   subscription.on('end', () => {});
-  subscription.on('error', err => log([503, 'SubscribeTransactionsErr', err]));
+  subscription.on('error', err => log([503, 'SubscribeToGraphError', err]));
   subscription.on('status', ({}) => {});
 
   return;

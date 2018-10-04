@@ -7,15 +7,12 @@ const {lightningDaemon} = require('./../lightning');
 const adminMacaroonFileName = 'admin.macaroon';
 const chainDirName = 'chain';
 const dataDirName = 'data';
-const {LND_GRPC_PORT} = process.env;
-const {LND_HOST} = process.env;
+const lndGrpcPort = process.env.LND_GRPC_PORT || 10009;
+const lndHost = process.env.LND_HOST || 'localhost';
 const {LNSERVICE_CHAIN} = process.env;
 const {LNSERVICE_LND_DIR} = process.env;
 const {LNSERVICE_NETWORK} = process.env;
 const tlsCertFileName = 'tls.cert';
-
-const lndGrpcPort = LND_GRPC_PORT || 10009;
-const lndHost = LND_HOST || 'localhost';
 
 /** Get the Lightning Daemon connection
 

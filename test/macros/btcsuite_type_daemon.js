@@ -58,7 +58,7 @@ module.exports = (args, cbk) => {
     // Find open ports for the listen and RPC ports
     getPorts: cbk => {
       const count = 2;
-      const startingPort = 34567 + Math.round(Math.random() * 1000);
+      const startingPort = 4567 + Math.round(Math.random() * 1000);
 
       return openPortFinder.find({count, startingPort}, (err, ports) => {
         if (!!err) {
