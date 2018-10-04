@@ -56,6 +56,12 @@ if (NODE_ENV !== 'production') {
   walnut.check(require('./package'));
 }
 
+module.exports = app;
+
+if (NODE_ENV === 'test') {
+  return;
+}
+
 return asyncAuto({
   // Determine if the wallet is locked
   isLocked: cbk => isWalletLocked({}, cbk),
