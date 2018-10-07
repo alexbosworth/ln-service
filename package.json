@@ -22,7 +22,7 @@
     "request": "2.88.0",
     "secp256k1": "3.5.2",
     "walnut": "0.0.4",
-    "ws": "6.0.0"
+    "ws": "6.1.0"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
@@ -54,5 +54,5 @@
     "start": "node server.js",
     "test": "tap test/*.js"
   },
-  "version": "17.9.0"
+  "version": "17.10.0"
 }

@@ -45,7 +45,7 @@ const msPerSec = 1e3;
   {
     alias: <Node Alias String>
     public_key: <Node Public Key String>
-    sockets: [<Network Host And Port String>]
+    [sockets]: [<Network Host And Port String>]
     type: <Row Type String>
     updated_at: <Update Received At ISO 8601 Date String>
   }
