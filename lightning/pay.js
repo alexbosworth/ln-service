@@ -70,7 +70,7 @@ module.exports = ({fee, lnd, log, path, request, wss}, cbk) => {
     return cbk([400, 'ExpectedPaymentHashStringToExecutePayment']);
   }
 
-  if (!!path && (!Array.isArray(routes) || !routes.length)) {
+  if (!!path && (!Array.isArray(path.routes) || !path.routes.length)) {
     return cbk([400, 'ExpectedRoutesToExecutePaymentOver']);
   }
 
@@ -80,7 +80,7 @@ module.exports = ({fee, lnd, log, path, request, wss}, cbk) => {
   }
 
   lnd.sendToRouteSync({
-    payment_hash_string: id,
+    payment_hash_string: path.id,
     routes: path.routes
       .filter(route => fee === undefined || route.fee <= fee)
       .map(route => {
