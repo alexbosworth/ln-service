@@ -21,6 +21,8 @@ const msPerSec = 1e3;
     secret: <Hex Encoded Payment Secret Preimage String>
     [tokens]: <Tokens Number>
     type: <Type String>
+    received: <Received Tokens Number>
+    received_mtokens: <Received Millitokens Number>
   }
 */
 module.exports = ({id, lnd}, cbk) => {
@@ -68,6 +70,10 @@ module.exports = ({id, lnd}, cbk) => {
       secret: response.r_preimage.toString('hex'),
       tokens: !response.value ? null : parseInt(response.value, decBase),
       type: rowTypes.channel_transaction,
+      received: !parseInt(response.amt_paid_sat, decBase) ? null:
+        parseInt(response.amt_paid_sat, decBase),
+      received_mtokens: !parseInt(response.amt_paid_msat, decBase) ? null:
+        parseInt(response.amt_paid_msat, decBase)
     });
   });
 };
