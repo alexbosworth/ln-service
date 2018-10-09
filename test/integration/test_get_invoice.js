@@ -17,6 +17,9 @@ test(`Get an invoice`, async ({end, equal}) => {
   const invoice = await getInvoice({id, lnd});
 
   equal(invoice.description, description, 'Invoice description');
+  equal(invoice.is_private, false, 'Invoice is public');
+  equal(invoice.received, 0, 'Invoice received tokens');
+  equal(invoice.received_mtokens, '0', 'Invoice received mtokens');
   equal(invoice.secret, secret, 'Invoice secret');
   equal(invoice.tokens, tokens, 'Invoice tokens');
 

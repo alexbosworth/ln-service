@@ -13,11 +13,14 @@ const {getInvoice} = require('./');
   {
     description: <Description String>
     expires_at: <ISO 8601 Date String>
-    id: <Invoice Payment Hash Hex String>
+    id: <Invoice Id String>
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
-    request: <Bolt 11 Payment Request String>
-    secret: <Hex Encoded Payment Secret Preimage Hex String>
+    is_private: <Is a Private Invoice Bool>
+    received: <Received Tokens Number>
+    received_mtokens: <Received Millitokens String>
+    request: <BOLT 11 Encoded Payment Request String>
+    secret: <Hex Encoded Payment Secret Preimage String>
     [tokens]: <Tokens Number>
     type: <Type String>
   }

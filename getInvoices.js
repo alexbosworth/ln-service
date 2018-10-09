@@ -20,10 +20,22 @@ const {getInvoices} = require('./');
       id: <Payment Hash String>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
-      request: <BOLT 11 Payment Request String>
+      is_private: <Invoice is Private Bool>
+      received: <Received Tokens Number>
+      received_mtokens: <Received Millitokens String>
+      request: <Bolt 11 Invoice String>
+      routes: [{
+        base_fee_mtokens: <Base Routing Fee In Millitokens Number>
+        channel_id: <Channel Id String>
+        cltv_delta: <CLTV Blocks Delta Number>
+        fee_rate: <Fee Rate In Millitokens Per Million Number>
+        public_key: <Public Key Hex String>
+      }]
+      secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
-      type: <Row Type String>
+      type: <Type String>
     }]
+    [next]: <Paging Token String>
   }
 */
 module.exports = promisify(getInvoices);

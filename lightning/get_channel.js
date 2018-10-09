@@ -1,6 +1,7 @@
 const {isFinite} = require('lodash');
 
 const decBase = 10;
+const edgeNotFoundErrorMessage = 'edge not found';
 const msPerSec = 1e3;
 const separatorChar = ':';
 
@@ -37,6 +38,10 @@ module.exports = ({id, lnd}, cbk) => {
   }
 
   return lnd.getChanInfo({chan_id: id}, (err, response) => {
+    if (!!err && err.details === edgeNotFoundErrorMessage) {
+      return cbk([404, 'FullChannelDetailsNotFound']);
+    }
+
     if (!!err) {
       return cbk([503, 'UnexpectedGetChannelInfoError', err]);
     }

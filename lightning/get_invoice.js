@@ -5,6 +5,9 @@ const msPerSec = 1e3;
 
 /** Lookup a channel invoice.
 
+  The received value and the invoiced value may differ as invoices may be
+  over-paid.
+
   {
     id: <Payment Hash Id Hex String>
     lnd: <LND GRPC API Object>
@@ -17,12 +20,13 @@ const msPerSec = 1e3;
     id: <Invoice Id String>
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
+    is_private: <Is a Private Invoice Bool>
+    received: <Received Tokens Number>
+    received_mtokens: <Received Millitokens String>
     request: <BOLT 11 Encoded Payment Request String>
     secret: <Hex Encoded Payment Secret Preimage String>
     [tokens]: <Tokens Number>
     type: <Type String>
-    received: <Received Tokens Number>
-    received_mtokens: <Received Millitokens Number>
   }
 */
 module.exports = ({id, lnd}, cbk) => {
@@ -66,14 +70,13 @@ module.exports = ({id, lnd}, cbk) => {
       expires_at: new Date(expiryDateMs).toISOString(),
       is_confirmed: response.settled,
       is_outgoing: false,
+      is_private: response.private,
+      received: parseInt(response.amt_paid_sat, decBase),
+      received_mtokens: response.amt_paid_msat,
       request: response.payment_request,
       secret: response.r_preimage.toString('hex'),
       tokens: !response.value ? null : parseInt(response.value, decBase),
       type: rowTypes.channel_transaction,
-      received: !parseInt(response.amt_paid_sat, decBase) ? null:
-        parseInt(response.amt_paid_sat, decBase),
-      received_mtokens: !parseInt(response.amt_paid_msat, decBase) ? null:
-        parseInt(response.amt_paid_msat, decBase)
     });
   });
 };

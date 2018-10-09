@@ -8,7 +8,7 @@ const decBase = 10;
 
 /** Make a payment.
 
-  Either a payment path or an invoice is required
+  Either a payment path or a BOLT 11 payment request is required
 
   {
     [fee]: <Maximum Additional Fee Tokens To Pay Number>
@@ -51,9 +51,9 @@ const decBase = 10;
     id: <Payment Hash Hex String>
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
-    mtokens: <Millitokens Paid String>
-    secret: <Payment Secret Hex String>
-    tokens: <Tokens Number>
+    mtokens: <Total Millitokens Sent String>
+    secret: <Payment Secret Preimage Hex String>
+    tokens: <Total Tokens Sent Number>
     type: <Type String>
   }
 */

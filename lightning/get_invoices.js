@@ -37,7 +37,7 @@ const msPerSec = 1e3;
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
       received: <Received Tokens Number>
-      received_mtokens: <Received Millitokens Number>
+      received_mtokens: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
       routes: [{
         base_fee_mtokens: <Base Routing Fee In Millitokens Number>
@@ -227,10 +227,8 @@ module.exports = ({limit, lnd, token}, cbk) => {
           is_confirmed: invoice.settled,
           is_outgoing: false,
           is_private: !!invoice.private,
-          received: !parseInt(invoice.amt_paid_sat, decBase) ? null:
-            parseInt(invoice.amt_paid_sat, decBase),
-          received_mtokens: !parseInt(invoice.amt_paid_msat, decBase) ? null:
-          parseInt(invoice.amt_paid_msat, decBase),
+          received: parseInt(invoice.amt_paid_sat, decBase),
+          received_mtokens: invoice.amt_paid_msat,
           request: invoice.payment_request,
           secret: invoice.r_preimage.toString('hex'),
           tokens: parseInt(invoice.value, decBase),
