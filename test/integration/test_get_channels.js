@@ -1,10 +1,6 @@
-const {readFileSync} = require('fs');
-
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
-const {generateBlocks} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
 
@@ -19,14 +15,7 @@ test(`Open channel`, async ({end, equal}) => {
 
   await openChannel({lnd, partner_public_key: cluster.target_node_public_key});
 
-  await generateBlocks({
-    cert: readFileSync(cluster.control.chain_rpc_cert),
-    count: confirmationCount,
-    host: cluster.control.listen_ip,
-    pass: cluster.control.chain_rpc_pass,
-    port: cluster.control.chain_rpc_port,
-    user: cluster.control.chain_rpc_user,
-  });
+  await cluster.generate({count: confirmationCount});
 
   const {channels} = await getChannels({lnd});
 
@@ -44,9 +33,7 @@ test(`Open channel`, async ({end, equal}) => {
   equal(channel.transaction_vout, 0, 'Channel transactin vout');
   equal(channel.unsettled_balance, 0, 'Channel unsettled balance');
 
-  delay(1000);
-
-  [cluster.control, cluster.target].forEach(({kill}) => kill());
+  cluster.kill();
 
   return end();
 });

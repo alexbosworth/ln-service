@@ -1,3 +1,4 @@
+const {promisify} = require('util');
 const {readFileSync} = require('fs');
 
 const asyncAuto = require('async/auto');
@@ -161,8 +162,22 @@ module.exports = ({}, cbk) => {
       return cbk(err);
     }
 
+    const generate = promisify((args, cbk) => {
+      return generateBlocks({
+        cert: readFileSync(res.control.chain_rpc_cert),
+        count: args.count,
+        host: res.control.listen_ip,
+        pass: res.control.chain_rpc_pass,
+        port: res.control.chain_rpc_port,
+        user: res.control.chain_rpc_user,
+      },
+      cbk);
+    });
+
     return cbk(null, {
+      generate,
       control: res.control,
+      kill: () => [res.control, res.target].forEach(({kill}) => kill()),
       target: res.target,
       target_node_public_key: res.targetNode.public_key,
     });

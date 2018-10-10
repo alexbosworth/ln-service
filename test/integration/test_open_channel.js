@@ -1,7 +1,6 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const openChannel = require('./../../openChannel');
 
 const channelCapacityTokens = 1e6;
@@ -11,7 +10,7 @@ const giftTokens = 1000;
 const txIdHexLength = 32 * 2;
 
 // Opening a channel should open a channel
-test(`Open channel`, async ({afterEach, end, equal}) => {
+test(`Open channel`, async ({end, equal}) => {
   const cluster = await createCluster({});
 
   const channelOpen = await openChannel({
@@ -26,9 +25,7 @@ test(`Open channel`, async ({afterEach, end, equal}) => {
   equal(channelOpen.transaction_vout, defaultVout, 'Channel tx output index');
   equal(channelOpen.type, 'open_channel_pending');
 
-  delay(2000);
-
-  [cluster.control, cluster.target].forEach(({kill}) => kill());
+  cluster.kill();
 
   return end();
 });
