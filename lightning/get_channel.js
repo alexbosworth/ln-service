@@ -62,8 +62,8 @@ module.exports = ({id, lnd}, cbk) => {
       return cbk([503, 'ExpectedChannelLastUpdate']);
     }
 
-    if (!response.node1_pub) {
-      return cbk([503, 'ExpectedChannelNodePublicKey']);
+    if (!response.node1_policy) {
+      return cbk([503, 'ExpectedNode1PolicyInChannelResponse']);
     }
 
     if (response.node1_policy.time_lock_delta === undefined) {
@@ -86,8 +86,12 @@ module.exports = ({id, lnd}, cbk) => {
       return cbk([503, 'ExpectedChannelNodeDisabledStatus']);
     }
 
-    if (!response.node2_pub) {
+    if (!response.node1_pub) {
       return cbk([503, 'ExpectedChannelNodePublicKey']);
+    }
+
+    if (!response.node2_policy) {
+      return cbk([503, 'ExpectedNode2PolicyInChannelResponse']);
     }
 
     if (response.node2_policy.time_lock_delta === undefined) {
@@ -108,6 +112,10 @@ module.exports = ({id, lnd}, cbk) => {
 
     if (response.node2_policy.disabled === undefined) {
       return cbk([503, 'ExpectedChannelNodeDisabledStatus']);
+    }
+
+    if (!response.node2_pub) {
+      return cbk([503, 'ExpectedChannelNodePublicKey']);
     }
 
     const [transactionId, vout] = response.chan_point.split(separatorChar);
