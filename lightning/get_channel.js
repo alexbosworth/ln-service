@@ -16,11 +16,11 @@ const separatorChar = ':';
   {
     capacity: <Maximum Tokens Number>
     policies: [{
-      base_fee_mtokens: <Base Fee Millitokens String>
-      cltv_delta: <Locktime Delta Number>
-      fee_rate: <Fees Charged Per Million Tokens Number>
-      is_disabled: <Channel Is Disabled Bool>
-      minimum_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+      [base_fee_mtokens]: <Base Fee Millitokens String>
+      [cltv_delta]: <Locktime Delta Number>
+      [fee_rate]: <Fees Charged Per Million Tokens Number>
+      [is_disabled]: <Channel Is Disabled Bool>
+      [minimum_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
       public_key: <Node Public Key String>
     }]
     transaction_id: <Transaction Id Hex String>
@@ -62,56 +62,56 @@ module.exports = ({id, lnd}, cbk) => {
       return cbk([503, 'ExpectedChannelLastUpdate']);
     }
 
-    if (!response.node1_policy) {
-      return cbk([503, 'ExpectedNode1PolicyInChannelResponse']);
-    }
+    if (!!response.node1_policy) {
+      if (response.node1_policy.time_lock_delta === undefined) {
+        return cbk([503, 'ExpectedChannelNodeTimelockDelta']);
+      }
 
-    if (response.node1_policy.time_lock_delta === undefined) {
-      return cbk([503, 'ExpectedChannelNodeTimelockDelta']);
-    }
+      if (!response.node1_policy.min_htlc) {
+        return cbk([503, 'ExpectedChannelNodePolicyMinimumHtlcValue']);
+      }
 
-    if (!response.node1_policy.min_htlc) {
-      return cbk([503, 'ExpectedChannelNodePolicyMinimumHtlcValue']);
-    }
+      if (!response.node1_policy.fee_base_msat) {
+        return cbk([503, 'ExpectedChannelNodePolicyBaseFee']);
+      }
 
-    if (!response.node1_policy.fee_base_msat) {
-      return cbk([503, 'ExpectedChannelNodePolicyBaseFee']);
-    }
+      if (!response.node1_policy.fee_rate_milli_msat) {
+        return cbk([503, 'ExpectedChannelNodeFeeRate']);
+      }
 
-    if (!response.node1_policy.fee_rate_milli_msat) {
-      return cbk([503, 'ExpectedChannelNodeFeeRate']);
-    }
-
-    if (response.node1_policy.disabled === undefined) {
-      return cbk([503, 'ExpectedChannelNodeDisabledStatus']);
+      if (response.node1_policy.disabled === undefined) {
+        return cbk([503, 'ExpectedChannelNodeDisabledStatus']);
+      }
     }
 
     if (!response.node1_pub) {
       return cbk([503, 'ExpectedChannelNodePublicKey']);
     }
 
-    if (!response.node2_policy) {
-      return cbk([503, 'ExpectedNode2PolicyInChannelResponse']);
-    }
+    if (!!response.node2_policy) {
+      if (!response.node2_policy) {
+        return cbk([503, 'ExpectedNode2PolicyInChannelResponse']);
+      }
 
-    if (response.node2_policy.time_lock_delta === undefined) {
-      return cbk([503, 'ExpectedChannelNodeTimelockDelta']);
-    }
+      if (response.node2_policy.time_lock_delta === undefined) {
+        return cbk([503, 'ExpectedChannelNodeTimelockDelta']);
+      }
 
-    if (!response.node2_policy.min_htlc) {
-      return cbk([503, 'ExpectedChannelNodePolicyMinimumHtlcValue']);
-    }
+      if (!response.node2_policy.min_htlc) {
+        return cbk([503, 'ExpectedChannelNodePolicyMinimumHtlcValue']);
+      }
 
-    if (!response.node2_policy.fee_base_msat) {
-      return cbk([503, 'ExpectedChannelNodePolicyBaseFee']);
-    }
+      if (!response.node2_policy.fee_base_msat) {
+        return cbk([503, 'ExpectedChannelNodePolicyBaseFee']);
+      }
 
-    if (!response.node2_policy.fee_rate_milli_msat) {
-      return cbk([503, 'ExpectedChannelNodeFeeRate']);
-    }
+      if (!response.node2_policy.fee_rate_milli_msat) {
+        return cbk([503, 'ExpectedChannelNodeFeeRate']);
+      }
 
-    if (response.node2_policy.disabled === undefined) {
-      return cbk([503, 'ExpectedChannelNodeDisabledStatus']);
+      if (response.node2_policy.disabled === undefined) {
+        return cbk([503, 'ExpectedChannelNodeDisabledStatus']);
+      }
     }
 
     if (!response.node2_pub) {
@@ -128,29 +128,27 @@ module.exports = ({id, lnd}, cbk) => {
       return cbk([503, 'ExpectedVout']);
     }
 
+    const policies = [response.node1_policy, response.node2_policy].map(n => {
+      return {
+        base_fee_mtokens: n.fee_base_msat,
+        cltv_delta: n.time_lock_delta,
+        fee_rate: parseInt(n.fee_rate_milli_msat, decBase),
+        is_disabled: n.disabled,
+        minimum_htlc_mtokens: parseInt(n.min_htlc, decBase),
+      };
+    });
+
+    const [node1Policy, node2Policy] = policies;
+
+    node1Policy.public_key = response.node1_pub;
+    node2Policy.public_key = response.node2_pub;
+
     const firstPolicy = response.node1_policy;
     const secondPolicy = response.node2_policy;
 
     return cbk(null, {
+      policies,
       capacity: parseInt(response.capacity, decBase),
-      policies: [
-        {
-          base_fee_mtokens: firstPolicy.fee_base_msat,
-          cltv_delta: firstPolicy.time_lock_delta,
-          fee_rate: parseInt(firstPolicy.fee_rate_milli_msat, decBase),
-          is_disabled: firstPolicy.disabled,
-          minimum_htlc_mtokens: parseInt(firstPolicy.min_htlc, decBase),
-          public_key: response.node1_pub,
-        },
-        {
-          base_fee_mtokens: secondPolicy.fee_base_msat,
-          cltv_delta: secondPolicy.time_lock_delta,
-          fee_rate: parseInt(secondPolicy.fee_rate_milli_msat, decBase),
-          is_disabled: secondPolicy.disabled,
-          minimum_htlc_value: parseInt(secondPolicy.min_htlc, decBase),
-          public_key: response.node2_pub,
-        },
-      ],
       transaction_id: transactionId,
       transaction_vout: vout,
       update_at: new Date(response.last_update * msPerSec).toISOString(),

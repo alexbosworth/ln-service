@@ -54,5 +54,5 @@
     "start": "node server.js",
     "test": "tap test/*.js"
   },
-  "version": "17.12.0"
+  "version": "18.0.0"
 }
