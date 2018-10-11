@@ -129,6 +129,10 @@ module.exports = ({id, lnd}, cbk) => {
     }
 
     const policies = [response.node1_policy, response.node2_policy].map(n => {
+      if (!n) {
+        return {};
+      }
+
       return {
         base_fee_mtokens: n.fee_base_msat,
         cltv_delta: n.time_lock_delta,
