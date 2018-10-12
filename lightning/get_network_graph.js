@@ -1,6 +1,5 @@
 const asyncAuto = require('async/auto');
 
-const getWalletInfo = require('./get_wallet_info');
 const {returnResult} = require('./../async-util');
 
 const countGroupingFactor = 3;
@@ -18,7 +17,6 @@ const outpointSeparatorChar = ':';
   {
     edges: [{
       capacity: <Channel Capacity Tokens Number>
-      from_self: <Channel Link From Self Bool>
       id: <Channel Id String>
       policies: [{
         [base_fee_mtokens]: <Bae Fee Millitokens String>
@@ -26,10 +24,8 @@ const outpointSeparatorChar = ':';
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         [is_disabled]: <Edge is Disabled Bool>
         [minimum_htlc_mtokens]: <Minimum HTLC Millitokens String>
+        public_key: <Public Key String>
       }]
-      source: <Source Public Key String>
-      target: <Target Public Key String>
-      to_self: <Target is Self Bool>
       transaction_id: <Funding Transaction Id String>
       transaction_output_index: <Funding Transaction Output Index Number>
       updated_at: <Last Update Epoch ISO 8601 Date String>
@@ -37,16 +33,10 @@ const outpointSeparatorChar = ':';
     nodes: [{
       alias: <Name String>
       color: <Hex Encoded Color String>
-      community: <Community Grouping Number>
-      id: <Node Public Key String>
-      is_self: <Node is Self Bool>
+      public_key: <Node Public Key String>
       sockets: [<Network Address and Port String>]
       updated_at: <Last Updated ISO 8601 Date String>
     }]
-    own_node: {
-      channel_count: <Total Channels Count Number>
-      id: <Node Public Key String>
-    }
   }
 */
 module.exports = ({lnd}, cbk) => {
@@ -83,22 +73,11 @@ module.exports = ({lnd}, cbk) => {
       });
     }],
 
-    // Get wallet info
-    getWalletInfo: ['validate', ({}, cbk) => getWalletInfo({lnd}, cbk)],
-
     // Network graph
-    graph: ['getGraph', 'getWalletInfo', ({getGraph, getWalletInfo}, cbk) => {
-      const channelCount = {};
-      const graph = getGraph;
-      const ownKey = getWalletInfo.public_key;
+    graph: ['getGraph', ({getGraph}, cbk) => {
+      const hasChannel = {};
 
-      graph.edges = graph.edges.map(n => {
-        [n.node1_pub, n.node2_pub].forEach(n => {
-          channelCount[n] = channelCount[n] || [].length;
-
-          return channelCount[n]++;
-        });
-
+      const edges = getGraph.edges.map(n => {
         const [txId, vout] = n.chan_point.split(outpointSeparatorChar);
 
         const policies = [n.node1_policy, n.node2_policy].map(policy => {
@@ -109,50 +88,44 @@ module.exports = ({lnd}, cbk) => {
           return {
             base_fee_mtokens: policy.fee_base_msat,
             cltv_delta: policy.time_lock_delta,
-            fee_rate: parseInt(policy.fee_rate_milli_sat, decBase),
+            fee_rate: parseInt(policy.fee_rate_milli_msat, decBase),
             is_disabled: !!policy.disabled,
             minimum_htlc_mtokens: policy.min_htlc,
           };
         });
 
+        const [node1Policy, node2Policy] = policies;
+
+        hasChannel[n.node1_pub] = true;
+        hasChannel[n.node2_pub] = true;
+
+        node1Policy.public_key = n.node1_pub;
+        node2Policy.public_key = n.node2_pub;
+
         return {
           policies,
           capacity: parseInt(n.capacity, decBase),
-          from_self: n.node1_pub === ownKey,
           id: n.channel_id,
-          source: n.node1_pub,
-          target: n.node2_pub,
-          to_self: n.node2_pub === ownKey,
           transaction_id: txId,
-          transaction_output_index: parseInt(vout, decBase),
+          transaction_vout: parseInt(vout, decBase),
           updated_at: new Date(n.last_update * msPerSec).toISOString(),
         };
       });
 
-      graph.nodes = graph.nodes.map(n => {
-        const count = channelCount[n.pub_key] || [].length;
-
-        const community = Math.round(count / countGroupingFactor);
-
+      const nodes = getGraph.nodes.map(n => {
         return {
           alias: n.alias,
           color: n.color,
-          community: !channelCount[n.pub_key] ? [].length : community,
-          id: n.pub_key,
-          is_self: n.pub_key === ownKey,
-          sockets: n.addresses.map(n => n.addr),
+          public_key: n.pub_key,
+          sockets: n.addresses.map(({addr}) => addr),
           updated_at: new Date(n.last_update).toISOString(),
         };
       });
 
-      graph.nodes = graph.nodes.filter(n => !!channelCount[n.id]);
-
-      graph.own_node = {
-        channel_count: channelCount[ownKey] || [].length,
-        id: ownKey,
-      };
-
-      return cbk(null, graph);
+      return cbk(null, {
+        edges,
+        nodes: nodes.filter(n => !!hasChannel[n.public_key]),
+      });
     }],
   },
   returnResult({of: 'graph'}, cbk));

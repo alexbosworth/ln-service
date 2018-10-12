@@ -41,7 +41,7 @@ module.exports = ({lnd}, cbk) => {
     aliases: ['getNetworkGraph', ({getNetworkGraph}, cbk) => {
       const aliases = {};
 
-      getNetworkGraph.nodes.forEach(({alias, id}) => aliases[id] = alias);
+      getNetworkGraph.nodes.forEach(n => aliases[n.public_key] = n.alias);
 
       return cbk(null, aliases);
     }],
