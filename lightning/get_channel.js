@@ -25,7 +25,7 @@ const separatorChar = ':';
     }]
     transaction_id: <Transaction Id Hex String>
     transaction_vout: <Transaction Output Index Number>
-    update_at: <Channel Last Updated At ISO 8601 Date String>
+    [update_at]: <Channel Last Updated At ISO 8601 Date String>
   }
 */
 module.exports = ({id, lnd}, cbk) => {
@@ -58,7 +58,7 @@ module.exports = ({id, lnd}, cbk) => {
       return cbk([503, 'ExpectedChannelOutpoint']);
     }
 
-    if (!response.last_update) {
+    if (response.last_update === undefined) {
       return cbk([503, 'ExpectedChannelLastUpdate']);
     }
 
@@ -119,6 +119,7 @@ module.exports = ({id, lnd}, cbk) => {
     }
 
     const [transactionId, vout] = response.chan_point.split(separatorChar);
+    const updatedAt = response.last_update * msPerSec;
 
     if (!transactionId) {
       return cbk([503, 'ExpectedTransactionId']);
@@ -155,7 +156,7 @@ module.exports = ({id, lnd}, cbk) => {
       capacity: parseInt(response.capacity, decBase),
       transaction_id: transactionId,
       transaction_vout: vout,
-      update_at: new Date(response.last_update * msPerSec).toISOString(),
+      update_at: !updatedAt ? undefined : new Date(updatedAt).toISOString(),
     });
   });
 };
