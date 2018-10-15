@@ -2,6 +2,7 @@ const asyncAuto = require('async/auto');
 
 const channelLimit = require('./conf/lnd').channel_limit_tokens;
 const getChainBalance = require('./get_chain_balance');
+const getPeers = require('./get_peers');
 const {returnResult} = require('./../async-util');
 
 const defaultMinConfs = 1;
@@ -51,8 +52,22 @@ module.exports = (args, cbk) => {
     // Get the current chain balance
     getChainBalance: cbk => getChainBalance({lnd: args.lnd}, cbk),
 
+    // Get the current peers
+    getPeers: cbk => getPeers({lnd: args.lnd}, cbk),
+
     // Open the channel
-    openChannel: ['getChainBalance', 'validate', ({getChainBalance}, cbk) => {
+    openChannel: [
+      'getChainBalance',
+      'getPeers',
+      'validate',
+      ({getChainBalance, getPeers}, cbk) =>
+    {
+      const {peers} = getPeers;
+
+      if (!peers.find(n => n.public_key === args.partner_public_key)) {
+        return cbk([400, 'ExpectedConnectedPeerPublicKeyForChannelOpen']);
+      }
+
       const balance = getChainBalance.chain_balance;
       let isAnnounced = false;
       const limit = channelLimit;

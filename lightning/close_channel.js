@@ -21,6 +21,7 @@ const {returnResult} = require('./../async-util');
   @returns via cbk
   {
     transaction_id: <Closing Transaction Id Hex String>
+    transaction_vout: <Closing Transaction Vout Number>
     type: <Row Type String>
   }
 */
@@ -80,25 +81,34 @@ module.exports = (args, cbk) => {
       closeChannel.on('data', chan => {
         switch (chan.update) {
         case 'chan_close':
+          break;
+
+        case 'close_pending':
           if (isAnnounced) {
             break;
           }
 
           isAnnounced = true;
 
-          if (!chan.chan_close || !chan.chan_close.closing_txid) {
-            return cbk([503, 'UnexpectedChanClose'])
+          if (!chan.close_pending) {
+            return cbk([503, 'ExpectedClosePendingData']);
           }
 
-          const closingTransactionId = chan.chan_close.closing_txid.reverse();
+          if (!chan.close_pending.txid) {
+            return cbk([503, 'ExpectedClosePendingTransactionId']);
+          }
+
+          if (chan.close_pending.output_index === undefined) {
+            return cbk([503, 'ExpectedOutputIndexForPendingChannelClose']);
+          }
+
+          const closeTxId = chan.close_pending.txid.reverse();
 
           return cbk(null, {
-            transaction_id: closingTransactionId.toString('hex'),
+            transaction_id: closeTxId.toString('hex'),
+            transaction_vout: chan.close_pending.output_index,
             type: 'pending_close_channel',
           })
-          break;
-
-        case 'close_pending':
           break;
 
         case 'confirmation':
@@ -129,10 +139,8 @@ module.exports = (args, cbk) => {
           return cbk([503, 'FailedToCloseChannel', n]);
         }
       });
-
-      return cbk();
     }],
   },
-  returnResult({}, cbk));
+  returnResult({of: 'closeChannel'}, cbk));
 };
 
