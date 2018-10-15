@@ -26,8 +26,8 @@ module.exports = ({lnd, log, wss}) => {
       lnd,
       wss,
       address: body.address,
+      fee_tokens_per_vbyte: body.fee_tokens_per_vbyte || undefined,
       tokens: body.tokens,
-      fee_tokens_per_vbyte: body.fee_tokens_per_vbyte || 0
     },
     returnJson({log, res}));
   });

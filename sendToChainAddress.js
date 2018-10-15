@@ -5,8 +5,10 @@ const {sendToChainAddress} = require('./');
 /** Send tokens in a blockchain transaction.
 
   {
-    address: <Destination Address String>
-    lnd: <Object>
+    address: <Destination Chain Address String>
+    [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
+    lnd: <LND GRPC Object>
+    [target_confirmations]: <Confirmations To Wait Number>
     tokens: <Satoshis Number>
     wss: <Web Socket Server Object>
   }

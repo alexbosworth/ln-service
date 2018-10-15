@@ -13,6 +13,13 @@ const {closeChannel} = require('./');
     [transaction_id]: <Transaction Id Hex String>
     [transaction_vout]: <Transaction Output Index Number>
   }
+
+  @returns via Promise
+  {
+    transaction_id: <Closing Transaction Id Hex String>
+    transaction_vout: <Closing Transaction Vout Number>
+    type: <Row Type String>
+  }
 */
 module.exports = promisify(closeChannel);
 
