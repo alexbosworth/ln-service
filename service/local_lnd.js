@@ -1,6 +1,7 @@
 const {existsSync} = require('fs');
 const {join} = require('path');
 const {readFileSync} = require('fs');
+const dns = require('dns-sync');
 
 const {lightningDaemon} = require('./../lightning');
 
@@ -8,11 +9,16 @@ const adminMacaroonFileName = 'admin.macaroon';
 const chainDirName = 'chain';
 const dataDirName = 'data';
 const lndGrpcPort = process.env.LND_GRPC_PORT || 10009;
-const lndHost = process.env.LND_HOST || 'localhost';
 const {LNSERVICE_CHAIN} = process.env;
 const {LNSERVICE_LND_DIR} = process.env;
 const {LNSERVICE_NETWORK} = process.env;
 const tlsCertFileName = 'tls.cert';
+
+let lndHost = process.env.LND_HOST || 'localhost';
+const isIPAddress = (/^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/.test(lndHost));
+if (!isIPAddress) {
+  lndHost = dns.lookup(lndHost);
+}
 
 /** Get the Lightning Daemon connection
 
