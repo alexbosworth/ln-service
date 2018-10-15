@@ -73,8 +73,8 @@ You can then interact with your LND node directly:
     
     const lnd = lnService.lightningDaemon({
       cert: 'base64 encoded tls.cert',
-      host: 'localhost:10009',
       macaroon: 'base64 encoded admin.macaroon',
+      socket: 'localhost:10009',
     });
     
     lnService.getWalletInfo({lnd}, (error, result) => {

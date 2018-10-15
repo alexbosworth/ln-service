@@ -15,28 +15,32 @@ const unlockerServiceType = 'WalletUnlocker';
 
   {
     cert: <Base64 Serialized LND TLS Cert>
-    host: <Host:Port String>
     macaroon: <Base64 Serialized Macaroon String>
     [service]: <Service Name String> // "WalletUnlocker"|"Lightning" (default)
+    socket: <Host:Port String>
   }
 
   @throws
-  <Error> on grpc interface creation failure
+  <ExpectedBase64EncodedGrpcMacaroonFile Error>
+  <ExpectedBase64EncodedTlsCertFileString Error>
+  <ExpectedGrpcIpOrDomainWithPortString Error>
+  <ExpectedGrpcSslCipherSuitesEnvVar Error>
+  <UnexpectedLightningDaemonServiceType Error>
 
   @returns
   <LND GRPC Api Object>
 */
-module.exports = ({cert, host, macaroon, service}) => {
+module.exports = ({cert, macaroon, service, socket}) => {
   if (!cert) {
     throw new Error('ExpectedBase64EncodedTlsCertFileString');
   }
 
-  if (!host) {
-    throw new Error('ExpectedGrpcHostWithPortString');
-  }
-
   if (!macaroon && service !== unlockerServiceType) {
     throw new Error('ExpectedBase64EncodedGrpcMacaroonFile');
+  }
+
+  if (!socket) {
+    throw new Error('ExpectedGrpcIpOrDomainWithPortString');
   }
 
   const packageDefinition = loadSync(join(__dirname, confDir, protoFile), {
@@ -83,6 +87,6 @@ module.exports = ({cert, host, macaroon, service}) => {
     throw new Error('UnexpectedLightningDaemonServiceType');
   }
 
-  return new rpc.lnrpc[serviceType](host, credentials);
+  return new rpc.lnrpc[serviceType](socket, credentials);
 };
 

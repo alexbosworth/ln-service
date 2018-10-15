@@ -1,24 +1,24 @@
 const {existsSync} = require('fs');
 const {join} = require('path');
 const {readFileSync} = require('fs');
-const dns = require('dns-sync');
+const {lookup} = require('dns-sync');
+
+const config = require('dotenv').config();
 
 const {lightningDaemon} = require('./../lightning');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainDirName = 'chain';
 const dataDirName = 'data';
+const host = process.env.LND_HOST || 'localhost';
+const isIp = /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/;
 const lndGrpcPort = process.env.LND_GRPC_PORT || 10009;
 const {LNSERVICE_CHAIN} = process.env;
 const {LNSERVICE_LND_DIR} = process.env;
 const {LNSERVICE_NETWORK} = process.env;
 const tlsCertFileName = 'tls.cert';
 
-let lndHost = process.env.LND_HOST || 'localhost';
-const isIPAddress = (/^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/.test(lndHost));
-if (!isIPAddress) {
-  lndHost = dns.lookup(lndHost);
-}
+const lndHost = isIp.test(host) ? host : lookup(host);
 
 /** Get the Lightning Daemon connection
 
@@ -35,8 +35,20 @@ if (!isIPAddress) {
   }
 */
 module.exports = args => {
+  if (!LNSERVICE_CHAIN) {
+    throw new Error('ExpectedLnServiceLnChainEnvVariable');
+  }
+
+  if (!LNSERVICE_LND_DIR) {
+    throw new Error('ExpectedLnServiceLndDirEnvVariable');
+  }
+
+  if (!LNSERVICE_NETWORK) {
+    throw new Error('ExpectedLnServiceLnNetworkEnvVariable');
+  }
+
   const certPath = join(LNSERVICE_LND_DIR, tlsCertFileName);
-  const host = `${lndHost}:${lndGrpcPort}`;
+  const socket = `${lndHost}:${lndGrpcPort}`;
 
   if (!existsSync(certPath)) {
     throw new Error('ExpectedTlsCert');
@@ -46,7 +58,7 @@ module.exports = args => {
 
   // Exit early with unauthenticated connection when in unlocker mode
   if (!!args.is_unlocker) {
-    return lightningDaemon({cert, host, service: 'WalletUnlocker'});
+    return lightningDaemon({cert, socket, service: 'WalletUnlocker'});
   }
 
   const macaroonPath = join(
@@ -64,6 +76,6 @@ module.exports = args => {
 
   const macaroon = readFileSync(macaroonPath).toString('base64');
 
-  return lightningDaemon({cert, host, macaroon});
+  return lightningDaemon({cert, macaroon, socket});
 };
 

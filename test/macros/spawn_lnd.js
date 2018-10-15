@@ -146,8 +146,8 @@ module.exports = ({network}, cbk) => {
       try {
         return cbk(null, lightningDaemon({
           cert: cert.toString('base64'),
-          host: `${localhost}:${getPorts.rpc}`,
           service: lndWalletUnlockerService,
+          socket: `${localhost}:${getPorts.rpc}`,
         }));
       } catch (err) {
         return cbk([503, 'FailedToLaunchLightningDaemon', err]);
@@ -207,8 +207,8 @@ module.exports = ({network}, cbk) => {
       try {
         return cbk(null, lightningDaemon({
           cert: wallet.cert,
-          host: wallet.host,
           macaroon: wallet.macaroon,
+          socket: wallet.host,
         }));
       } catch (err) {
         return cbk([503, 'FailedToInstantiateWalletLnd', err]);

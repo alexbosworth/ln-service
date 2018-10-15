@@ -27,6 +27,7 @@ const {getPendingChannels} = require('./lightning');
 const {getRoutes} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
 const {lightningDaemon} = require('./lightning');
+const localLnd = require('./service/local_lnd');
 const {openChannel} = require('./lightning');
 const {parsePaymentRequest} = require('./bolt11');
 const {pay} = require('./lightning');
@@ -71,6 +72,7 @@ module.exports = {
   getRoutes,
   getWalletInfo,
   lightningDaemon,
+  localLnd,
   openChannel,
   parsePaymentRequest,
   pay,
