@@ -7,8 +7,8 @@ const openChannel = require('./../../openChannel');
 const confirmationCount = 6;
 const maxChannelCapacity = 16776216;
 
-// Opening a channel should open a channel
-test(`Open channel`, async ({end, equal}) => {
+// Getting channels should return the list of channels
+test(`Get channels`, async ({end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

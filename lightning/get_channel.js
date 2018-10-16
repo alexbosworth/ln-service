@@ -20,7 +20,7 @@ const separatorChar = ':';
       [cltv_delta]: <Locktime Delta Number>
       [fee_rate]: <Fees Charged Per Million Tokens Number>
       [is_disabled]: <Channel Is Disabled Bool>
-      [minimum_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
+      [minimum_htlc_mtokens]: <Minimum HTLC Millitokens Value Number>
       public_key: <Node Public Key String>
     }]
     transaction_id: <Transaction Id Hex String>
@@ -155,7 +155,7 @@ module.exports = ({id, lnd}, cbk) => {
       policies,
       capacity: parseInt(response.capacity, decBase),
       transaction_id: transactionId,
-      transaction_vout: vout,
+      transaction_vout: parseInt(vout, decBase),
       update_at: !updatedAt ? undefined : new Date(updatedAt).toISOString(),
     });
   });
