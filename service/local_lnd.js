@@ -3,8 +3,6 @@ const {join} = require('path');
 const {readFileSync} = require('fs');
 const {lookup} = require('dns-sync');
 
-const config = require('dotenv').config();
-
 const {lightningDaemon} = require('./../lightning');
 
 const adminMacaroonFileName = 'admin.macaroon';
@@ -78,4 +76,3 @@ module.exports = args => {
 
   return lightningDaemon({cert, macaroon, socket});
 };
-
