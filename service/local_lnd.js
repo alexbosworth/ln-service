@@ -1,3 +1,4 @@
+const config = require('dotenv').config(); // Needed for .env support
 const {existsSync} = require('fs');
 const {join} = require('path');
 const {readFileSync} = require('fs');
