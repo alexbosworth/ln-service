@@ -15,6 +15,7 @@ const rowTypes = require('./conf/row_types');
     [internal_description]: <Internal Description String>
     [is_fallback_included]: <Is Fallback Address Included Bool>
     [is_fallback_nested]: <Is Fallback Address Nested Bool>
+    [is_including_private_channels]: <Invoice Includes Private Channels Bool>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
     [secret]: <Payment Secret Hex String>
@@ -92,6 +93,7 @@ module.exports = (args, cbk) => {
         expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
         fallback_addr: fallbackAddress,
         memo: args.description,
+        private: !!args.is_including_private_channels,
         r_preimage: preimage || undefined,
         receipt: !!receipt.length ? receipt : undefined,
         value: args.tokens || undefined,

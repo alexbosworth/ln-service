@@ -27,7 +27,7 @@ const outpointSeparatorChar = ':';
         public_key: <Public Key String>
       }]
       transaction_id: <Funding Transaction Id String>
-      transaction_output_index: <Funding Transaction Output Index Number>
+      transaction_vout: <Funding Transaction Output Index Number>
       updated_at: <Last Update Epoch ISO 8601 Date String>
     }]
     nodes: [{

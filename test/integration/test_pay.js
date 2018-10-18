@@ -1,5 +1,6 @@
 const {test} = require('tap');
 
+const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const getChannels = require('./../../getChannels');
@@ -19,41 +20,65 @@ const txIdHexLength = 32 * 2;
 test(`Pay`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
-  const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
-
-  const channelOpen = await openChannel({
+  const controlToTargetChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
   });
 
-  await cluster.generate({count: confirmationCount});
+  await cluster.generate({count: confirmationCount, node: cluster.control});
 
   const [channel] = (await getChannels({lnd: cluster.control.lnd})).channels;
+
+  const targetToRemoteChannel = await openChannel({
+    chain_fee_tokens_per_vbyte: defaultFee,
+    lnd: cluster.target.lnd,
+    local_tokens: channelCapacityTokens,
+    partner_public_key: cluster.remote_node_public_key,
+  });
+
+  await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await addPeer({
+    lnd: cluster.control.lnd,
+    public_key: cluster.remote_node_public_key,
+    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+  });
+
+  const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
   const commitTxFee = channel.commit_transaction_fee;
   const paid = await pay({lnd: cluster.control.lnd, request: invoice.request});
 
-  equal(paid.fee, [].length, 'Direct fee paid is zero');
-  equal(paid.fee_mtokens, [].length.toString(), 'No fee mtokens on direct');
+  equal(paid.fee, 1, 'Fee paid for hop');
+  equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
   equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
   equal(paid.is_confirmed, true, 'Invoice is paid');
   equal(paid.is_outgoing, true, 'Payments are outgoing');
-  equal(paid.mtokens, `${invoice.tokens}${mtokPadding}`, 'Paid mtokens');
+  equal(paid.mtokens, '101000', 'Paid mtokens');
   equal(paid.secret, invoice.secret, 'Paid for invoice secret');
-  equal(paid.tokens, invoice.tokens, 'Paid correct number of tokens');
+  equal(paid.tokens, invoice.tokens + 1, 'Paid correct number of tokens');
   equal(paid.type, 'channel_transaction', 'Payment is channel transaction');
 
-  const expectedHop = {
-    channel_capacity: ((channel.capacity * reserveRatio) - commitTxFee),
-    channel_id: channel.id,
-    fee_mtokens: [].length.toString(),
-    forward_mtokens: `${invoice.tokens}${mtokPadding}`,
-    timeout: 590,
-  };
+  const expectedHops = [
+    {
+      channel_capacity: ((channel.capacity * reserveRatio) - commitTxFee),
+      channel_id: channel.id,
+      fee_mtokens: '1000',
+      forward_mtokens: `${invoice.tokens}${mtokPadding}`,
+      timeout: 606,
+    },
+    {
+      channel_capacity: 999000,
+      channel_id: '498078767448064',
+      fee_mtokens: '0',
+      forward_mtokens: '100000',
+      timeout: 606,
+    },
+  ];
 
-  deepIs(paid.hops, [expectedHop], 'Hop is direct hop');
+  deepIs(paid.hops, expectedHops, 'Hops are returned');
 
   cluster.kill();
 

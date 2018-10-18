@@ -20,8 +20,8 @@ const transactionIdHexLength = 32 * 2;
     channels: [{
       base_fee: <Base Flat Fee in Tokens Number>
       fee_rate: <Fee Rate In Tokens Per Million Number>
-      output_index: <Funding Outpoint Output Index Number>
       transaction_id: <Channel Funding Transaction Id Hex String>
+      transaction_vout: <Funding Outpoint Output Index Number>
     }]
   }
 */
@@ -87,8 +87,8 @@ module.exports = ({lnd}, cbk) => {
         return cbk(null, {
           base_fee: baseFee,
           fee_rate: feeRate,
-          output_index: parseInt(index, decBase),
           transaction_id: id,
+          transaction_vout: parseInt(index, decBase),
         });
       },
       cbk);

@@ -33,10 +33,6 @@
     "uuid": "3.3.0",
     "varuint-bitcoin": "1.1.0"
   },
-  "engines": {
-    "node": "8.12.0",
-    "npm": "6.4.1"
-  },
   "keywords": [
     "lightning",
     "lightning-network",
@@ -55,5 +51,5 @@
     "start": "node server.js",
     "test": "tap test/*.js"
   },
-  "version": "21.0.2"
+  "version": "22.0.0"
 }

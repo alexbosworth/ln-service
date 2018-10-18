@@ -77,3 +77,4 @@ module.exports = args => {
 
   return lightningDaemon({cert, macaroon, socket});
 };
+

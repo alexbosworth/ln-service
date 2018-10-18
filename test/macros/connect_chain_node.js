@@ -15,11 +15,15 @@ const cmd = 'addnode';
   }
 */
 module.exports = ({cert, connect, host, pass, port, user}, cbk) => {
+  if (!cert) {
+    return cbk([400, 'ExpectedRpcCertFile']);
+  }
+
   const params = [connect, addFlag];
 
   return rpc({cert, cmd, host, params, pass, port, user}, err => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorAddingNode']);
+      return cbk([503, 'UnexpectedErrorAddingNode', err]);
     }
 
     return cbk();

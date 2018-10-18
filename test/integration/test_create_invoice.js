@@ -14,6 +14,11 @@ test(`Create an invoice`, async ({end, equal}) => {
   equal(invoice.tokens, 0, 'Default tokens are 0');
   equal(invoice.type, 'invoice', 'Invoice row type');
 
+  const fancyInvoice = await createInvoice({
+    lnd,
+    is_including_private_channels: true,
+  });
+
   kill();
 
   return end();
