@@ -34,6 +34,7 @@ const decBase = 10;
       }]
     }
     [request]: <BOLT 11 Payment Request String>
+    [tokens]: <Total Tokens To Pay Number>
     [wss]: [<Web Socket Server Object>]
   }
 
@@ -57,7 +58,7 @@ const decBase = 10;
     type: <Type String>
   }
 */
-module.exports = ({fee, lnd, log, path, request, wss}, cbk) => {
+module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
   if (!path && !request) {
     return cbk([400, 'ExpectedPathOrRequestToPay']);
   }
@@ -76,7 +77,7 @@ module.exports = ({fee, lnd, log, path, request, wss}, cbk) => {
 
   // Exit early when the invoice is defined
   if (!path) {
-    return payPaymentRequest({fee, lnd, log, request, wss}, cbk);
+    return payPaymentRequest({fee, lnd, log, request, tokens, wss}, cbk);
   }
 
   lnd.sendToRouteSync({
