@@ -28,6 +28,7 @@ const {pay} = require('./');
       }]
     }
     [request]: <BOLT 11 Payment Request String>
+    [tokens]: <Total Tokens To Pay Number>
     [wss]: [<Web Socket Server Object>]
   }
 
