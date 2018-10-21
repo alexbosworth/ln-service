@@ -38,6 +38,14 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedInvoice'));
     }
 
+    if (!invoice.amt_paid_msat) {
+      return eventEmitter.emit('error', new Error('ExpectedInvoicePaidMsat'));
+    }
+
+    if (!invoice.amt_paid_sat) {
+      return eventEmitter.emit('error', new Error('ExpectedInvoicePaidSat'));
+    }
+
     if (!invoice.creation_date) {
       return eventEmitter.emit('error', new Error('ExpectedCreationDate'));
     }
@@ -70,14 +78,6 @@ module.exports = ({lnd}) => {
 
     if (!invoice.value) {
       return eventEmitter.emit('error', new Error('ExpectedInvoiceValue'));
-    }
-
-    if (!invoice.amt_paid_sat) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoiceAmtPaidSat'));
-    }
-
-    if (!invoice.amt_paid_msat) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoiceAmtPaidMsat'));
     }
 
     const confirmedAt = parseInt(invoice.settle_date, decBase);

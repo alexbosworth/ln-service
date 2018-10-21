@@ -12,6 +12,7 @@ const getChannelBalance = require('./get_channel_balance');
 const getChannels = require('./get_channels');
 const getClosedChannels = require('./get_closed_channels');
 const getFeeRates = require('./get_fee_rates');
+const getForwards = require('./get_forwards');
 const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
 const getNetworkGraph = require('./get_network_graph');
@@ -52,6 +53,7 @@ module.exports = {
   getChannels,
   getClosedChannels,
   getFeeRates,
+  getForwards,
   getInvoice,
   getInvoices,
   getNetworkGraph,

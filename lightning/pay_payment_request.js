@@ -12,7 +12,7 @@ const decBase = 10;
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required if wss is set
     request: <BOLT 11 Payment Request String>
-    [tokens]: <Total Tokens To Pay Number>
+    [tokens]: <Total Tokens To Pay to Request Number>
     [wss]: [<Web Socket Server Object>]
   }
 
@@ -32,7 +32,7 @@ const decBase = 10;
     is_outgoing: <Is Outoing Bool>
     mtokens: <Millitokens Paid String>
     secret: <Payment Preimage Hex String>
-    tokens: <Tokens Number>
+    tokens: <Paid Tokens Number>
     type: <Row Type String>
   }
 */
@@ -60,8 +60,9 @@ module.exports = ({fee, lnd, log, request, tokens, wss}, cbk) => {
   }
 
   if (!!tokens) {
-    params.amt = tokens.toString()
+    params.amt = tokens.toString();
   }
+
   return lnd.sendPaymentSync(params, (err, res) => {
     if (!!err) {
       return cbk([503, 'SendPaymentErr', err, res]);

@@ -34,7 +34,7 @@ const decBase = 10;
       }]
     }
     [request]: <BOLT 11 Payment Request String>
-    [tokens]: <Total Tokens To Pay Number>
+    [tokens]: <Total Tokens To Pay to Payment Request Number>
     [wss]: [<Web Socket Server Object>]
   }
 

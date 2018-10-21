@@ -6,6 +6,7 @@
   "channel_update": "channel_update",
   "closed_channel": "closed_channel",
   "connection": "connection",
+  "forward": "forward",
   "invoice": "invoice",
   "network_info": "network_info",
   "node_update": "node_update",

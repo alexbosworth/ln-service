@@ -70,8 +70,8 @@ module.exports = ({limit, lnd, token}, cbk) => {
 
     // Get the list of invoices
     listInvoices: ['validate', ({}, cbk) => {
-      let resultsLimit = limit || defaultLimit;
       let offset;
+      let resultsLimit = limit || defaultLimit;
 
       if (!!token) {
         try {
@@ -91,11 +91,11 @@ module.exports = ({limit, lnd, token}, cbk) => {
       },
       (err, res) => {
         if (!!err) {
-          return cbk([503, 'GetInvoiceErr', err]);
+          return cbk([503, 'GetInvoicesError', err]);
         }
 
         if (!res || !Array.isArray(res.invoices)) {
-          return cbk([503, 'Expected invoices', res]);
+          return cbk([503, 'ExpectedInvoicesList', res]);
         }
 
         if (typeof res.last_index_offset !== 'string') {
