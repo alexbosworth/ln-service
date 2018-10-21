@@ -72,6 +72,14 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedInvoiceValue'));
     }
 
+    if (!invoice.amt_paid_sat) {
+      return eventEmitter.emit('error', new Error('ExpectedInvoiceAmtPaidSat'));
+    }
+
+    if (!invoice.amt_paid_msat) {
+      return eventEmitter.emit('error', new Error('ExpectedInvoiceAmtPaidMsat'));
+    }
+
     const confirmedAt = parseInt(invoice.settle_date, decBase);
     const createdAt = parseInt(invoice.creation_date, decBase);
 
@@ -87,6 +95,8 @@ module.exports = ({lnd}) => {
       is_outgoing: false,
       secret: invoice.r_preimage.toString('hex'),
       tokens: parseInt(invoice.value, decBase),
+      received: parseInt(invoice.amt_paid_sat, decBase),
+      received_mtokens: invoice.amt_paid_msat,
       type: rowTypes.channel_transaction,
     });
   });
