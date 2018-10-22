@@ -9,11 +9,16 @@ const decBase = 10;
 const defaultLimit = 100;
 const msPerSec = 1e3;
 const {parse} = JSON;
+const {round} = Math;
 const {stringify} = JSON;
 
 /** Get forwarded payments, from oldest to newest
 
+  When using an "after" date a "before" date is required.
+
   {
+    [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
+    [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>
     [limit]: <Page Result Limit Number>
     lnd: <LND GRPC API Object>
     [token]: <Opaque Paging Token String>
@@ -35,6 +40,10 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
   return asyncAuto({
     // Validate arguments
     validate: cbk => {
+      if (!!after && !before) {
+        return cbk([400, 'ExpectedBeforeDateWhenUsingAfterDate']);
+      }
+
       if (!lnd) {
         return cbk([400, 'ExpectedLndForInvoiceListing']);
       }
@@ -48,23 +57,29 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
 
     // Get the list of forwards
     listForwards: ['validate', ({}, cbk) => {
+      let endTime = before || null;
       let offset;
       let resultsLimit = limit || defaultLimit;
+      let start = after || null;
 
       if (!!token) {
         try {
           const pagingToken = parse(token);
 
+          endTime = pagingToken.before || null;
           offset = pagingToken.offset;
           resultsLimit = pagingToken.limit;
+          start = pagingToken.after || null;
         } catch (err) {
           return cbk([400, 'ExpectedValidPagingToken', err, token]);
         }
       }
 
       return lnd.forwardingHistory({
+        end_time: !endTime ? null : round(new Date(endTime).getTime() / 1e3),
         index_offset: offset || 0,
         num_max_events: resultsLimit,
+        start_time: !start ? null : round(new Date(start).getTime() / 1e3),
       },
       (err, res) => {
         if (!!err) {
@@ -84,8 +99,8 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
         }
 
         const token = stringify({
-          after,
-          before,
+          after: start || undefined,
+          before: endTime || undefined,
           offset: res.last_offset_index,
           limit: resultsLimit,
         });
