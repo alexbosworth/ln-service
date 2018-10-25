@@ -43,9 +43,9 @@ const tests = [
           forward_mtokens: "830497000",
           timeout: 1385001,
         }],
+        mtokens: '830497000',
         timeout: 31337,
         tokens: 830497,
-        mtokens: '830497000',
       },
     ]},
     response: {

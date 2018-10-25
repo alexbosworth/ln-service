@@ -31,6 +31,8 @@ const msatsPerToken = new BN(1e3, 10);
 
   @returns
   {
+    fee: <Fee Tokens Number>
+    fee_mtokens: <Fee Millitokens Number>
     routes: [{
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
@@ -47,6 +49,9 @@ const msatsPerToken = new BN(1e3, 10);
         timeout: <Timeout Block Height Number>
       }]
     }]
+    mtokens: <Total Millitokens To Send String>
+    timeout: <Total CLTV Timelock Number>
+    tokens: <Total Tokens to Send Number>
   }
 */
 module.exports = ({response}) => {
@@ -103,9 +108,9 @@ module.exports = ({response}) => {
             timeout: h.expiry,
           };
         }),
+        mtokens: totalAmtMsat.toString(),
         timeout: route.total_time_lock,
         tokens: totalAmtMsat.div(msatsPerToken).toNumber(),
-        mtokens: totalAmtMsat.toString(),
       };
     }),
   };

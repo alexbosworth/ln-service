@@ -114,7 +114,11 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       return cbk([503, 'ExpectedResponseWhenSendingPayment']);
     }
 
-    if (!!res && !!res.payment_error) {
+    if (res.payment_error === 'UnknownPaymentHash') {
+      return cbk([404, 'UnknownPaymentHash']);
+    }
+
+    if (!!res.payment_error) {
       return cbk([503, 'UnableToCompletePayment', res.payment_error]);
     }
 

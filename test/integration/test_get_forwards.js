@@ -129,8 +129,6 @@ test('Get forwards', async ({deepIs, end, equal}) => {
   equal(page4.forwards.length, [].length, 'Page 4 has no results');
   equal(page4.next, undefined, 'Page 4 leads to nowhere');
 
-  // console.log('PAGE', page1, page2, page3, page4);
-
   cluster.kill();
 
   return end();

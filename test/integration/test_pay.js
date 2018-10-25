@@ -1,9 +1,14 @@
+const {randomBytes} = require('crypto');
+
 const {test} = require('tap');
 
 const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
+const decodePaymentRequest = require('./../../decodePaymentRequest');
 const getChannels = require('./../../getChannels');
+const getNetworkGraph = require('./../../getNetworkGraph');
+const getRoutes = require('./../../getRoutes');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 
@@ -79,6 +84,36 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   ];
 
   deepIs(paid.hops, expectedHops, 'Hops are returned');
+
+  const invoice2 = await createInvoice({lnd: cluster.remote.lnd, tokens: 100});
+
+  const {destination} = await decodePaymentRequest({
+    lnd: cluster.remote.lnd,
+    request: invoice2.request,
+  });
+
+  const {routes} = await getRoutes({
+    destination,
+    lnd: cluster.control.lnd,
+    tokens: invoice2.tokens,
+  });
+
+  try {
+    await pay({
+      lnd: cluster.control.lnd,
+      path: {routes, id: randomBytes(32).toString('hex')},
+    });
+  } catch (err) {
+    const [code, message] = err;
+
+    equal(code, 404, 'Unknown payment hashes mean user error');
+    equal(message, 'UnknownPaymentHash', 'Specifically an unknown hash error');
+  }
+
+  const directPay = await pay({
+    lnd: cluster.control.lnd,
+    path: {routes, id: invoice2.id},
+  });
 
   cluster.kill();
 
