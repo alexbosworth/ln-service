@@ -22,7 +22,7 @@ const msPerSec = 1e3;
     expires_at: <ISO 8601 Date String>
     id: <Payment Hash String>
     routes: [{
-      base_fee_mtokens: <Base Routing Fee In Millitokens Number>
+      base_fee_mtokens: <Base Routing Fee In Millitokens String>
       channel_id: <Channel Id String>
       cltv_delta: <CLTV Blocks Delta Number>
       fee_rate: <Fee Rate In Millitokens Per Million Number>
@@ -105,7 +105,7 @@ module.exports = ({lnd, request}, cbk) => {
           }
 
           return {
-            base_fee_mtokens: hop.fee_base_msat,
+            base_fee_mtokens: hop.fee_base_msat.toString(),
             channel_id: hop.chan_id,
             cltv_delta: hop.cltv_expiry_delta,
             fee_rate: hop.fee_proportional_millionths,

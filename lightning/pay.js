@@ -118,6 +118,22 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       return cbk([404, 'UnknownPaymentHash']);
     }
 
+    if (res.payment_error === 'payment is in transition') {
+      return cbk([409, 'PaymentIsPendingResolution']);
+    }
+
+    if (/FeeInsufficient/.test(res.payment_error)) {
+      return cbk([503, 'RejectedOutOfDateFeeValue']);
+    }
+
+    if (/TemporaryChannelFailure/.test(res.payment_error)) {
+      return cbk([503, 'TemporaryChannelFailure']);
+    }
+
+    if (/UnknownNextPeer/.test(res.payment_error)) {
+      return cbk([503, 'UnknownNextHopChannel']);
+    }
+
     if (!!res.payment_error) {
       return cbk([503, 'UnableToCompletePayment', res.payment_error]);
     }

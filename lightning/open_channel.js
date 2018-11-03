@@ -13,9 +13,10 @@ const minimumChannelSize = 20000;
 
   {
     [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
-    [give_tokens]: <Tokens to Give To Partner Number>
+    [give_tokens]: <Tokens to Give To Partner Number> // Defaults to zero
+    [is_private]: <Channel is Private Bool> // Defaults to false
     lnd: <LND GRPC API Object>
-    [local_tokens]: <Local Tokens Number> // When not set, uses max possible
+    [local_tokens]: <Local Tokens Number> // Defaults to max possible tokens
     partner_public_key: <Public Key Hex String>
   }
 
@@ -80,6 +81,7 @@ module.exports = (args, cbk) => {
         local_funding_amount: channelAmount - staticFee,
         min_confs: defaultMinConfs,
         node_pubkey: Buffer.from(args.partner_public_key, 'hex'),
+        private: !!args.is_private,
       }
 
       if (!!args.chain_fee_tokens_per_vbyte) {

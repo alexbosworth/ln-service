@@ -31,14 +31,9 @@ const msatsPerToken = new BN(1e3, 10);
 
   @returns
   {
-    fee: <Fee Tokens Number>
-    fee_mtokens: <Fee Millitokens Number>
     routes: [{
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
-      timeout: <Timeout Block Height Number>
-      mtokens: <Total Millitokens String>
-      tokens: <Total Tokens Number>
       hops: [{
         channel_id: <BOLT 07 Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
@@ -48,10 +43,10 @@ const msatsPerToken = new BN(1e3, 10);
         forward_mtokens: <Forward Millitokens String>
         timeout: <Timeout Block Height Number>
       }]
+      mtokens: <Total Millitokens String>
+      timeout: <Timeout Block Height Number>
+      tokens: <Total Tokens Number>
     }]
-    mtokens: <Total Millitokens To Send String>
-    timeout: <Total CLTV Timelock Number>
-    tokens: <Total Tokens to Send Number>
   }
 */
 module.exports = ({response}) => {

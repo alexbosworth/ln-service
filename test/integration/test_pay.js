@@ -6,11 +6,15 @@ const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const decodePaymentRequest = require('./../../decodePaymentRequest');
+const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const getNetworkGraph = require('./../../getNetworkGraph');
 const getRoutes = require('./../../getRoutes');
+const getWalletInfo = require('./../../getWalletInfo');
+const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
+const {routeFromHops} = require('./../../routing');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 10;
@@ -25,16 +29,18 @@ const txIdHexLength = 32 * 2;
 test(`Pay`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
+  const {lnd} = cluster.control;
+
   const controlToTargetChannel = await openChannel({
+    lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
-    lnd: cluster.control.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
   });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  const [channel] = (await getChannels({lnd: cluster.control.lnd})).channels;
+  const [channel] = (await getChannels({lnd})).channels;
 
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -46,7 +52,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
   await addPeer({
-    lnd: cluster.control.lnd,
+    lnd,
     public_key: cluster.remote_node_public_key,
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
@@ -54,7 +60,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
   const commitTxFee = channel.commit_transaction_fee;
-  const paid = await pay({lnd: cluster.control.lnd, request: invoice.request});
+  const paid = await pay({lnd, request: invoice.request});
 
   equal(paid.fee, 1, 'Fee paid for hop');
   equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
@@ -94,10 +100,11 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   const {routes} = await getRoutes({
     destination,
-    lnd: cluster.control.lnd,
+    lnd,
     tokens: invoice2.tokens,
   });
 
+  // Test paying to a route, but to an id that isn't known
   try {
     await pay({
       lnd: cluster.control.lnd,
@@ -110,6 +117,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     equal(message, 'UnknownPaymentHash', 'Specifically an unknown hash error');
   }
 
+  // Test paying regularly to a destination
   const directPay = await pay({
     lnd: cluster.control.lnd,
     path: {routes, id: invoice2.id},

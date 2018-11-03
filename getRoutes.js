@@ -1,28 +1,33 @@
 const {promisify} = require('util');
 
-const {getRoutes} = require('./lightning');
+const {getRoutes} = require('./');
 
-/** Get payment routes
+/** Get routes a payment can travel towards a destination
+
+  Either a destination or extended routes are required.
 
   {
-    destination: <Send Destination Hex Encoded Public Key String>
+    [destination]: <Send Destination Hex Encoded Public Key String>
     [fee]: <Maximum Fee Tokens Number>
     [limit]: <Limit Results Count Number>
     lnd: <LND GRPC API Object>
+    [routes]: [[{
+      base_fee_mtokens: <Base Routing Fee In Millitokens Number>
+      [channel_capacity]: <Channel Capacity Tokens Number>
+      channel_id: <Channel Id String>
+      cltv_delta: <CLTV Blocks Delta Number>
+      fee_rate: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Public Key Hex String>
+    }]]
     [timeout]: <Final CLTV Timeout Blocks Delta Number>
-    tokens: <Tokens to Send Number>
+    [tokens]: <Tokens to Send Number>
   }
 
   @returns via Promise
   {
-    fee: <Fee Tokens Number>
-    fee_mtokens: <Fee Millitokens Number>
     routes: [{
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
-      timeout: <Timeout Block Height Number>
-      mtokens: <Total Millitokens String>
-      tokens: <Total Tokens Number>
       hops: [{
         channel_id: <BOLT 07 Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
@@ -32,10 +37,10 @@ const {getRoutes} = require('./lightning');
         forward_mtokens: <Forward Millitokens String>
         timeout: <Timeout Block Height Number>
       }]
+      mtokens: <Total Millitokens String>
+      timeout: <Timeout Block Height Number>
+      tokens: <Total Tokens Number>
     }]
-    mtokens: <Total Millitokens To Send String>
-    timeout: <Total CLTV Timelock Number>
-    tokens: <Total Tokens to Send Number>
   }
 */
 module.exports = promisify(getRoutes);

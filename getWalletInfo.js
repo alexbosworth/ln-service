@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 
-const {getWalletInfo} = require('./lightning');
+const {getWalletInfo} = require('./');
 
 /** Get overall wallet info.
 
