@@ -1,13 +1,17 @@
 const asyncAuto = require('async/auto');
+const asyncRetry = require('async/retry');
 
+const addPeer = require('./add_peer');
 const channelLimit = require('./conf/lnd').channel_limit_tokens;
 const getChainBalance = require('./get_chain_balance');
 const getPeers = require('./get_peers');
 const {returnResult} = require('./../async-util');
 
 const defaultMinConfs = 1;
+const interval = retryCount => 50 * Math.pow(2, retryCount);
 const staticFee = 1e3;
 const minimumChannelSize = 20000;
+const times = 5;
 
 /** Open a new channel.
 
@@ -18,6 +22,7 @@ const minimumChannelSize = 20000;
     lnd: <LND GRPC API Object>
     [local_tokens]: <Local Tokens Number> // Defaults to max possible tokens
     partner_public_key: <Public Key Hex String>
+    [socket]: <Peer Socket String>
   }
 
   @returns via cbk
@@ -50,26 +55,48 @@ module.exports = (args, cbk) => {
       return cbk();
     },
 
-    // Get the current chain balance
-    getChainBalance: cbk => getChainBalance({lnd: args.lnd}, cbk),
-
-    // Get the current peers
-    getPeers: cbk => getPeers({lnd: args.lnd}, cbk),
-
-    // Open the channel
-    openChannel: [
-      'getChainBalance',
-      'getPeers',
-      'validate',
-      ({getChainBalance, getPeers}, cbk) =>
-    {
-      const {peers} = getPeers;
-
-      if (!peers.find(n => n.public_key === args.partner_public_key)) {
-        return cbk([400, 'ExpectedConnectedPeerPublicKeyForChannelOpen']);
+    // Add the peer if necessary
+    addPeer: ['validate', ({}, cbk) => {
+      if (!args.socket) {
+        return cbk();
       }
 
-      const balance = getChainBalance.chain_balance;
+      return addPeer({
+        lnd: args.lnd,
+        public_key: args.partner_public_key,
+        socket: args.socket,
+      },
+      cbk);
+    }],
+
+    // Check that the peer is connected
+    checkPeers: ['addPeer', ({}, cbk) => {
+      return asyncRetry({interval, times}, cbk => {
+        return getPeers({lnd: args.lnd}, (err, res) => {
+          if (!!err) {
+            return cbk(err);
+          }
+
+          const {peers} = res;
+
+          if (!peers.find(n => n.public_key === args.partner_public_key)) {
+            return cbk([400, 'ExpectedConnectedPeerPublicKeyForChannelOpen']);
+          }
+
+          return cbk();
+        });
+      },
+      cbk);
+    }],
+
+    // Get the current chain balance
+    getBalance: ['validate', ({}, cbk) => {
+      return getChainBalance({lnd: args.lnd}, cbk);
+    }],
+
+    // Open the channel
+    openChannel: ['getBalance', 'checkPeers', ({getBalance}, cbk) => {
+      const balance = getBalance.chain_balance;
       let isAnnounced = false;
       const limit = channelLimit;
 

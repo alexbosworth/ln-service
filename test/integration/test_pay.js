@@ -36,6 +36,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
+    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
@@ -47,6 +48,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.remote_node_public_key,
+    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
   await cluster.generate({count: confirmationCount, node: cluster.target});

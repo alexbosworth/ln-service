@@ -21,6 +21,7 @@ test(`Close channel`, async ({end, equal}) => {
     lnd: cluster.control.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
+    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
   await cluster.generate({count: confirmationCount});

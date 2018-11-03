@@ -3,6 +3,8 @@ const BN = require('bn.js');
 const decodeFromBuffer = require('./decode_from_buffer');
 
 const decimalBase = 10;
+const endian = 'be';
+const idLen = 8;
 
 /** Decode a short channel id into components
 
@@ -21,7 +23,9 @@ module.exports = ({id}) => {
   const channelId = new BN(id, decimalBase).toBuffer();
 
   try {
-    const channel = decodeFromBuffer({id: new BN(id, decimalBase).toBuffer()});
+    const chanId = new BN(id, decimalBase).toArrayLike(Buffer, endian, idLen);
+
+    const channel = decodeFromBuffer({id: chanId});
 
     return {
       block_height: channel.block_height,

@@ -2,7 +2,7 @@ const {stringify} = JSON;
 
 const {test} = require('tap');
 
-const {routesFromQueryRoutes} = require('./../routing');
+const {routesFromQueryRoutes} = require('./../../routing');
 
 const tests = [
   {

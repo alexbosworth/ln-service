@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const {routeFromHops} = require('./../routing');
+const {routeFromHops} = require('./../../routing');
 
 const tests = [
   {

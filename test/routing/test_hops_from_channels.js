@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const {hopsFromChannels} = require('./../routing');
+const {hopsFromChannels} = require('./../../routing');
 
 const tests = [
   {

@@ -13,7 +13,11 @@ test(`Get channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await openChannel({lnd, partner_public_key: cluster.target_node_public_key});
+  await openChannel({
+    lnd,
+    partner_public_key: cluster.target_node_public_key,
+    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+  });
 
   await cluster.generate({count: confirmationCount});
 

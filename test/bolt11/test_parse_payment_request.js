@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const {parsePaymentRequest} = require('./../');
+const {parsePaymentRequest} = require('./../../');
 
 const msPerSec = 1e3;
 

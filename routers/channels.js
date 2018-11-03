@@ -33,6 +33,7 @@ module.exports = ({lnd, log}) => {
       give_tokens: body.give_tokens,
       local_tokens: body.local_tokens,
       partner_public_key: body.partner_public_key,
+      socket: body.socket,
     },
     returnJson({log, res}));
   });

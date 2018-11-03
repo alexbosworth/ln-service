@@ -1,7 +1,11 @@
+const asyncRetry = require('async/retry');
+
 const connectedErrMessage = /already.connected.to/;
+const interval = retryCount => 50 * Math.pow(2, retryCount);
 const publicKeyHexStringLength = 33 * 2;
 const notSyncedError = 'chain backend is still syncing, server not active yet';
 const selfKeyErrMessage = /connection.to.self/;
+const times = 5;
 
 /** Add a peer if possible (not self, or already connected)
 
@@ -30,27 +34,30 @@ module.exports = (args, cbk) => {
 
   const addr = {host: args.socket, pubkey: args.public_key};
 
-  return args.lnd.connectPeer({addr, perm: true}, (err, response) => {
-    // Exit early when the peer is already added
-    if (!!err && !!err.message && connectedErrMessage.test(err.message)) {
+  return asyncRetry({interval, times}, cbk => {
+    return args.lnd.connectPeer({addr, perm: true}, (err, response) => {
+      // Exit early when the peer is already added
+      if (!!err && !!err.message && connectedErrMessage.test(err.message)) {
+        return cbk();
+      }
+
+      // Exit early when the peer is the self-peer
+      if (!!err && !!err.message && selfKeyErrMessage.test(err.message)) {
+        return cbk();
+      }
+
+      if (!!err && err.details === notSyncedError) {
+        return cbk([503, 'StillSyncing']);
+      }
+
+      if (!!err) {
+        return cbk([503, 'UnexpectedErrorAddingPeer', err]);
+      }
+
       return cbk();
-    }
-
-    // Exit early when the peer is the self-peer
-    if (!!err && !!err.message && selfKeyErrMessage.test(err.message)) {
-      return cbk();
-    }
-
-    if (!!err && err.details === notSyncedError) {
-      return cbk([503, 'StillSyncing']);
-    }
-
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorAddingPeer', err]);
-    }
-
-    return cbk();
-  });
+    });
+  },
+  cbk);
 };
 
 

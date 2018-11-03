@@ -17,6 +17,7 @@ test(`Close channel`, async ({end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
     partner_public_key: cluster.target_node_public_key,
+    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
   await cluster.generate({count: confirmationCount});

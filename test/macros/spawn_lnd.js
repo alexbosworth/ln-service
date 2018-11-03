@@ -3,6 +3,7 @@ const {readFileSync} = require('fs');
 const {spawn} = require('child_process');
 
 const asyncAuto = require('async/auto');
+const asyncRetry = require('async/retry');
 const {ECPair} = require('bitcoinjs-lib');
 const {networks} = require('bitcoinjs-lib');
 const openPortFinder = require('openport');
@@ -25,6 +26,7 @@ const lightningTlsKeyFileName = 'tls.key';
 const lightningWalletPassword = 'password';
 const lndWalletUnlockerService = 'WalletUnlocker';
 const localhost = '127.0.0.1';
+const maxSpawnChainDaemonAttempts = 3;
 const readMacaroonFileName = 'readonly.macaroon';
 const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
@@ -77,10 +79,13 @@ module.exports = ({network}, cbk) => {
 
     // Spawn a backing chain daemon for lnd
     spawnChainDaemon: ['miningKey', ({miningKey}, cbk) => {
-      return spawnChainDaemon({
-        daemon: 'btcd',
-        is_tls: true,
-        mining_public_key: miningKey.public_key,
+      return asyncRetry(maxSpawnChainDaemonAttempts, cbk => {
+        return spawnChainDaemon({
+          daemon: 'btcd',
+          is_tls: true,
+          mining_public_key: miningKey.public_key,
+        },
+        cbk);
       },
       cbk);
     }],
@@ -231,7 +236,8 @@ module.exports = ({network}, cbk) => {
 
     process.on('uncaughtException', err => {
       kill();
-      process.exit(1)
+
+      setTimeout(() => process.exit(1), 5000);
     });
 
     return cbk(null, {

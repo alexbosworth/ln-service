@@ -8,5 +8,6 @@ module.exports = {
   decodeFromHex,
   decodeFromNumber,
   encodeShortChannelId,
+  decodeShortChannelId: decodeFromNumber,
 };
 
