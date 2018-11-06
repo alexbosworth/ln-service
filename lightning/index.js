@@ -31,6 +31,7 @@ const removePeer = require('./remove_peer');
 const rowTypes = require('./conf/row_types');
 const sendToChainAddress = require('./send_to_chain_address');
 const signMessage = require('./sign_message');
+const stopDaemon = require('./stop_daemon');
 const subscribeToGraph = require('./subscribe_to_graph');
 const subscribeToInvoices = require('./subscribe_to_invoices');
 const subscribeToTransactions = require('./subscribe_to_transactions');
@@ -72,6 +73,7 @@ module.exports = {
   rowTypes,
   sendToChainAddress,
   signMessage,
+  stopDaemon,
   subscribeToGraph,
   subscribeToInvoices,
   subscribeToTransactions,

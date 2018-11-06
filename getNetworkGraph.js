@@ -10,7 +10,7 @@ const {getNetworkGraph} = require('./');
 
   @returns via Promise
   {
-    edges: [{
+    channels: [{
       capacity: <Channel Capacity Tokens Number>
       id: <Channel Id String>
       policies: [{

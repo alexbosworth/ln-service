@@ -28,6 +28,7 @@ const lndWalletUnlockerService = 'WalletUnlocker';
 const localhost = '127.0.0.1';
 const maxSpawnChainDaemonAttempts = 3;
 const readMacaroonFileName = 'readonly.macaroon';
+const retryCreateSeedCount = 3;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
 
@@ -161,9 +162,12 @@ module.exports = ({network}, cbk) => {
 
     // Create seed
     createSeed: ['nonAuthenticatedLnd', ({nonAuthenticatedLnd}, cbk) => {
-      return createSeed({
-        lnd: nonAuthenticatedLnd,
-        passphrase: lightningSeedPassphrase,
+      return asyncRetry(retryCreateSeedCount, cbk => {
+        return createSeed({
+          lnd: nonAuthenticatedLnd,
+          passphrase: lightningSeedPassphrase,
+        },
+        cbk);
       },
       cbk);
     }],

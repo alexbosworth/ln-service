@@ -3,6 +3,7 @@ const {isNumber} = require('lodash');
 
 const rowTypes = require('./conf/row_types');
 
+const connectionFailureLndErrorMessage = 'Connect Failed';
 const lockedLndErrorMessage = 'unknown service lnrpc.Lightning';
 const msPerSec = 1e3;
 
@@ -35,6 +36,10 @@ module.exports = ({lnd}, cbk) => {
   return lnd.getInfo({}, (err, res) => {
     if (!!err && err.details === lockedLndErrorMessage) {
       return cbk([503, 'LndLocked']);
+    }
+
+    if (!!err && err.details === connectionFailureLndErrorMessage) {
+      return cbk([503, 'FailedToConnectToDaemon']);
     }
 
     if (!!err) {

@@ -15,7 +15,7 @@ const outpointSeparatorChar = ':';
 
   @returns via cbk
   {
-    edges: [{
+    channels: [{
       capacity: <Channel Capacity Tokens Number>
       id: <Channel Id String>
       policies: [{
@@ -77,7 +77,7 @@ module.exports = ({lnd}, cbk) => {
     graph: ['getGraph', ({getGraph}, cbk) => {
       const hasChannel = {};
 
-      const edges = getGraph.edges.map(n => {
+      const channels = getGraph.edges.map(n => {
         const [txId, vout] = n.chan_point.split(outpointSeparatorChar);
 
         const policies = [n.node1_policy, n.node2_policy].map(policy => {
@@ -112,18 +112,18 @@ module.exports = ({lnd}, cbk) => {
         };
       });
 
-      const nodes = getGraph.nodes.map(n => {
+      const nodes = getGraph.nodes.filter(n => !!n.last_update).map(n => {
         return {
           alias: n.alias,
           color: n.color,
           public_key: n.pub_key,
           sockets: n.addresses.map(({addr}) => addr),
-          updated_at: new Date(n.last_update).toISOString(),
+          updated_at: new Date(n.last_update * msPerSec).toISOString(),
         };
       });
 
       return cbk(null, {
-        edges,
+        channels,
         nodes: nodes.filter(n => !!hasChannel[n.public_key]),
       });
     }],

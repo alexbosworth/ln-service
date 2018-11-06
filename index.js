@@ -36,6 +36,7 @@ const {removePeer} = require('./lightning');
 const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
 const {signMessage} = require('./lightning');
+const {stopDaemon} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoices} = require('./lightning');
 const {subscribeToTransactions} = require('./lightning');
@@ -82,6 +83,7 @@ module.exports = {
   rowTypes,
   sendToChainAddress,
   signMessage,
+  stopDaemon,
   subscribeToGraph,
   subscribeToInvoices,
   subscribeToTransactions,
