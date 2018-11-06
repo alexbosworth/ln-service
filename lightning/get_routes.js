@@ -91,8 +91,13 @@ module.exports = (args, cbk) => {
       return cbk();
     },
 
-    // Derive routes
-    getRoutes: ['validate', ({}, cbk) => {
+    // Determine what the wallet id is
+    getWalletInfo: ['validate', ({}, cbk) => {
+      return getWalletInfo({lnd: args.lnd}, cbk);
+    }],
+
+    // Sort out route destinations
+    paths: ['getWalletInfo', ({getWalletInfo}, cbk) => {
       const routes = args.routes || [[{public_key: args.destination}]];
 
       const destinations = routes.map(route => {
@@ -101,7 +106,53 @@ module.exports = (args, cbk) => {
         return {route, key: firstHop.public_key};
       });
 
+      return asyncMap(routes, (route, cbk) => {
+        const [firstHop] = route;
+
+        if (!firstHop.channel_id) {
+          return cbk(null, {route, key: firstHop.public_key});
+        }
+
+        const id = firstHop.channel_id;
+        const key = firstHop.public_key;
+
+        return getChannel({id, lnd: args.lnd}, (err, channel) => {
+          if (!!err) {
+            return cbk(err);
+          }
+
+          const peers = channel.policies.map(n => n.public_key);
+
+          firstHop.is_full = !!peers.find(n => n === getWalletInfo.public_key);
+
+          return cbk(null, {key, route});
+        });
+      },
+      (err, destinations) => {
+        if (!!err) {
+          return cbk(err);
+        }
+
+        return cbk(null, {destinations, routes});
+      });
+    }],
+
+    // Derive routes
+    getRoutes: ['paths', ({paths}, cbk) => {
+      const {destinations} = paths;
+      const {routes} = paths;
+
       return asyncMap(destinations, ({key, route}, cbk) => {
+        const [firstHop] = route;
+
+        if (firstHop.is_full) {
+          return cbk(null, {
+            key,
+            route: route.slice(1),
+            routes: [{hops: [{channel_id: firstHop.channel_id}]}],
+          });
+        }
+
         return args.lnd.queryRoutes({
           amt: args.tokens || defaultTokens,
           fee_limit: !args.fee ? undefined : {fee_limit: args.fee},

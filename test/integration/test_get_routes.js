@@ -62,9 +62,11 @@ test(`Get routes`, async ({end, equal}) => {
 
   const {routes} = await getRoutes({destination, lnd, tokens});
 
+  const controlChans = (await getChannels({lnd})).channels;
   const remoteChans = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
   const [remoteChannel] = remoteChans;
+  const [targetChannel] = controlChans;
 
   const indirectRoute = await getRoutes({
     lnd,
@@ -79,14 +81,44 @@ test(`Get routes`, async ({end, equal}) => {
     tokens: decodedRequest.tokens,
   });
 
+  // Specify every hop in the route
+  const fullRoute = await getRoutes({
+    lnd,
+    routes: [[
+      {
+        base_fee_mtokens: '1000',
+        channel_capacity: targetChannel.capacity,
+        channel_id: targetChannel.id,
+        cltv_delta: 144,
+        fee_rate: 1,
+        public_key: targetChannel.partner_public_key,
+      },
+      {
+        base_fee_mtokens: '1000',
+        channel_capacity: remoteChannel.capacity,
+        channel_id: remoteChannel.id,
+        cltv_delta: 144,
+        fee_rate: 1,
+        public_key: remoteChannel.partner_public_key,
+      },
+    ]],
+    tokens: decodedRequest.tokens,
+  });
+
   const [direct] = routes;
+  const [full] = fullRoute.routes;
   const [indirect] = indirectRoute.routes;
 
   equal(indirect.fee, direct.fee, 'Fee is the same across routes');
+  equal(full.fee, direct.fee, 'Fee is the same across routes');
   equal(indirect.fee_mtokens, direct.fee_mtokens, 'Fee mtokens equivalent');
+  equal(full.fee_mtokens, direct.fee_mtokens, 'Fee mtokens equivalent');
   equal(indirect.mtokens, direct.mtokens, 'Millitokens equivalent');
+  equal(full.mtokens, direct.mtokens, 'Millitokens equivalent');
   equal(indirect.timeout, direct.timeout, 'Timeouts equivalent');
+  equal(full.timeout, direct.timeout, 'Timeouts equivalent');
   equal(indirect.tokens, direct.tokens, 'Tokens equivalent');
+  equal(full.tokens, direct.tokens, 'Tokens equivalent');
 
   await pay({
     lnd,

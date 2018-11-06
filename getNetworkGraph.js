@@ -12,25 +12,26 @@ const {getNetworkGraph} = require('./');
   {
     edges: [{
       capacity: <Channel Capacity Tokens Number>
-      from_self: <Channel Link From Self Bool>
-      last_update: <Last Update Epoch Seconds Number>
-      source: <Source Public Key String>
-      target: <Target Public Key String>
-      to_self: <Target is Self Bool>
+      id: <Channel Id String>
+      policies: [{
+        [base_fee_mtokens]: <Bae Fee Millitokens String>
+        [cltv_delta]: <CLTV Height Delta Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+        [is_disabled]: <Edge is Disabled Bool>
+        [minimum_htlc_mtokens]: <Minimum HTLC Millitokens String>
+        public_key: <Public Key String>
+      }]
+      transaction_id: <Funding Transaction Id String>
+      transaction_vout: <Funding Transaction Output Index Number>
+      updated_at: <Last Update Epoch ISO 8601 Date String>
     }]
     nodes: [{
-      addresses: [<Network Address String>]
       alias: <Name String>
       color: <Hex Encoded Color String>
-      community: <Community Grouping Number>
-      id: <Node Public Key String>
-      is_self: <Node is Self Bool>
-      last_update: <Last Updated Seconds Number>
+      public_key: <Node Public Key String>
+      sockets: [<Network Address and Port String>]
+      updated_at: <Last Updated ISO 8601 Date String>
     }]
-    own_node: {
-      channel_count: <Total Channels Count Number>
-      id: <Node Public Key String>
-    }
   }
 */
 module.exports = promisify(getNetworkGraph);

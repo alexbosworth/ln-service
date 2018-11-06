@@ -11,15 +11,15 @@ const tests = [
           id: '0',
           policies: [
             {
-              base_fee_mtokens: '1000',
-              cltv_delta: 144,
-              fee_rate: 1,
-              public_key: 'alice',
-            },
-            {
               base_fee_mtokens: '9999',
               cltv_delta: 999,
               fee_rate: 9,
+              public_key: 'alice',
+            },
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 144,
+              fee_rate: 1,
               public_key: 'origin',
             },
           ],

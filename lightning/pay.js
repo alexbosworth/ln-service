@@ -123,7 +123,11 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/FeeInsufficient/.test(res.payment_error)) {
-      return cbk([503, 'RejectedOutOfDateFeeValue']);
+      return cbk([503, 'RejectedUnacceptableFeeValue']);
+    }
+
+    if (/IncorrectCltvExpiry/.test(res.payment_error)) {
+      return cbk([503, 'RejectedUnacceptableCltvDeltaValue']);
     }
 
     if (/TemporaryChannelFailure/.test(res.payment_error)) {

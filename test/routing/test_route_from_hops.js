@@ -49,7 +49,7 @@ const tests = [
           fee_mtokens: '6000',
           forward: 2000000,
           forward_mtokens: '2000000000',
-          timeout: 432,
+          timeout: 288,
         },
         {
           channel_capacity: 16777215,
@@ -58,7 +58,7 @@ const tests = [
           fee_mtokens: '0',
           forward: 2000000,
           forward_mtokens: '2000000000',
-          timeout: 432,
+          timeout: 288,
         },
       ],
       mtokens: '2000009000',

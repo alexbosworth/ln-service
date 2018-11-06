@@ -55,7 +55,13 @@ module.exports = ({channels, destination}) => {
 
     const [link] = intersection(policies.map(n => n.public_key), nextKeys);
 
-    const policy = policies.find(n => n.public_key === (link || destination));
+    let policy;
+
+    if (!i) {
+      policy = policies.find(n => n.public_key !== link);
+    } else {
+      policy = policies.find(n => n.public_key === (link || destination));
+    }
 
     if (!policy) {
       throw new Error('ExpectedLinkingPolicyForChannel');
