@@ -81,7 +81,7 @@ module.exports = ({lnd}, cbk) => {
       const maxHeight = Math.max(...channels.map(n => n.block_height));
 
       const utilization = channels.filter(({id}) => id !== '0').map(n => {
-        const alias = n.alias.replace(/[^\x00-\x7F]/g, '?').trim();
+        const alias = (n.alias || '').replace(/[^\x00-\x7F]/g, '?').trim();
         const blocks = maxHeight - n.block_height + 1;
         const local = n.local_balance;
         const remote = n.remote_balance;

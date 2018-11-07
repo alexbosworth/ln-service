@@ -2,6 +2,7 @@
   "balances": "balances",
   "chain_address": "chain_address",
   "chain_transaction": "chain_transaction",
+  "channel": "channel",
   "channel_transaction": "channel_transaction",
   "channel_update": "channel_update",
   "closed_channel": "closed_channel",

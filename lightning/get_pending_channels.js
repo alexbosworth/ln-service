@@ -3,8 +3,9 @@ const asyncMap = require('async/map');
 const {includes} = require('lodash');
 
 const {returnResult} = require('./../async-util');
+const rowTypes = require('./conf/row_types');
 
-const intBase = 10;
+const decBase = 10;
 
 /** Get pending channels.
 
@@ -12,24 +13,27 @@ const intBase = 10;
   a channel may be opening, closing, or active.
 
   {
-    lnd: <Object>
+    lnd: <LND GRPC API Object>
   }
 
   @returns via cbk
   {
     pending_channels: [{
-      id: <Channel Id String>
-      is_active: <Channel Active Bool>
-      is_closing: <Channel Closing Bool>
-      is_opening: <Channel Opening Bool>
-      local_balance: <Local Balance Satoshis Number>
-      partner_public_key: <Channel Partner Public Key String>
-      received: <Received Satoshis Number>
-      remote_balance: <Remote Balance Satoshis Number>
-      sent: <Sent Satoshis Number>
-      transaction_id: <Blockchain Transaction Id>
-      transaction_vout: <Blockchain Transaction Vout Number>
-      transfers_count: <Channel Transfers Total Number>
+      [close_transaction_id]: <Channel Closing Transaction Id String>
+      is_active: <Channel Is Active Bool>
+      is_closing: <Channel Is Closing Bool>
+      is_opening: <Channel Is Opening Bool>
+      local_balance: <Channel Local Tokens Balance Number>
+      partner_public_key: <Channel Peer Public Key String>
+      [pending_tokens]: <Tokens Pending Recovery Number>
+      received: <Tokens Received Number>
+      [recovered_tokens]: <Tokens Recovered From Close Number>
+      remote_balance: <Remote Tokens Balance Number>
+      sent: <Send Tokens Number>
+      [timelock_expiration]: <Pending Tokens Block Height Timelock Number>
+      transaction_id: <Channel Funding Transaction Id String>
+      transaction_vout: <Channel Funding Transaction Vout Number>
+      type: <Row Type String>
     }]
   }
 */
@@ -61,24 +65,39 @@ module.exports = ({lnd}, cbk) => {
           return n.channel.channel_point;
         });
 
+        const forceClosing = {};
+
+        res.pending_force_closing_channels.forEach(n => {
+          return forceClosing[n.channel.channel_point] = {
+            close_transaction_id: n.closing_txid,
+            pending_payments: n.pending_htlcs,
+            pending_tokens: parseInt(n.limbo_balance, decBase),
+            recovered_tokens: parseInt(n.recovered_balance, decBase),
+            timelock_expiration: n.maturity_height,
+          };
+        });
+
         const channels = []
           .concat(res.pending_open_channels)
           .concat(res.pending_closing_channels)
           .concat(res.pending_force_closing_channels)
+          .concat(res.waiting_close_channels)
           .map(n => n.channel);
 
-        return cbk(null, {channels, opening});
+        return cbk(null, {channels, forceClosing, opening});
       });
     },
 
     pendingChannels: ['getPending', ({getPending}, cbk) => {
       const openingOutpoints = getPending.opening;
+      const {forceClosing} = getPending;
 
       return asyncMap(getPending.channels, (channel, cbk) => {
         if (!channel.channel_point) {
           return cbk([503, 'ExpectedChannelOutpoint', channel]);
         }
 
+        const forceClose = forceClosing[channel.channel_point] || {};
         const isOpening = includes(openingOutpoints, channel.channel_point);
         const [transactionId, vout] = channel.channel_point.split(':');
 
@@ -95,17 +114,21 @@ module.exports = ({lnd}, cbk) => {
         }
 
         return cbk(null, {
+          close_transaction_id: forceClose.close_transaction_id || undefined,
           is_active: false,
           is_closing: !isOpening,
           is_opening: isOpening,
-          local_balance: parseInt(channel.local_balance, intBase),
+          local_balance: parseInt(channel.local_balance, decBase),
           partner_public_key: channel.remote_node_pub,
+          pending_tokens: forceClose.pending_tokens || undefined,
           received: 0,
-          remote_balance: parseInt(channel.remote_balance, intBase),
+          recovered_tokens: forceClose.recovered_tokens || undefined,
+          remote_balance: parseInt(channel.remote_balance, decBase),
           sent: 0,
+          timelock_expiration: forceClose.timelock_expiration || undefined,
           transaction_id: transactionId,
-          transaction_vout: parseInt(vout, intBase),
-          transfers_count: 0,
+          transaction_vout: parseInt(vout, decBase),
+          type: rowTypes.channel,
         });
       },
       cbk);

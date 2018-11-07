@@ -51,5 +51,5 @@
     "start": "node server.js",
     "test": "tap test/bolt07/*.js test/bolt11/*.js test/routing/*.js"
   },
-  "version": "24.0.0"
+  "version": "25.0.0"
 }
