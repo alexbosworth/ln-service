@@ -20,6 +20,8 @@ test(`Sign message`, async ({end, equal}) => {
 
   kill();
 
+  await delay(3000);
+
   return end();
 });
 

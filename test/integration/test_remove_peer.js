@@ -65,6 +65,8 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   lnds.forEach(({kill}) => kill());
 
+  await delay(3000);
+
   return end();
 });
 

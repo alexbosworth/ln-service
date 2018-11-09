@@ -8,7 +8,7 @@ const getPeers = require('./get_peers');
 const {returnResult} = require('./../async-util');
 
 const defaultMinConfs = 1;
-const interval = retryCount => 50 * Math.pow(2, retryCount);
+const interval = retryCount => 10 * Math.pow(2, retryCount);
 const staticFee = 1e3;
 const minimumChannelSize = 20000;
 const times = 5;
@@ -80,6 +80,21 @@ module.exports = (args, cbk) => {
           const {peers} = res;
 
           if (!peers.find(n => n.public_key === args.partner_public_key)) {
+            if (!!args.socket) {
+              return addPeer({
+                lnd: args.lnd,
+                public_key: args.partner_public_key,
+                socket: args.socket,
+              },
+              err => {
+                if (!!err) {
+                  return cbk(err);
+                }
+
+                return cbk([400, 'ExpectedConnectedPeerForChannelOpen']);
+              });
+            }
+
             return cbk([400, 'ExpectedConnectedPeerPublicKeyForChannelOpen']);
           }
 

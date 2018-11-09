@@ -2,6 +2,7 @@ const {test} = require('tap');
 
 const createInvoice = require('./../../createInvoice');
 const decodePaymentRequest = require('./../../decodePaymentRequest');
+const {delay} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 
 const description = 'description';
@@ -31,6 +32,8 @@ test(`Decode a payment request`, async ({end, equal}) => {
   equal(decoded.type, 'payment_request', 'Row type is payment request');
 
   kill();
+
+  await delay(3000);
 
   return end();
 });

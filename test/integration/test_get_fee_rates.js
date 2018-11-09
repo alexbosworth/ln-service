@@ -1,10 +1,11 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const getFeeRates = require('./../../getFeeRates');
 const openChannel = require('./../../openChannel');
 
-const confirmationCount = 6;
+const confirmationCount = 20;
 
 // Getting fee rates should return the fee rates of nodes in the channel graph
 test(`Get fee rates`, async ({end, equal}) => {
@@ -18,9 +19,13 @@ test(`Get fee rates`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(2000);
+
   await cluster.generate({count: confirmationCount});
 
   const {channels} = await getFeeRates({lnd});
+
+  equal(channels.length, [channelOpen].length, 'Channel was opened');
 
   const [channel] = channels;
 
@@ -29,7 +34,7 @@ test(`Get fee rates`, async ({end, equal}) => {
   equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
   equal(channel.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

@@ -47,9 +47,9 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
-    "integration-tests": "tap test/integration/*.js",
+    "integration-tests": "tap -b -j=2 test/integration/*.js",
     "start": "node server.js",
     "test": "tap test/bolt07/*.js test/bolt11/*.js test/routing/*.js"
   },
-  "version": "25.0.0"
+  "version": "25.1.0"
 }

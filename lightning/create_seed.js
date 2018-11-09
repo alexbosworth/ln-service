@@ -1,3 +1,4 @@
+const connectionFailure = '14 UNAVAILABLE: Connect Failed';
 const expectedMnemonicLength = 24;
 
 /** Create a wallet seed
@@ -20,8 +21,16 @@ module.exports = ({lnd, passphrase}, cbk) => {
   const pass = !passphrase ? undefined : Buffer.from(passphrase, 'utf8');
 
   return lnd.genSeed({aezeed_passphrase: pass}, (err, res) => {
-    if (!!err || !res) {
-      return cbk([503, 'UnexpectedCreateSeedErr', err]);
+    if (!!err && err.message === connectionFailure) {
+      return cbk([503, 'UnexpectedConnectionFailure']);
+    }
+
+    if (!!err) {
+      return cbk([503, 'UnexpectedCreateSeedError', err]);
+    }
+
+    if (!res) {
+      return cbk([503, 'ExpectedResponseForSeedCreation']);
     }
 
     if (!Array.isArray(res.cipher_seed_mnemonic)) {

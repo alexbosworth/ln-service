@@ -5,6 +5,7 @@ const {test} = require('tap');
 const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
+const {delay} = require('./../macros');
 const decodePaymentRequest = require('./../../decodePaymentRequest');
 const getChannels = require('./../../getChannels');
 const getNetworkGraph = require('./../../getNetworkGraph');
@@ -13,7 +14,7 @@ const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 10;
+const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const mtokPadding = '000';
@@ -26,6 +27,8 @@ test(`Get routes`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  await delay(3000);
+
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -34,7 +37,11 @@ test(`Get routes`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(1000);
+
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await delay(3000);
 
   const [channel] = (await getChannels({lnd})).channels;
 
@@ -45,6 +52,8 @@ test(`Get routes`, async ({end, equal}) => {
     partner_public_key: cluster.remote_node_public_key,
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
+
+  await delay(1000);
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
@@ -59,6 +68,10 @@ test(`Get routes`, async ({end, equal}) => {
   const decodedRequest = await decodePaymentRequest({lnd, request});
 
   const {destination} = decodedRequest;
+
+  await cluster.generate({count: confirmationCount});
+
+  await delay(5000);
 
   const {routes} = await getRoutes({destination, lnd, tokens});
 
@@ -125,7 +138,7 @@ test(`Get routes`, async ({end, equal}) => {
     path: {id: decodedRequest.id, routes: indirectRoute.routes},
   });
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

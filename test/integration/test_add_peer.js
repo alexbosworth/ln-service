@@ -16,6 +16,8 @@ test(`Add a peer`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  await delay(3000);
+
   const {peers} = await getPeers({lnd});
   const remoteNodeKey = cluster.remote_node_public_key;
 
@@ -37,7 +39,7 @@ test(`Add a peer`, async ({end, equal}) => {
 
   equal(connected.public_key, remoteNodeKey, 'Connected to remote node');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

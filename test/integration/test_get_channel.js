@@ -1,11 +1,12 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
 
-const confirmationCount = 6;
+const confirmationCount = 10;
 
 // Getting a channel should return channel details from the channel graph
 test(`Get channel`, async ({end, equal}) => {
@@ -13,13 +14,19 @@ test(`Get channel`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  await delay(3000);
+
   await openChannel({
     lnd,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(3000);
+
   await cluster.generate({count: confirmationCount});
+
+  await delay(2000);
 
   const {channels} = await getChannels({lnd});
 
@@ -47,7 +54,7 @@ test(`Get channel`, async ({end, equal}) => {
   equal(details.transaction_vout, channel.transaction_vout, 'Funding tx vout');
   equal(Date.now() - new Date(details.update_at) < 1e5, true, 'Updated at');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

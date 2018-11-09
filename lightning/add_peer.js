@@ -1,7 +1,7 @@
 const asyncRetry = require('async/retry');
 
 const connectedErrMessage = /already.connected.to/;
-const interval = retryCount => 50 * Math.pow(2, retryCount);
+const interval = retryCount => 10 * Math.pow(2, retryCount);
 const publicKeyHexStringLength = 33 * 2;
 const notSyncedError = 'chain backend is still syncing, server not active yet';
 const selfKeyErrMessage = /connection.to.self/;

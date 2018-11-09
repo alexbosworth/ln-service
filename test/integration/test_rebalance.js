@@ -3,6 +3,7 @@ const {test} = require('tap');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const {decodeFromNumber} = require('./../../bolt07');
+const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getPendingChannels = require('./../../getPendingChannels');
 const getWalletInfo = require('./../../getWalletInfo');
@@ -11,7 +12,7 @@ const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 10;
+const confirmationCount = 20;
 const defaultFee = 1e3;
 const tokens = 1e4;
 
@@ -45,6 +46,8 @@ test('Rebalance', async ({end, equal}) => {
   const invoice = await createInvoice({lnd, tokens});
   const mtokens = `${tokens}000`;
 
+  await delay(1000);
+
   const {channels} = await getChannels({lnd});
 
   const hops = channels.map(({id}) => {
@@ -66,7 +69,7 @@ test('Rebalance', async ({end, equal}) => {
 
   equal(selfPay.secret, invoice.secret, 'Payment made to self');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

@@ -4,6 +4,7 @@ const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
 const createChainAddress = require('./../../createChainAddress');
+const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const getChainBalance = require('./../../getChainBalance');
 const {mineTransaction} = require('./../macros');
@@ -61,6 +62,8 @@ test(`Get the chain balance`, async ({end, equal}) => {
   equal(postDeposit.chain_balance, tokens - defaultFee, 'Deposited funds');
 
   kill();
+
+  await delay(3000);
 
   return end();
 });

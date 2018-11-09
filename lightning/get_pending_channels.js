@@ -6,6 +6,7 @@ const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const outpointSeparator = ':';
 
 /** Get pending channels.
 
@@ -25,14 +26,24 @@ const decBase = 10;
       is_opening: <Channel Is Opening Bool>
       local_balance: <Channel Local Tokens Balance Number>
       partner_public_key: <Channel Peer Public Key String>
-      [pending_tokens]: <Tokens Pending Recovery Number>
+      [pending_balance]: <Tokens Pending Recovery Number>
+      [pending_payments]: [{
+        is_incoming: <Payment Is Incoming Bool>
+        timelock_height: <Payment Timelocked Until Height Number>
+        tokens: <Payment Tokens Number>
+        transaction_id: <Payment Transaction Id String>
+        transaction_vout: <Payment Transaction Vout Number>
+      }]
       received: <Tokens Received Number>
       [recovered_tokens]: <Tokens Recovered From Close Number>
       remote_balance: <Remote Tokens Balance Number>
       sent: <Send Tokens Number>
       [timelock_expiration]: <Pending Tokens Block Height Timelock Number>
+      [transaction_fee]: <Funding Transaction Fee Tokens Number>
+      [transaction_height]: <Funding Transaction Confirmation Height Number>
       transaction_id: <Channel Funding Transaction Id String>
       transaction_vout: <Channel Funding Transaction Vout Number>
+      [transaction_weight]: <Funding Transaction Weight Number>
       type: <Row Type String>
     }]
   }
@@ -61,19 +72,51 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedPendingForceCloseChannels', res]);
         }
 
-        const opening = res.pending_open_channels.map(n => {
-          return n.channel.channel_point;
-        });
-
         const forceClosing = {};
 
         res.pending_force_closing_channels.forEach(n => {
           return forceClosing[n.channel.channel_point] = {
             close_transaction_id: n.closing_txid,
-            pending_payments: n.pending_htlcs,
-            pending_tokens: parseInt(n.limbo_balance, decBase),
+            pending_balance: parseInt(n.limbo_balance, decBase),
+            pending_payments: n.pending_htlcs.map(htlc => {
+              const [txId, vout] = htlc.outpoint.split(outpointSeparator);
+
+              return {
+                is_incoming: htlc.incoming,
+                timelock_height: htlc.maturity_height,
+                tokens: parseInt(htlc.amount, decBase),
+                transaction_id: txId,
+                transaction_vout: parseInt(vout, decBase),
+              };
+            }),
             recovered_tokens: parseInt(n.recovered_balance, decBase),
             timelock_expiration: n.maturity_height,
+          };
+        });
+
+        const coopClosing = {};
+
+        res.pending_closing_channels.forEach(n => {
+          return coopClosing[n.channel.channel_point] = {
+            close_transaction_id: n.closing_txid,
+          };
+        });
+
+        const opening = {};
+
+        res.pending_open_channels.forEach(n => {
+          return opening[n.channel.channel_point] = {
+            transaction_fee: parseInt(n.commit_fee, decBase),
+            transaction_height: n.confirmation_height,
+            transaction_weight: parseInt(n.commit_weight, decBase),
+          };
+        });
+
+        const waitClosing = {};
+
+        res.waiting_close_channels.forEach(n => {
+          return waitClosing[n.channel.channel_point] = {
+            pending_balance: parseInt(n.limbo_balance, decBase),
           };
         });
 
@@ -84,22 +127,32 @@ module.exports = ({lnd}, cbk) => {
           .concat(res.waiting_close_channels)
           .map(n => n.channel);
 
-        return cbk(null, {channels, forceClosing, opening});
+        return cbk(null, {
+          channels,
+          coopClosing,
+          forceClosing,
+          opening,
+          waitClosing,
+        });
       });
     },
 
     pendingChannels: ['getPending', ({getPending}, cbk) => {
-      const openingOutpoints = getPending.opening;
+      const {coopClosing} = getPending;
       const {forceClosing} = getPending;
+      const {opening} = getPending;
+      const {waitClosing} = getPending;
 
       return asyncMap(getPending.channels, (channel, cbk) => {
         if (!channel.channel_point) {
           return cbk([503, 'ExpectedChannelOutpoint', channel]);
         }
 
-        const forceClose = forceClosing[channel.channel_point] || {};
-        const isOpening = includes(openingOutpoints, channel.channel_point);
+        const coop = coopClosing[channel.channel_point] || {};
+        const forced = forceClosing[channel.channel_point] || {};
+        const chanOpen = opening[channel.channel_point];
         const [transactionId, vout] = channel.channel_point.split(':');
+        const wait = waitClosing[channel.channel_point] || {};
 
         if (channel.local_balance === undefined) {
           return cbk([503, 'ExpectedLocalBalance', channel]);
@@ -113,21 +166,29 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedRemoteBalance', channel]);
         }
 
+        const pendingBalance = wait.pending_balance || forced.pending_balance;
+
+        const endTx = coop.close_transaction_id || forced.close_transaction_id;
+
         return cbk(null, {
-          close_transaction_id: forceClose.close_transaction_id || undefined,
+          close_transaction_id: endTx || undefined,
           is_active: false,
-          is_closing: !isOpening,
-          is_opening: isOpening,
+          is_closing: !chanOpen,
+          is_opening: !!chanOpen,
           local_balance: parseInt(channel.local_balance, decBase),
           partner_public_key: channel.remote_node_pub,
-          pending_tokens: forceClose.pending_tokens || undefined,
+          pending_balance: pendingBalance || undefined,
+          pending_payments: forced.pending_payments || undefined,
           received: 0,
-          recovered_tokens: forceClose.recovered_tokens || undefined,
+          recovered_tokens: forced.recovered_tokens || undefined,
           remote_balance: parseInt(channel.remote_balance, decBase),
           sent: 0,
-          timelock_expiration: forceClose.timelock_expiration || undefined,
+          timelock_expiration: forced.timelock_expiration || undefined,
+          transaction_fee: !chanOpen ? null : chanOpen.transaction_fee,
+          transaction_height: !chanOpen ? null : chanOpen.transaction_height,
           transaction_id: transactionId,
           transaction_vout: parseInt(vout, decBase),
+          transaction_weight: !chanOpen ? null : chanOpen.transaction_weight,
           type: rowTypes.channel,
         });
       },

@@ -2,6 +2,7 @@ const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
 const createChainAddress = require('./../../createChainAddress');
+const {delay} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 
 const chainAddressRowType = 'chain_address';
@@ -26,6 +27,8 @@ test(`Create address results in address creation`, async ({end, equal}) => {
   equal(p2wpkh.type, chainAddressRowType, 'Native row type');
 
   kill();
+
+  await delay(3000);
 
   return end();
 });

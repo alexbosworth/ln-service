@@ -1,5 +1,6 @@
 const {test} = require('tap');
 
+const {delay} = require('./../macros');
 const getWalletInfo = require('./../../getWalletInfo');
 const {spawnLnd} = require('./../macros');
 
@@ -27,6 +28,8 @@ test(`Get wallet info`, async ({end, equal}) => {
   equal(!!result.version, true, 'Expected version');
 
   kill();
+
+  await delay(3000);
 
   return end();
 });

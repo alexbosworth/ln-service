@@ -26,7 +26,7 @@ test(`Open channel`, async ({end, equal}) => {
   equal(channelOpen.transaction_vout, defaultVout, 'Channel tx output index');
   equal(channelOpen.type, 'open_channel_pending');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

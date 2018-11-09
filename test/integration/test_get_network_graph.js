@@ -1,13 +1,14 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getNetworkGraph = require('./../../getNetworkGraph');
 const getWalletInfo = require('./../../getWalletInfo');
 const openChannel = require('./../../openChannel');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 10;
+const confirmationCount = 20;
 const defaultFee = 1e3;
 
 // Getting the network graph should return the public nodes and connections
@@ -18,6 +19,8 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
 
   const {lnd} = control;
 
+  await delay(3000);
+
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -26,7 +29,11 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(3000);
+
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await delay(5000);
 
   const graph = await getNetworkGraph({lnd});
 
@@ -39,7 +46,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   equal(node.color, '#3399ff', 'Node color is default');
   equal(node.public_key, expectedNode.public_key, 'Node pubkey is own');
   deepIs(node.sockets, [`${control.listen_ip}:${control.listen_port}`], 'ip');
-  equal(new Date() - new Date(node.updated_at) < 5000, true, 'Recent update');
+  equal(new Date() - new Date(node.updated_at) < 10000, true, 'Recent update');
 
   channel.policies.forEach(policy => {
     equal(policy.base_fee_mtokens, '1000', 'Default channel base fee');
@@ -56,9 +63,9 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   equal(channel.id, expectedChannel.id, 'Channel id');
   equal(channel.transaction_id, expectedChannel.transaction_id, 'Chan tx id');
   equal(channel.transaction_vout, expectedChannel.transaction_vout, 'Tx Vout');
-  equal(new Date() - new Date(channel.updated_at) < 5000, true, 'Chan update');
+  equal(new Date() - new Date(channel.updated_at) < 9999, true, 'Chan update');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

@@ -1,10 +1,12 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
+const getPendingChannels = require('./../../getPendingChannels');
 const openChannel = require('./../../openChannel');
 
-const confirmationCount = 6;
+const confirmationCount = 20;
 const maxChannelCapacity = 16776216;
 
 // Getting channels should return the list of channels
@@ -13,13 +15,15 @@ test(`Get channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await openChannel({
+  const chanOpen = await openChannel({
     lnd,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
   await cluster.generate({count: confirmationCount});
+
+  const pending = await getPendingChannels({lnd});
 
   const {channels} = await getChannels({lnd});
 
@@ -37,7 +41,7 @@ test(`Get channels`, async ({end, equal}) => {
   equal(channel.transaction_vout, 0, 'Channel transactin vout');
   equal(channel.unsettled_balance, 0, 'Channel unsettled balance');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

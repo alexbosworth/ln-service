@@ -4,6 +4,7 @@ const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
 const createChainAddress = require('./../../createChainAddress');
+const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const getChainBalance = require('./../../getChainBalance');
 const getChainTransactions = require('./../../getChainTransactions');
@@ -62,6 +63,8 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
   equal(tx.type, 'chain_transaction', 'Chain transaction type');
 
   kill();
+
+  await delay(3000);
 
   return end();
 });

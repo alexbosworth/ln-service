@@ -38,7 +38,7 @@ test(`Close channel`, async ({end, equal}) => {
   equal(channelClose.transaction_vout, defaultVout, 'Closing vout returned');
   equal(channelClose.type, 'pending_close_channel', 'Row type returned');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

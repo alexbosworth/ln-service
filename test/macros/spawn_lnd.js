@@ -28,7 +28,7 @@ const lndWalletUnlockerService = 'WalletUnlocker';
 const localhost = '127.0.0.1';
 const maxSpawnChainDaemonAttempts = 3;
 const readMacaroonFileName = 'readonly.macaroon';
-const retryCreateSeedCount = 3;
+const retryCreateSeedCount = 5;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
 
@@ -111,6 +111,7 @@ module.exports = ({network}, cbk) => {
         '--btcd.rpcpass', chainPass,
         '--btcd.rpcuser', chainUser,
         '--datadir', dir,
+        '--debuglevel', 'trace',
         '--externalip', `${localhost}:${getPorts.listen}`,
         '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
         '--listen', `${localhost}:${getPorts.listen}`,
@@ -133,6 +134,8 @@ module.exports = ({network}, cbk) => {
 
           return cbk(null, {daemon});
         };
+
+        return;
       });
 
       return;
@@ -161,13 +164,24 @@ module.exports = ({network}, cbk) => {
     }],
 
     // Create seed
-    createSeed: ['nonAuthenticatedLnd', ({nonAuthenticatedLnd}, cbk) => {
+    createSeed: [
+      'getPorts',
+      'nonAuthenticatedLnd',
+      'spawnChainDaemon',
+      ({getPorts, nonAuthenticatedLnd, spawnChainDaemon}, cbk) =>
+    {
       return asyncRetry(retryCreateSeedCount, cbk => {
-        return createSeed({
-          lnd: nonAuthenticatedLnd,
-          passphrase: lightningSeedPassphrase,
-        },
-        cbk);
+        const {dir} = spawnChainDaemon;
+
+        const cert = readFileSync(join(dir, lightningTlsCertFileName));
+
+        const lnd = lightningDaemon({
+          cert: cert.toString('base64'),
+          service: lndWalletUnlockerService,
+          socket: `${localhost}:${getPorts.rpc}`,
+        });
+
+        return createSeed({lnd, passphrase: lightningSeedPassphrase}, cbk);
       },
       cbk);
     }],

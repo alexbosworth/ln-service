@@ -6,6 +6,7 @@ const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const decodePaymentRequest = require('./../../decodePaymentRequest');
+const {delay} = require('./../macros');
 const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const getNetworkGraph = require('./../../getNetworkGraph');
@@ -17,7 +18,7 @@ const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 10;
+const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const mtokPadding = '000';
@@ -30,6 +31,8 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
+
+  await delay(3000);
 
   const controlToTargetChannel = await openChannel({
     lnd,
@@ -59,6 +62,8 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
+  await cluster.generate({count: confirmationCount, node: cluster.target});
+
   const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
   const commitTxFee = channel.commit_transaction_fee;
@@ -76,18 +81,18 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   const expectedHops = [
     {
-      channel_capacity: ((channel.capacity * reserveRatio) - commitTxFee),
+      channel_capacity: 999000,
       channel_id: channel.id,
       fee_mtokens: '1000',
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
-      timeout: 606,
+      timeout: 646,
     },
     {
       channel_capacity: 999000,
-      channel_id: '498078767448064',
+      channel_id: '509073883725824',
       fee_mtokens: '0',
       forward_mtokens: '100000',
-      timeout: 606,
+      timeout: 646,
     },
   ];
 
@@ -99,6 +104,8 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     lnd: cluster.remote.lnd,
     request: invoice2.request,
   });
+
+  await cluster.generate({count: confirmationCount, node: cluster.control});
 
   const {routes} = await getRoutes({
     destination,
@@ -125,7 +132,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     path: {routes, id: invoice2.id},
   });
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

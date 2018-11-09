@@ -251,10 +251,13 @@ module.exports = ({}, cbk) => {
       'target',
       ({remote, remoteNode, target}, cbk) =>
     {
-      return addPeer({
-        lnd: target.lnd,
-        public_key: remoteNode.public_key,
-        socket: `${remote.listen_ip}:${remote.listen_port}`,
+      return asyncRetry({interval: retryMs, times: retryTimes}, cbk => {
+        return addPeer({
+          lnd: target.lnd,
+          public_key: remoteNode.public_key,
+          socket: `${remote.listen_ip}:${remote.listen_port}`,
+        },
+        cbk);
       },
       cbk);
     }],
@@ -280,6 +283,12 @@ module.exports = ({}, cbk) => {
     const {remote} = res;
     const {target} = res;
 
+    const kill = promisify((args, cbk) => {
+      [control, remote, target].forEach(({kill}) => kill());
+
+      return setTimeout(() => cbk(), 5000);
+    });
+
     const generate = promisify((args, cbk) => {
       return generateBlocks({
         cert: readFileSync((args.node || control).chain_rpc_cert),
@@ -294,10 +303,10 @@ module.exports = ({}, cbk) => {
 
     return cbk(null, {
       control,
+      kill,
       remote,
       generate,
       target,
-      kill: () => [control, remote, target].forEach(({kill}) => kill()),
       remote_node_public_key: res.remoteNode.public_key,
       target_node_public_key: res.targetNode.public_key,
     });

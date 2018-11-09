@@ -2,11 +2,12 @@ const {test} = require('tap');
 
 const closeChannel = require('./../../closeChannel');
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getClosedChannels = require('./../../getClosedChannels');
 const openChannel = require('./../../openChannel');
 
-const confirmationCount = 7;
+const confirmationCount = 20;
 const defaultFee = 1e3;
 
 // Getting closed channels should return closed channels
@@ -20,6 +21,8 @@ test(`Close channel`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(3000);
+
   await cluster.generate({count: confirmationCount});
 
   const closing = await closeChannel({
@@ -28,6 +31,8 @@ test(`Close channel`, async ({end, equal}) => {
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
   });
+
+  await delay(3000);
 
   await cluster.generate({count: confirmationCount});
 
@@ -52,7 +57,7 @@ test(`Close channel`, async ({end, equal}) => {
   equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
   equal(channel.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

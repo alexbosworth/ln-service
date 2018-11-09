@@ -10,7 +10,7 @@ const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 10;
+const confirmationCount = 20;
 const defaultFee = 1e3;
 const limit = 1;
 const tokens = 100;
@@ -19,6 +19,8 @@ const tokens = 100;
 test('Get forwards', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
+  await delay(3000);
+
   const controlToTargetChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
@@ -26,6 +28,8 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
+
+  await delay(3000);
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
@@ -36,6 +40,8 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     partner_public_key: cluster.remote_node_public_key,
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
+
+  await delay(3000);
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
@@ -131,7 +137,7 @@ test('Get forwards', async ({deepIs, end, equal}) => {
   equal(page4.forwards.length, [].length, 'Page 4 has no results');
   equal(page4.next, undefined, 'Page 4 leads to nowhere');
 
-  cluster.kill();
+  await cluster.kill({});
 
   return end();
 });

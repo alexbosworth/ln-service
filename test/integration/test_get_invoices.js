@@ -1,6 +1,7 @@
 const {test} = require('tap');
 
 const createInvoice = require('./../../createInvoice');
+const {delay} = require('./../macros');
 const getInvoices = require('./../../getInvoices');
 const {spawnLnd} = require('./../macros');
 
@@ -47,6 +48,8 @@ test(`Create an invoice`, async ({end, equal}) => {
   });
 
   kill();
+
+  await delay(3000);
 
   return end();
 });

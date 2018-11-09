@@ -1,5 +1,6 @@
 const {test} = require('tap');
 
+const {delay} = require('./../macros');
 const getNetworkInfo = require('./../../getNetworkInfo');
 const {spawnLnd} = require('./../macros');
 
@@ -18,6 +19,8 @@ test(`Get network info`, async ({end, equal}) => {
   equal(result.type, 'network_info');
 
   kill();
+
+  await delay(3000);
 
   return end();
 });
