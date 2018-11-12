@@ -16,6 +16,7 @@ const msatsPerToken = new BN(1e3, 10);
           expiry: <Expiration Height Number>
           fee: <Fee Tokens String>
           fee_msat: <Fee Millitokens String>
+          pub_key: <Public key of the hop String>
         }]
         total_amt: <Total Tokens Number>
         total_amt_msat: <Route Total Millitokens String>
@@ -42,6 +43,7 @@ const msatsPerToken = new BN(1e3, 10);
         forward: <Forward Tokens Number>
         forward_mtokens: <Forward Millitokens String>
         timeout: <Timeout Block Height Number>
+        pub_key: <Public key of the hop String>
       }]
       mtokens: <Total Millitokens String>
       timeout: <Timeout Block Height Number>
@@ -101,6 +103,7 @@ module.exports = ({response}) => {
             forward: new BN(h.amt_to_forward, decBase).toNumber(),
             forward_mtokens: new BN(h.amt_to_forward_msat, decBase).toString(),
             timeout: h.expiry,
+            pub_key: h.pub_key,
           };
         }),
         mtokens: totalAmtMsat.toString(),
@@ -110,4 +113,3 @@ module.exports = ({response}) => {
     }),
   };
 };
-
