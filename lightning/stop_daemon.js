@@ -4,7 +4,7 @@ const getWalletInfo = require('./get_wallet_info');
 
 const connectionFailureMessage = 'FailedToConnectToDaemon';
 const interval = retryCount => 10 * Math.pow(2, retryCount);
-const times = 5;
+const times = 10;
 
 /** Stop the Lightning daemon.
 

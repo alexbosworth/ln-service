@@ -10,7 +10,7 @@ const emptyBalance = 0;
 test(`Get the channel balance`, async ({end, equal}) => {
   const {kill, lnd} = await spawnLnd({});
 
-  await delay(2000);
+  await delay(3000);
 
   const result = await getChannelBalance({lnd});
 

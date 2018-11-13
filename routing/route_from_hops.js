@@ -20,6 +20,7 @@ const mtokPerTok = new BN(1e3, 10);
       channel_id: <Channel Id String>
       cltv_delta: <CLTV Delta Number>
       fee_rate: <Fee Rate In Millitokens Per Million Number>
+      [public_key]: <Public Key Hex String>
     }]
     mtokens: <Millitokens To Send String>
   }
@@ -38,6 +39,7 @@ const mtokPerTok = new BN(1e3, 10);
       fee_mtokens: <Fee Millitokens String>
       forward: <Forward Tokens Number>
       forward_mtokens: <Forward Millitokens String>
+      [public_key]: <Public Key Hex String>
       timeout: <Timeout Block Height Number>
     }]
     mtokens: <Total Fee-Inclusive Millitokens String>
@@ -95,6 +97,7 @@ module.exports = ({height, hops, mtokens}) => {
       cltv_delta: hop.cltv_delta,
       fee: !i ? defaultFee : floor(fees.div(mtokPerTok).toNumber()),
       fee_mtokens: !i ? defaultFee.toString() : fees.toString(),
+      public_key: hop.public_key || undefined,
     });
 
     return !i ? sum : sum.add(fees);

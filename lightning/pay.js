@@ -10,6 +10,9 @@ const decBase = 10;
 
   Either a payment path or a BOLT 11 payment request is required
 
+  For paying to private destinations along set paths, a public key in the route
+  hops is required to form the route.
+
   {
     [fee]: <Maximum Additional Fee Tokens To Pay Number>
     lnd: <LND GRPC API Object>
@@ -26,6 +29,7 @@ const decBase = 10;
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
           forward_mtokens: <Forward Millitokens String>
+          [public_key]: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Millitokens To Pay String>
@@ -95,6 +99,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
               expiry: hop.timeout,
               fee: hop.fee.toString(),
               fee_msat: hop.fee_mtokens,
+              pub_key: hop.public_key || undefined,
             };
           }),
           total_amt: route.tokens.toString(),

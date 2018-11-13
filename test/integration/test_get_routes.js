@@ -120,23 +120,45 @@ test(`Get routes`, async ({end, equal}) => {
 
   const [direct] = routes;
   const [full] = fullRoute.routes;
+  const {id} = decodedRequest;
   const [indirect] = indirectRoute.routes;
 
-  equal(indirect.fee, direct.fee, 'Fee is the same across routes');
   equal(full.fee, direct.fee, 'Fee is the same across routes');
-  equal(indirect.fee_mtokens, direct.fee_mtokens, 'Fee mtokens equivalent');
   equal(full.fee_mtokens, direct.fee_mtokens, 'Fee mtokens equivalent');
-  equal(indirect.mtokens, direct.mtokens, 'Millitokens equivalent');
   equal(full.mtokens, direct.mtokens, 'Millitokens equivalent');
-  equal(indirect.timeout, direct.timeout, 'Timeouts equivalent');
   equal(full.timeout, direct.timeout, 'Timeouts equivalent');
-  equal(indirect.tokens, direct.tokens, 'Tokens equivalent');
   equal(full.tokens, direct.tokens, 'Tokens equivalent');
 
-  await pay({
-    lnd,
-    path: {id: decodedRequest.id, routes: indirectRoute.routes},
+  equal(indirect.fee, direct.fee, 'Fee is the same across routes');
+  equal(indirect.fee_mtokens, direct.fee_mtokens, 'Fee mtokens equivalent');
+  equal(indirect.mtokens, direct.mtokens, 'Millitokens equivalent');
+  equal(indirect.timeout, direct.timeout, 'Timeouts equivalent');
+  equal(indirect.tokens, direct.tokens, 'Tokens equivalent');
+
+  direct.hops.forEach((expected, i) => {
+    const directHop = direct.hops[i];
+    const indirectHop = indirect.hops[i];
+
+    equal(directHop.channel_capacity, expected.channel_capacity, `${i} d-cap`);
+    equal(directHop.channel_id, expected.channel_id, `${i} d-hop channel id`);
+    equal(directHop.fee, expected.fee, `${i} d-hop fee`);
+    equal(directHop.fee_mtokens, expected.fee_mtokens, `${i} d-hop fee mtoks`);
+    equal(directHop.forward, expected.forward, `${i} d-hop forward tokens`);
+    equal(directHop.forward_mtokens, expected.forward_mtokens, `${i} d-mtok`);
+    equal(directHop.timeout, expected.timeout, `${i} d-hop timeout`);
+
+    equal(indirectHop.channel_capacity, expected.channel_capacity, `${i} cap`);
+    equal(indirectHop.channel_id, expected.channel_id, `${i} hop channel id`);
+    equal(indirectHop.fee, expected.fee, `${i} hop fee`);
+    equal(indirectHop.fee_mtokens, expected.fee_mtokens, `${i} hop fee mtoks`);
+    equal(indirectHop.forward, expected.forward, `${i} hop forward tokens`);
+    equal(indirectHop.forward_mtokens, expected.forward_mtokens, `${i} mtok`);
+    equal(indirectHop.timeout, expected.timeout, `${i} hop timeout`);
+
+    return;
   });
+
+  await pay({lnd, path: {id, routes: indirectRoute.routes}});
 
   await cluster.kill({});
 

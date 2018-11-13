@@ -40,6 +40,7 @@ const tests = [
           fee_mtokens: '3000',
           forward: 2000006,
           forward_mtokens: '2000006000',
+          public_key: undefined,
           timeout: 432,
         },
         {
@@ -49,6 +50,7 @@ const tests = [
           fee_mtokens: '6000',
           forward: 2000000,
           forward_mtokens: '2000000000',
+          public_key: undefined,
           timeout: 288,
         },
         {
@@ -58,6 +60,7 @@ const tests = [
           fee_mtokens: '0',
           forward: 2000000,
           forward_mtokens: '2000000000',
+          public_key: undefined,
           timeout: 288,
         },
       ],

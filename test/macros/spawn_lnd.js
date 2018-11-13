@@ -129,7 +129,7 @@ module.exports = ({network}, cbk) => {
       let isReady = false;
 
       daemon.stdout.on('data', data => {
-        if (!isReady && /password.RPC.server.listening/.test(data+'')) {
+        if (!isReady && /gRPC.proxy.started/.test(data+'')) {
           isReady = true;
 
           return cbk(null, {daemon});

@@ -2,6 +2,7 @@ const {test} = require('tap');
 
 const closeChannel = require('./../../closeChannel');
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
 
@@ -23,6 +24,8 @@ test(`Close channel`, async ({end, equal}) => {
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
+
+  await delay(2000);
 
   await cluster.generate({count: confirmationCount});
 

@@ -94,7 +94,7 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedPaymentPreimage']);
         }
 
-        if (typeof payment.value !== 'string') {
+        if (typeof payment.value_sat !== 'string') {
           return cbk([503, 'ExpectedPaymentValue']);
         }
 
@@ -109,8 +109,9 @@ module.exports = ({lnd}, cbk) => {
           id: payment.payment_hash,
           is_confirmed: true,
           is_outgoing: true,
+          mtokens: payment.value_msat,
           secret: payment.payment_preimage,
-          tokens: parseInt(payment.value, decBase),
+          tokens: parseInt(payment.value_sat, decBase),
           type: transactionType,
         });
       },

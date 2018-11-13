@@ -13,6 +13,7 @@ const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
 
 const defaultFinalCltvDelta = 144;
+const defaultMinHtlcTokens = '0';
 const defaultRoutesReturnCount = 10;
 const defaultTokens = 0;
 const intBase = 10;
@@ -29,7 +30,8 @@ const pathNotFoundErrors = [
 
 /** Get routes a payment can travel towards a destination
 
-  Either a destination or extended routes are required.
+  When paying to a private route, make sure to pass the final destination in
+  addition to routes.
 
   {
     [destination]: <Send Destination Hex Encoded Public Key String>
@@ -76,10 +78,6 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedDestinationToFindRoutesTowards']);
       }
 
-      if (!!args.destination && !!args.routes) {
-        return cbk([400, 'ExpectedEitherDestinationOrRouteForRoutesQuery']);
-      }
-
       if (!args.lnd || !args.lnd.queryRoutes) {
         return cbk([400, 'ExpectedLndForGetRoutesRequest']);
       }
@@ -106,7 +104,7 @@ module.exports = (args, cbk) => {
         return {route, key: firstHop.public_key};
       });
 
-      return asyncMap(routes, (route, cbk) => {
+      return asyncMapSeries(routes, (route, cbk) => {
         const [firstHop] = route;
 
         if (!firstHop.channel_id) {
@@ -115,6 +113,12 @@ module.exports = (args, cbk) => {
 
         const id = firstHop.channel_id;
         const key = firstHop.public_key;
+
+        if (!!args.destination && !!firstHop.public_key) {
+          firstHop.is_full = false;
+
+          return cbk(null, {key, route});
+        }
 
         return getChannel({id, lnd: args.lnd}, (err, channel) => {
           if (!!err) {
@@ -148,7 +152,7 @@ module.exports = (args, cbk) => {
         if (firstHop.is_full) {
           return cbk(null, {
             key,
-            route: route.slice(1),
+            route: route.slice([firstHop].length),
             routes: [{hops: [{channel_id: firstHop.channel_id}]}],
           });
         }
@@ -201,17 +205,38 @@ module.exports = (args, cbk) => {
         return cbk(null, path.routes);
       }
 
-      return asyncMap(getRoutes, ({key, route, routes}, cbk) => {
+      const channels = {};
+
+      args.routes.forEach(n => n.forEach(n => channels[n.channel_id] = n));
+
+      return asyncMapSeries(getRoutes, ({key, route, routes}, cbk) => {
         const hops = routes.map(({hops}) => hops.map(hop => hop.channel_id));
 
-        return asyncMap(hops, (ids, cbk) => {
+        return asyncMapSeries(hops, (ids, cbk) => {
           return asyncMapSeries(ids, (id, cbk) => {
+            // Exit early when channel is known separately
+            if (!!channels[id] && !!channels[id].public_key) {
+              return cbk(null, {
+                id,
+                capacity: args.tokens,
+                policies: [{
+                  base_fee_mtokens: channels[id].base_fee_mtokens,
+                  cltv_delta: channels[id].cltv_delta,
+                  fee_rate: channels[id].fee_rate,
+                  is_disabled: false,
+                  minimum_htlc_mtokens: defaultMinHtlcTokens,
+                  public_key: channels[id].public_key,
+                }],
+              });
+            }
+
             return getChannel({id, lnd: args.lnd}, (err, channel) => {
               if (!!err) {
                 return cbk(err);
               }
 
-              return cbk(null, {id,
+              return cbk(null, {
+                id,
                 capacity: channel.capacity,
                 policies: channel.policies,
               });
@@ -224,6 +249,14 @@ module.exports = (args, cbk) => {
 
             try {
               const {hops} = hopsFromChannels({channels, destination: key});
+
+              const [finalHop] = route.slice().reverse();
+
+              finalHop.public_key = args.destination || finalHop.public_key;
+
+              if (!args.destination) {
+                delete finalHop.public_key;
+              }
 
               const finalRoute = routeFromHops({
                 height,
