@@ -12,6 +12,8 @@ const walletInfoType = 'wallet';
 test(`Get wallet info`, async ({end, equal}) => {
   const {kill, lnd} = await spawnLnd({});
 
+  await delay(3000);
+
   const result = await getWalletInfo({lnd});
 
   equal(result.active_channels_count, 0, 'Expected channels count');

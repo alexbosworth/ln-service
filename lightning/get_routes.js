@@ -252,9 +252,11 @@ module.exports = (args, cbk) => {
 
               const [finalHop] = route.slice().reverse();
 
-              finalHop.public_key = args.destination || finalHop.public_key;
+              if (!!finalHop) {
+                finalHop.public_key = args.destination || finalHop.public_key;
+              }
 
-              if (!args.destination) {
+              if (!args.destination && !!finalHop) {
                 delete finalHop.public_key;
               }
 
