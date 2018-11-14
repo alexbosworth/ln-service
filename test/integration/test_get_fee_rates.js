@@ -13,6 +13,8 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  await delay(3000);
+
   const channelOpen = await openChannel({
     lnd,
     partner_public_key: cluster.target_node_public_key,

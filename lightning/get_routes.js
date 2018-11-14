@@ -250,7 +250,19 @@ module.exports = (args, cbk) => {
             try {
               const {hops} = hopsFromChannels({channels, destination: key});
 
-              const [finalHop] = route.slice().reverse();
+              const path = route.map(n => {
+                return {
+                  base_fee_mtokens: n.base_fee_mtokens,
+                  channel_capacity: n.channel_capacity,
+                  channel_id: n.channel_id,
+                  cltv_delta: n.cltv_delta,
+                  fee_rate: n.fee_rate,
+                  is_full: n.is_full,
+                  public_key: n.public_key,
+                };
+              });
+
+              const [finalHop] = path.slice().reverse();
 
               if (!!finalHop) {
                 finalHop.public_key = args.destination || finalHop.public_key;
@@ -262,7 +274,7 @@ module.exports = (args, cbk) => {
 
               const finalRoute = routeFromHops({
                 height,
-                hops: [].concat(hops).concat(route),
+                hops: [].concat(hops).concat(path),
                 mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
               });
 
