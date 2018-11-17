@@ -16,7 +16,7 @@
     "dotenv": "6.1.0",
     "express": "4.16.4",
     "express-basic-auth": "1.1.6",
-    "grpc": "1.16.0",
+    "grpc": "1.16.1",
     "lodash": "4.17.11",
     "morgan": "1.9.1",
     "promptly": "3.0.3",
@@ -51,5 +51,5 @@
     "start": "node server.js",
     "test": "tap test/bolt07/*.js test/bolt11/*.js test/routing/*.js"
   },
-  "version": "25.2.1"
+  "version": "26.0.0"
 }

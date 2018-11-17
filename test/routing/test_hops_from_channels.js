@@ -12,7 +12,7 @@ const tests = [
           policies: [
             {
               base_fee_mtokens: '9999',
-              cltv_delta: 999,
+              cltv_delta: 144,
               fee_rate: 9,
               public_key: 'alice',
             },
@@ -71,6 +71,7 @@ const tests = [
         channel_id: '0',
         cltv_delta: 144,
         fee_rate: 1,
+        public_key: 'alice',
       },
       {
         base_fee_mtokens: '2000',
@@ -78,6 +79,7 @@ const tests = [
         channel_id: '1',
         cltv_delta: 144,
         fee_rate: 2,
+        public_key: 'bob',
       },
       {
         base_fee_mtokens: '3000',
@@ -85,6 +87,7 @@ const tests = [
         channel_id: '2',
         cltv_delta: 144,
         fee_rate: 3,
+        public_key: 'charlie',
       },
     ],
   },

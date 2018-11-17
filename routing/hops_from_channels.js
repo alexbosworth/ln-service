@@ -3,6 +3,7 @@ const {intersection} = require('lodash');
 /** Derive policy hops from an in-order set of channels with dual policies
 
   {
+    source: <Source Public Key Hex String>
     channels: [{
       capacity: <Maximum Tokens Number>
       id: <Channel Id String>
@@ -15,13 +16,14 @@ const {intersection} = require('lodash');
         public_key: <Node Public Key String>
       }]
     }]
-    destination: <Final Destination Public Key Hex String>
+    destination: <Destination Public Key Hex String>
   }
 
   @throws
+  <ExpectedArrayOfPoliciesForChannelInHop Error>
+  <ExpectedChannelCapacityForChannelHop Error>
   <ExpectedChannelsToDeriveHops Error>
   <ExpectedDestinationForChannels Error>
-  <ExpectedLinkingPolicyForChannel Error>
 
   @returns
   {
@@ -31,10 +33,11 @@ const {intersection} = require('lodash');
       channel_id: <Channel Id String>
       cltv_delta: <CLTV Delta Number>
       fee_rate: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Public Key Hex String>
     }]
   }
 */
-module.exports = ({channels, destination}) => {
+module.exports = ({channels, destination, source}) => {
   if (!Array.isArray(channels) || !channels.length) {
     throw new Error('ExpectedChannelsToDeriveHops');
   }
@@ -44,27 +47,45 @@ module.exports = ({channels, destination}) => {
   }
 
   const hops = channels.map((channel, i, chans) => {
+    if (!channel.capacity) {
+      throw new Error('ExpectedChannelCapacityForChannelHop');
+    }
+
     if (!channel.id) {
       throw new Error('ExpectedChannelIdForTranslationToChannelHop');
+    }
+
+    if (!Array.isArray(channel.policies)) {
+      throw new Error('ExpectedArrayOfPoliciesForChannelInHop');
     }
 
     const nextChan = chans[i + [channel].length];
     const {policies} = channel;
 
+    const [firstPolicy] = policies;
+
+    // Neighbor channel's public keys
     const nextKeys = !nextChan ? [] : nextChan.policies.map(n => n.public_key);
 
+    // Linking public key between this channel and the next's
     const [link] = intersection(policies.map(n => n.public_key), nextKeys);
 
     let policy;
+    let nextHop;
 
-    if (!i) {
+    if (policies.find(n => n.public_key === destination)) {
+      nextHop = destination;
+      policy = policies.find(n => n.public_key === destination);
+    } else if (!i) {
+      nextHop = link || policies.find(n => n.public_key !== source).public_key;
       policy = policies.find(n => n.public_key !== link);
     } else {
-      policy = policies.find(n => n.public_key === (link || destination));
+      nextHop = link;
+      policy = policies.find(n => n.public_key === link);
     }
 
     if (!policy) {
-      throw new Error('ExpectedLinkingPolicyForChannel');
+      throw new Error('ExpectedLinkingPolicyForHops');
     }
 
     return {
@@ -73,6 +94,7 @@ module.exports = ({channels, destination}) => {
       channel_id: channel.id,
       cltv_delta: policy.cltv_delta,
       fee_rate: policy.fee_rate,
+      public_key: nextHop,
     };
   });
 

@@ -4,6 +4,9 @@ const wordsAsBuffer = require('./words_as_buffer');
 
 /** Words as hop hints
 
+  A hop hint consists of a node represented by its public key and its channel
+  edge details from that node to a receiver, defined by an outside context.
+
   {
     words: [<Bech 32 Word Number>]
   }
@@ -13,17 +16,17 @@ const wordsAsBuffer = require('./words_as_buffer');
 
   @returns
   {
-    routes: [{
+    hints: [{
       base_fee_mtokens: <Base Fee Millitokens String>
       channel_id: <Short Channel Id String>
       cltv_delta: <Final CLTV Expiration Blocks Delta Number>
       fee_rate: <Fee Rate Millitokens Per Million Number>
-      public_key: <Public Key Hex String>
+      public_key: <Preceding Public Key Hex String>
     }]
   }
 */
 module.exports = ({words}) => {
-  const routes = [];
+  const hints = [];
   let routesBuffer = wordsAsBuffer({words, trim: true});
 
   while (routesBuffer.length > 0) {
@@ -35,7 +38,7 @@ module.exports = ({words}) => {
 
     routesBuffer = routesBuffer.slice(51)
 
-    routes.push({
+    hints.push({
       base_fee_mtokens: baseFee.toString(),
       channel_id: encodeShortChannelId({
         block_height: idComponents.block_height,
@@ -48,5 +51,5 @@ module.exports = ({words}) => {
     });
   }
 
-  return {routes};
+  return {hints};
 };

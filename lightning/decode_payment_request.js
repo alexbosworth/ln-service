@@ -21,13 +21,13 @@ const msPerSec = 1e3;
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
     id: <Payment Hash String>
-    routes: [{
-      base_fee_mtokens: <Base Routing Fee In Millitokens String>
-      channel_id: <Channel Id String>
-      cltv_delta: <CLTV Blocks Delta Number>
-      fee_rate: <Fee Rate In Millitokens Per Million Number>
-      public_key: <Public Key Hex String>
-    }]
+    routes: [[{
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+      [channel_id]: <Channel Id String>
+      [cltv_delta]: <CLTV Blocks Delta Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
+    }]]
     tokens: <Requested Tokens Number>
     type: <Row Type String>
   }
@@ -83,7 +83,10 @@ module.exports = ({lnd, request}, cbk) => {
           throw new Error('ExpectedRouteHopHints');
         }
 
-        return route.hop_hints.map(hop => {
+        const [firstHint] = route.hop_hints;
+        const lastHop = {node_id: res.destination};
+
+        const lastHops = route.hop_hints.map((hop, i, hops) => {
           if (!hop.chan_id) {
             throw new Error('ExpectedRouteHopChannelId');
           }
@@ -105,13 +108,15 @@ module.exports = ({lnd, request}, cbk) => {
           }
 
           return {
-            base_fee_mtokens: hop.fee_base_msat.toString(),
+            base_fee_mtokens: hop.fee_base_msat,
             channel_id: hop.chan_id,
             cltv_delta: hop.cltv_expiry_delta,
             fee_rate: hop.fee_proportional_millionths,
-            public_key: hop.node_id,
+            public_key: (hops[(i + [hop].length)] || lastHop).node_id,
           };
         });
+
+        return [].concat([{public_key: firstHint.node_id}]).concat(lastHops);
       });
     } catch (err) {
       return cbk([503, err.message, res]);

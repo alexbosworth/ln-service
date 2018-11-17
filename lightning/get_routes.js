@@ -19,6 +19,7 @@ const defaultTokens = 0;
 const intBase = 10;
 const msatsPerToken = 1e3;
 const mtokBuffer = '000';
+const notFoundCode = 404;
 
 const pathNotFoundErrors = [
   'noPathFound',
@@ -33,20 +34,22 @@ const pathNotFoundErrors = [
   When paying to a private route, make sure to pass the final destination in
   addition to routes.
 
+  If extending routes are provided, the results limit will be multiplicative.
+
   {
-    [destination]: <Send Destination Hex Encoded Public Key String>
+    [destination]: <Final Send Destination Hex Encoded Public Key String>
     [fee]: <Maximum Fee Tokens Number>
     [limit]: <Limit Results Count Number>
     lnd: <LND GRPC API Object>
     [routes]: [[{
-      base_fee_mtokens: <Base Routing Fee In Millitokens Number>
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
-      channel_id: <Channel Id String>
-      cltv_delta: <CLTV Blocks Delta Number>
-      fee_rate: <Fee Rate In Millitokens Per Million Number>
-      public_key: <Public Key Hex String>
+      [channel_id]: <Channel Id String>
+      [cltv_delta]: <CLTV Blocks Delta Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
     }]]
-    [timeout]: <Final CLTV Timeout Blocks Delta Number>
+    [timeout]: <CLTV Timeout Blocks Delta Number>
     [tokens]: <Tokens to Send Number>
   }
 
@@ -62,6 +65,7 @@ const pathNotFoundErrors = [
         fee_mtokens: <Fee Millitokens String>
         forward: <Forward Tokens Number>
         forward_mtokens: <Forward Millitokens String>
+        public_key: <Forward Edge Public Key Hex String>
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
@@ -89,72 +93,24 @@ module.exports = (args, cbk) => {
       return cbk();
     },
 
-    // Determine what the wallet id is
-    getWalletInfo: ['validate', ({}, cbk) => {
-      return getWalletInfo({lnd: args.lnd}, cbk);
-    }],
-
-    // Sort out route destinations
-    paths: ['getWalletInfo', ({getWalletInfo}, cbk) => {
+    // Derive routes
+    getRoutes: ['validate', ({}, cbk) => {
       const routes = args.routes || [[{public_key: args.destination}]];
 
-      const destinations = routes.map(route => {
+      return asyncMap(routes, (route, cbk) => {
+        const extended = route.slice([args.destination].length);
         const [firstHop] = route;
 
-        return {route, key: firstHop.public_key};
-      });
-
-      return asyncMapSeries(routes, (route, cbk) => {
-        const [firstHop] = route;
-
-        if (!firstHop.channel_id) {
-          return cbk(null, {route, key: firstHop.public_key});
+        if (!firstHop.public_key) {
+          return cbk([400, 'ExpectedPublicKeyInExtendedRoute']);
         }
 
-        const id = firstHop.channel_id;
-        const key = firstHop.public_key;
-
-        if (!!args.destination && !!firstHop.public_key) {
-          firstHop.is_full = false;
-
-          return cbk(null, {key, route});
+        if (extended.length > [args.destination].length) {
+          return cbk([400, 'ExpectedOnlyLastHopRouteExtension']);
         }
 
-        return getChannel({id, lnd: args.lnd}, (err, channel) => {
-          if (!!err) {
-            return cbk(err);
-          }
-
-          const peers = channel.policies.map(n => n.public_key);
-
-          firstHop.is_full = !!peers.find(n => n === getWalletInfo.public_key);
-
-          return cbk(null, {key, route});
-        });
-      },
-      (err, destinations) => {
-        if (!!err) {
-          return cbk(err);
-        }
-
-        return cbk(null, {destinations, routes});
-      });
-    }],
-
-    // Derive routes
-    getRoutes: ['paths', ({paths}, cbk) => {
-      const {destinations} = paths;
-      const {routes} = paths;
-
-      return asyncMap(destinations, ({key, route}, cbk) => {
-        const [firstHop] = route;
-
-        if (firstHop.is_full) {
-          return cbk(null, {
-            key,
-            route: route.slice([firstHop].length),
-            routes: [{hops: [{channel_id: firstHop.channel_id}]}],
-          });
+        if (!!firstHop.channel_id) {
+          return cbk(null, {extended, routes: []});
         }
 
         return args.lnd.queryRoutes({
@@ -162,7 +118,7 @@ module.exports = (args, cbk) => {
           fee_limit: !args.fee ? undefined : {fee_limit: args.fee},
           final_cltv_delta: args.timeout || defaultFinalCltvDelta,
           num_routes: args.limit || defaultRoutesReturnCount,
-          pub_key: key,
+          pub_key: firstHop.public_key,
         },
         (err, response) => {
           // Exit early when an error indicates that no routes are possible
@@ -177,7 +133,7 @@ module.exports = (args, cbk) => {
           try {
             const {routes} = routesFromQueryRoutes({response});
 
-            return cbk(null, {key, route, routes});
+            return cbk(null, {extended, routes});
           } catch (err) {
             return cbk([503, 'InvalidGetRoutesResponse', err]);
           }
@@ -186,60 +142,83 @@ module.exports = (args, cbk) => {
       cbk);
     }],
 
-    // Current height
-    height: ['validate', ({}, cbk) => {
-      return getWalletInfo({lnd: args.lnd}, (err, res) => {
-        if (!!err) {
-          return cbk(err);
-        }
+    // Get the current block height if necessary for route assembly
+    getWallet: ['getRoutes', ({}, cbk) => {
+      if (!args.routes) {
+        return cbk();
+      }
 
-        return cbk(null, res.current_block_height);
-      });
+      return getWalletInfo({lnd: args.lnd}, cbk);
     }],
 
-    // Derive routes
-    assembleRoutes: ['getRoutes', 'height', ({getRoutes, height}, cbk) => {
+    // Assemble the final routes
+    assemble: ['getRoutes', 'getWallet', ({getRoutes, getWallet}, cbk) => {
+      // Exit early when no extended routes are specified
       if (!args.routes) {
-        const [path] = getRoutes;
+        const [standardRoute] = getRoutes;
 
-        return cbk(null, path.routes);
+        return cbk(null, standardRoute.routes);
       }
 
       const channels = {};
+      const [firstRoute] = args.routes;
+      const gotChannels = {};
+      const source = getWallet.public_key;
 
-      args.routes.forEach(n => n.forEach(n => channels[n.channel_id] = n));
+      const [finalHop] = firstRoute.slice().reverse();
 
-      return asyncMapSeries(getRoutes, ({key, route, routes}, cbk) => {
+      args.routes.forEach(n => {
+        return channels[n.channel_id] = {
+          capacity: args.tokens,
+          id: n.channel_id,
+          policies: [{
+            base_fee_mtokens: n.base_fee_mtokens,
+            cltv_delta: n.cltv_delta,
+            fee_rate: n.fee_rate,
+            public_key: n.public_key,
+          }],
+        };
+      });
+
+      return asyncMapSeries(getRoutes, ({extended, routes}, cbk) => {
+        if (!routes.length) {
+          return cbk(null, []);
+        }
+
         const hops = routes.map(({hops}) => hops.map(hop => hop.channel_id));
 
         return asyncMapSeries(hops, (ids, cbk) => {
           return asyncMapSeries(ids, (id, cbk) => {
-            // Exit early when channel is known separately
-            if (!!channels[id] && !!channels[id].public_key) {
-              return cbk(null, {
-                id,
-                capacity: args.tokens,
-                policies: [{
-                  base_fee_mtokens: channels[id].base_fee_mtokens,
-                  cltv_delta: channels[id].cltv_delta,
-                  fee_rate: channels[id].fee_rate,
-                  is_disabled: false,
-                  minimum_htlc_mtokens: defaultMinHtlcTokens,
-                  public_key: channels[id].public_key,
-                }],
-              });
+            // Exit early when channel information is cached
+            if (!!gotChannels[id]) {
+              return cbk(null, gotChannels[id]);
             }
 
             return getChannel({id, lnd: args.lnd}, (err, channel) => {
+              const [errCode] = err || [];
+
+              // Exit early when the channel is known outside the graph
+              if (!!err && errCode === notFoundCode && !!channels[id]) {
+                return cbk(null, {
+                  id,
+                  capacity: channels[id].capacity,
+                  policies: channels[id].policies,
+                });
+              }
+
               if (!!err) {
                 return cbk(err);
               }
 
-              return cbk(null, {
+              const chan = {
                 id,
                 capacity: channel.capacity,
                 policies: channel.policies,
-              });
+              };
+
+              gotChannels[id] = chan;
+
+              return cbk(null, chan);
             });
           },
           (err, channels) => {
@@ -248,37 +227,15 @@ module.exports = (args, cbk) => {
             }
 
             try {
-              const {hops} = hopsFromChannels({channels, destination: key});
+              const destination = args.destination || finalHop.public_key;
 
-              const path = route.map(n => {
-                return {
-                  base_fee_mtokens: n.base_fee_mtokens,
-                  channel_capacity: n.channel_capacity,
-                  channel_id: n.channel_id,
-                  cltv_delta: n.cltv_delta,
-                  fee_rate: n.fee_rate,
-                  is_full: n.is_full,
-                  public_key: n.public_key,
-                };
-              });
+              const {hops} = hopsFromChannels({channels, destination, source});
 
-              const [finalHop] = path.slice().reverse();
-
-              if (!!finalHop) {
-                finalHop.public_key = args.destination || finalHop.public_key;
-              }
-
-              if (!args.destination && !!finalHop) {
-                delete finalHop.public_key;
-              }
-
-              const finalRoute = routeFromHops({
-                height,
-                hops: [].concat(hops).concat(path),
+              return cbk(null, routeFromHops({
+                height: getWallet.current_block_height,
+                hops: [].concat(hops).concat(extended),
                 mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
-              });
-
-              return cbk(null, finalRoute);
+              }));
             } catch (err) {
               return cbk([500, 'UnexpectedHopsFromChannelsError', err]);
             }
@@ -290,8 +247,20 @@ module.exports = (args, cbk) => {
     }],
 
     // Total routes
-    assembledRoutes: ['assembleRoutes', ({assembleRoutes}, cbk) => {
-      return cbk(null, {routes: flatten(assembleRoutes)});
+    assembledRoutes: ['assemble', ({assemble}, cbk) => {
+      const routes = flatten(assemble).filter(route => {
+        if (!!args.fee && route.fee > args.fee) {
+          return false;
+        }
+
+        if (!!args.timeout && route.timeout > args.timeout) {
+          return false;
+        }
+
+        return true;
+      });
+
+      return cbk(null, {routes});
     }],
   },
   returnResult({of: 'assembledRoutes'}, cbk));

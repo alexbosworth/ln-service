@@ -41,6 +41,7 @@ const msatsPerToken = new BN(1e3, 10);
         fee_mtokens: <Fee Millitokens String>
         forward: <Forward Tokens Number>
         forward_mtokens: <Forward Millitokens String>
+        public_key: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Millitokens String>
@@ -100,6 +101,7 @@ module.exports = ({response}) => {
             fee_mtokens: new BN(h.fee_msat, decBase).toString(),
             forward: new BN(h.amt_to_forward, decBase).toNumber(),
             forward_mtokens: new BN(h.amt_to_forward_msat, decBase).toString(),
+            public_key: h.pub_key,
             timeout: h.expiry,
           };
         }),

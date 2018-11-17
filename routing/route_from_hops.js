@@ -97,7 +97,7 @@ module.exports = ({height, hops, mtokens}) => {
       cltv_delta: hop.cltv_delta,
       fee: !i ? defaultFee : floor(fees.div(mtokPerTok).toNumber()),
       fee_mtokens: !i ? defaultFee.toString() : fees.toString(),
-      public_key: hop.public_key || undefined,
+      public_key: hop.public_key,
     });
 
     return !i ? sum : sum.add(fees);

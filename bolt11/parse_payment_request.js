@@ -38,12 +38,15 @@ const timestampWordLength = 7;
   <ExpectedLnPrefix Error>
   <ExpectedPaymentHash Error>
   <ExpectedPaymentRequest Error>
-  <ExpectedValidHrp Error>
-  <FailedToParsePaymentHash Error>
-  <InvalidInvoicePrefix Error>
+  <ExpectedValidHrpForPaymentRequest Error>
+  <FailedToParsePaymentRequestDescriptionHash Error>
+  <FailedToParsePaymentRequestFallbackAddress Error>
+  <FailedToParsePaymentRequestPaymentHash Error>
+  <InvalidDescriptionInPaymentRequest Error>
   <InvalidOrMissingSignature Error>
   <InvalidPaymentHashByteLength Error>
-  <UnknownCurrencyCode Error>
+  <InvalidPaymentRequestPrefix Error>
+  <UnknownCurrencyCodeInPaymentRequest Error>
 
   @returns
   {
@@ -58,13 +61,13 @@ const timestampWordLength = 7;
     is_expired: <Invoice is Expired Bool>
     [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
     network: <Network Name String>
-    [routes]: [{
-      base_fee_mtokens: <Base Fee Millitokens String>
-      channel_id: <Short Channel Id String>
-      cltv_delta: <Final CLTV Expiration Blocks Delta Number>
-      fee_rate: <Fee Rate Millitokens Per Million Number>
-      public_key: <Public Key Hex String>
-    }]
+    [routes]: [[{
+      [base_fee_mtokens]: <Base Fee Millitokens String>
+      [channel_id]: <Short Channel Id String>
+      [cltv_delta]: <Final CLTV Expiration Blocks Delta Number>
+      [fee_rate]: <Fee Rate Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
+    }]]
     [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
   }
 */
@@ -114,7 +117,7 @@ module.exports = ({request}) => {
   }
 
   if (!prefixMatches) {
-    throw new Error('InvalidInvoicePrefix');
+    throw new Error('InvalidPaymentRequestPrefix');
   }
 
   const [{}, currencyCode, value, valueDivisor] = prefixMatches;
@@ -122,7 +125,7 @@ module.exports = ({request}) => {
   const network = bech32CurrencyCodes[currencyCode];
 
   if (!network) {
-    throw new Error('UnknownCurrencyCode');
+    throw new Error('UnknownCurrencyCodeInPaymentRequest');
   }
 
   let tokens = null;
@@ -134,8 +137,8 @@ module.exports = ({request}) => {
       mtokens = tok.mtokens;
       tokens = tok.tokens;
     }
-  } catch (e) {
-    throw new Error('ExpectedValidHrp');
+  } catch (err) {
+    throw new Error('ExpectedValidHrpForPaymentRequest');
   }
 
   const timestampWords = wordsWithoutSig.slice(0, timestampWordLength);
@@ -148,13 +151,13 @@ module.exports = ({request}) => {
   // Cut off the timestamp words
   let wordsWithTags = wordsWithoutSig.slice(timestampWordLength)
 
-  let chainAddresses;
+  const chainAddresses = [];
   let cltvDelta = defaultCltvExpiry;
   let descHash;
   let description;
   let expiresAt;
+  const hopHints = [];
   let paymentHash;
-  let routes;
   let tagCode;
   let tagLen;
   let tagName;
@@ -182,20 +185,19 @@ module.exports = ({request}) => {
       try {
         description = wordsAsBuffer({trim, words: tagWords}).toString('utf8');
       } catch (err) {
-        throw new Error('InvalidDescription');
+        throw new Error('InvalidDescriptionInPaymentRequest');
       }
       break;
 
     case 'f': // On-chain fallback address
       try {
         const words = tagWords;
-        chainAddresses = chainAddresses || [];
 
         const address = wordsAsChainAddress({network, words}).chain_address;
 
         chainAddresses.push(address);
       } catch (err) {
-        throw new Error('FailedToParseFallbackAddress');
+        throw new Error('FailedToParsePaymentRequestFallbackAddress');
       }
       break;
 
@@ -203,7 +205,7 @@ module.exports = ({request}) => {
       try {
         descHash = wordsAsBuffer({trim, words: tagWords}).toString('hex');
       } catch (err) {
-        throw new Error('FailedToParseDescriptionHash');
+        throw new Error('FailedToParsePaymentRequestDescriptionHash');
       }
       break;
 
@@ -215,7 +217,7 @@ module.exports = ({request}) => {
       try {
         paymentHash = wordsAsBuffer({trim, words: tagWords});
       } catch (err) {
-        throw new Error('FailedToParsePaymentHash');
+        throw new Error('FailedToParsePaymentRequestPaymentHash');
       }
 
       if (paymentHash.length !== paymentHashByteLength) {
@@ -225,7 +227,7 @@ module.exports = ({request}) => {
 
     case 'r': // Route Hop Hints
       try {
-        routes = wordsAsHopHints({words: tagWords}).routes;
+        hopHints.push(wordsAsHopHints({words: tagWords}).hints);
       } catch (err) {
         throw new Error('FailedToParseRoutingHopHints');
       }
@@ -261,9 +263,24 @@ module.exports = ({request}) => {
 
   const destination = recover(hash.digest(), sigBuffer, recoveryFlag, true);
 
+  const routes = hopHints.map(hops => {
+    const [firstHop] = hops;
+    const lastHop = {public_key: destination.toString('hex')};
+
+    const route = hops.map((hop, i) => ({
+      base_fee_mtokens: hop.base_fee_mtokens,
+      channel_id: hop.channel_id,
+      cltv_delta: hop.cltv_delta,
+      fee_rate: hop.fee_rate,
+      public_key: (hops[(i + [hop].length)] || lastHop).public_key,
+    }));
+
+    return [].concat([{public_key: firstHop.public_key}]).concat(route);
+  });
+
   return {
     network,
-    chain_addresses: chainAddresses || undefined,
+    chain_addresses: !chainAddresses.length ? undefined : chainAddresses,
     cltv_delta: cltvDelta || undefined,
     created_at: createdAt,
     description: description || undefined,
@@ -273,7 +290,7 @@ module.exports = ({request}) => {
     id: paymentHash.toString('hex'),
     is_expired: expiresAt < new Date().toISOString(),
     mtokens: mtokens || undefined,
-    routes: !routes ? undefined : routes,
+    routes: !routes.length ? undefined : routes,
     tokens: tokens || undefined,
   };
 };

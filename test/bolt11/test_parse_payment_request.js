@@ -99,20 +99,25 @@ const tests = [
       mtokens: '2000000000',
       network: 'bitcoin',
       routes: [
-        {
-          base_fee_mtokens: '1',
-          channel_id: '72623859790382856',
-          cltv_delta: 3,
-          fee_rate: 20,
-          public_key: '029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255',
-        },
-        {
-          base_fee_mtokens: '2',
-          channel_id: '217304205466536202',
-          cltv_delta: 4,
-          fee_rate: 30,
-          public_key: '039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255',
-        },
+        [
+          {
+            public_key: '029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255',
+          },
+          {
+            base_fee_mtokens: '1',
+            channel_id: '72623859790382856',
+            cltv_delta: 3,
+            fee_rate: 20,
+            public_key: '039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255',
+          },
+          {
+            base_fee_mtokens: '2',
+            channel_id: '217304205466536202',
+            cltv_delta: 4,
+            fee_rate: 30,
+            public_key: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
+          },
+        ],
       ],
       tokens: 2000000,
     },
@@ -197,13 +202,18 @@ const tests = [
       is_expired: true,
       mtokens: '493020',
       network: 'testnet',
-      routes: [{
-        base_fee_mtokens: '1000',
-        channel_id: '1487450116383244288',
-        cltv_delta: 144,
-        fee_rate: 100,
-        public_key: '03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134',
-      }],
+      routes: [[
+        {
+          public_key: '03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134',
+        },
+        {
+          base_fee_mtokens: '1000',
+          channel_id: '1487450116383244288',
+          cltv_delta: 144,
+          fee_rate: 100,
+          public_key: '032bb4f2cd2bf877429f1d79f91de0794e4a3b7b772febbf60fc21bb3475f7cd5e',
+        },
+      ]],
       tokens: 493,
     },
     request: 'lntb4930200p1pdkm5xfrzjqwfn3p9278ttzzpe0e00uhyxhned3j5d9acqak5emwfpflp8z2cng99y0sqqqgcqqqqqqqlgqqqqqeqqjqfppqvzxxvnahw6gkj9aqpptktxpt6906cn2sdqqxqy9gcqpp5ts3ux9ghp38unvgzqeqk2x4wzupp6ley3qtql36eh09kv6hhw8rqlsewhluvdsc05q8pcfwnrfplrglgzlzqmgkzamrhvxj8lep7hhajx6pu5s3ay6pjunw679nx9nrvkdl52n9l273ah4rxwm4tj8fcjcqqh4ku2d',
@@ -230,17 +240,20 @@ tests.forEach(({description, expected, request}) => {
     if (Array.isArray(details.routes) || Array.isArray(expected.routes)) {
       equal(Array.isArray(expected.routes), true, 'Routes were expected');
       equal(Array.isArray(details.routes), true, 'Routes were parsed');
-
       equal(details.routes.length, expected.routes.length, 'Parse all routes');
 
-      details.routes.forEach((hop, i) => {
-        const expect = expected.routes[i];
+      details.routes.forEach((route, i) => {
+        return route.forEach((hop, j) => {
+          const expect = expected.routes[i][j];
 
-        equal(hop.base_fee_mtokens, expect.base_fee_mtokens, 'Hop base-fee');
-        equal(hop.channel_id, expect.channel_id, 'Parsed hop channel id');
-        equal(hop.cltv_delta, expect.cltv_delta, 'Parsed hop cltv delta');
-        equal(hop.fee_rate, expect.fee_rate, 'Parsed hop fee rate');
-        equal(hop.public_key, expect.public_key, 'Parsed hop public key');
+          equal(hop.base_fee_mtokens, expect.base_fee_mtokens, 'Hop base-fee');
+          equal(hop.channel_id, expect.channel_id, 'Parsed hop channel id');
+          equal(hop.cltv_delta, expect.cltv_delta, 'Parsed hop cltv delta');
+          equal(hop.fee_rate, expect.fee_rate, 'Parsed hop fee rate');
+          equal(hop.public_key, expect.public_key, 'Parsed hop public key');
+
+          return;
+        });
       });
     }
 

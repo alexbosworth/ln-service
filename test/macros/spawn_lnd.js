@@ -132,7 +132,7 @@ module.exports = ({network}, cbk) => {
         if (!isReady && /gRPC.proxy.started/.test(data+'')) {
           isReady = true;
 
-          return cbk(null, {daemon});
+          return setTimeout(() => cbk(null, {daemon}), 2000);
         };
 
         return;

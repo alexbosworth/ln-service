@@ -79,11 +79,9 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   });
 
   const {id} = invoice;
+  const {request} = invoice;
 
-  const decodedRequest = await decodePaymentRequest({
-    lnd,
-    request: invoice.request,
-  });
+  const decodedRequest = await decodePaymentRequest({lnd, request});
 
   const {routes} = await getRoutes({
     lnd,

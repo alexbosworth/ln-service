@@ -16,6 +16,8 @@ const giftTokens = 1e4;
 test(`Close channel`, async ({end, equal}) => {
   const cluster = await createCluster({});
 
+  await delay(3000);
+
   const channelOpen = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     give_tokens: giftTokens,
@@ -25,7 +27,7 @@ test(`Close channel`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await delay(3000);
 
   await cluster.generate({count: confirmationCount});
 
