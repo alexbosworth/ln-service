@@ -31,7 +31,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -41,7 +41,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(1000);
+  await delay(2000);
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
@@ -51,7 +51,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(5000);
+  await delay(2000);
 
   const controlListenIp = cluster.control.listen_ip;
   const controlListenPort = cluster.control.listen_port;

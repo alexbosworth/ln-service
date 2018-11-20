@@ -89,7 +89,9 @@ module.exports = ({height, hops, mtokens}) => {
     const baseFee = new BN(hop.base_fee_mtokens, decBase);
     const feeRate = new BN(hop.fee_rate, decBase);
 
-    const fees = baseFee.add(sum.clone().div(feeDivisor).mul(feeRate));
+    const rateFee = sum.mul(feeRate).div(new BN(feeDivisor, decBase));
+
+    const fees = baseFee.add(rateFee);
 
     routeHops.push({
       channel_capacity: hop.channel_capacity || defaultChannelCapacity,
@@ -100,7 +102,9 @@ module.exports = ({height, hops, mtokens}) => {
       public_key: hop.public_key,
     });
 
-    return !i ? sum : sum.add(fees);
+    const hopFees = !i ? sum : sum.add(fees);
+
+    return hopFees;
   },
   new BN(mtokens, decBase));
 
@@ -110,6 +114,7 @@ module.exports = ({height, hops, mtokens}) => {
     if (i < hopsWithoutFees) {
       hop.forward = new BN(mtokens, decBase).div(mtokPerTok).toNumber();
       hop.forward_mtokens = mtokens;
+
       hop.timeout = height + defaultCltvBuffer;
 
       delete hop.cltv_delta;

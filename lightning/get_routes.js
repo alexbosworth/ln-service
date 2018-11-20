@@ -167,17 +167,27 @@ module.exports = (args, cbk) => {
 
       const [finalHop] = firstRoute.slice().reverse();
 
-      args.routes.forEach(n => {
-        return channels[n.channel_id] = {
-          capacity: args.tokens,
-          id: n.channel_id,
-          policies: [{
-            base_fee_mtokens: n.base_fee_mtokens,
-            cltv_delta: n.cltv_delta,
-            fee_rate: n.fee_rate,
-            public_key: n.public_key,
-          }],
-        };
+      args.routes.forEach(route => {
+        let precedingPubKey;
+
+        return route.forEach(n => {
+          const publicKey = precedingPubKey;
+
+          if (!n.channel_id) {
+            return;
+          }
+
+          return channels[n.channel_id] = {
+            capacity: args.tokens,
+            id: n.channel_id,
+            policies: [{
+              base_fee_mtokens: n.base_fee_mtokens,
+              cltv_delta: n.cltv_delta,
+              fee_rate: n.fee_rate,
+              public_key: publicKey || args.destination,
+            }],
+          };
+        });
       });
 
       return asyncMapSeries(getRoutes, ({extended, routes}, cbk) => {
@@ -185,13 +195,30 @@ module.exports = (args, cbk) => {
           return cbk(null, []);
         }
 
-        const hops = routes.map(({hops}) => hops.map(hop => hop.channel_id));
+        const extendedHops = extended.map(hop => {
+          return {channel_id: hop.channel_id, destination: hop.public_key};
+        });
 
-        return asyncMapSeries(hops, (ids, cbk) => {
-          return asyncMapSeries(ids, (id, cbk) => {
+        const baseRoutes = routes.map(({hops}) => {
+          return hops.map(hop => {
+            return {channel_id: hop.channel_id, destination: hop.public_key};
+          });
+        });
+
+        return asyncMapSeries(baseRoutes, (baseHops, cbk) => {
+          return asyncMapSeries(baseHops.concat(extendedHops), (hop, cbk) => {
+            const id = hop.channel_id;
+
             // Exit early when channel information is cached
             if (!!gotChannels[id]) {
-              return cbk(null, gotChannels[id]);
+              const knownChannel = gotChannels[id];
+
+              return cbk(null, {
+                id,
+                capacity: knownChannel.capacity,
+                destination: hop.destination,
+                policies: knownChannel.policies,
+              });
             }
 
             return getChannel({id, lnd: args.lnd}, (err, channel) => {
@@ -202,6 +229,7 @@ module.exports = (args, cbk) => {
                 return cbk(null, {
                   id,
                   capacity: channels[id].capacity,
+                  destination: hop.destination,
                   policies: channels[id].policies,
                 });
               }
@@ -218,7 +246,12 @@ module.exports = (args, cbk) => {
 
               gotChannels[id] = chan;
 
-              return cbk(null, chan);
+              return cbk(null, {
+                id,
+                capacity: channel.capacity,
+                destination: hop.destination,
+                policies: channel.policies,
+              });
             });
           },
           (err, channels) => {
@@ -227,13 +260,9 @@ module.exports = (args, cbk) => {
             }
 
             try {
-              const destination = args.destination || finalHop.public_key;
-
-              const {hops} = hopsFromChannels({channels, destination, source});
-
               return cbk(null, routeFromHops({
                 height: getWallet.current_block_height,
-                hops: [].concat(hops).concat(extended),
+                hops: hopsFromChannels({channels}).hops,
                 mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
               }));
             } catch (err) {

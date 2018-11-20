@@ -1,9 +1,12 @@
 const {createHash} = require('crypto');
 
 const {broadcastResponse} = require('./../async-util');
+const {encodeShortChannelId} = require('./../bolt07');
 const payPaymentRequest = require('./pay_payment_request');
 const rowTypes = require('./conf/row_types');
 
+const chanIdMatch = /ShortChannelID:..lnwire.ShortChannelID..(.*)\n/;
+const chanSplit = ':';
 const decBase = 10;
 
 /** Make a payment.
@@ -127,16 +130,49 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       return cbk([409, 'PaymentIsPendingResolution']);
     }
 
+    const chanFailure = (res.payment_error || '').match(chanIdMatch) || [];
+    let failChanId;
+
+    if (!!chanFailure && !!chanFailure[[chanIdMatch].length]) {
+      const chanId = chanFailure[[chanIdMatch].length].split(chanSplit);
+
+      try {
+        const [blockHeight, blockIndex, outputIndex] = chanId;
+
+        failChanId = encodeShortChannelId({
+          block_height: parseInt(blockHeight, decBase),
+          block_index: parseInt(blockIndex, decBase),
+          output_index: parseInt(outputIndex, decBase),
+        });
+      } catch (err) {}
+    }
+
+    if (/FeeInsufficient/.test(res.payment_error) && !!failChanId) {
+      return cbk([503, 'RejectedUnacceptableFee', {channel_id: failChanId}]);
+    }
+
     if (/FeeInsufficient/.test(res.payment_error)) {
-      return cbk([503, 'RejectedUnacceptableFeeValue']);
+      return cbk([503, 'RejectedUnacceptableFee']);
+    }
+
+    if (/IncorrectCltvExpiry/.test(res.payment_error) && !!failChanId) {
+      return cbk([503, 'RejectedUnacceptableCltv', {channel_id: failChanId}]);
     }
 
     if (/IncorrectCltvExpiry/.test(res.payment_error)) {
-      return cbk([503, 'RejectedUnacceptableCltvDeltaValue']);
+      return cbk([503, 'RejectedUnacceptableCltv']);
+    }
+
+    if (/TemporaryChannelFailure/.test(res.payment_error) && !!failChanId) {
+      return cbk([503, 'TemporaryChannelFailure', {channel_id: failChanId}]);
     }
 
     if (/TemporaryChannelFailure/.test(res.payment_error)) {
       return cbk([503, 'TemporaryChannelFailure']);
+    }
+
+    if (/TemporaryNodeFailure/.test(res.payment_error)) {
+      return cbk([503, 'TemporaryNodeFailure']);
     }
 
     if (/UnknownNextPeer/.test(res.payment_error)) {

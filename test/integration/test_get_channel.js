@@ -6,7 +6,7 @@ const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
 
-const confirmationCount = 10;
+const confirmationCount = 20;
 
 // Getting a channel should return channel details from the channel graph
 test(`Get channel`, async ({end, equal}) => {

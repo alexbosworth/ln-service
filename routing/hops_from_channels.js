@@ -3,9 +3,9 @@ const {intersection} = require('lodash');
 /** Derive policy hops from an in-order set of channels with dual policies
 
   {
-    source: <Source Public Key Hex String>
     channels: [{
       capacity: <Maximum Tokens Number>
+      destination: <Next Hop Destination Public Key String>
       id: <Channel Id String>
       policies: [{
         base_fee_mtokens: <Base Fee Millitokens String>
@@ -16,14 +16,10 @@ const {intersection} = require('lodash');
         public_key: <Node Public Key String>
       }]
     }]
-    destination: <Destination Public Key Hex String>
   }
 
   @throws
-  <ExpectedArrayOfPoliciesForChannelInHop Error>
-  <ExpectedChannelCapacityForChannelHop Error>
-  <ExpectedChannelsToDeriveHops Error>
-  <ExpectedDestinationForChannels Error>
+  <Error>
 
   @returns
   {
@@ -37,18 +33,18 @@ const {intersection} = require('lodash');
     }]
   }
 */
-module.exports = ({channels, destination, source}) => {
+module.exports = ({channels}) => {
   if (!Array.isArray(channels) || !channels.length) {
     throw new Error('ExpectedChannelsToDeriveHops');
-  }
-
-  if (!destination) {
-    throw new Error('ExpectedDestinationForChannels');
   }
 
   const hops = channels.map((channel, i, chans) => {
     if (!channel.capacity) {
       throw new Error('ExpectedChannelCapacityForChannelHop');
+    }
+
+    if (!channel.destination) {
+      throw new Error('ExpectedNextHopPublicKey');
     }
 
     if (!channel.id) {
@@ -59,33 +55,12 @@ module.exports = ({channels, destination, source}) => {
       throw new Error('ExpectedArrayOfPoliciesForChannelInHop');
     }
 
-    const nextChan = chans[i + [channel].length];
-    const {policies} = channel;
+    const nextHop = channel.destination;
 
-    const [firstPolicy] = policies;
-
-    // Neighbor channel's public keys
-    const nextKeys = !nextChan ? [] : nextChan.policies.map(n => n.public_key);
-
-    // Linking public key between this channel and the next's
-    const [link] = intersection(policies.map(n => n.public_key), nextKeys);
-
-    let policy;
-    let nextHop;
-
-    if (policies.find(n => n.public_key === destination)) {
-      nextHop = destination;
-      policy = policies.find(n => n.public_key === destination);
-    } else if (!i) {
-      nextHop = link || policies.find(n => n.public_key !== source).public_key;
-      policy = policies.find(n => n.public_key !== link);
-    } else {
-      nextHop = link;
-      policy = policies.find(n => n.public_key === link);
-    }
+    const policy = channel.policies.find(n => n.public_key === nextHop);
 
     if (!policy) {
-      throw new Error('ExpectedLinkingPolicyForHops');
+      throw new Error('ExpectedPolicyForHop');
     }
 
     return {
