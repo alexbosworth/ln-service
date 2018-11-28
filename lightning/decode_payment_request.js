@@ -16,6 +16,7 @@ const msPerSec = 1e3;
   @returns via cbk
   {
     chain_address: <Fallback Chain Address String>
+    [cltv_delta]: <Final CLTV Delta Number>
     description: <Payment Description String>
     destination_hash: <Payment Longer Description Hash String>
     destination: <Public Key String>
@@ -125,13 +126,14 @@ module.exports = ({lnd, request}, cbk) => {
     return cbk(null, {
       routes,
       chain_address: res.fallback_addr || undefined,
+      cltv_delta: parseInt(res.cltv_delta || 0, decBase) || undefined,
       created_at: new Date(createdAtMs).toISOString(),
       description: res.description,
-      description_hash: res.description_hash,
+      description_hash: res.description_hash || undefined,
       destination: res.destination,
       expires_at: new Date(expiryDateMs).toISOString(),
       id: res.payment_hash,
-      minimum_final_htlc_cltv_delta: res.cltv_expiry || undefined,
+      is_expired: Date.now() > expiryDateMs,
       tokens: parseInt(res.num_satoshis, decBase),
       type: rowTypes.payment_request,
     });
