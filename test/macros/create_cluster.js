@@ -23,7 +23,9 @@ const tokens = 1e8;
 
 /** Create a cluster of lnds
 
-  {}
+  {
+    [is_remote_skipped]: <Is Remote Node Creation Skipped BooL>
+  }
 
   @returns via cbk
   {
@@ -33,7 +35,7 @@ const tokens = 1e8;
     }
     generate: <Generate Function> ({node, count}) -> (err) -> ()
     kill: <Kill Nodes Function>
-    remote: {
+    [remote]: {
       kill: <Kill Function>
       lnd: <Remote LND GRPC Object>
     }
@@ -41,11 +43,11 @@ const tokens = 1e8;
       kill: <Kill Function>
       lnd: <Target LND GRPC Object>
     }
-    remote_node_public_key: <Remote Node Public Key Hex String>
+    [remote_node_public_key]: <Remote Node Public Key Hex String>
     target_node_public_key: <Target Node Public Key Hex String>
   }
 */
-module.exports = ({}, cbk) => {
+module.exports = (args, cbk) => {
   return asyncAuto({
     // Create control lnd
     control: cbk => spawnLnd({}, cbk),
@@ -54,10 +56,20 @@ module.exports = ({}, cbk) => {
     target: cbk => spawnLnd({}, cbk),
 
     // Create remote lnd
-    remote: cbk => spawnLnd({}, cbk),
+    remote: cbk => {
+      if (!!args.is_remote_skipped) {
+        return cbk();
+      }
+
+      return spawnLnd({}, cbk);
+    },
 
     // Get the remote node info
     remoteNode: ['remote', ({remote}, cbk) => {
+      if (!!args.is_remote_skipped) {
+        return cbk();
+      }
+
       return getWalletInfo({lnd: remote.lnd}, cbk);
     }],
 
@@ -93,6 +105,10 @@ module.exports = ({}, cbk) => {
       'remote',
       ({control, controlCert, remote}, cbk) =>
     {
+      if (!!args.is_remote_skipped) {
+        return cbk();
+      }
+
       return connectChainNode({
         cert: controlCert,
         connect: `${remote.listen_ip}:${remote.chain_listen_port}`,
@@ -251,6 +267,10 @@ module.exports = ({}, cbk) => {
       'target',
       ({remote, remoteNode, target}, cbk) =>
     {
+      if (!!args.is_remote_skipped) {
+        return cbk();
+      }
+
       return asyncRetry({interval: retryMs, times: retryTimes}, cbk => {
         return addPeer({
           lnd: target.lnd,
@@ -267,7 +287,7 @@ module.exports = ({}, cbk) => {
       res.control.kill();
     }
 
-    if (!!err && !!res.remote) {
+    if (!!err && !!res.remote && !!res.remote.kill) {
       res.remote.kill();
     }
 
@@ -281,10 +301,11 @@ module.exports = ({}, cbk) => {
 
     const {control} = res;
     const {remote} = res;
+    const {remoteNode} = res;
     const {target} = res;
 
     const kill = promisify((args, cbk) => {
-      [control, remote, target].forEach(({kill}) => kill());
+      [control, remote, target].filter(n => !!n).forEach(({kill}) => kill());
 
       return setTimeout(() => cbk(), 5000);
     });
@@ -307,7 +328,7 @@ module.exports = ({}, cbk) => {
       remote,
       generate,
       target,
-      remote_node_public_key: res.remoteNode.public_key,
+      remote_node_public_key: !remoteNode ? null : remoteNode.public_key,
       target_node_public_key: res.targetNode.public_key,
     });
   });
