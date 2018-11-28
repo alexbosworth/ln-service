@@ -147,6 +147,14 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       } catch (err) {}
     }
 
+    if (/ExpiryTooSoon/.test(res.payment_error) && !!failChanId) {
+      return cbk([503, 'RejectedTooNearTimeout', {channel_id: failChanId}]);
+    }
+
+    if (/ExpiryTooSoon/.test(res.payment_error)) {
+      return cbk([503, 'RejectedTooNearTimeout']);
+    }
+
     if (/FeeInsufficient/.test(res.payment_error) && !!failChanId) {
       return cbk([503, 'RejectedUnacceptableFee', {channel_id: failChanId}]);
     }
