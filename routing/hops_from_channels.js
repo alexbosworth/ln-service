@@ -60,7 +60,7 @@ module.exports = ({channels}) => {
     const policy = channel.policies.find(n => n.public_key === nextHop);
 
     if (!policy) {
-      throw new Error('ExpectedPolicyForHop');
+      return null;
     }
 
     return {
@@ -73,6 +73,6 @@ module.exports = ({channels}) => {
     };
   });
 
-  return {hops};
+  return {hops: hops.filter(n => !!n)};
 };
 
