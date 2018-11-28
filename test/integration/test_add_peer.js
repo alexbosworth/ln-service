@@ -1,5 +1,3 @@
-const {readFileSync} = require('fs');
-
 const {test} = require('tap');
 
 const addPeer = require('./../../addPeer');
