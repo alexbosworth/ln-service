@@ -14,7 +14,7 @@ const giftTokens = 1e4;
 
 // Closing a channel should close the channel
 test(`Close channel`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   await delay(3000);
 
