@@ -29,7 +29,7 @@
   "devDependencies": {
     "openport": "0.0.5",
     "rimraf": "2.6.2",
-    "tap": "12.0.1",
+    "tap": "12.1.0",
     "uuid": "3.3.0",
     "varuint-bitcoin": "1.1.0"
   },
@@ -51,5 +51,5 @@
     "start": "node server.js",
     "test": "tap test/bolt07/*.js test/bolt11/*.js test/routing/*.js"
   },
-  "version": "27.0.0"
+  "version": "28.0.0"
 }
