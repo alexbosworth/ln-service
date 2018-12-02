@@ -3,6 +3,7 @@ const {isNumber} = require('lodash');
 
 const rowTypes = require('./conf/row_types');
 
+const connectFailMessage = '14 UNAVAILABLE: channel is in state TRANSIENT_FAILURE';
 const connectionFailureLndErrorMessage = 'Connect Failed';
 const lockedLndErrorMessage = 'unknown service lnrpc.Lightning';
 const msPerSec = 1e3;
@@ -39,6 +40,10 @@ module.exports = ({lnd}, cbk) => {
     }
 
     if (!!err && err.details === connectionFailureLndErrorMessage) {
+      return cbk([503, 'FailedToConnectToDaemon']);
+    }
+
+    if (!!err && err.message === connectFailMessage) {
       return cbk([503, 'FailedToConnectToDaemon']);
     }
 

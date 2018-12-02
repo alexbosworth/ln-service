@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 
+const getNode = require('./get_node');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
@@ -44,6 +45,7 @@ const msPerSec = 1e3;
   @on(data) // node_update
   {
     alias: <Node Alias String>
+    color: <Node Color String>
     public_key: <Node Public Key String>
     [sockets]: [<Network Host And Port String>]
     type: <Row Type String>
@@ -194,12 +196,21 @@ module.exports = ({lnd}) => {
         return eventEmitter.emit('error', new Error('ExpectedIdentityKey'));
       }
 
-      return eventEmitter.emit('data', {
-        alias: node.alias,
-        public_key: node.identity_key,
-        sockets: !node.addresses.length ? undefined : node.addresses,
-        type: rowTypes.node_update,
-        updated_at: updatedAt,
+      return getNode({lnd, public_key: node.identity_key}, (err, res) => {
+        if (!!err) {
+          return eventEmitter.emit('error', new Error('FailedToFetchNode'));
+        }
+
+        const {color} = res;
+
+        return eventEmitter.emit('data', {
+          color,
+          alias: node.alias,
+          public_key: node.identity_key,
+          sockets: !node.addresses.length ? undefined : node.addresses,
+          type: rowTypes.node_update,
+          updated_at: updatedAt,
+        });
       });
     });
 
