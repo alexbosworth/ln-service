@@ -5,8 +5,8 @@ const peerType = require('./conf/row_types').peer;
 const {returnResult} = require('./../async-util');
 
 const decBase = 10;
-const msPerSec = 1e3;
-const {round} = Math;
+const microPerMilli = 1e3;
+const {ceil} = Math;
 
 /** Get connected peers.
 
@@ -79,7 +79,7 @@ module.exports = ({lnd}, cbk) => {
           bytes_received: parseInt(peer.bytes_recv, decBase),
           bytes_sent: parseInt(peer.bytes_sent, decBase),
           is_inbound: peer.inbound,
-          ping_time: round(parseInt(peer.ping_time, decBase) / msPerSec),
+          ping_time: ceil(parseInt(peer.ping_time, decBase) / microPerMilli),
           public_key: peer.pub_key,
           socket: peer.address,
           tokens_received: parseInt(peer.sat_recv, decBase),
