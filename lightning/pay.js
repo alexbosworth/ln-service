@@ -1,7 +1,8 @@
 const {createHash} = require('crypto');
 
+const {encodeChanId} = require('bolt07');
+
 const {broadcastResponse} = require('./../async-util');
-const {encodeShortChannelId} = require('./../bolt07');
 const payPaymentRequest = require('./pay_payment_request');
 const rowTypes = require('./conf/row_types');
 
@@ -139,12 +140,16 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       try {
         const [blockHeight, blockIndex, outputIndex] = chanId;
 
-        failChanId = encodeShortChannelId({
+        const encodedFailChanId = encodeChanId({
           block_height: parseInt(blockHeight, decBase),
           block_index: parseInt(blockIndex, decBase),
           output_index: parseInt(outputIndex, decBase),
         });
-      } catch (err) {}
+
+        failChanId = encodedFailChanId.number;
+      } catch (err) {
+        // Ignore errors when parsing of unstructured error message fails.
+      }
     }
 
     if (/ExpiryTooSoon/.test(res.payment_error) && !!failChanId) {

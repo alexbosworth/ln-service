@@ -1,8 +1,8 @@
+const {decodeChanId} = require('bolt07');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
-const {decodeFromNumber} = require('./../../bolt07');
 const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getPendingChannels = require('./../../getPendingChannels');
@@ -53,7 +53,7 @@ test('Rebalance', async ({end, equal}) => {
   const hops = channels.map(({id}) => {
     return {
       base_fee_mtokens: '1000',
-      block_height: decodeFromNumber({id}).block_height,
+      block_height: decodeChanId({number: id}).block_height,
       channel_id: id,
       cltv_delta: 144,
       fee_rate: 1,

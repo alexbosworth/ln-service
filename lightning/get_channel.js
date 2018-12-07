@@ -25,7 +25,7 @@ const separatorChar = ':';
     }]
     transaction_id: <Transaction Id Hex String>
     transaction_vout: <Transaction Output Index Number>
-    [update_at]: <Channel Last Updated At ISO 8601 Date String>
+    [updated_at]: <Channel Last Updated At ISO 8601 Date String>
   }
 */
 module.exports = ({id, lnd}, cbk) => {
@@ -156,7 +156,7 @@ module.exports = ({id, lnd}, cbk) => {
       capacity: parseInt(response.capacity, decBase),
       transaction_id: transactionId,
       transaction_vout: parseInt(vout, decBase),
-      update_at: !updatedAt ? undefined : new Date(updatedAt).toISOString(),
+      updated_at: !updatedAt ? undefined : new Date(updatedAt).toISOString(),
     });
   });
 };

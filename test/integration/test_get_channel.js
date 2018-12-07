@@ -52,7 +52,7 @@ test(`Get channel`, async ({end, equal}) => {
 
   equal(details.transaction_id, channel.transaction_id, 'Funding tx id');
   equal(details.transaction_vout, channel.transaction_vout, 'Funding tx vout');
-  equal(Date.now() - new Date(details.update_at) < 1e5, true, 'Updated at');
+  equal(Date.now() - new Date(details.updated_at) < 1e5, true, 'Updated at');
 
   await cluster.kill({});
 

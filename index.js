@@ -5,8 +5,6 @@ const {createInvoice} = require('./lightning');
 const {createSeed} = require('./lightning');
 const {createWallet} = require('./lightning');
 const {decodePaymentRequest} = require('./lightning');
-const {decodeShortChannelId} = require('./bolt07');
-const {encodeShortChannelId} = require('./bolt07');
 const {getChainBalance} = require('./lightning');
 const {getChainTransactions} = require('./lightning');
 const {getChannel} = require('./lightning');
@@ -52,8 +50,6 @@ module.exports = {
   createSeed,
   createWallet,
   decodePaymentRequest,
-  decodeShortChannelId,
-  encodeShortChannelId,
   getChainBalance,
   getChainTransactions,
   getChannel,

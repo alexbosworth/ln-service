@@ -1,6 +1,6 @@
 const asyncAuto = require('async/auto');
+const {decodeChanId} = require('bolt07');
 
-const decodeShortChannelId = require('./../bolt07').decodeFromNumber;
 const {getChannels} = require('./../lightning');
 const {getNetworkGraph} = require('./../lightning');
 const {returnResult} = require('./../async-util');
@@ -50,28 +50,32 @@ module.exports = ({lnd}, cbk) => {
     channels: ['aliases', 'getChannels', ({aliases, getChannels}, cbk) => {
       const sums = {};
 
-      getChannels.channels.forEach(c => {
-        // For some reason chan ids are sometimes '0'
-        if (c.id === '0') {
-          return;
-        }
+      try {
+        getChannels.channels.forEach(c => {
+          // For some reason chan ids are sometimes '0'
+          if (c.id === '0') {
+            return;
+          }
 
-        const height = decodeShortChannelId({id: c.id}).block_height;
-        const sum = sums[c.partner_public_key] || {};
+          const height = decodeChanId({number: c.id}).block_height;
+          const sum = sums[c.partner_public_key] || {};
 
-        const prevHeight = sum.block_height || height;
+          const prevHeight = sum.block_height || height;
 
-        sum.alias = aliases[c.partner_public_key];
-        sum.block_height = Math.round((height + prevHeight) / 2);
-        sum.local_balance = c.local_balance + (sum.local_balance || 0);
-        sum.id = [].concat(sum.id).concat(c.id).filter(n => !!n).sort()[0];
-        sum.public_key = c.partner_public_key;
-        sum.received = c.received + (sum.received || 0);
-        sum.remote_balance = c.remote_balance + (sum.remote_balance || 0);
-        sum.sent = c.sent + (sum.sent || 0);
+          sum.alias = aliases[c.partner_public_key];
+          sum.block_height = Math.round((height + prevHeight) / 2);
+          sum.local_balance = c.local_balance + (sum.local_balance || 0);
+          sum.id = [].concat(sum.id).concat(c.id).filter(n => !!n).sort()[0];
+          sum.public_key = c.partner_public_key;
+          sum.received = c.received + (sum.received || 0);
+          sum.remote_balance = c.remote_balance + (sum.remote_balance || 0);
+          sum.sent = c.sent + (sum.sent || 0);
 
-        sums[c.partner_public_key] = sum;
-      });
+          sums[c.partner_public_key] = sum;
+        });
+      } catch (err) {
+        return cbk([500, 'FailedToParseChannelsForUtilizationReport', err]);
+      }
 
       return cbk(null, Object.keys(sums).map(n => sums[n]));
     }],
