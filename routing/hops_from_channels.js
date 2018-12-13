@@ -12,7 +12,7 @@ const {intersection} = require('lodash');
         cltv_delta: <Locktime Delta Number>
         fee_rate: <Fees Charged Per Million Tokens Number>
         is_disabled: <Channel Is Disabled Bool>
-        minimum_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+        min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
         public_key: <Node Public Key String>
       }]
     }]

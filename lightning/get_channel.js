@@ -20,7 +20,7 @@ const separatorChar = ':';
       [cltv_delta]: <Locktime Delta Number>
       [fee_rate]: <Fees Charged Per Million Tokens Number>
       [is_disabled]: <Channel Is Disabled Bool>
-      [minimum_htlc_mtokens]: <Minimum HTLC Millitokens Value Number>
+      [min_htlc_mtokens]: <Minimum HTLC Millitokens Value Number>
       public_key: <Node Public Key String>
     }]
     transaction_id: <Transaction Id Hex String>
@@ -139,7 +139,7 @@ module.exports = ({id, lnd}, cbk) => {
         cltv_delta: n.time_lock_delta,
         fee_rate: parseInt(n.fee_rate_milli_msat, decBase),
         is_disabled: n.disabled,
-        minimum_htlc_mtokens: parseInt(n.min_htlc, decBase),
+        min_htlc_mtokens: parseInt(n.min_htlc, decBase),
       };
     });
 

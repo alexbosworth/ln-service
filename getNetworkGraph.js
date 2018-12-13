@@ -18,7 +18,7 @@ const {getNetworkGraph} = require('./');
         [cltv_delta]: <CLTV Height Delta Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         [is_disabled]: <Edge is Disabled Bool>
-        [minimum_htlc_mtokens]: <Minimum HTLC Millitokens String>
+        [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
         public_key: <Public Key String>
       }]
       transaction_id: <Funding Transaction Id String>

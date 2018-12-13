@@ -53,7 +53,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     equal(policy.cltv_delta, 144, 'Default channel CLTV delta');
     equal(policy.fee_rate, 1, 'Default channel fee rate');
     equal(policy.is_disabled, false, 'Channels are active');
-    equal(policy.minimum_htlc_mtokens, '1000', 'Default min htlc value');
+    equal(policy.min_htlc_mtokens, '1000', 'Default min htlc value');
     equal(!!policy.public_key, true, 'Policy has public key');
 
     return;

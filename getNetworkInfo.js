@@ -12,8 +12,8 @@ const {getNetworkInfo} = require('./');
   {
     average_channel_size: <Tokens Number>
     channel_count: <Channels Count Number>
-    maximum_channel_size: <Tokens Number>
-    minimum_channel_size: <Tokens Number>
+    max_channel_size: <Tokens Number>
+    min_channel_size: <Tokens Number>
     node_count: <Node Count Number>
     total_capacity: <Total Capacity Number>
     type: <Type String>

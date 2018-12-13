@@ -44,7 +44,7 @@ test(`Get channel`, async ({end, equal}) => {
     equal(policy.cltv_delta, 144, 'CLTV policy');
     equal(policy.fee_rate, 1, 'Fee rate');
     equal(policy.is_disabled, false, 'Disabled flag');
-    equal(policy.minimum_htlc_mtokens, 1000, 'Min HTLC value');
+    equal(policy.min_htlc_mtokens, 1000, 'Min HTLC value');
     equal(policy.public_key.length, 66, 'Policy public key');
 
     return;
