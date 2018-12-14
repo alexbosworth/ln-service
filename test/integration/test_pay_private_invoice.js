@@ -32,6 +32,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
+  const remoteLnd = cluster.remote.lnd;
 
   await delay(3000);
 
@@ -62,7 +63,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  const [remoteChannel] = (await getChannels({lnd: cluster.remote.lnd})).channels;
+  const [remoteChannel] = (await getChannels({lnd: remoteLnd})).channels;
 
   await addPeer({
     lnd,

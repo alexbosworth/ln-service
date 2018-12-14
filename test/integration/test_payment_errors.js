@@ -17,8 +17,8 @@ const defaultFee = 1e3;
 const mtok = '000';
 const tokens = 1e4;
 
-// Rebalancing channels should result in balanced channels
-test('Rebalance', async ({end, equal}) => {
+// Encountering errors in payment should return valid error codes
+test('Payment errors', async ({end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -54,7 +54,9 @@ test('Rebalance', async ({end, equal}) => {
   await delay(1000);
 
   // Get control's channels
-  const hops = (await getChannels({lnd})).channels.map(({id}) => {
+  const {channels} = await getChannels({lnd});
+
+  const hops = channels.map(({id}) => {
     return {
       base_fee_mtokens: '1000',
       block_height: decodeChanId({number: id}).block_height,
@@ -66,13 +68,51 @@ test('Rebalance', async ({end, equal}) => {
 
   const {id} = invoice;
 
-  hops.sort((a, b) => a.block_height < b.block_height ? -1 : 1);
+  try {
+    const hops = channels.map(({id}) => {
+      return {
+        base_fee_mtokens: '1', // Lower fee rate
+        block_height: decodeChanId({number: id}).block_height,
+        channel_id: id,
+        cltv_delta: 14,
+        fee_rate: 0, // Lower actual fee
+      };
+    });
 
-  const routes = [routeFromHops({height, hops, mtokens})];
+    hops.sort((a, b) => a.block_height < b.block_height ? -1 : 1);
 
-  const selfPay = await pay({lnd, path: {id, routes}});
+    const routes = [routeFromHops({height, hops, mtokens})];
 
-  equal(selfPay.secret, invoice.secret, 'Payment made to self');
+    await pay({lnd, path: {id, routes}});
+  } catch (err) {
+    const [, code, context] = err;
+
+    equal(code, 'RejectedUnacceptableFee', 'Pay fails due to low fee');
+    equal(context.channel_id, channels.find(n => !n.local_balance).id);
+  }
+
+  try {
+    const hops = channels.map(({id}) => {
+      return {
+        base_fee_mtokens: '1000',
+        block_height: decodeChanId({number: id}).block_height,
+        channel_id: id,
+        cltv_delta: 14, // Lower CLTV delta
+        fee_rate: 1,
+      };
+    });
+
+    hops.sort((a, b) => a.block_height < b.block_height ? -1 : 1);
+
+    const routes = [routeFromHops({height, hops, mtokens})];
+
+    await pay({lnd, path: {id, routes}});
+  } catch (err) {
+    const [, code, context] = err;
+
+    equal(code, 'RejectedUnacceptableCltv', 'Pay fails due to low cltv');
+    equal(context.channel_id, channels.find(n => !n.local_balance).id);
+  }
 
   await cluster.kill({});
 
