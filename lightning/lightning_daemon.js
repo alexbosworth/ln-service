@@ -31,10 +31,6 @@ const unlockerServiceType = 'WalletUnlocker';
   <LND GRPC Api Object>
 */
 module.exports = ({cert, macaroon, service, socket}) => {
-  if (!cert) {
-    throw new Error('ExpectedBase64EncodedTlsCertFileString');
-  }
-
   if (!macaroon && service !== unlockerServiceType) {
     throw new Error('ExpectedBase64EncodedGrpcMacaroonFile');
   }
@@ -57,12 +53,12 @@ module.exports = ({cert, macaroon, service, socket}) => {
   if (GRPC_SSL_CIPHER_SUITES !== expectedSslConfiguration) {
     throw new Error('ExpectedGrpcSslCipherSuitesEnvVar');
   }
-
-  const certData = Buffer.from(cert, 'base64');
+  
   let credentials;
   const serviceType = service || defaultServiceType;
 
-  const ssl = grpc.credentials.createSsl(certData);
+  const certData = cert ? Buffer.from(cert, 'base64') : null;
+  const ssl = certData ? grpc.credentials.createSsl(certData) : grpc.credentials.createSsl();
 
   switch (serviceType) {
   case defaultServiceType:
