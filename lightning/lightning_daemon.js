@@ -13,8 +13,10 @@ const unlockerServiceType = 'WalletUnlocker';
 
 /** GRPC interface to the Lightning Network Daemon (lnd).
 
+  Make sure to provide a cert when using LND with its default self-signed cert
+
   {
-    cert: <Base64 Serialized LND TLS Cert>
+    [cert]: <Base64 Serialized LND TLS Cert>
     macaroon: <Base64 Serialized Macaroon String>
     [service]: <Service Name String> // "WalletUnlocker"|"Lightning" (default)
     socket: <Host:Port String>
@@ -56,9 +58,15 @@ module.exports = ({cert, macaroon, service, socket}) => {
   
   let credentials;
   const serviceType = service || defaultServiceType;
+  let ssl;
 
   const certData = cert ? Buffer.from(cert, 'base64') : null;
-  const ssl = certData ? grpc.credentials.createSsl(certData) : grpc.credentials.createSsl();
+
+  if (!!certData) {
+    ssl = grpc.credentials.createSsl(certData);
+  } else {
+    ssl = grpc.credentials.createSsl();
+  }
 
   switch (serviceType) {
   case defaultServiceType:
