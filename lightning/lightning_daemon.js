@@ -52,7 +52,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
   const rpc = grpc.loadPackageDefinition(packageDefinition);
 
   // Exit early when GRPC_SSL_CIPHER_SUITES cipher suite is not correct
-  if (GRPC_SSL_CIPHER_SUITES !== expectedSslConfiguration) {
+  if (cert && GRPC_SSL_CIPHER_SUITES !== expectedSslConfiguration) {
     throw new Error('ExpectedGrpcSslCipherSuitesEnvVar');
   }
   
