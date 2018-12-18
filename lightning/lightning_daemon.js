@@ -70,7 +70,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
 
   switch (serviceType) {
   case defaultServiceType:
-    const macaroonData = Buffer.from(macaroon, 'base64').toString('hex');
+    const macaroonData = /^([0-9A-Fa-f]{2})+$/g.test(macaroon) ? macaroon : Buffer.from(macaroon, 'base64').toString('hex');
 
     const macCreds = grpc.credentials.createFromMetadataGenerator((_, cbk) => {
       const metadata = new grpc.Metadata();
