@@ -17,7 +17,7 @@
     "dotenv": "6.2.0",
     "express": "4.16.4",
     "express-basic-auth": "1.1.6",
-    "grpc": "1.16.1",
+    "grpc": "1.17.0",
     "lodash": "4.17.11",
     "morgan": "1.9.1",
     "promptly": "3.0.3",
@@ -28,10 +28,10 @@
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
-    "openport": "0.0.5",
+    "portfinder": "1.0.20",
     "rimraf": "2.6.2",
-    "tap": "12.1.0",
-    "uuid": "3.3.0",
+    "tap": "12.1.1",
+    "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
   },
   "keywords": [
@@ -52,5 +52,5 @@
     "start": "node server.js",
     "test": "tap test/bolt11/*.js test/routing/*.js"
   },
-  "version": "30.1.1"
+  "version": "30.2.0"
 }

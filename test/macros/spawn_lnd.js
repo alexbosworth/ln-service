@@ -3,10 +3,11 @@ const {readFileSync} = require('fs');
 const {spawn} = require('child_process');
 
 const asyncAuto = require('async/auto');
+const asyncMapSeries = require('async/mapSeries');
 const asyncRetry = require('async/retry');
 const {ECPair} = require('bitcoinjs-lib');
 const {networks} = require('bitcoinjs-lib');
-const openPortFinder = require('openport');
+const openPortFinder = require('portfinder');
 
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
@@ -29,7 +30,7 @@ const localhost = '127.0.0.1';
 const maxSpawnChainDaemonAttempts = 3;
 const readMacaroonFileName = 'readonly.macaroon';
 const retryCreateSeedCount = 5;
-const startPortRange = 7593;
+const startPortRange = 17593;
 const startWalletTimeoutMs = 4500;
 
 /** Spawn an lnd instance
@@ -54,11 +55,15 @@ module.exports = ({network}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
-      const count = 3;
-      const startingPort = startPortRange + Math.round(Math.random() * 2000);
+      return asyncMapSeries(['listen', 'rest', 'rpc'], (_, cbk) => {
+        const port = startPortRange + Math.round(Math.random() * 2000);
 
-      return openPortFinder.find({count, startingPort}, (err, ports) => {
-        if (!!err) {
+        const stopPort = port + 20000;
+
+        return openPortFinder.getPort({port, stopPort}, cbk);
+      },
+      (err, ports) => {
+        if (!!err || !Array.isArray(ports) || !ports.length) {
           return cbk([500, 'FailedToFindOpenPorts', err]);
         }
 

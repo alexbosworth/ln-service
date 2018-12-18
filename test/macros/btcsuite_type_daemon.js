@@ -4,7 +4,7 @@ const {spawn} = require('child_process');
 
 const asyncAuto = require('async/auto');
 const {ECPair} = require('bitcoinjs-lib');
-const openPortFinder = require('openport');
+const openPortFinder = require('portfinder');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 
@@ -55,24 +55,38 @@ module.exports = (args, cbk) => {
       return cbk();
     },
 
-    // Find open ports for the listen and RPC ports
-    getPorts: cbk => {
-      const count = 2;
-      const startingPort = 4567 + Math.round(Math.random() * 1000);
+    // Get an open P2P listen port
+    listenPort: ['validate', ({}, cbk) => {
+      const port = 14567 + Math.round(Math.random() * 1000);
 
-      return openPortFinder.find({count, startingPort}, (err, ports) => {
+      const stopPort = port + 1000;
+
+      return openPortFinder.getPort({port, stopPort}, (err, port) => {
         if (!!err) {
-          return cbk([500, 'FailedToFindOpenPorts', err]);
+          return cbk([500, 'FailedToFindOpenPortForListenPort', err]);
         }
 
-        const [listen, rpc] = ports;
-
-        return cbk(null, {listen, rpc});
+        return cbk(null, port);
       });
-    },
+    }],
+
+    // Get an open RPC listen port
+    rpcPort: ['listenPort', ({}, cbk) => {
+      const port = 14567 + Math.round(Math.random() * 1000);
+
+      const stopPort = port + 1000;
+
+      return openPortFinder.getPort({port, stopPort}, (err, port) => {
+        if (!!err) {
+          return cbk([500, 'FailedToFindOpenPortForRpc', err]);
+        }
+
+        return cbk(null, port);
+      });
+    }],
 
     // Spin up the chain daemon
-    spawnDaemon: ['validate', 'getPorts', ({getPorts}, cbk) => {
+    spawnDaemon: ['listenPort', 'rpcPort', ({listenPort, rpcPort}, cbk) => {
       const miningKey = Buffer.from(args.mining_public_key, 'hex');
       const network = networks.testnet;
 
@@ -80,7 +94,7 @@ module.exports = (args, cbk) => {
 
       const daemon = spawn(args.daemon, [
         '--datadir', args.dir,
-        '--listen', `${localhost}:${getPorts.listen}`,
+        '--listen', `${localhost}:${listenPort}`,
         '--logdir', args.dir,
         '--miningaddr', p2pkh({network, pubkey}).address,
         (!args.is_tls ? '--notls' : null),
@@ -88,7 +102,7 @@ module.exports = (args, cbk) => {
         '--relaynonstd',
         '--rpccert', join(args.dir, 'rpc.cert'),
         '--rpckey', join(args.dir, 'rpc.key'),
-        '--rpclisten', `${localhost}:${getPorts.rpc}`,
+        '--rpclisten', `${localhost}:${rpcPort}`,
         '--rpcpass', 'pass',
         '--rpcuser', 'user',
         '--txindex',
@@ -114,9 +128,9 @@ module.exports = (args, cbk) => {
 
     return cbk(null, {
       daemon: res.spawnDaemon,
-      listen_port: res.getPorts.listen,
+      listen_port: res.listenPort,
       rpc_cert: join(args.dir, 'rpc.cert'),
-      rpc_port: res.getPorts.rpc,
+      rpc_port: res.rpcPort,
     });
   });
 };
