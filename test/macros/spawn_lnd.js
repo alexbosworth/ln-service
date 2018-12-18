@@ -30,7 +30,7 @@ const localhost = '127.0.0.1';
 const maxSpawnChainDaemonAttempts = 3;
 const readMacaroonFileName = 'readonly.macaroon';
 const retryCreateSeedCount = 5;
-const startPortRange = 17593;
+const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
 
 /** Spawn an lnd instance
@@ -48,6 +48,9 @@ const startWalletTimeoutMs = 4500;
     listen_ip: <Listen Ip String>
     listen_port: <Listen Port Number>
     lnd: <LND GRPC API Object>
+    lnd_cert: <LND Base64 Encoded TLS Certificate String>
+    lnd_macaroon: <LND Base64 Encoded Authentication Macaroon String>
+    lnd_socket: <LND RPC Socket String>
     mining_key: <Mining Rewards Private Key WIF Encoded String>
   }
 */
@@ -60,7 +63,10 @@ module.exports = ({network}, cbk) => {
 
         const stopPort = port + 20000;
 
-        return openPortFinder.getPort({port, stopPort}, cbk);
+        return setTimeout(() => {
+          return openPortFinder.getPort({port, stopPort}, cbk);
+        },
+        50);
       },
       (err, ports) => {
         if (!!err || !Array.isArray(ports) || !ports.length) {
@@ -273,6 +279,9 @@ module.exports = ({network}, cbk) => {
       chain_rpc_user: chainUser,
       listen_ip: localhost,
       listen_port: res.getPorts.listen,
+      lnd_cert: res.wallet.cert,
+      lnd_macaroon: res.wallet.macaroon,
+      lnd_socket: res.wallet.host,
       mining_key: res.miningKey.private_key,
     });
   });

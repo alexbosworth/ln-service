@@ -9,7 +9,6 @@ const confDir = 'conf';
 const defaultServiceType = 'Lightning';
 const {GRPC_SSL_CIPHER_SUITES} = process.env;
 const isHex = str => !!str && /^([0-9A-Fa-f]{2})+$/g.test(str);
-const isBase64 = n => !!n && Buffer.from(n, 'base64').toString('base64') === n;
 const protoFile = 'grpc.proto';
 const unlockerServiceType = 'WalletUnlocker';
 
@@ -66,7 +65,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
 
   if (isHex(cert)) {
     ssl = grpc.credentials.createSsl(Buffer.from(cert, 'hex'));
-  } else if (isBase64(cert)) {
+  } else if (!!cert) {
     ssl = grpc.credentials.createSsl(Buffer.from(cert, 'base64'));
   } else {
     ssl = grpc.credentials.createSsl();
@@ -78,7 +77,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
 
     if (isHex(macaroon)) {
       macaroonData = macaroon;
-    } else if (isBase64(macaroon)) {
+    } else if (!!macaroon) {
       macaroonData = Buffer.from(macaroon, 'base64').toString('hex');
     } else {
       throw new Error('ExpectedBase64OrHexEncodedGrpcMacaroonFile');

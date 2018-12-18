@@ -10,7 +10,6 @@ const {delay} = require('./../macros');
 const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const getInvoice = require('./../../getInvoice');
-const getNetworkGraph = require('./../../getNetworkGraph');
 const getRoutes = require('./../../getRoutes');
 const getWalletInfo = require('./../../getWalletInfo');
 const {hopsFromChannels} = require('./../../routing');
