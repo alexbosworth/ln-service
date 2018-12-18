@@ -52,7 +52,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
   const rpc = grpc.loadPackageDefinition(packageDefinition);
 
   // Exit early when GRPC_SSL_CIPHER_SUITES cipher suite is not correct
-  if (cert && GRPC_SSL_CIPHER_SUITES !== expectedSslConfiguration) {
+  if (!!cert && GRPC_SSL_CIPHER_SUITES !== expectedSslConfiguration) {
     throw new Error('ExpectedGrpcSslCipherSuitesEnvVar');
   }
   
@@ -60,7 +60,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
   const serviceType = service || defaultServiceType;
   let ssl;
 
-  const certData = cert ? Buffer.from(cert, 'base64') : null;
+  const certData = !!cert ? Buffer.from(cert, 'base64') : null;
 
   if (!!certData) {
     ssl = grpc.credentials.createSsl(certData);
