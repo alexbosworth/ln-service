@@ -22,7 +22,7 @@
     "morgan": "1.9.1",
     "promptly": "3.0.3",
     "request": "2.88.0",
-    "secp256k1": "3.5.2",
+    "secp256k1": "3.6.1",
     "walnut": "0.0.4",
     "ws": "6.1.2"
   },
@@ -52,5 +52,5 @@
     "start": "node server.js",
     "test": "tap test/bolt11/*.js test/routing/*.js"
   },
-  "version": "30.2.1"
+  "version": "31.0.0"
 }

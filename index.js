@@ -9,7 +9,6 @@ const {getChainBalance} = require('./lightning');
 const {getChainTransactions} = require('./lightning');
 const {getChannel} = require('./lightning');
 const {getChannelBalance} = require('./lightning');
-const {getChannelUtilization} = require('./reporting');
 const {getChannels} = require('./lightning');
 const {getClosedChannels} = require('./lightning');
 const {getFeeRates} = require('./lightning');
@@ -54,7 +53,6 @@ module.exports = {
   getChainTransactions,
   getChannel,
   getChannelBalance,
-  getChannelUtilization,
   getChannels,
   getClosedChannels,
   getFeeRates,
