@@ -91,8 +91,8 @@ test(`Get routes`, async ({end, equal}) => {
       },
       {
         base_fee_mtokens: '1000',
+        channel: remoteChannel.id,
         channel_capacity: remoteChannel.capacity,
-        channel_id: remoteChannel.id,
         cltv_delta: 144,
         fee_rate: 1,
         public_key: cluster.remote_node_public_key,
@@ -108,16 +108,16 @@ test(`Get routes`, async ({end, equal}) => {
     hops: [
       {
         base_fee_mtokens: '1000',
+        channel: targetChannel.id,
         channel_capacity: targetChannel.capacity,
-        channel_id: targetChannel.id,
         cltv_delta: 144,
         fee_rate: 1,
         public_key: targetChannel.partner_public_key,
       },
       {
         base_fee_mtokens: '1000',
+        channel: remoteChannel.id,
         channel_capacity: remoteChannel.capacity,
-        channel_id: remoteChannel.id,
         cltv_delta: 144,
         fee_rate: 1,
         public_key: cluster.remote_node_public_key,
@@ -146,8 +146,8 @@ test(`Get routes`, async ({end, equal}) => {
     const fullHop = fullRoute.hops[i];
     const indirectHop = indirect.hops[i];
 
+    equal(fullHop.channel, expected.channel, `${i} f-hop channel id`);
     equal(fullHop.channel_capacity, expected.channel_capacity, `${i} f-cap`);
-    equal(fullHop.channel_id, expected.channel_id, `${i} f-hop channel id`);
     equal(fullHop.fee, expected.fee, `${i} full hop fee`);
     equal(fullHop.fee_mtokens, expected.fee_mtokens, `${i} f-hop fee mtoks`);
     equal(fullHop.forward, expected.forward, `${i} f-hop forward tokens`);
@@ -155,8 +155,8 @@ test(`Get routes`, async ({end, equal}) => {
     equal(fullHop.public_key, expected.public_key, `${i} f-indirect pubkey`);
     equal(fullHop.timeout, expected.timeout, `${i} f-hop timeout`);
 
+    equal(indirectHop.channel, expected.channel, `${i} hop channel id`);
     equal(indirectHop.channel_capacity, expected.channel_capacity, `${i} cap`);
-    equal(indirectHop.channel_id, expected.channel_id, `${i} hop channel id`);
     equal(indirectHop.fee, expected.fee, `${i} hop fee`);
     equal(indirectHop.fee_mtokens, expected.fee_mtokens, `${i} hop fee mtoks`);
     equal(indirectHop.forward, expected.forward, `${i} hop forward tokens`);

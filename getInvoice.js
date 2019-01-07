@@ -17,6 +17,7 @@ const {getInvoice} = require('./');
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
     is_private: <Is a Private Invoice Bool>
+    mtokens: <Millitokens String>
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
     request: <BOLT 11 Encoded Payment Request String>

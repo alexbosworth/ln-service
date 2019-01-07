@@ -18,11 +18,11 @@ const initialConfirmationCount = 0;
 
   @returns via cbk
   {
-    confirmation_count: <Number>
-    id: <Transaction Id String>
-    is_confirmed: <Is Confirmed Bool>
-    is_outgoing: <Is Outgoing Bool>
-    tokens: <Tokens Number>
+    confirmation_count: <Total Confirmations Number>
+    id: <Transaction Id Hex String>
+    is_confirmed: <Transaction Is Confirmed Bool>
+    is_outgoing: <Transaction Is Outgoing Bool>
+    tokens: <Transaction Tokens Number>
     type: <Row Type String>
   }
 */

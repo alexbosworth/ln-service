@@ -1,5 +1,6 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const {chanFormat} = require('bolt07');
 
 const {returnResult} = require('./../async-util');
 
@@ -21,7 +22,7 @@ const decBase = 10;
       capacity: <Channel Token Capacity Number>
       commit_transaction_fee: <Commit Transaction Fee Number>
       commit_transaction_weight: <Commit Transaction Weight Number>
-      id: <Channel Id String>
+      id: <Standard Format Channel Id String>
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
@@ -94,6 +95,12 @@ module.exports = (args, cbk) => {
           return cbk([503, 'ExpectedChanId', channel]);
         }
 
+        try {
+          const _ = chanFormat({number: channel.chan_id});
+        } catch (err) {
+          return cbk([503, 'ExpectedChannelIdNumberInChannelsList', err]);
+        }
+
         if (!channel.channel_point) {
           return cbk([503, 'ExpectedChannelPoint', channel]);
         }
@@ -152,7 +159,7 @@ module.exports = (args, cbk) => {
           capacity: parseInt(channel.capacity, decBase),
           commit_transaction_fee: parseInt(channel.commit_fee, decBase),
           commit_transaction_weight: parseInt(channel.commit_weight, decBase),
-          id: channel.chan_id,
+          id: chanFormat({number: channel.chan_id}).channel,
           is_active: channel.active,
           is_closing: false,
           is_opening: false,

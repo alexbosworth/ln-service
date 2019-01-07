@@ -13,8 +13,8 @@ const {getRoutes} = require('./');
     lnd: <LND GRPC API Object>
     [routes]: [[{
       base_fee_mtokens: <Base Routing Fee In Millitokens Number>
+      channel: <Standard Format Channel Id String>
       [channel_capacity]: <Channel Capacity Tokens Number>
-      channel_id: <Channel Id String>
       cltv_delta: <CLTV Blocks Delta Number>
       fee_rate: <Fee Rate In Millitokens Per Million Number>
       public_key: <Public Key Hex String>
@@ -29,7 +29,7 @@ const {getRoutes} = require('./');
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
       hops: [{
-        channel_id: <BOLT 07 Channel Id String>
+        channel: <Standard Format Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
         fee: <Fee Number>
         fee_mtokens: <Fee Millitokens String>

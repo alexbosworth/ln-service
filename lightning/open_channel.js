@@ -1,17 +1,15 @@
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
 
-const addPeer = require('./add_peer');
 const channelLimit = require('./conf/lnd').channel_limit_tokens;
 const getChainBalance = require('./get_chain_balance');
-const getPeers = require('./get_peers');
 const {returnResult} = require('./../async-util');
 
 const defaultMinConfs = 1;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const staticFee = 1e3;
 const minimumChannelSize = 20000;
-const times = 5;
+const times = 7;
 
 /** Open a new channel.
 
@@ -55,62 +53,13 @@ module.exports = (args, cbk) => {
       return cbk();
     },
 
-    // Add the peer if necessary
-    addPeer: ['validate', ({}, cbk) => {
-      if (!args.socket) {
-        return cbk();
-      }
-
-      return addPeer({
-        lnd: args.lnd,
-        public_key: args.partner_public_key,
-        socket: args.socket,
-      },
-      cbk);
-    }],
-
-    // Check that the peer is connected
-    checkPeers: ['addPeer', ({}, cbk) => {
-      return asyncRetry({interval, times}, cbk => {
-        return getPeers({lnd: args.lnd}, (err, res) => {
-          if (!!err) {
-            return cbk(err);
-          }
-
-          const {peers} = res;
-
-          if (!peers.find(n => n.public_key === args.partner_public_key)) {
-            if (!!args.socket) {
-              return addPeer({
-                lnd: args.lnd,
-                public_key: args.partner_public_key,
-                socket: args.socket,
-              },
-              err => {
-                if (!!err) {
-                  return cbk(err);
-                }
-
-                return cbk([400, 'ExpectedConnectedPeerForChannelOpen']);
-              });
-            }
-
-            return cbk([400, 'ExpectedConnectedPeerPublicKeyForChannelOpen']);
-          }
-
-          return cbk();
-        });
-      },
-      cbk);
-    }],
-
     // Get the current chain balance
     getBalance: ['validate', ({}, cbk) => {
       return getChainBalance({lnd: args.lnd}, cbk);
     }],
 
     // Open the channel
-    openChannel: ['getBalance', 'checkPeers', ({getBalance}, cbk) => {
+    openChannel: ['getBalance', ({getBalance}, cbk) => {
       const balance = getBalance.chain_balance;
       let isAnnounced = false;
       const limit = channelLimit;
@@ -183,6 +132,9 @@ module.exports = (args, cbk) => {
         }
 
         switch (n.details) {
+        case 'cannot open channel to self':
+          return cbk([400, 'CannotOpenChannelToOwnNode']);
+
         case 'Multiple channels unsupported':
           return cbk([503, 'RemoteNodeDoesNotSupportMultipleChannels']);
 

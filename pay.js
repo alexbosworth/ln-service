@@ -14,8 +14,8 @@ const {pay} = require('./');
         fee: <Total Fee Tokens To Pay Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
+          channel: <Standard Format Channel Id String>
           channel_capacity: <Channel Capacity Tokens Number>
-          channel_id: <Unique Channel Id String>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -37,8 +37,8 @@ const {pay} = require('./');
     fee: <Fee Paid Tokens Number>
     fee_mtokens: <Fee Paid Millitokens String>
     hops: [{
+      channel: <Standard Format Channel Id String>
       channel_capacity: <Hop Channel Capacity Tokens Number>
-      channel_id: <Hop Channel Id String>
       fee_mtokens: <Hop Forward Fee Millitokens String>
       forward_mtokens: <Hop Forwarded Millitokens String>
       timeout: <Hop CLTV Expiry Block Height Number>

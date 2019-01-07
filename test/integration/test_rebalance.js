@@ -58,7 +58,7 @@ test('Rebalance', async ({end, equal}) => {
     return {
       base_fee_mtokens: '1000',
       block_height: decodeChanId({number: id}).block_height,
-      channel_id: id,
+      channel: id,
       cltv_delta: 144,
       fee_rate: 1,
     };

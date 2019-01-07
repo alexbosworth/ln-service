@@ -24,13 +24,13 @@ const {getInvoices} = require('./');
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
-      routes: [{
+      routes: [[{
         base_fee_mtokens: <Base Routing Fee In Millitokens Number>
-        channel_id: <Channel Id String>
+        channel: <Standard Format Channel Id String>
         cltv_delta: <CLTV Blocks Delta Number>
         fee_rate: <Fee Rate In Millitokens Per Million Number>
         public_key: <Public Key Hex String>
-      }]
+      }]]
       secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
       type: <Type String>

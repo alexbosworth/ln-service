@@ -12,7 +12,7 @@ const {getNetworkGraph} = require('./');
   {
     channels: [{
       capacity: <Channel Capacity Tokens Number>
-      id: <Channel Id String>
+      id: <Standard Format Channel Id String>
       policies: [{
         [base_fee_mtokens]: <Bae Fee Millitokens String>
         [cltv_delta]: <CLTV Height Delta Number>

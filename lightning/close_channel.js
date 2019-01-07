@@ -1,4 +1,5 @@
 const asyncAuto = require('async/auto');
+const {chanNumber} = require('bolt07');
 const {isFinite} = require('lodash');
 
 const addPeer = require('./add_peer');
@@ -12,7 +13,7 @@ const {returnResult} = require('./../async-util');
   If cooperatively closing, pass a public key and socket to connect
 
   {
-    [id]: <Channel Id String>
+    [id]: <Standard Format Channel Id String>
     [is_force_close]: <Is Force Close Bool>
     lnd: <LND GRPC API Object>
     [public_key]: <Peer Public Key String>
@@ -39,7 +40,7 @@ module.exports = (args, cbk) => {
 
       const isDirectClose = !!txId && vout !== undefined;
 
-      if (!args.id && !isDirectClose) {
+      if (!args.channel && !isDirectClose) {
         return cbk([400, 'ExpectedIdOfChannelToClose', args]);
       }
 
@@ -74,7 +75,7 @@ module.exports = (args, cbk) => {
 
     // Get a single channel
     getChannel: ['validate', ({}, cbk) => {
-      if (!args.id) {
+      if (!args.channel) {
         return cbk(null, {
           transaction_id: args.transaction_id,
           transaction_vout: args.transaction_vout,

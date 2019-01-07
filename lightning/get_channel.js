@@ -1,3 +1,4 @@
+const {chanNumber} = require('bolt07');
 const {isFinite} = require('lodash');
 
 const decBase = 10;
@@ -8,7 +9,7 @@ const separatorChar = ':';
 /** Get a channel
 
   {
-    id: <Channel Id String>
+    id: <Standard Format Channel Id String>
     lnd: <LND GRPC API Object>
   }
 
@@ -37,7 +38,16 @@ module.exports = ({id, lnd}, cbk) => {
     return cbk([400, 'ExpectedLndToGetChannelDetails']);
   }
 
-  return lnd.getChanInfo({chan_id: id}, (err, response) => {
+  // LND expects the numeric format channel id
+  let channelNumber;
+
+  try {
+    channelNumber = chanNumber({channel: id}).number
+  } catch (err) {
+    return cbk([400, 'ExpectedValidChannelIdToGetChannel', err]);
+  }
+
+  return lnd.getChanInfo({chan_id: channelNumber}, (err, response) => {
     if (!!err && err.details === edgeNotFoundErrorMessage) {
       return cbk([404, 'FullChannelDetailsNotFound']);
     }

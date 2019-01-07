@@ -16,8 +16,8 @@ const mtokPerTok = new BN(1e3, 10);
     height: <Current Block Height Number>
     hops: [{
       base_fee_mtokens: <Base Fee Millitokens String>
+      channel: <Standard Format Channel Id String>
       [channel_capacity]: <Channel Capacity Tokens Number>
-      channel_id: <Channel Id String>
       cltv_delta: <CLTV Delta Number>
       fee_rate: <Fee Rate In Millitokens Per Million Number>
       [public_key]: <Public Key Hex String>
@@ -33,7 +33,7 @@ const mtokPerTok = new BN(1e3, 10);
     fee: <Route Fee Tokens Number>
     fee_mtokens: <Route Fee Millitokens String>
     hops: [{
-      channel_id: <BOLT 07 Channel Id String>
+      channel: <Standard Format Channel Id String>
       channel_capacity: <Channel Capacity Tokens Number>
       fee: <Fee Number>
       fee_mtokens: <Fee Millitokens String>
@@ -61,7 +61,7 @@ module.exports = ({height, hops, mtokens}) => {
       throw new Error('ExpectedHopBaseFeeMillitokensForRouteConstruction');
     }
 
-    if (!hop.channel_id) {
+    if (!hop.channel) {
       throw new Error('ExpectedHopChannelIdForRouteConstruction');
     }
 
@@ -94,8 +94,8 @@ module.exports = ({height, hops, mtokens}) => {
     const fees = baseFee.add(rateFee);
 
     routeHops.push({
+      channel: hop.channel,
       channel_capacity: hop.channel_capacity || defaultChannelCapacity,
-      channel_id: hop.channel_id,
       cltv_delta: hop.cltv_delta,
       fee: !i ? defaultFee : floor(fees.div(mtokPerTok).toNumber()),
       fee_mtokens: !i ? defaultFee.toString() : fees.toString(),

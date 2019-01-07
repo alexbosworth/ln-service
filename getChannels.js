@@ -18,7 +18,7 @@ const {getChannels} = require('./');
       capacity: <Channel Token Capacity Number>
       commit_transaction_fee: <Commit Transaction Fee Number>
       commit_transaction_weight: <Commit Transaction Weight Number>
-      id: <Channel Id String>
+      id: <Standard Format Channel Id String>
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>

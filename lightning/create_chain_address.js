@@ -1,6 +1,8 @@
 const addressFormats = require('./conf/address_formats');
 const rowTypes = require('./conf/row_types');
 
+const connectFailMessage = '14 UNAVAILABLE: Connect Failed';
+
 /** Create a new receive address.
 
   {
@@ -19,11 +21,15 @@ module.exports = ({format, lnd}, cbk) => {
     return cbk([400, 'ExpectedKnownAddressFormat']);
   }
 
-  if (!lnd) {
+  if (!lnd || !lnd.newAddress) {
     return cbk([400, 'ExpectedLndForAddressCreation']);
   }
 
   return lnd.newAddress({type: addressFormats[format]}, (err, response) => {
+    if (!!err && err.message === connectFailMessage) {
+      return cbk([503, 'FailedToConnectToDaemonToCreateChainAddress', err]);
+    }
+
     if (!!err) {
       return cbk([503, 'CreateAddressError', err]);
     }

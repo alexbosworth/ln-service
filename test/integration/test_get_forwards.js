@@ -70,10 +70,11 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     const [forward] = page1.forwards;
 
     equal(!!forward.created_at, true, 'Forward created at');
-    equal(forward.fee_mtokens, '1', 'Forward fee charged');
-    equal(!!forward.incoming_channel_id, true, 'Forward incoming channel');
+    equal(forward.fee, 1, 'Forward fee charged');
+    equal(forward.fee_mtokens, '1000', 'Forward fee charged');
+    equal(!!forward.incoming_channel, true, 'Forward incoming channel');
     equal(forward.mtokens, '100', 'Forwarded millitokens count');
-    equal(!!forward.outgoing_channel_id, true, 'Forward outgoing channel');
+    equal(!!forward.outgoing_channel, true, 'Forward outgoing channel');
     equal(forward.type, 'forward', 'Forward outgoing channel');
   }
 

@@ -29,6 +29,7 @@ const localLnd = require('./service/local_lnd');
 const {openChannel} = require('./lightning');
 const {parsePaymentRequest} = require('./bolt11');
 const {pay} = require('./lightning');
+const {probe} = require('./routing');
 const {removePeer} = require('./lightning');
 const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
@@ -73,6 +74,7 @@ module.exports = {
   openChannel,
   parsePaymentRequest,
   pay,
+  probe,
   removePeer,
   rowTypes,
   sendToChainAddress,

@@ -23,7 +23,7 @@ const {getClosedChannels} = require('./');
       [close_transaction_id]: <Closing Transaction Id Hex String>
       final_local_balance: <Channel Close Final Local Balance Tokens Number>
       final_time_locked_balance: <Closed Channel Timelocked Tokens Number>
-      [id]: <Closed Channel Id String>
+      [id]: <Standard Format Channel Id String>
       is_breach_close: <Is Breach Close Bool>
       is_cooperative_close: <Is Cooperative Close Bool>
       is_funding_cancel: <Is Funding Cancelled Close Bool>

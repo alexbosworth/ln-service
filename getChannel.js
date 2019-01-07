@@ -5,7 +5,7 @@ const {getChannel} = require('./');
 /** Get a channel
 
   {
-    id: <Channel Id String>
+    id: <Standard Format Channel Id String>
     lnd: <LND GRPC API Object>
   }
 

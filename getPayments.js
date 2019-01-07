@@ -18,6 +18,7 @@ const {getPayments} = require('./');
       id: <RHash Id String>
       is_confirmed: <Bool>
       is_outgoing: <Is Outgoing Bool>
+      mtokens: <Millitokens Paid String>
       tokens: <Sent Tokens Number>
       type: <Type String>
     }]

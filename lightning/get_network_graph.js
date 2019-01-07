@@ -1,4 +1,5 @@
 const asyncAuto = require('async/auto');
+const {chanFormat} = require('bolt07');
 
 const {returnResult} = require('./../async-util');
 
@@ -17,7 +18,7 @@ const outpointSeparatorChar = ':';
   {
     channels: [{
       capacity: <Channel Capacity Tokens Number>
-      id: <Channel Id String>
+      id: <Standard Format Channel Id String>
       policies: [{
         [base_fee_mtokens]: <Bae Fee Millitokens String>
         [cltv_delta]: <CLTV Height Delta Number>
@@ -77,6 +78,12 @@ module.exports = ({lnd}, cbk) => {
     graph: ['getGraph', ({getGraph}, cbk) => {
       const hasChannel = {};
 
+      try {
+        const _ = getGraph.edges.map(n => chanFormat({number: n.channel_id}));
+      } catch (err) {
+        return cbk([503, 'ExpectedValidNumericChannelId', err]);
+      }
+
       const channels = getGraph.edges.map(n => {
         const [txId, vout] = n.chan_point.split(outpointSeparatorChar);
 
@@ -105,7 +112,7 @@ module.exports = ({lnd}, cbk) => {
         return {
           policies,
           capacity: parseInt(n.capacity, decBase),
-          id: n.channel_id,
+          id: chanFormat({number: n.channel_id}).channel,
           transaction_id: txId,
           transaction_vout: parseInt(vout, decBase),
           updated_at: new Date(n.last_update * msPerSec).toISOString(),

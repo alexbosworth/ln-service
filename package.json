@@ -29,7 +29,7 @@
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
     "portfinder": "1.0.20",
-    "rimraf": "2.6.2",
+    "rimraf": "2.6.3",
     "tap": "12.1.1",
     "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
@@ -48,9 +48,9 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
-    "integration-tests": "tap -t 60 test/integration/*.js",
+    "integration-tests": "tap -t 300 test/integration/*.js",
     "start": "node server.js",
     "test": "tap test/bolt11/*.js test/routing/*.js"
   },
-  "version": "31.0.0"
+  "version": "32.0.0"
 }

@@ -1,3 +1,4 @@
+const {chanFormat} = require('bolt07');
 const {isFinite} = require('lodash');
 
 const rowTypes = require('./conf/row_types');
@@ -24,7 +25,7 @@ const msPerSec = 1e3;
     id: <Payment Hash String>
     routes: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
-      [channel_id]: <Channel Id String>
+      [channel]: <Standard Format Channel Id String>
       [cltv_delta]: <CLTV Blocks Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
@@ -110,7 +111,7 @@ module.exports = ({lnd, request}, cbk) => {
 
           return {
             base_fee_mtokens: hop.fee_base_msat,
-            channel_id: hop.chan_id,
+            channel: chanFormat({number: hop.chan_id}).channel,
             cltv_delta: hop.cltv_expiry_delta,
             fee_rate: hop.fee_proportional_millionths,
             public_key: (hops[(i + [hop].length)] || lastHop).node_id,

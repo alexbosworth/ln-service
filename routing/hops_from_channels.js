@@ -6,7 +6,7 @@ const {intersection} = require('lodash');
     channels: [{
       capacity: <Maximum Tokens Number>
       destination: <Next Hop Destination Public Key String>
-      id: <Channel Id String>
+      id: <Standard Format Channel Id String>
       policies: [{
         base_fee_mtokens: <Base Fee Millitokens String>
         cltv_delta: <Locktime Delta Number>
@@ -25,8 +25,8 @@ const {intersection} = require('lodash');
   {
     hops: [{
       base_fee_mtokens: <Base Fee Millitokens String>
+      channel: <Standard Format Channel Id String>
       channel_capacity: <Maximum Tokens Number>
-      channel_id: <Channel Id String>
       cltv_delta: <CLTV Delta Number>
       fee_rate: <Fee Rate In Millitokens Per Million Number>
       public_key: <Public Key Hex String>
@@ -65,8 +65,8 @@ module.exports = ({channels}) => {
 
     return {
       base_fee_mtokens: policy.base_fee_mtokens,
+      channel: channel.id,
       channel_capacity: channel.capacity,
-      channel_id: channel.id,
       cltv_delta: policy.cltv_delta,
       fee_rate: policy.fee_rate,
       public_key: nextHop,

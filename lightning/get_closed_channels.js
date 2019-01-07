@@ -1,3 +1,5 @@
+const {chanFormat} = require('bolt07');
+
 const decBase = 10;
 const emptyTxId = '0000000000000000000000000000000000000000000000000000000000000000';
 const outpointSeparator = ':';
@@ -23,7 +25,7 @@ const outpointSeparator = ':';
       [close_transaction_id]: <Closing Transaction Id Hex String>
       final_local_balance: <Channel Close Final Local Balance Tokens Number>
       final_time_locked_balance: <Closed Channel Timelocked Tokens Number>
-      [id]: <Closed Channel Id String>
+      [id]: <Closed Standard Format Channel Id String>
       is_breach_close: <Is Breach Close Bool>
       is_cooperative_close: <Is Cooperative Close Bool>
       is_funding_cancel: <Is Funding Cancelled Close Bool>
@@ -94,13 +96,15 @@ module.exports = (args, cbk) => {
 
         const hasCloseTx = n.closing_tx_hash !== emptyTxId;
 
+        const hasId = n.chan_id !== '0';
+
         return {
           capacity: parseInt(n.capacity, decBase),
           close_confirm_height: !!n.close_height ? n.close_height : undefined,
           close_transaction_id: hasCloseTx ? n.closing_tx_hash : undefined,
           final_local_balance: parseInt(n.settled_balance, decBase),
           final_time_locked_balance: parseInt(n.time_locked_balance, decBase),
-          id: n.chan_id !== '0' ? n.chan_id : undefined,
+          id: hasId ? chanFormat({number: n.chan_id}).channel : undefined,
           is_breach_close: n.close_type === 'BREACH_CLOSE',
           is_cooperative_close: n.close_type === 'COOPERATIVE_CLOSE',
           is_funding_cancel: n.close_type === 'FUNDING_CANCELED',

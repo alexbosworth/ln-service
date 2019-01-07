@@ -44,7 +44,7 @@ const pathNotFoundErrors = [
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
-      [channel_id]: <Channel Id String>
+      [channel]: <Standard Format Channel Id String>
       [cltv_delta]: <CLTV Blocks Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
@@ -59,7 +59,7 @@ const pathNotFoundErrors = [
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
       hops: [{
-        channel_id: <BOLT 07 Channel Id String>
+        channel: <Standard Format Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
         fee: <Fee Number>
         fee_mtokens: <Fee Millitokens String>
@@ -109,7 +109,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedOnlyLastHopRouteExtension']);
         }
 
-        if (!!firstHop.channel_id) {
+        if (!!firstHop.channel) {
           return cbk(null, {extended, routes: []});
         }
 
@@ -173,13 +173,13 @@ module.exports = (args, cbk) => {
         return route.forEach(n => {
           const publicKey = precedingPubKey;
 
-          if (!n.channel_id) {
+          if (!n.channel) {
             return;
           }
 
-          return channels[n.channel_id] = {
+          return channels[n.channel] = {
             capacity: args.tokens,
-            id: n.channel_id,
+            id: n.channel,
             policies: [{
               base_fee_mtokens: n.base_fee_mtokens,
               cltv_delta: n.cltv_delta,
@@ -196,18 +196,18 @@ module.exports = (args, cbk) => {
         }
 
         const extendedHops = extended.map(hop => {
-          return {channel_id: hop.channel_id, destination: hop.public_key};
+          return {channel: hop.channel, destination: hop.public_key};
         });
 
         const baseRoutes = routes.map(({hops}) => {
           return hops.map(hop => {
-            return {channel_id: hop.channel_id, destination: hop.public_key};
+            return {channel: hop.channel, destination: hop.public_key};
           });
         });
 
         return asyncMapSeries(baseRoutes, (baseHops, cbk) => {
           return asyncMapSeries(baseHops.concat(extendedHops), (hop, cbk) => {
-            const id = hop.channel_id;
+            const id = hop.channel;
 
             // Exit early when channel information is cached
             if (!!gotChannels[id]) {

@@ -1,5 +1,7 @@
 const {createHash} = require('crypto');
 
+const {chanFormat} = require('bolt07');
+const {chanNumber} = require('bolt07');
 const {encodeChanId} = require('bolt07');
 
 const {broadcastResponse} = require('./../async-util');
@@ -27,8 +29,8 @@ const decBase = 10;
         fee: <Total Fee Tokens To Pay Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
+          channel: <Standard Format Channel Id String>
           channel_capacity: <Channel Capacity Tokens Number>
-          channel_id: <Unique Channel Id String>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -51,8 +53,8 @@ const decBase = 10;
     fee: <Fee Paid Tokens Number>
     fee_mtokens: <Fee Paid Millitokens String>
     hops: [{
+      channel: <Standard Format Channel Id String>
       channel_capacity: <Hop Channel Capacity Tokens Number>
-      channel_id: <Hop Channel Id String>
       fee_mtokens: <Hop Forward Fee Millitokens String>
       forward_mtokens: <Hop Forwarded Millitokens String>
       timeout: <Hop CLTV Expiry Block Height Number>
@@ -88,6 +90,14 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     return payPaymentRequest({fee, lnd, log, request, tokens, wss}, cbk);
   }
 
+  try {
+    path.routes.forEach(route => {
+      return route.hops.forEach(({channel}) => chanNumber({channel}));
+    });
+  } catch (err) {
+    return cbk([400, 'ExpectedValidRouteChannelIds', err]);
+  }
+
   lnd.sendToRouteSync({
     payment_hash_string: path.id,
     routes: path.routes
@@ -98,7 +108,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
             return {
               amt_to_forward: hop.forward.toString(),
               amt_to_forward_msat: hop.forward_mtokens,
-              chan_id: hop.channel_id,
+              chan_id: chanNumber({channel: hop.channel}).number,
               chan_capacity: hop.channel_capacity.toString(),
               expiry: hop.timeout,
               fee: hop.fee.toString(),
@@ -146,14 +156,22 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
           output_index: parseInt(outputIndex, decBase),
         });
 
-        failChanId = encodedFailChanId.number;
+        failChanId = encodedFailChanId.channel;
       } catch (err) {
         // Ignore errors when parsing of unstructured error message fails.
       }
     }
 
+    if (/ChannelDisabled/.test(res.payment_error) && !!failChanId) {
+      return cbk([503, 'NextHopChannelDisabled', {channel: failChanId}]);
+    }
+
+    if (/ChannelDisabled/.test(res.payment_error)) {
+      return cbk([503, 'NextHopChannelDisabled']);
+    }
+
     if (/ExpiryTooSoon/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'RejectedTooNearTimeout', {channel_id: failChanId}]);
+      return cbk([503, 'RejectedTooNearTimeout', {channel: failChanId}]);
     }
 
     if (/ExpiryTooSoon/.test(res.payment_error)) {
@@ -161,7 +179,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/FeeInsufficient/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'RejectedUnacceptableFee', {channel_id: failChanId}]);
+      return cbk([503, 'RejectedUnacceptableFee', {channel: failChanId}]);
     }
 
     if (/FeeInsufficient/.test(res.payment_error)) {
@@ -169,7 +187,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/IncorrectCltvExpiry/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'RejectedUnacceptableCltv', {channel_id: failChanId}]);
+      return cbk([503, 'RejectedUnacceptableCltv', {channel: failChanId}]);
     }
 
     if (/IncorrectCltvExpiry/.test(res.payment_error)) {
@@ -177,7 +195,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/TemporaryChannelFailure/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'TemporaryChannelFailure', {channel_id: failChanId}]);
+      return cbk([503, 'TemporaryChannelFailure', {channel: failChanId}]);
     }
 
     if (/TemporaryChannelFailure/.test(res.payment_error)) {
@@ -208,6 +226,10 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       return cbk([503, 'ExpectedPaymentPreimageBuffer']);
     }
 
+    if (!Array.isArray(res.payment_route.hops)) {
+      return cbk([503, 'ExpectedPaymentRouteHops']);
+    }
+
     if (res.payment_route.total_amt === undefined) {
       return cbk([503, 'ExpectedPaymentTotalSentAmount']);
     }
@@ -224,13 +246,21 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       return cbk([503, 'ExpectedRouteFeesMillitokensPaidValue']);
     }
 
+    const {hops} = res.payment_route;
+
+    try {
+      hops.forEach(hop => chanFormat({number: hop.chan_id}));
+    } catch (err) {
+      return cbk([503, 'ExpectedNumericChannelIdInPaymentResponse', err]);
+    }
+
     const row = {
       fee: parseInt(res.payment_route.total_fees, decBase),
       fee_mtokens: res.payment_route.total_fees_msat,
       hops: res.payment_route.hops.map(hop => {
         return {
           channel_capacity: parseInt(hop.chan_capacity, decBase),
-          channel_id: hop.chan_id,
+          channel: chanFormat({number: hop.chan_id}).channel,
           fee_mtokens: hop.fee_msat,
           forward_mtokens: hop.amt_to_forward_msat,
           timeout: hop.expiry,

@@ -2,6 +2,8 @@ const {createHash} = require('crypto');
 
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const BN = require('bn.js');
+const {chanFormat} = require('bolt07');
 const {isBoolean} = require('lodash');
 const {isFinite} = require('lodash');
 const {isString} = require('lodash');
@@ -14,6 +16,7 @@ const decBase = 10;
 const defaultLimit = 100;
 const lastPageFirstIndexOffset = 1;
 const msPerSec = 1e3;
+const mtokensPerToken = new BN(1e3, 10);
 
 /** Get all created invoices.
 
@@ -39,13 +42,13 @@ const msPerSec = 1e3;
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
-      routes: [{
+      routes: [[{
         base_fee_mtokens: <Base Routing Fee In Millitokens Number>
-        channel_id: <Channel Id String>
+        channel: <Standard Format Channel Id String>
         cltv_delta: <CLTV Blocks Delta Number>
         fee_rate: <Fee Rate In Millitokens Per Million Number>
         public_key: <Public Key Hex String>
-      }]
+      }]]
       secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
       type: <Type String>
@@ -203,7 +206,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
 
               return {
                 base_fee_mtokens: hop.fee_base_msat,
-                channel_id: hop.chan_id,
+                channel: chanFormat({number: hop.chan_id}).channel,
                 cltv_delta: hop.cltv_expiry_delta,
                 fee_rate: hop.fee_proportional_millionths,
                 public_key: hop.node_id,
@@ -213,6 +216,8 @@ module.exports = ({limit, lnd, token}, cbk) => {
         } catch (err) {
           return cbk([503, err.message, res]);
         }
+
+        const tokens = new BN(invoice.value, decBase);
 
         return cbk(null, {
           routes,
@@ -227,6 +232,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
           is_confirmed: invoice.settled,
           is_outgoing: false,
           is_private: !!invoice.private,
+          mtokens: tokens.mul(mtokensPerToken).toString(decBase),
           received: parseInt(invoice.amt_paid_sat, decBase),
           received_mtokens: invoice.amt_paid_msat,
           request: invoice.payment_request,

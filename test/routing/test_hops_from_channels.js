@@ -9,7 +9,7 @@ const tests = [
         {
           capacity: 8429350,
           destination: '03e50492eab4107a773141bb419e107bda3de3d55652e6e1a41225f06a0bbf2d56',
-          id: '598313545984638976',
+          id: '544163x1208x0',
           policies: [
             {
               base_fee_mtokens: '1000',
@@ -28,7 +28,7 @@ const tests = [
         {
           capacity: 2000000,
           destination: '03bb88ccc444534da7b5b64b4f7b15e1eccb18e102db0e400d4b9cfe93763aa26d',
-          id: '603838592008716289',
+          id: '549188x2650x1',
           policies: [
             {
               base_fee_mtokens: '0',
@@ -47,7 +47,7 @@ const tests = [
         {
           capacity: 400000,
           destination: '028dcc199be86786818c8c32bffe9db8855c5fca98951eec99d1fa335d841605c2',
-          id: '585344806272630785',
+          id: '532368x256x1',
           policies: [
             {
               base_fee_mtokens: '1000',
@@ -66,7 +66,7 @@ const tests = [
         {
           capacity: 364355,
           destination: '03277a99c297a53859b42a9bb8cb2c5c17b9eaa44509bae150e2ea35ca5aa29bd9',
-          id: '605387803773239296',
+          id: '550597x834x0',
           policies: [
             {
               base_fee_mtokens: '1000',
@@ -88,32 +88,32 @@ const tests = [
     expected: [
       {
         base_fee_mtokens: '1000',
+        channel: '544163x1208x0',
         channel_capacity: 8429350,
-        channel_id: '598313545984638976',
         cltv_delta: 144,
         fee_rate: 2500,
         public_key: '03e50492eab4107a773141bb419e107bda3de3d55652e6e1a41225f06a0bbf2d56',
       },
       {
         base_fee_mtokens: '0',
+        channel: '549188x2650x1',
         channel_capacity: 2000000,
-        channel_id: '603838592008716289',
         cltv_delta: 144,
         fee_rate: 10,
         public_key: '03bb88ccc444534da7b5b64b4f7b15e1eccb18e102db0e400d4b9cfe93763aa26d',
       },
       {
         base_fee_mtokens: '1000',
+        channel: '532368x256x1',
         channel_capacity: 400000,
-        channel_id: '585344806272630785',
         cltv_delta: 144,
         fee_rate: 100,
         public_key: '028dcc199be86786818c8c32bffe9db8855c5fca98951eec99d1fa335d841605c2',
       },
       {
         base_fee_mtokens: '1000',
+        channel: '550597x834x0',
         channel_capacity: 364355,
-        channel_id: '605387803773239296',
         cltv_delta: 144,
         fee_rate: 1,
         public_key: '03277a99c297a53859b42a9bb8cb2c5c17b9eaa44509bae150e2ea35ca5aa29bd9',
@@ -186,24 +186,24 @@ const tests = [
     expected: [
       {
         base_fee_mtokens: '1000',
+        channel: '0',
         channel_capacity: 1000,
-        channel_id: '0',
         cltv_delta: 144,
         fee_rate: 1,
         public_key: 'alice',
       },
       {
         base_fee_mtokens: '2000',
+        channel: '1',
         channel_capacity: 2000,
-        channel_id: '1',
         cltv_delta: 144,
         fee_rate: 2,
         public_key: 'bob',
       },
       {
         base_fee_mtokens: '3000',
+        channel: '2',
         channel_capacity: 3000,
-        channel_id: '2',
         cltv_delta: 144,
         fee_rate: 3,
         public_key: 'charlie',

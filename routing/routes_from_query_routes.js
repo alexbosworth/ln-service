@@ -1,4 +1,5 @@
 const BN = require('bn.js');
+const {chanFormat} = require('bolt07');
 
 const decBase = 10;
 const msatsPerToken = new BN(1e3, 10);
@@ -12,7 +13,7 @@ const msatsPerToken = new BN(1e3, 10);
           amt_to_forward: <Amount to Forward Tokens String>
           amt_to_forward_msat: <Amount to Forward Millitokens String>
           chan_capacity: <Channel Capacity Tokens String>
-          chan_id: <BOLT 07 Channel Id String>
+          chan_id: <Numeric Format Channel Id String>
           expiry: <Expiration Height Number>
           fee: <Fee Tokens String>
           fee_msat: <Fee Millitokens String>
@@ -35,7 +36,7 @@ const msatsPerToken = new BN(1e3, 10);
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
       hops: [{
-        channel_id: <BOLT 07 Channel Id String>
+        channel: <Standard Format Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
         fee: <Fee Number>
         fee_mtokens: <Fee Millitokens String>
@@ -85,6 +86,14 @@ module.exports = ({response}) => {
     throw new Error('ExpectedValidRoutes');
   }
 
+  try {
+    routes.forEach(route => {
+      return route.hops.forEach(h => chanFormat({number: h.chan_id}));
+    });
+  } catch (err) {
+    throw new Error('ExpectedValidHopChannelIdsInRoutes');
+  }
+
   return {
     routes: routes.map(route => {
       const totalFeesMsat = new BN(route.total_fees_msat, decBase);
@@ -95,9 +104,9 @@ module.exports = ({response}) => {
         fee_mtokens: totalFeesMsat.toString(),
         hops: route.hops.map(h => {
           return {
+            channel: chanFormat({number: h.chan_id}).channel,
             channel_capacity: new BN(h.chan_capacity, decBase).toNumber(),
-            channel_id: h.chan_id,
-            fee: new BN(h.fee, decBase).toNumber(),
+            fee: new BN(h.fee, decBase).toNumber(decBase),
             fee_mtokens: new BN(h.fee_msat, decBase).toString(),
             forward: new BN(h.amt_to_forward, decBase).toNumber(),
             forward_mtokens: new BN(h.amt_to_forward_msat, decBase).toString(),

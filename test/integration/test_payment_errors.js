@@ -59,8 +59,8 @@ test('Payment errors', async ({end, equal}) => {
   const hops = channels.map(({id}) => {
     return {
       base_fee_mtokens: '1000',
-      block_height: decodeChanId({number: id}).block_height,
-      channel_id: id,
+      block_height: decodeChanId({channel: id}).block_height,
+      channel: id,
       cltv_delta: 144,
       fee_rate: 1,
     };
@@ -72,8 +72,8 @@ test('Payment errors', async ({end, equal}) => {
     const hops = channels.map(({id}) => {
       return {
         base_fee_mtokens: '1', // Lower fee rate
-        block_height: decodeChanId({number: id}).block_height,
-        channel_id: id,
+        block_height: decodeChanId({channel: id}).block_height,
+        channel: id,
         cltv_delta: 14,
         fee_rate: 0, // Lower actual fee
       };
@@ -88,15 +88,15 @@ test('Payment errors', async ({end, equal}) => {
     const [, code, context] = err;
 
     equal(code, 'RejectedUnacceptableFee', 'Pay fails due to low fee');
-    equal(context.channel_id, channels.find(n => !n.local_balance).id);
+    equal(context.channel, channels.find(n => !n.local_balance).id);
   }
 
   try {
     const hops = channels.map(({id}) => {
       return {
         base_fee_mtokens: '1000',
-        block_height: decodeChanId({number: id}).block_height,
-        channel_id: id,
+        block_height: decodeChanId({channel: id}).block_height,
+        channel: id,
         cltv_delta: 14, // Lower CLTV delta
         fee_rate: 1,
       };
@@ -111,7 +111,7 @@ test('Payment errors', async ({end, equal}) => {
     const [, code, context] = err;
 
     equal(code, 'RejectedUnacceptableCltv', 'Pay fails due to low cltv');
-    equal(context.channel_id, channels.find(n => !n.local_balance).id);
+    equal(context.channel, channels.find(n => !n.local_balance).id);
   }
 
   await cluster.kill({});

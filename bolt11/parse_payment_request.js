@@ -63,7 +63,7 @@ const timestampWordLength = 7;
     network: <Network Name String>
     [routes]: [[{
       [base_fee_mtokens]: <Base Fee Millitokens String>
-      [channel_id]: <Short Channel Id String>
+      [channel]: <Standard Format Channel Id String>
       [cltv_delta]: <Final CLTV Expiration Blocks Delta Number>
       [fee_rate]: <Fee Rate Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
@@ -269,7 +269,7 @@ module.exports = ({request}) => {
 
     const route = hops.map((hop, i) => ({
       base_fee_mtokens: hop.base_fee_mtokens,
-      channel_id: hop.channel_id,
+      channel: hop.channel,
       cltv_delta: hop.cltv_delta,
       fee_rate: hop.fee_rate,
       public_key: (hops[(i + [hop].length)] || lastHop).public_key,

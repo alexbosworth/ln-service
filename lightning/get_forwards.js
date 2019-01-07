@@ -1,5 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const BN = require('bn.js');
+const {chanFormat} = require('bolt07');
 const {sortBy} = require('lodash');
 
 const {returnResult} = require('./../async-util');
@@ -8,6 +10,7 @@ const rowTypes = require('./conf/row_types');
 const decBase = 10;
 const defaultLimit = 100;
 const msPerSec = 1e3;
+const mtokensPerToken = new BN(1e3, 10);
 const {parse} = JSON;
 const {round} = Math;
 const {stringify} = JSON;
@@ -28,10 +31,11 @@ const {stringify} = JSON;
   {
     forwards: [{
       created_at: <Forward Record Created At ISO 8601 Date String>
-      fee_mtokens: <Fee Millitokens Charged String>
-      incoming_channel_id: <Incoming Channel Id String>
+      fee: <Fee Satoshis Charged Number>
+      fee_mtokens: <Approximated Fee Millitokens Charged String>
+      incoming_channel: <Incoming Standard Format Channel Id String>
       mtokens: <Forwarded Millitokens String>
-      outgoing_channel_id: <Outgoing Channel Id String>
+      outgoing_channel: <Outgoing Standard Format Channel Id String>
       row_type: <Row Type String>
     }]
   }
@@ -113,6 +117,8 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
     mappedForwards: ['listForwards', ({listForwards}, cbk) => {
       return asyncMap(listForwards.forwards, (forward, cbk) => {
         const creationEpochDate = parseInt(forward.timestamp, decBase);
+        let incomingChannel;
+        let outgoingChannel;
 
         if (!forward.amt_in) {
           return cbk([503, 'ExpectedIncomingForwardAmount']);
@@ -126,8 +132,20 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
           return cbk([503, 'ExpectedForwardChannelInId']);
         }
 
+        try {
+          incomingChannel = chanFormat({number: forward.chan_id_in}).channel;
+        } catch (err) {
+          return cbk([503, 'ExpectedNumericIncomingChannelId', err]);
+        }
+
         if (!forward.chan_id_out) {
           return cbk([503, 'ExpectedForwardChannelOutId']);
+        }
+
+        try {
+          outgoingChannel = chanFormat({number: forward.chan_id_out}).channel;
+        } catch (err) {
+          return cbk([503, 'ExpectedNumericOutgoingChannelId']);
         }
 
         if (!forward.fee) {
@@ -138,12 +156,15 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
           return cbk([503, 'ExpectedTimestampForForwardEvent']);
         }
 
+        const fee = new BN(forward.fee, decBase);
+
         return cbk(null, {
           created_at: new Date(creationEpochDate * msPerSec).toISOString(),
-          fee_mtokens: forward.fee,
-          incoming_channel_id: forward.chan_id_in,
+          fee: fee.toNumber(),
+          fee_mtokens: fee.mul(mtokensPerToken).toString(decBase),
+          incoming_channel: incomingChannel,
           mtokens: forward.amt_out,
-          outgoing_channel_id: forward.chan_id_out,
+          outgoing_channel: outgoingChannel,
           type: rowTypes.forward,
         });
       },

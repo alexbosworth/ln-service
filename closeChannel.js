@@ -7,7 +7,7 @@ const {closeChannel} = require('./');
   Either an id or a transaction id / transaction output index is required
 
   {
-    [id]: <Channel Id String>
+    [id]: <Standard Format Channel Id String>
     [is_force_close]: <Is Force Close Bool>
     lnd: <LND GRPC API Object>
     [transaction_id]: <Transaction Id Hex String>

@@ -21,7 +21,7 @@ const decodeChanIdBuffer = buf => decodeChanId({id: buf.toString('hex')});
   {
     hints: [{
       base_fee_mtokens: <Base Fee Millitokens String>
-      channel_id: <Numeric BOLT 07 Short Channel Id String>
+      channel: <Standard Format Channel Id String>
       cltv_delta: <Final CLTV Expiration Blocks Delta Number>
       fee_rate: <Fee Rate Millitokens Per Million Number>
       public_key: <Preceding Public Key Hex String>
@@ -59,7 +59,7 @@ module.exports = ({words}) => {
 
     hints.push({
       base_fee_mtokens: baseFee.toString(),
-      channel_id: encodedChanId.number,
+      channel: encodedChanId.channel,
       cltv_delta: cltvDelta,
       public_key: publicKey,
       fee_rate: feeRate,

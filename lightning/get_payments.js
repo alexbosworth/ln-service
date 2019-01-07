@@ -23,6 +23,7 @@ const msPerSecond = 1e3;
       id: <RHash Id String>
       is_confirmed: <Bool>
       is_outgoing: <Is Outgoing Bool>
+      mtokens: <Millitokens Paid String>
       secret: <Payment Preimage Hex String>
       tokens: <Sent Tokens Number>
       type: <Type String>

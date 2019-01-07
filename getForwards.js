@@ -14,10 +14,11 @@ const {getForwards} = require('./');
   {
     forwards: [{
       created_at: <Forward Record Created At ISO 8601 Date String>
-      fee_mtokens: <Fee Millitokens Charged String>
-      incoming_channel_id: <Incoming Channel Id String>
+      fee: <Fee Satoshis Charged Number>
+      fee_mtokens: <Approximated Fee Millitokens Charged String>
+      incoming_channel: <Incoming Standard Format Channel Id String>
       mtokens: <Forwarded Millitokens String>
-      outgoing_channel_id: <Outgoing Channel Id String>
+      outgoing_channel: <Outgoing Standard Format Channel Id String>
       row_type: <Row Type String>
     }]
   }

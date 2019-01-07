@@ -1,5 +1,7 @@
 const EventEmitter = require('events');
 
+const {chanFormat} = require('bolt07');
+
 const getNode = require('./get_node');
 const rowTypes = require('./conf/row_types');
 
@@ -19,9 +21,9 @@ const msPerSec = 1e3;
   {
     base_fee_mtokens: <Channel Base Fee Millitokens String>
     capacity: <Channel Capacity Tokens Number>
-    channel_id: <Channel Id String>
     cltv_delta: <Channel CLTV Delta Number>
     fee_rate: <Channel Feel Rate In Millitokens Per Million Number>
+    id: <Standard Format Channel Id String>
     is_disabled: <Channel Is Disabled Bool>
     min_htlc_mtokens: <Channel Minimum HTLC Millitokens String>
     public_keys: [<Announcing Public Key>, <Target Public Key String>]
@@ -34,7 +36,7 @@ const msPerSec = 1e3;
   @on(data) // closed_channel
   {
     capacity: <Channel Capacity Tokens Number>
-    channel_id: <Channel Id String>
+    id: <Standard Format Channel Id String>
     close_height: <Channel Close Confirmed Block Height Number>
     transaction_id: <Channel Transaction Id String>
     transaction_vout: <Channel Transaction Output Index Number>
@@ -127,12 +129,18 @@ module.exports = ({lnd}) => {
 
       const transactionId = update.chan_point.funding_txid_bytes.reverse();
 
+      try {
+        chanFormat({number: update.chan_id});
+      } catch (err) {
+        return eventEmitter.emit('error', new Error('ExpectedValidChannelId'));
+      }
+
       return eventEmitter.emit('data', {
         base_fee_mtokens: update.routing_policy.fee_base_msat,
         capacity: parseInt(update.capacity, decBase),
-        channel_id: update.chan_id,
         cltv_delta: update.routing_policy.time_lock_delta,
         fee_rate: parseInt(update.routing_policy.fee_rate_milli_msat, decBase),
+        id: chanFormat({number: update.chan_id}).channel,
         is_disabled: update.routing_policy.disabled,
         min_htlc_mtokens: update.routing_policy.min_htlc,
         public_keys: [update.advertising_node, update.connecting_node],
@@ -171,10 +179,16 @@ module.exports = ({lnd}) => {
 
       const transactionId = update.chan_point.funding_txid_bytes.reverse();
 
+      try {
+        chanFormat({number: update.chan_id});
+      } catch (err) {
+        return eventEmitter.emit('error', new Error('ExpectedValidChannelId'));
+      }
+
       return eventEmitter.emit('data', {
         capacity: parseInt(update.capacity, decBase),
-        channel_id: update.chan_id,
         close_height: update.closed_height,
+        id: chanFormat({number: update.chan_id}).channel,
         transaction_id: transactionId.toString('hex'),
         transaction_vout: update.chan_point.output_index,
         type: rowTypes.closed_channel,

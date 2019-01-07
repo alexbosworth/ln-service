@@ -105,14 +105,14 @@ const tests = [
           },
           {
             base_fee_mtokens: '1',
-            channel_id: '72623859790382856',
+            channel: '66051x263430x1800',
             cltv_delta: 3,
             fee_rate: 20,
             public_key: '039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255',
           },
           {
             base_fee_mtokens: '2',
-            channel_id: '217304205466536202',
+            channel: '197637x395016x2314',
             cltv_delta: 4,
             fee_rate: 30,
             public_key: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
@@ -208,7 +208,7 @@ const tests = [
         },
         {
           base_fee_mtokens: '1000',
-          channel_id: '1487450116383244288',
+          channel: '1352828x35x0',
           cltv_delta: 144,
           fee_rate: 100,
           public_key: '032bb4f2cd2bf877429f1d79f91de0794e4a3b7b772febbf60fc21bb3475f7cd5e',
@@ -247,7 +247,7 @@ tests.forEach(({description, expected, request}) => {
           const expect = expected.routes[i][j];
 
           equal(hop.base_fee_mtokens, expect.base_fee_mtokens, 'Hop base-fee');
-          equal(hop.channel_id, expect.channel_id, 'Parsed hop channel id');
+          equal(hop.channel, expect.channel, 'Parsed hop channel id');
           equal(hop.cltv_delta, expect.cltv_delta, 'Parsed hop cltv delta');
           equal(hop.fee_rate, expect.fee_rate, 'Parsed hop fee rate');
           equal(hop.public_key, expect.public_key, 'Parsed hop public key');

@@ -14,7 +14,7 @@ const {getPendingChannels} = require('./');
   @returns via Promise
   {
     pending_channels: [{
-      id: <Channel Id String>
+      id: <Standard Format Channel Id String>
       is_active: <Channel Active Bool>
       is_closing: <Channel Closing Bool>
       is_opening: <Channel Opening Bool>

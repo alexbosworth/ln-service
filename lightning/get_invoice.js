@@ -1,7 +1,10 @@
+const BN = require('bn.js');
+
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
 const msPerSec = 1e3;
+const mtokensPerToken = new BN(1e3, 10);
 
 /** Lookup a channel invoice.
 
@@ -21,6 +24,7 @@ const msPerSec = 1e3;
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
     is_private: <Is a Private Invoice Bool>
+    mtokens: <Millitokens String>
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
     request: <BOLT 11 Encoded Payment Request String>
@@ -61,6 +65,7 @@ module.exports = ({id, lnd}, cbk) => {
 
     const createdAt = parseInt(response.creation_date, decBase) * msPerSec;
     const expiresInMs = parseInt(response.expiry, decBase) * msPerSec;
+    const tokens = new BN(response.value, decBase);
 
     const expiryDateMs = createdAt + expiresInMs;
 
@@ -71,6 +76,7 @@ module.exports = ({id, lnd}, cbk) => {
       is_confirmed: response.settled,
       is_outgoing: false,
       is_private: response.private,
+      mtokens: tokens.mul(mtokensPerToken).toString(decBase),
       received: parseInt(response.amt_paid_sat, decBase),
       received_mtokens: response.amt_paid_msat,
       request: response.payment_request,

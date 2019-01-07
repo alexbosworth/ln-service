@@ -9,32 +9,32 @@ const tests = [
       hops: [
         {
           base_fee_mtokens: '1000',
+          channel: '598313545984638976',
           channel_capacity: 8429350,
-          channel_id: '598313545984638976',
           cltv_delta: 144,
           fee_rate: 2500,
           public_key: '03e50492eab4107a773141bb419e107bda3de3d55652e6e1a41225f06a0bbf2d56',
         },
         {
           base_fee_mtokens: '0',
+          channel: '603838592008716289',
           channel_capacity: 2000000,
-          channel_id: '603838592008716289',
           cltv_delta: 144,
           fee_rate: 10,
           public_key: '03bb88ccc444534da7b5b64b4f7b15e1eccb18e102db0e400d4b9cfe93763aa26d',
         },
         {
           base_fee_mtokens: '1000',
+          channel: '585344806272630785',
           channel_capacity: 400000,
-          channel_id: '585344806272630785',
           cltv_delta: 144,
           fee_rate: 100,
           public_key: '028dcc199be86786818c8c32bffe9db8855c5fca98951eec99d1fa335d841605c2',
         },
         {
           base_fee_mtokens: '1000',
+          channel: '605387803773239296',
           channel_capacity: 364355,
-          channel_id: '605387803773239296',
           cltv_delta: 144,
           fee_rate: 1,
           public_key: '03277a99c297a53859b42a9bb8cb2c5c17b9eaa44509bae150e2ea35ca5aa29bd9',
@@ -48,8 +48,8 @@ const tests = [
       fee_mtokens: '785085',
       hops: [
         {
+          channel: '598313545984638976',
           channel_capacity: 8429350,
-          channel_id: '598313545984638976',
           fee: 751,
           fee_mtokens: '751085',
           forward: 300034,
@@ -58,8 +58,8 @@ const tests = [
           timeout: 551039,
         },
         {
+          channel: '603838592008716289',
           channel_capacity: 2000000,
-          channel_id: '603838592008716289',
           fee: 3,
           fee_mtokens: '3000',
           forward: 300031,
@@ -68,8 +68,8 @@ const tests = [
           timeout: 550895,
         },
         {
+          channel: '585344806272630785',
           channel_capacity: 400000,
-          channel_id: '585344806272630785',
           fee: 31,
           fee_mtokens: '31000',
           forward: 300000,
@@ -78,8 +78,8 @@ const tests = [
           timeout: 550751,
         },
         {
+          channel: '605387803773239296',
           channel_capacity: 364355,
-          channel_id: '605387803773239296',
           fee: 0,
           fee_mtokens: '0',
           forward: 300000,
@@ -99,19 +99,19 @@ const tests = [
       hops: [
         {
           base_fee_mtokens: '1000',
-          channel_id: '0',
+          channel: '0',
           cltv_delta: 144,
           fee_rate: 1,
         },
         {
           base_fee_mtokens: '2000',
-          channel_id: '1',
+          channel: '1',
           cltv_delta: 144,
           fee_rate: 2,
         },
         {
           base_fee_mtokens: '3000',
-          channel_id: '2',
+          channel: '2',
           cltv_delta: 144,
           fee_rate: 3,
         },
@@ -124,8 +124,8 @@ const tests = [
       fee_mtokens: '9000',
       hops: [
         {
+          channel: '0',
           channel_capacity: 16777215,
-          channel_id: '0',
           fee: 3,
           fee_mtokens: '3000',
           forward: 2000006,
@@ -134,8 +134,8 @@ const tests = [
           timeout: 432,
         },
         {
+          channel: '1',
           channel_capacity: 16777215,
-          channel_id: '1',
           fee: 6,
           fee_mtokens: '6000',
           forward: 2000000,
@@ -144,8 +144,8 @@ const tests = [
           timeout: 288,
         },
         {
+          channel: '2',
           channel_capacity: 16777215,
-          channel_id: '2',
           fee: 0,
           fee_mtokens: '0',
           forward: 2000000,

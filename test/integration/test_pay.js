@@ -81,15 +81,15 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   const expectedHops = [
     {
+      channel: channel.id,
       channel_capacity: 999000,
-      channel_id: channel.id,
       fee_mtokens: '1000',
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
       timeout: 646,
     },
     {
+      channel: '463x1x0',
       channel_capacity: 999000,
-      channel_id: '509073883725824',
       fee_mtokens: '0',
       forward_mtokens: '100000',
       timeout: 646,

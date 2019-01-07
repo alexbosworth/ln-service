@@ -1,6 +1,7 @@
 const {createHash} = require('crypto');
 
 const {broadcastResponse} = require('./../async-util');
+const {chanFormat} = require('bolt07');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
@@ -21,8 +22,8 @@ const decBase = 10;
     fee: <Fee Paid Tokens Number>
     fee_mtokens: <Fee Paid Millitokens String>
     hops: [{
+      channel: <Standard Format Channel Id String>
       channel_capacity: <Hop Channel Capacity Tokens Number>
-      channel_id: <Hop Channel Id String>
       fee_mtokens: <Hop Forward Fee Millitokens String>
       forward_mtokens: <Hop Forwarded Millitokens String>
       timeout: <Hop CLTV Expiry Block Height Number>
@@ -80,6 +81,10 @@ module.exports = ({fee, lnd, log, request, tokens, wss}, cbk) => {
       return cbk([503, 'ExpectedPaymentRoute']);
     }
 
+    if (!Array.isArray(res.payment_route.hops)) {
+      return cbk([503, 'ExpectedPaymentRouteHops']);
+    }
+
     if (!res.payment_route.total_fees) {
       return cbk([503, 'ExpectedPaymentFeesPaid']);
     }
@@ -88,13 +93,21 @@ module.exports = ({fee, lnd, log, request, tokens, wss}, cbk) => {
       return cbk([503, 'ExpectedPaymentFeesPaidInMillitokens']);
     }
 
+    const {hops} = res.payment_route;
+
+    try {
+      const _ = hops.map(n => chanFormat({number: n.chan_id}));
+    } catch (err) {
+      return cbk([503, 'ExpectedValidChannelIdsInHopsForRoute', err]);
+    }
+
     const row = {
       fee: parseInt(res.payment_route.total_fees, decBase),
       fee_mtokens: res.payment_route.total_fees_msat,
-      hops: res.payment_route.hops.map(hop => {
+      hops: hops.map(hop => {
         return {
           channel_capacity: parseInt(hop.chan_capacity, decBase),
-          channel_id: hop.chan_id,
+          channel: chanFormat({number: hop.chan_id}).channel,
           fee_mtokens: hop.fee_msat,
           forward_mtokens: hop.amt_to_forward_msat,
           timeout: hop.expiry,
