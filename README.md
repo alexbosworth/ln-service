@@ -4,18 +4,22 @@
 
 ## Overview
 
-The core of this project is a gRPC interface for node.js projects, available through npm.
+The core of this project is a gRPC interface for node.js projects, available
+through npm.
 
-The project can be run alone to create a simplified REST interface on top of LND that exposes functionality to client applications.
+The project can be run alone to create a simplified REST interface on top of
+[LND](https://github.com/lightningnetwork/lnd) that exposes functionality to
+client applications.
 
-It is recommended to not expose the REST interface directly to the dangerous internet as that gives anyone control of your node.
+It is recommended to not expose the REST interface directly to the dangerous
+internet as that gives anyone control of your node.
 
 ## Installation Instructions
 
 The service can run in two modes:
 
-1. As a library that can be used directly with [GRPC](https://grpc.io/) against LND
-2. A standalone REST service that uses a simplified authentication for RPC calls.
+1. As a library that can be used directly with [GRPC](https://grpc.io/)
+2. A standalone REST service that uses a simplified authentication secret key.
 
 The direct GRPC mode is recommended.
 
@@ -23,9 +27,10 @@ The direct GRPC mode is recommended.
 
 https://github.com/lightningnetwork/lnd/blob/master/docs/INSTALL.md
 
-If using Bitcoin Core, the following ~/.bitcoin/bitcoin.conf configuration is recommended:
+If using Bitcoin Core, the following ~/.bitcoin/bitcoin.conf configuration is
+recommended:
 
-```
+```ini
 assumevalid= // plug in the current best block hash
 daemon=1
 dbcache=3000
@@ -40,7 +45,7 @@ zmqpubrawtx=tcp://127.0.0.1:28333
 
 Sample LND configuration options (~/.lnd/lnd.conf)
 
-```
+```ini
 [Application Options]
 externalip=IP
 rpclisten=0.0.0.0:10009
@@ -69,35 +74,43 @@ Be careful to avoid copying any newline characters.
 
 You can then interact with your LND node directly:
 
-    const lnService = require('ln-service');
-    
-    const lnd = lnService.lightningDaemon({
-      cert: 'base64 encoded tls.cert',
-      macaroon: 'base64 encoded admin.macaroon',
-      socket: 'localhost:10009',
-    });
-    
-    lnService.getWalletInfo({lnd}, (error, result) => {
-      console.log(result);
-    });
+```node
+const lnService = require('ln-service');
+
+const lnd = lnService.lightningDaemon({
+  cert: 'base64 encoded tls.cert',
+  macaroon: 'base64 encoded admin.macaroon',
+  socket: 'localhost:10009',
+});
+
+lnService.getWalletInfo({lnd}, (error, result) => {
+  console.log(result);
+});
+```
 
 Promises are also supported to allow async/await syntax
 
-    const getWalletInfo = require('ln-service/getWalletInfo');
-    
-    const walletInfo = await getWalletInfo({lnd});
-    
-    console.log(walletInfo.public_key);
+```node
+const getWalletInfo = require('ln-service/getWalletInfo');
+
+const walletInfo = await getWalletInfo({lnd});
+
+console.log(walletInfo.public_key);
+```
 
 If you are interacting with your node remotely, make sure to set:
 
-    tlsextraip=YOURIP
+```ini
+tlsextraip=YOURIP
+```
 
 In the lnd.conf file for your LND, and regenerate TLS certs by deleting them.
 
 If using a domain for your LND, use the domain option:
 
-    tlsextradomain=YOURDOMAIN
+```ini
+tlsextradomain=YOURDOMAIN
+```
 
 ### Using as a stand-alone REST API
 
@@ -141,13 +154,15 @@ Setting environment variables in MacOS:
 
 ### Making HTTP requests to the REST API
 
-`ln-service` uses Basic Authentication currently.  Make sure that the request has an authorization header that contains Base64 encoded credentials.
+`ln-service` uses Basic Authentication currently.  Make sure that the request
+has an authorization header that contains Base64 encoded credentials.
 
 Basic example of an authorization header -
 
     Authorization: Basic {{TOKEN_GOES_HERE_WITHOUT_BRACES}}
 
-To generate the Base64 encoded credentials in Chrome for example in the console you can -
+To generate the Base64 encoded credentials in Chrome for example in the console
+you can -
 
     > let username = 'test';
     // username can be anything.
@@ -156,7 +171,8 @@ To generate the Base64 encoded credentials in Chrome for example in the console 
     > btoa(`${username}:${password}`);
     // dGVzdDoxbTVlY3JldDRG
 
-And then set the value of the Authorization header to the returned value `dGVzdDoxbTVlY3JldDRG`.
+And then set the value of the Authorization header to the returned value
+`dGVzdDoxbTVlY3JldDRG`.
 
 And copy the result as the token in the above example
 
