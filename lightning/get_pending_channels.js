@@ -40,7 +40,6 @@ const outpointSeparator = ':';
       sent: <Send Tokens Number>
       [timelock_expiration]: <Pending Tokens Block Height Timelock Number>
       [transaction_fee]: <Funding Transaction Fee Tokens Number>
-      [transaction_height]: <Funding Transaction Confirmation Height Number>
       transaction_id: <Channel Funding Transaction Id String>
       transaction_vout: <Channel Funding Transaction Vout Number>
       [transaction_weight]: <Funding Transaction Weight Number>
@@ -107,7 +106,6 @@ module.exports = ({lnd}, cbk) => {
         res.pending_open_channels.forEach(n => {
           return opening[n.channel.channel_point] = {
             transaction_fee: parseInt(n.commit_fee, decBase),
-            transaction_height: n.confirmation_height,
             transaction_weight: parseInt(n.commit_weight, decBase),
           };
         });
@@ -185,7 +183,6 @@ module.exports = ({lnd}, cbk) => {
           sent: 0,
           timelock_expiration: forced.timelock_expiration || undefined,
           transaction_fee: !chanOpen ? null : chanOpen.transaction_fee,
-          transaction_height: !chanOpen ? null : chanOpen.transaction_height,
           transaction_id: transactionId,
           transaction_vout: parseInt(vout, decBase),
           transaction_weight: !chanOpen ? null : chanOpen.transaction_weight,

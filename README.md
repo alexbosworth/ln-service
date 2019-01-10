@@ -14,8 +14,6 @@ client applications.
 It is recommended to not expose the REST interface directly to the dangerous
 internet as that gives anyone control of your node.
 
-## Installation Instructions
-
 The service can run in two modes:
 
 1. As a library that can be used directly with [GRPC](https://grpc.io/)
@@ -23,7 +21,7 @@ The service can run in two modes:
 
 The direct GRPC mode is recommended.
 
-### Install LND and/or your Bitcoin Chain Daemon
+## Installing LND
 
 https://github.com/lightningnetwork/lnd/blob/master/docs/INSTALL.md
 
@@ -49,7 +47,6 @@ Sample LND configuration options (~/.lnd/lnd.conf)
 [Application Options]
 externalip=IP
 rpclisten=0.0.0.0:10009
-tlsextraip=IP
 
 [Bitcoin]
 bitcoin.active=1
@@ -57,18 +54,41 @@ bitcoin.mainnet=1
 bitcoin.node=bitcoind
 ```
 
-### Using in GRPC mode as an npm package
+If you are interacting with your node remotely, make sure to set (in
+`[Application Options]`)
 
-You can install the service via npm -
+```ini
+tlsextraip=YOURIP
+```
 
-    $ npm install ln-service
+If using a domain for your LND, use the domain option:
+
+```ini
+tlsextradomain=YOURDOMAIN
+```
+
+If you're adding TLS settings, regenerate the cert and key by stopping lnd,
+deleting the tls.cert and tls.key - then restart lnd to regenerate.
+
+## Using gRPC
+
+You can install ln-service service via npm
+
+    npm install ln-service
+
+**The `GRPC_SSL_CIPHER_SUITES` environment variable is needed for LND certs**
+
+    export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
+
+To set this, edit `~/.bash_profile` in MacOS or `~/.profile` in Linux, then do
+`. ~/.bash_profile` or `. ~/.profile`
 
 Run base64 on the tls.cert and admin.macaroon files to get the encoded
 authentication data to create the LND connection. You can find these files in
 the LND directory. (~/.lnd or ~/Library/Application Support/Lnd)
 
-    $ base64 tls.cert
-    $ base64 data/chain/bitcoin/mainnet/admin.macaroon
+    base64 tls.cert
+    base64 data/chain/bitcoin/mainnet/admin.macaroon
 
 Be careful to avoid copying any newline characters.
 
@@ -80,7 +100,7 @@ const lnService = require('ln-service');
 const lnd = lnService.lightningDaemon({
   cert: 'base64 encoded tls.cert',
   macaroon: 'base64 encoded admin.macaroon',
-  socket: 'localhost:10009',
+  socket: '127.0.0.1:10009',
 });
 
 lnService.getWalletInfo({lnd}, (error, result) => {
@@ -98,36 +118,17 @@ const walletInfo = await getWalletInfo({lnd});
 console.log(walletInfo.public_key);
 ```
 
-If you are interacting with your node remotely, make sure to set:
-
-```ini
-tlsextraip=YOURIP
-```
-
-In the lnd.conf file for your LND, and regenerate TLS certs by deleting them.
-
-If using a domain for your LND, use the domain option:
-
-```ini
-tlsextradomain=YOURDOMAIN
-```
-
-### Using as a stand-alone REST API
+## Using as a Stand-Alone REST API Server
 
     git clone https://github.com/alexbosworth/ln-service.git
     cd ln-service
     npm install
 
-### Configuring Environment Variables
-
-**In NPM installed direct GRPC mode only `GRPC_SSL_CIPHER_SUITES` environment
-variable is needed**
-
-    export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
+### Configure
 
 In REST mode:
 
-For convenience in REST mode, you can make a .env file with `KEY=VALUE` pairs
+For convenience in REST mode, you can make a `.env` file with `KEY=VALUE` pairs
 instead of setting environment variables.
 
 Environment variables:
@@ -148,41 +149,41 @@ Setting environment variables in MacOS:
 - Edit `~/.bash_profile`
 - `$ . ~/.bash_profile` in the window you are running the service from
 
-### Running REST API
+Run the service:
 
-    $ npm start
+    npm start
 
-### Making HTTP requests to the REST API
+### REST API
 
-`ln-service` uses Basic Authentication currently.  Make sure that the request
-has an authorization header that contains Base64 encoded credentials.
-
-Basic example of an authorization header -
+Authentication is with Basic Authentication.  Make sure that the request has an
+authorization header that contains Base64 encoded credentials.
 
     Authorization: Basic {{TOKEN_GOES_HERE_WITHOUT_BRACES}}
 
 To generate the Base64 encoded credentials in Chrome for example in the console
-you can -
+you can:
 
     > let username = 'test';
     // username can be anything.
     > let password = '1m5secret4F';
-    // password must match the LNSERVICE_SECRET_KEY in your environment variables.
+    // password must match the LNSERVICE_SECRET_KEY in your env variables.
     > btoa(`${username}:${password}`);
     // dGVzdDoxbTVlY3JldDRG
 
 And then set the value of the Authorization header to the returned value
 `dGVzdDoxbTVlY3JldDRG`.
 
-And copy the result as the token in the above example
+Copy the result as the token in the above example.
 
-### Running the tests
+## Tests
+
+Unit tests:
 
     $ npm test
 
-#### Integration Tests
+Integration tests:
 
 btcd and lnd are required to execute the integration tests.
 
-    $ tap test/integration/*.js
+    $ npm run integration-tests
 

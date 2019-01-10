@@ -25,7 +25,7 @@ const {probe} = require('./');
     tokens: <Tokens Number>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     generic_failures: [{
       channel: <Standard Format Channel Id String>

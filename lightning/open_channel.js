@@ -20,7 +20,6 @@ const times = 7;
     lnd: <LND GRPC API Object>
     [local_tokens]: <Local Tokens Number> // Defaults to max possible tokens
     partner_public_key: <Public Key Hex String>
-    [socket]: <Peer Socket String>
   }
 
   @returns via cbk
