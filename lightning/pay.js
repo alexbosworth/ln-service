@@ -8,8 +8,8 @@ const {broadcastResponse} = require('./../async-util');
 const payPaymentRequest = require('./pay_payment_request');
 const rowTypes = require('./conf/row_types');
 
-const chanIdMatch = /ShortChannelID:..lnwire.ShortChannelID..(.*)\n/;
-const chanSplit = ':';
+const chanIdMatch = /(\d+[x\:]\d+[\:x]\d+)/gim;
+const chanSplit = /[\:x\,]/;
 const decBase = 10;
 
 /** Make a payment.
@@ -141,11 +141,13 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       return cbk([409, 'PaymentIsPendingResolution']);
     }
 
-    const chanFailure = (res.payment_error || '').match(chanIdMatch) || [];
+    const paymentError = res.payment_error || '';
+
+    const [chanFailure] = paymentError.match(chanIdMatch) || [];
     let failChanId;
 
-    if (!!chanFailure && !!chanFailure[[chanIdMatch].length]) {
-      const chanId = chanFailure[[chanIdMatch].length].split(chanSplit);
+    if (!!chanFailure) {
+      const chanId = chanFailure.split(chanSplit);
 
       try {
         const [blockHeight, blockIndex, outputIndex] = chanId;
@@ -167,7 +169,15 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/ChannelDisabled/.test(res.payment_error)) {
-      return cbk([503, 'NextHopChannelDisabled']);
+      return cbk([503, 'NextHopChannelDisabled', res.payment_route]);
+    }
+
+    if (/ExpiryTooFar/.test(res.payment_error) && !!failChanId) {
+      return cbk([503, 'ExpiryTooFar', {channel: failChanId}]);
+    }
+
+    if (/ExpiryTooFar/.test(res.payment_error)) {
+      return cbk([503, 'ExpiryTooFar', res.payment_error]);
     }
 
     if (/ExpiryTooSoon/.test(res.payment_error) && !!failChanId) {
@@ -175,7 +185,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/ExpiryTooSoon/.test(res.payment_error)) {
-      return cbk([503, 'RejectedTooNearTimeout']);
+      return cbk([503, 'RejectedTooNearTimeout', res.payment_error]);
     }
 
     if (/FeeInsufficient/.test(res.payment_error) && !!failChanId) {
@@ -183,7 +193,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/FeeInsufficient/.test(res.payment_error)) {
-      return cbk([503, 'RejectedUnacceptableFee']);
+      return cbk([503, 'RejectedUnacceptableFee', res.payment_error]);
     }
 
     if (/IncorrectCltvExpiry/.test(res.payment_error) && !!failChanId) {
@@ -191,7 +201,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/IncorrectCltvExpiry/.test(res.payment_error)) {
-      return cbk([503, 'RejectedUnacceptableCltv']);
+      return cbk([503, 'RejectedUnacceptableCltv', res.payment_error]);
     }
 
     if (/TemporaryChannelFailure/.test(res.payment_error) && !!failChanId) {
@@ -199,15 +209,19 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
     }
 
     if (/TemporaryChannelFailure/.test(res.payment_error)) {
-      return cbk([503, 'TemporaryChannelFailure']);
+      return cbk([503, 'TemporaryChannelFailure', res.payment_error]);
     }
 
     if (/TemporaryNodeFailure/.test(res.payment_error)) {
-      return cbk([503, 'TemporaryNodeFailure']);
+      return cbk([503, 'TemporaryNodeFailure', res.payment_error]);
+    }
+
+    if (/UnknownNextPeer/.test(res.payment_error) && !!failChanId) {
+      return cbk([503, 'UnknownNextHopChannel', {channel: failChanId}]);
     }
 
     if (/UnknownNextPeer/.test(res.payment_error)) {
-      return cbk([503, 'UnknownNextHopChannel']);
+      return cbk([503, 'UnknownNextHopChannel', res.payment_error]);
     }
 
     if (!!res.payment_error) {

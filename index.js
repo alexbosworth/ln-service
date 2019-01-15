@@ -5,6 +5,7 @@ const {createInvoice} = require('./lightning');
 const {createSeed} = require('./lightning');
 const {createWallet} = require('./lightning');
 const {decodePaymentRequest} = require('./lightning');
+const {getAccountingReport} = require('./accounting');
 const {getChainBalance} = require('./lightning');
 const {getChainTransactions} = require('./lightning');
 const {getChannel} = require('./lightning');
@@ -50,6 +51,7 @@ module.exports = {
   createSeed,
   createWallet,
   decodePaymentRequest,
+  getAccountingReport,
   getChainBalance,
   getChainTransactions,
   getChannel,
@@ -87,4 +89,3 @@ module.exports = {
   updateRoutingFees,
   verifyMessage,
 };
-

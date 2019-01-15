@@ -192,7 +192,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
                 throw new Error('ExpectedRouteHopCltvExpiryDelta');
               }
 
-              if (!hop.fee_base_msat) {
+              if (!`${hop.fee_base_msat}`) {
                 throw new Error('ExpectedRouteHopBaseFee');
               }
 
@@ -214,7 +214,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             });
           });
         } catch (err) {
-          return cbk([503, err.message, res]);
+          return cbk([503, err.message]);
         }
 
         const tokens = new BN(invoice.value, decBase);
@@ -258,4 +258,3 @@ module.exports = ({limit, lnd, token}, cbk) => {
   },
   returnResult({of: 'sortedInvoices'}, cbk));
 };
-

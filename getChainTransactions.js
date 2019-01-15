@@ -18,7 +18,7 @@ const {getChainTransactions} = require('./');
       is_outgoing: <Transaction Outbound Bool>
       fee: <Fees Paid Tokens Number>
       id: <Transaction Id String>
-      tokens: <Tokens Number>
+      tokens: <Tokens Including Fee Number>
       type: <Type String>
     }]
   }

@@ -23,7 +23,7 @@ const noFee = '0';
       [fee]: <Fees Paid Tokens Number>
       id: <Transaction Id String>
       output_addresses: [<Address String>]
-      tokens: <Tokens Number>
+      tokens: <Tokens Including Fee Number>
       type: <Type String>
     }]
   }
@@ -112,4 +112,3 @@ module.exports = ({lnd}, cbk) => {
     }
   });
 };
-

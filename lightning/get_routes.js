@@ -39,6 +39,7 @@ const pathNotFoundErrors = [
   {
     [destination]: <Final Send Destination Hex Encoded Public Key String>
     [fee]: <Maximum Fee Tokens Number>
+    [get_channel]: <Custom Get Channel Function>
     [limit]: <Limit Results Count Number>
     lnd: <LND GRPC API Object>
     [routes]: [[{
@@ -221,7 +222,9 @@ module.exports = (args, cbk) => {
               });
             }
 
-            return getChannel({id, lnd: args.lnd}, (err, channel) => {
+            const getChan = args.get_channel || getChannel;
+
+            return getChan({id, lnd: args.lnd}, (err, channel) => {
               const [errCode] = err || [];
 
               // Exit early when the channel is known outside the graph
@@ -266,7 +269,7 @@ module.exports = (args, cbk) => {
                 mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
               }));
             } catch (err) {
-              return cbk([500, 'UnexpectedHopsFromChannelsError', err]);
+              return cbk([500, 'UnexpectedHopsFromChannelsError', err, channels]);
             }
           });
         },
@@ -294,4 +297,3 @@ module.exports = (args, cbk) => {
   },
   returnResult({of: 'assembledRoutes'}, cbk));
 };
-
