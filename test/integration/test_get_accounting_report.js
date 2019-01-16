@@ -9,7 +9,6 @@ const currency = 'BTC';
 const defaultFee = 1e3;
 const defaultVout = 0;
 const fiat = 'USD';
-const giftTokens = 1000;
 const rate = ({}, cbk) => cbk(null, {cents: 1});
 const txIdHexLength = 32 * 2;
 
