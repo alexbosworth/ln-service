@@ -5,7 +5,17 @@ const {fields} = require('./harmony');
 /** Convert accounting records into Harmony CSV format
 
   {
-  
+    records: [{
+      [amount]: <Amount Number>
+      [asset]: <Asset Type String>
+      [created_at]: <ISO 8601 Date String>
+      [external_id]: <External Reference Id String>
+      [from_id]: <Source Id String>
+      [id]: <Record Id String>
+      [notes]: <Notes String>
+      [to_id]: <Destination Id String>
+      [type]: <Record Type String>
+    }]
   }
 
   @throws
@@ -13,7 +23,7 @@ const {fields} = require('./harmony');
 
   @returns
   {
-    csv: <CSV String>
+    csv: <Harmony Format CSV String>
   }
 */
 module.exports = ({records}) => {

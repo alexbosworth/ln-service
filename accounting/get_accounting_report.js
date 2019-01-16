@@ -28,6 +28,7 @@ const largeLimit = 1e8;
     fiat: <Fiat Currency Type String>
     [ignore]: <Ignore Function> (record) -> <Should Ignore Record Bool>
     lnd: <LND gRPC Object>
+    [rate]: <Exchange Function> ({currency, date, fiat}, cbk) => (err, {cents})
   }
 
   @returns via cbk
@@ -94,7 +95,7 @@ const largeLimit = 1e8;
     payments_csv: <CSV String>
   }
 */
-module.exports = ({after, before, currency, fiat, ignore, lnd}, cbk) => {
+module.exports = ({after, before, currency, fiat, ignore, lnd, rate}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
@@ -304,8 +305,9 @@ module.exports = ({after, before, currency, fiat, ignore, lnd}, cbk) => {
 
       return asyncMapSeries(records, (record, cbk) => {
         const date = record.created_at;
+        const getRate = rate || getHistoricFiatRate;
 
-        return getHistoricFiatRate({currency, fiat, date}, (err, rate) => {
+        return getRate({currency, fiat, date}, (err, rate) => {
           if (!!err) {
             return cbk(err);
           }
