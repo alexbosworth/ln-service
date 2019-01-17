@@ -164,7 +164,7 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
           fee_mtokens: fee.mul(mtokensPerToken).toString(decBase),
           incoming_channel: incomingChannel,
           outgoing_channel: outgoingChannel,
-          tokens: forward.amt_out,
+          tokens: parseInt(forward.amt_out, decBase),
           type: rowTypes.forward,
         });
       },

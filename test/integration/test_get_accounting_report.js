@@ -1,15 +1,21 @@
 const {test} = require('tap');
 
+const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
+const createInvoice = require('./../../createInvoice');
+const {delay} = require('./../macros');
 const getAccountingReport = require('./../../getAccountingReport');
 const openChannel = require('./../../openChannel');
+const pay = require('./../../pay');
 
 const channelCapacityTokens = 1e6;
+const confirmationCount = 20;
 const currency = 'BTC';
 const defaultFee = 1e3;
 const defaultVout = 0;
 const fiat = 'USD';
 const rate = ({}, cbk) => cbk(null, {cents: 1});
+const tokens = 1000;
 const txIdHexLength = 32 * 2;
 
 // Getting accounting report should return a full accounting of funds
@@ -74,6 +80,53 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
 
   deepEqual(chainFeeHeaders, fields, 'Chain fee rows start with fields list');
   deepEqual(chainFeeRow, expectedChainFeeRow, 'Got expected chain fee row');
+
+  await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  const targetToRemoteChannel = await openChannel({
+    chain_fee_tokens_per_vbyte: defaultFee,
+    lnd: cluster.target.lnd,
+    local_tokens: channelCapacityTokens,
+    partner_public_key: cluster.remote_node_public_key,
+    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+  });
+
+  await delay(3000);
+
+  await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await addPeer({
+    lnd: cluster.control.lnd,
+    public_key: cluster.remote_node_public_key,
+    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+  });
+
+  const {request} = await createInvoice({lnd: cluster.remote.lnd, tokens});
+
+  await pay({lnd, request});
+
+  await delay(1000);
+
+  const forwardsReport = await getAccountingReport({
+    currency,
+    fiat,
+    rate,
+    lnd: cluster.target.lnd,
+  });
+
+  const [forwardRecord] = forwardsReport.forwards;
+
+  equal(forwardRecord.amount, 1, 'Expected forward fee amount');
+  equal(forwardRecord.asset, currency, 'Expected forward fee currency');
+  equal(forwardRecord.category, 'forwards', 'Expected category is forward');
+  equal(!!forwardRecord.created_at, true, 'Expected created at for forward');
+  equal(forwardRecord.external_id, '', 'Expected no external id for forward');
+  equal(forwardRecord.fiat_amount, 0.0000000001, 'Expected fiat forward fee');
+  equal(forwardRecord.from_id, '443x1x0', 'Expected from chan id for forward');
+  equal(forwardRecord.id, '', 'Forwards do not have ids yet');
+  equal(forwardRecord.notes, tokens, 'Expected forwarded tokens');
+  equal(forwardRecord.to_id, '463x1x0', 'Expected chan id for forward');
+  equal(forwardRecord.type, 'income', 'Expected forward fee type');
 
   await cluster.kill({});
 

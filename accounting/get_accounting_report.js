@@ -309,7 +309,18 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
             return cbk(err);
           }
 
+          let notes;
+
+          if (typeof record.notes === 'string') {
+            notes = record.notes.replace(/[\r\n]/gim, ' ') || '';
+          } else if (record.notes === undefined) {
+            notes = '';
+          } else {
+            notes = record.notes;
+          }
+
           return cbk(null, {
+            notes,
             amount: record.amount || 0,
             asset: currency,
             category: record.category,
@@ -318,7 +329,6 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
             fiat_amount: record.amount * rate.cents / 1e8 / 100,
             from_id: record.from_id || '',
             id: record.id || '',
-            notes: (record.notes || '').replace(/[\r\n]/gim, ' ') || '',
             to_id: record.to_id || '',
             type: record.type,
           });

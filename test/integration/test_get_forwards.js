@@ -73,7 +73,7 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     equal(forward.fee, 1, 'Forward fee charged');
     equal(forward.fee_mtokens, '1000', 'Forward fee charged');
     equal(!!forward.incoming_channel, true, 'Forward incoming channel');
-    equal(forward.tokens, '100', 'Forwarded tokens count');
+    equal(forward.tokens, 100, 'Forwarded tokens count');
     equal(!!forward.outgoing_channel, true, 'Forward outgoing channel');
     equal(forward.type, 'forward', 'Forward outgoing channel');
   }
@@ -85,7 +85,7 @@ test('Get forwards', async ({deepIs, end, equal}) => {
   {
     const [forward] = page2.forwards;
 
-    equal(forward.tokens, '101', 'Second forward tokens count');
+    equal(forward.tokens, 101, 'Second forward tokens count');
   }
 
   const page3 = await getForwards({lnd, token: page2.next});
@@ -95,20 +95,20 @@ test('Get forwards', async ({deepIs, end, equal}) => {
   {
     const [forward] = page3.forwards;
 
-    equal(forward.tokens, '102', 'Third forward tokens count');
+    equal(forward.tokens, 102, 'Third forward tokens count');
 
     // Check "before" based paging
     const prev0 = await getForwards({limit, lnd, before: forward.created_at});
 
     const [firstForward] = prev0.forwards;
 
-    equal(firstForward.tokens, '100', 'Previous row #1');
+    equal(firstForward.tokens, 100, 'Previous row #1');
 
     const prev1 = await getForwards({lnd, token: prev0.next});
 
     const [secondForward] = prev1.forwards;
 
-    equal(secondForward.tokens, '101', 'Previous row #2');
+    equal(secondForward.tokens, 101, 'Previous row #2');
 
     const prev2 = await getForwards({lnd, token: prev1.next});
 
