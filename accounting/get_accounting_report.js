@@ -186,7 +186,7 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
           category: 'invoices',
           created_at: n.created_at,
           id: n.id,
-          notes: `Invoice: ${n.description}`,
+          notes: `Invoice: ${n.description.replace(/,/gim, ' ')}`,
           type: 'income',
         }));
 
@@ -269,7 +269,7 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
           category: 'chain_sends',
           created_at: tx.created_at,
           id: tx.id,
-          notes: `Outputs to ${tx.output_addresses.join(', ')}`,
+          notes: `Outputs to ${tx.output_addresses.join(' ')}`,
           type: !!tx.is_outgoing ? 'transfer:withdraw' : 'transfer:deposit',
         }));
 
