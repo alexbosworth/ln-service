@@ -34,9 +34,9 @@ const {stringify} = JSON;
       fee: <Fee Satoshis Charged Number>
       fee_mtokens: <Approximated Fee Millitokens Charged String>
       incoming_channel: <Incoming Standard Format Channel Id String>
-      mtokens: <Forwarded Millitokens String>
       outgoing_channel: <Outgoing Standard Format Channel Id String>
       row_type: <Row Type String>
+      tokens: <Forwarded Tokens String>
     }]
   }
 */
@@ -163,8 +163,8 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
           fee: fee.toNumber(),
           fee_mtokens: fee.mul(mtokensPerToken).toString(decBase),
           incoming_channel: incomingChannel,
-          mtokens: forward.amt_out,
           outgoing_channel: outgoingChannel,
+          tokens: forward.amt_out,
           type: rowTypes.forward,
         });
       },

@@ -22,8 +22,6 @@ const largeLimit = 1e8;
   Note: Chain fees does not include chain fees paid to close channels
 
   {
-    [after]: <After ISO 8601 Date String>
-    [before]: <Before ISO 8601 Date String>
     currency: <Base Currency Type String>
     fiat: <Fiat Currency Type String>
     [ignore]: <Ignore Function> (record) -> <Should Ignore Record Bool>
@@ -95,7 +93,7 @@ const largeLimit = 1e8;
     payments_csv: <CSV String>
   }
 */
-module.exports = ({after, before, currency, fiat, ignore, lnd, rate}, cbk) => {
+module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
@@ -165,12 +163,12 @@ module.exports = ({after, before, currency, fiat, ignore, lnd, rate}, cbk) => {
     // Forward records
     forwards: ['getForwards', ({getForwards}, cbk) => {
       // Only pay attention to forwards that generated fees
-      const records = getForwards.forwards.filter(n => !!n.fee).map(n => ({
+      const records = getForwards.forwards.map(n => ({
         amount: n.fee,
         category: 'forwards',
         created_at: n.created_at,
         from_id: n.incoming_channel,
-        notes: 'Forwarding fee',
+        notes: n.tokens,
         to_id: n.outgoing_channel,
         type: 'income',
       }));
@@ -210,7 +208,6 @@ module.exports = ({after, before, currency, fiat, ignore, lnd, rate}, cbk) => {
           type: 'spend',
         }));
 
-      // 
       const feeRecords = getPayments.payments
         .filter(({fee}) => !!fee)
         .map(n => ({
