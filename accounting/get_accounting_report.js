@@ -1,6 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
 const asyncUntil = require('async/until');
+const {includes} = require('lodash');
 const {sortBy} = require('lodash');
 
 const {getChainTransactions} = require('./../lightning');
@@ -22,6 +23,7 @@ const largeLimit = 1e8;
   Note: Chain fees does not include chain fees paid to close channels
 
   {
+    [category]: <Category Filter String>
     currency: <Base Currency Type String>
     fiat: <Fiat Currency Type String>
     [ignore]: <Ignore Function> (record) -> <Should Ignore Record Bool>
@@ -31,7 +33,7 @@ const largeLimit = 1e8;
 
   @returns via cbk
   {
-    chain_fees: [{
+    [chain_fees]: [{
       [amount]: <Amount Number>
       [asset]: <Asset Type String>
       [created_at]: <ISO 8601 Date String>
@@ -42,8 +44,8 @@ const largeLimit = 1e8;
       [to_id]: <Destination Id String>
       [type]: <Record Type String>
     }]
-    chain_fees_csv: <CSV String>
-    chain_sends: [{
+    [chain_fees_csv]: <CSV String>
+    [chain_sends]: [{
       [amount]: <Amount Number>
       [asset]: <Asset Type String>
       [created_at]: <ISO 8601 Date String>
@@ -54,8 +56,8 @@ const largeLimit = 1e8;
       [to_id]: <Destination Id String>
       [type]: <Record Type String>
     }]
-    chain_sends_csv: <CSV String>
-    forwards: [{
+    [chain_sends_csv]: <CSV String>
+    [forwards]: [{
       [amount]: <Amount Number>
       [asset]: <Asset Type String>
       [created_at]: <ISO 8601 Date String>
@@ -66,8 +68,8 @@ const largeLimit = 1e8;
       [to_id]: <Destination Id String>
       [type]: <Record Type String>
     }]
-    forwards_csv: <CSV String>
-    invoices: [{
+    [forwards_csv]: <CSV String>
+    [invoices]: [{
       [amount]: <Amount Number>
       [asset]: <Asset Type String>
       [created_at]: <ISO 8601 Date String>
@@ -78,8 +80,8 @@ const largeLimit = 1e8;
       [to_id]: <Destination Id String>
       [type]: <Record Type String>
     }]
-    invoices_csv: <CSV String>
-    payments: [{
+    [invoices_csv]: <CSV String>
+    [payments]: [{
       [amount]: <Amount Number>
       [asset]: <Asset Type String>
       [created_at]: <ISO 8601 Date String>
@@ -90,10 +92,10 @@ const largeLimit = 1e8;
       [to_id]: <Destination Id String>
       [type]: <Record Type String>
     }]
-    payments_csv: <CSV String>
+    [payments_csv]: <CSV String>
   }
 */
-module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
+module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
@@ -113,16 +115,38 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
     },
 
     // Get transactions on the blockchain
-    getChainTx: ['validate', ({}, cbk) => getChainTransactions({lnd}, cbk)],
+    getChainTx: ['validate', ({}, cbk) => {
+      if (!!category && !includes(['chain_fees', 'chain_sends'], category)) {
+        return cbk();
+      }
+
+      return getChainTransactions({lnd}, cbk);
+    }],
 
     // Get channels
-    getChannels: ['validate', ({}, cbk) => getChannels({lnd}, cbk)],
+    getChannels: ['validate', ({}, cbk) => {
+      if (!!category && category !== 'chain_sends') {
+        return cbk();
+      }
+
+      return getChannels({lnd}, cbk);
+    }],
 
     // Get closed channels
-    getClosedChans: ['validate', ({}, cbk) => getClosedChannels({lnd}, cbk)],
+    getClosedChans: ['validate', ({}, cbk) => {
+      if (!!category && category !== 'chain_sends') {
+        return cbk();
+      }
+
+      return getClosedChannels({lnd}, cbk)
+    }],
 
     // Get routing forwards
     getForwards: ['validate', ({}, cbk) => {
+      if (!!category && category !== 'forwards') {
+        return cbk();
+      }
+
       return getForwards({
         lnd,
         after: earlyStartDate,
@@ -134,6 +158,10 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
 
     // Get invoices
     getInvoices: ['validate', ({}, cbk) => {
+      if (!!category && category !== 'invoices') {
+        return cbk();
+      }
+
       const invoices = [];
       let next;
 
@@ -155,13 +183,29 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
     }],
 
     // Get payments
-    getPayments: ['validate', ({}, cbk) => getPayments({lnd}, cbk)],
+    getPayments: ['validate', ({}, cbk) => {
+      if (!!category && category !== 'payments') {
+        return cbk();
+      }
+
+      return getPayments({lnd}, cbk);
+    }],
 
     // Get pending channels
-    getPending: ['validate', ({}, cbk) => getPendingChannels({lnd}, cbk)],
+    getPending: ['validate', ({}, cbk) => {
+      if (!!category && category !== 'chain_sends') {
+        return cbk();
+      }
+
+      return getPendingChannels({lnd}, cbk);
+    }],
 
     // Forward records
     forwards: ['getForwards', ({getForwards}, cbk) => {
+      if (!getForwards) {
+        return cbk(null, []);
+      }
+
       // Only pay attention to forwards that generated fees
       const records = getForwards.forwards.map(n => ({
         amount: n.fee,
@@ -178,6 +222,10 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
 
     // Invoice records
     invoices: ['getInvoices', ({getInvoices}, cbk) => {
+      if (!getInvoices) {
+        return cbk(null, []);
+      }
+
       // Only look at invoices where funds were received
       const records = getInvoices
         .filter(n => !!n.is_confirmed && !!n.received)
@@ -195,6 +243,10 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
 
     // Payment records
     payments: ['getPayments', ({getPayments}, cbk) => {
+      if (!getPayments) {
+        return cbk(null, []);
+      }
+
       // Only look at payments where funds were sent
       const payRecords = getPayments.payments
         .filter(n => !!n.tokens)
@@ -224,6 +276,10 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
 
     // Chain fees
     chainFees: ['getChainTx', ({getChainTx}, cbk) => {
+      if (!getChainTx) {
+        return cbk(null, []);
+      }
+
       const records = getChainTx.transactions
         .filter(tx => !!tx.fee && !!tx.is_outgoing)
         .map(tx => ({
@@ -246,6 +302,10 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
       'getPending',
       ({getChainTx, getChannels, getClosedChans, getPending}, cbk) =>
     {
+      if (!getChainTx || !getChannels || !getClosedChans || !getPending) {
+        return cbk(null, []);
+      }
+
       const records = getChainTx.transactions
         .filter(tx => !!tx.is_confirmed && !!tx.tokens && !!tx.is_outgoing)
         .filter(({id}) => {
@@ -286,11 +346,11 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
       ({chainFees, chainSends, forwards, invoices, payments}, cbk) =>
     {
       const records = []
-        .concat(chainFees)
-        .concat(chainSends)
-        .concat(forwards)
-        .concat(invoices)
-        .concat(payments);
+        .concat(chainFees || [])
+        .concat(chainSends || [])
+        .concat(forwards || [])
+        .concat(invoices || [])
+        .concat(payments || []);
 
       const sortedRecords = sortBy(records, 'created_at').filter(record => {
         if (!ignore) {
@@ -339,7 +399,9 @@ module.exports = ({currency, fiat, ignore, lnd, rate}, cbk) => {
 
     // Report
     report: ['recordsWithFiat', ({recordsWithFiat}, cbk) => {
-      const records = recordsWithFiat;
+      const records = recordsWithFiat.sort((a, b) => {
+        return a.created_at < b.created_at ? -1 : 1;
+      });
 
       try {
         const chainFees = records.filter(n => n.category === 'chain_fees');
