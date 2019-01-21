@@ -89,8 +89,8 @@ module.exports = ({limit, lnd, routes, timeout, tokens}, cbk) => {
 
   return asyncDetectLimit(routes, simultaneousProbeCount, (route, cbk) => {
     const routeHasFailedEdge = route.hops.find(hop => {
-      return attempts.find(({type}) => {
-        switch (type) {
+      return attempts.find(n => {
+        switch (n.type) {
         case 'failed_forward':
         case 'stuck_htlc':
         case 'temporary_channel_failure':
