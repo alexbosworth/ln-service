@@ -1,4 +1,3 @@
-const {createHash} = require('crypto');
 const EventEmitter = require('events');
 
 const rowTypes = require('./conf/row_types');
@@ -17,7 +16,7 @@ const msPerSec = 1e3;
 
   @on(data)
   {
-    confirmed_at: <Confirmed At ISO 8601 Date String>
+    [confirmed_at]: <Confirmed At ISO 8601 Date String>
     created_at: <Created At ISO 8601 Date String>
     description: <Description String>
     expires_at: <Expires At ISO 8601 Date String>
@@ -80,13 +79,14 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedInvoiceValue'));
     }
 
-    const confirmedAt = parseInt(invoice.settle_date, decBase);
+    const confirmedAt = parseInt(invoice.settle_date, decBase) * msPerSec;
     const createdAt = parseInt(invoice.creation_date, decBase);
 
-    const expiresAt = createdAt + parseInt(invoice.expiry)
+    const confirmed = new Date(confirmedAt).toISOString();
+    const expiresAt = createdAt + parseInt(invoice.expiry);
 
     return eventEmitter.emit('data', {
-      confirmed_at: new Date(confirmedAt * msPerSec).toISOString(),
+      confirmed_at: !invoice.settled ? undefined : confirmed,
       created_at: new Date(createdAt * msPerSec).toISOString(),
       description: invoice.memo || '',
       expires_at: new Date(expiresAt * msPerSec).toISOString(),
