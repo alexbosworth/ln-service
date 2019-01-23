@@ -27,4 +27,3 @@ test(`Sign message`, async ({end, equal}) => {
 
   return end();
 });
-

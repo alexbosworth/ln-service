@@ -31,6 +31,8 @@ test(`Close channel`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
+  await delay(3000);
+
   const channelClose = await closeChannel({
     is_force_close: true,
     lnd: cluster.control.lnd,

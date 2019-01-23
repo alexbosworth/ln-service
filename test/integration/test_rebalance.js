@@ -32,8 +32,12 @@ test('Rebalance', async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(3000);
+
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await delay(3000);
 
   // Create a channel from the target back to the control
   const targetToControlChannel = await openChannel({
@@ -44,6 +48,8 @@ test('Rebalance', async ({end, equal}) => {
     socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
   });
 
+  await delay(3000);
+
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
@@ -51,7 +57,7 @@ test('Rebalance', async ({end, equal}) => {
   const invoice = await createInvoice({lnd, tokens});
   const mtokens = `${tokens}${mtok}`;
 
-  await delay(1000);
+  await delay(2000);
 
   // Get control's channels
   const hops = (await getChannels({lnd})).channels.map(({id}) => {

@@ -80,7 +80,6 @@ module.exports = ({height, hops, mtokens}) => {
     throw new Error('ExpectedMillitokensToSendAcrossHops');
   }
 
-  const delay = hops.map(n => n.cltv_delta).reduce((sum, n) => sum + n);
   const [firstHop] = hops;
   const [lastHop] = hops.slice().reverse();
   const routeHops = [];

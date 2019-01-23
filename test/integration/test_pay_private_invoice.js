@@ -15,7 +15,6 @@ const getWalletInfo = require('./../../getWalletInfo');
 const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
-const {routeFromHops} = require('./../../routing');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;

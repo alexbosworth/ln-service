@@ -24,7 +24,6 @@ const {channelsRouter} = require('./routers');
 const {connectionsRouter} = require('./routers');
 const {cryptoRouter} = require('./routers');
 const {exchangeRouter} = require('./routers');
-const {getWalletInfo} = require('./lightning');
 const {historyRouter} = require('./routers');
 const {invoicesRouter} = require('./routers');
 const {isWalletLocked} = require('./service');
