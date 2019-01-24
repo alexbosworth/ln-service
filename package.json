@@ -31,7 +31,7 @@
   "devDependencies": {
     "portfinder": "1.0.20",
     "rimraf": "2.6.3",
-    "tap": "12.1.4",
+    "tap": "12.4.0",
     "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
   },
@@ -53,5 +53,5 @@
     "start": "node server.js",
     "test": "tap test/bolt11/*.js test/routing/*.js"
   },
-  "version": "33.0.5"
+  "version": "33.0.6"
 }

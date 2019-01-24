@@ -6,6 +6,7 @@ const {createSeed} = require('./lightning');
 const {createWallet} = require('./lightning');
 const {decodePaymentRequest} = require('./lightning');
 const {getAccountingReport} = require('./accounting');
+const {getAutopilot} = require('./autopilot');
 const {getChainBalance} = require('./lightning');
 const {getChainTransactions} = require('./lightning');
 const {getChannel} = require('./lightning');
@@ -34,6 +35,7 @@ const {probe} = require('./routing');
 const {removePeer} = require('./lightning');
 const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
+const {setAutopilot} = require('./autopilot');
 const {signMessage} = require('./lightning');
 const {stopDaemon} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
@@ -52,6 +54,7 @@ module.exports = {
   createWallet,
   decodePaymentRequest,
   getAccountingReport,
+  getAutopilot,
   getChainBalance,
   getChainTransactions,
   getChannel,
@@ -80,6 +83,7 @@ module.exports = {
   removePeer,
   rowTypes,
   sendToChainAddress,
+  setAutopilot,
   signMessage,
   stopDaemon,
   subscribeToGraph,

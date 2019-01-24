@@ -70,6 +70,9 @@ tlsextradomain=YOURDOMAIN
 If you're adding TLS settings, regenerate the cert and key by stopping lnd,
 deleting the tls.cert and tls.key - then restart lnd to regenerate.
 
+If you're going to use extended gRPC APIs, make sure to add the APIs to make
+tags. `make install tags="autopilotrpc chainrpc signrpc walletrpc"`
+
 ## Using gRPC
 
 You can install ln-service service via npm

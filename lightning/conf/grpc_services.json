@@ -1,0 +1,15 @@
+{
+  "autopilotServiceType": "Autopilot",
+  "defaultServiceType": "Lightning",
+  "packageTypes": {
+    "Autopilot": "autopilotrpc",
+    "Lightning": "lnrpc",
+    "WalletUnlocker": "lnrpc"
+  },
+  "protoFiles": {
+    "Autopilot": "autopilot.proto",
+    "Lightning": "grpc.proto",
+    "WalletUnlocker": "grpc.proto"
+  },
+  "unlockerServiceType": "WalletUnlocker"
+}

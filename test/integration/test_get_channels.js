@@ -21,7 +21,11 @@ test(`Get channels`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(2000);
+
   await cluster.generate({count: confirmationCount});
+
+  await delay(2000);
 
   const pending = await getPendingChannels({lnd});
 

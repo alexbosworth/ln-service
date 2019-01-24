@@ -3,14 +3,16 @@ const {join} = require('path');
 const grpc = require('grpc');
 const {loadSync} = require('@grpc/proto-loader');
 
+const {autopilotServiceType} = require('./conf/grpc_services');
 const expectedSslConfiguration = require('./conf/lnd').grpc_ssl_cipher_suites;
+const {defaultServiceType} = require('./conf/grpc_services');
+const {packageTypes} = require('./conf/grpc_services');
+const {protoFiles} = require('./conf/grpc_services');
+const {unlockerServiceType} = require('./conf/grpc_services');
 
 const confDir = 'conf';
-const defaultServiceType = 'Lightning';
 const {GRPC_SSL_CIPHER_SUITES} = process.env;
 const isHex = str => !!str && /^([0-9A-Fa-f]{2})+$/g.test(str);
-const protoFile = 'grpc.proto';
-const unlockerServiceType = 'WalletUnlocker';
 
 /** GRPC interface to the Lightning Network Daemon (lnd).
 
@@ -31,6 +33,7 @@ const unlockerServiceType = 'WalletUnlocker';
   <ExpectedGrpcIpOrDomainWithPortString Error>
   <ExpectedGrpcSslCipherSuitesEnvVar Error>
   <UnexpectedLightningDaemonServiceType Error>
+  <UnexpectedServiceType Error>
 
   @returns
   <LND GRPC Api Object>
@@ -42,6 +45,12 @@ module.exports = ({cert, macaroon, service, socket}) => {
 
   if (!socket) {
     throw new Error('ExpectedGrpcIpOrDomainWithPortString');
+  }
+
+  const protoFile = protoFiles[service || defaultServiceType];
+
+  if (!protoFile) {
+    throw new Error('UnexpectedServiceType');
   }
 
   const packageDefinition = loadSync(join(__dirname, confDir, protoFile), {
@@ -72,6 +81,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
   }
 
   switch (serviceType) {
+  case autopilotServiceType:
   case defaultServiceType:
     let macaroonData;
 
@@ -102,6 +112,5 @@ module.exports = ({cert, macaroon, service, socket}) => {
     throw new Error('UnexpectedLightningDaemonServiceType');
   }
 
-  return new rpc.lnrpc[serviceType](socket, credentials);
+  return new rpc[packageTypes[serviceType]][serviceType](socket, credentials);
 };
-

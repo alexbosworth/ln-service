@@ -248,6 +248,20 @@ module.exports = ({network}, cbk) => {
         return cbk([503, 'FailedToInstantiateWalletLnd', err]);
       }
     }],
+
+    // Autopilot LND GRPC API
+    autopilotLnd: ['wallet', ({wallet}, cbk) => {
+      try {
+        return cbk(null, lightningDaemon({
+          cert: wallet.cert,
+          macaroon: wallet.macaroon,
+          service: 'Autopilot',
+          socket: wallet.host,
+        }));
+      } catch (err) {
+        return cbk([503, 'FailedToInstantiateAutopilotLnd', err]);
+      }
+    }],
   },
   (err, res) => {
     if (!!err) {
@@ -272,6 +286,7 @@ module.exports = ({network}, cbk) => {
     return cbk(null, {
       kill,
       lnd,
+      autopilotLnd: res.autopilotLnd,
       chain_listen_port: res.spawnChainDaemon.listen_port,
       chain_rpc_cert: res.spawnChainDaemon.rpc_cert,
       chain_rpc_pass: chainPass,
