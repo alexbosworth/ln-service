@@ -5,7 +5,7 @@ const divisors = require('./conf/divisors');
 
 const decBase = 10;
 const divisibilityMarkerLen = 1;
-const maxMillitokens = '2100000000000000';
+const maxTokens = '2100000000000000';
 const maxTokenDivisibility = 3;
 const noDecimals = '000';
 const tokenDivisibility = new BN(1e8, 10);
@@ -63,7 +63,7 @@ module.exports = ({hrp}) => {
     tokens = val.mul(tokenDivisibility);
   }
 
-  if (tokens.gt(new BN(maxMillitokens, decBase))) {
+  if (tokens.gt(new BN(maxTokens, decBase))) {
     throw new Error('TokenCountExceedsMaximumValue');
   }
 
