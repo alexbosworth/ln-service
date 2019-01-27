@@ -8,6 +8,7 @@ const expectedSslConfiguration = require('./conf/lnd').grpc_ssl_cipher_suites;
 const {defaultServiceType} = require('./conf/grpc_services');
 const {packageTypes} = require('./conf/grpc_services');
 const {protoFiles} = require('./conf/grpc_services');
+const {signerServiceType} = require('./conf/grpc_services');
 const {unlockerServiceType} = require('./conf/grpc_services');
 
 const confDir = 'conf';
@@ -83,6 +84,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
   switch (serviceType) {
   case autopilotServiceType:
   case defaultServiceType:
+  case signerServiceType:
     let macaroonData;
 
     if (isHex(macaroon)) {

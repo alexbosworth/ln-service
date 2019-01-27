@@ -15,7 +15,7 @@ test(`Autopilot`, async ({end, equal}) => {
 
   const {kill} = spawned;
 
-  const lnd = spawned.autopilotLnd;
+  const lnd = spawned.autopilot_lnd;
 
   equal((await getAutopilot({lnd})).is_enabled, false, 'Autopilot starts off');
 

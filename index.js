@@ -37,6 +37,7 @@ const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
 const {setAutopilot} = require('./autopilot');
 const {signMessage} = require('./lightning');
+const {signTransaction} = require('./sign');
 const {stopDaemon} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoices} = require('./lightning');
@@ -85,6 +86,7 @@ module.exports = {
   sendToChainAddress,
   setAutopilot,
   signMessage,
+  signTransaction,
   stopDaemon,
   subscribeToGraph,
   subscribeToInvoices,

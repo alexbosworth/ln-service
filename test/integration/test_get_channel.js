@@ -26,9 +26,11 @@ test(`Get channel`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(2000);
+  await delay(3000);
 
   const {channels} = await getChannels({lnd});
+
+  await delay(3000);
 
   const [channel] = channels;
 

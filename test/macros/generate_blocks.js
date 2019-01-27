@@ -67,7 +67,7 @@ module.exports = ({cert, count, host, pass, port, user}, cbk) => {
           }
 
           if (!Array.isArray(res)) {
-            return cbk([503, 'ExpectedBlockHashesForBlockGeneration']);
+            return cbk([503, 'ExpectedBlockHashesForBlockGeneration', res]);
           }
 
           const [blockId] = res;

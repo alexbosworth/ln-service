@@ -39,6 +39,7 @@ const startWalletTimeoutMs = 4500;
 
   @returns via cbk
   {
+    autopilot_lnd: <Autopilot LND GRPC API Object>
     chain_listen_port: <Chain Listen Port Number>
     chain_rpc_cert: <RPC Cert Path String>
     chain_rpc_pass: <Chain RPC Password String>
@@ -236,6 +237,20 @@ module.exports = ({network}, cbk) => {
       });
     }],
 
+    // Autopilot LND GRPC API
+    autopilotLnd: ['wallet', ({wallet}, cbk) => {
+      try {
+        return cbk(null, lightningDaemon({
+          cert: wallet.cert,
+          macaroon: wallet.macaroon,
+          service: 'Autopilot',
+          socket: wallet.host,
+        }));
+      } catch (err) {
+        return cbk([503, 'FailedToInstantiateAutopilotLnd', err]);
+      }
+    }],
+
     // Wallet LND GRPC API
     lnd: ['wallet', ({wallet}, cbk) => {
       try {
@@ -249,17 +264,17 @@ module.exports = ({network}, cbk) => {
       }
     }],
 
-    // Autopilot LND GRPC API
-    autopilotLnd: ['wallet', ({wallet}, cbk) => {
+    // Signer LND GRPC API
+    signerLnd: ['wallet', ({wallet}, cbk) => {
       try {
         return cbk(null, lightningDaemon({
           cert: wallet.cert,
           macaroon: wallet.macaroon,
-          service: 'Autopilot',
+          service: 'Signer',
           socket: wallet.host,
         }));
       } catch (err) {
-        return cbk([503, 'FailedToInstantiateAutopilotLnd', err]);
+        return cbk([503, 'FailedToInstantiateSignerLnd', err]);
       }
     }],
   },
@@ -286,7 +301,7 @@ module.exports = ({network}, cbk) => {
     return cbk(null, {
       kill,
       lnd,
-      autopilotLnd: res.autopilotLnd,
+      autopilot_lnd: res.autopilotLnd,
       chain_listen_port: res.spawnChainDaemon.listen_port,
       chain_rpc_cert: res.spawnChainDaemon.rpc_cert,
       chain_rpc_pass: chainPass,
@@ -298,6 +313,7 @@ module.exports = ({network}, cbk) => {
       lnd_macaroon: res.wallet.macaroon,
       lnd_socket: res.wallet.host,
       mining_key: res.miningKey.private_key,
+      signer_lnd: res.signerLnd,
     });
   });
 };

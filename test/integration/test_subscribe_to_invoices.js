@@ -58,6 +58,8 @@ test('Subscribe to invoices', async ({end, equal}) => {
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
+  await delay(2000);
+
   let invoice;
   const sub = subscribeToInvoices({lnd});
 

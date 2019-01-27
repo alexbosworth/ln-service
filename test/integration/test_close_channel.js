@@ -16,7 +16,7 @@ const giftTokens = 1e4;
 test(`Close channel`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
-  await delay(3000);
+  await delay(1000);
 
   const channelOpen = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -27,11 +27,11 @@ test(`Close channel`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(1000);
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(3000);
+  await delay(1000);
 
   const channelClose = await closeChannel({
     is_force_close: true,

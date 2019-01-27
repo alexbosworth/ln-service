@@ -160,6 +160,7 @@ module.exports = (args, cbk) => {
     // Add target peer
     addTargetPeer: [
       'control',
+      'generateBlocks',
       'target',
       'targetNode',
       ({control, target, targetNode}, cbk) =>

@@ -42,7 +42,11 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(3000);
+
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await delay(3000);
 
   const [channel] = (await getChannels({lnd})).channels;
 
@@ -54,7 +58,11 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
+  await delay(3000);
+
   await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await delay(3000);
 
   await addPeer({
     lnd,
@@ -62,7 +70,11 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
+  await delay(3000);
+
   await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await delay(3000);
 
   const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
@@ -106,6 +118,8 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await delay(3000);
 
   const {routes} = await getRoutes({
     destination,

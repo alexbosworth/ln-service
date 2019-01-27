@@ -25,6 +25,8 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
+  await delay(2000);
+
   const {channels} = await getFeeRates({lnd});
 
   equal(channels.length, [channelOpen].length, 'Channel was opened');
