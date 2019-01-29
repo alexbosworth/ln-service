@@ -2,6 +2,8 @@ const asyncAuto = require('async/auto');
 
 const {returnResult} = require('./../async-util');
 
+const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
+
 /** Sign transaction
 
   {
@@ -63,6 +65,10 @@ module.exports = ({inputs, lnd, transaction}, cbk) => {
         })),
       },
       (err, res) => {
+        if (!!err && err.message === unimplementedError) {
+          return cbk([400, 'ExpectedSignerLnd']);
+        }
+
         if (!!err) {
           return cbk([503, 'UnexpectedErrorWhenSigning', err]);
         }
