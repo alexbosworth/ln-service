@@ -8,6 +8,7 @@ const {decodePaymentRequest} = require('./lightning');
 const {getAccountingReport} = require('./accounting');
 const {getAutopilot} = require('./autopilot');
 const {getChainBalance} = require('./lightning');
+const {getChainFeeRate} = require('./chain');
 const {getChainTransactions} = require('./lightning');
 const {getChannel} = require('./lightning');
 const {getChannelBalance} = require('./lightning');
@@ -57,6 +58,7 @@ module.exports = {
   getAccountingReport,
   getAutopilot,
   getChainBalance,
+  getChainFeeRate,
   getChainTransactions,
   getChannel,
   getChannelBalance,

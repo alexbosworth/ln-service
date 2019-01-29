@@ -54,6 +54,7 @@ const startWalletTimeoutMs = 4500;
     lnd_macaroon: <LND Base64 Encoded Authentication Macaroon String>
     lnd_socket: <LND RPC Socket String>
     mining_key: <Mining Rewards Private Key WIF Encoded String>
+    wallet_lnd: <Wallet LND GRPC API Object>
   }
 */
 module.exports = ({network}, cbk) => {
@@ -292,6 +293,20 @@ module.exports = ({network}, cbk) => {
         return cbk([503, 'FailedToInstantiateSignerLnd', err]);
       }
     }],
+
+    // Wallet LND GRPC API
+    walletLnd: ['wallet', ({wallet}, cbk) => {
+      try {
+        return cbk(null, lightningDaemon({
+          cert: wallet.cert,
+          macaroon: wallet.macaroon,
+          service: 'WalletKit',
+          socket: wallet.host,
+        }));
+      } catch (err) {
+        return cbk([503, 'FailedToInstantiateWalletLnd', err]);
+      }
+    }],
   },
   (err, res) => {
     if (!!err) {
@@ -329,6 +344,7 @@ module.exports = ({network}, cbk) => {
       lnd_socket: res.wallet.host,
       mining_key: res.miningKey.private_key,
       signer_lnd: res.signerLnd,
+      wallet_lnd: res.walletLnd,
     });
   });
 };

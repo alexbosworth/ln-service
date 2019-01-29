@@ -5,14 +5,17 @@
     "Autopilot": "autopilotrpc",
     "Lightning": "lnrpc",
     "Signer": "signrpc",
+    "WalletKit": "walletrpc",
     "WalletUnlocker": "lnrpc"
   },
   "protoFiles": {
     "Autopilot": "autopilot.proto",
     "Lightning": "grpc.proto",
     "Signer": "signer.proto",
+    "WalletKit": "walletkit.proto",
     "WalletUnlocker": "grpc.proto"
   },
   "signerServiceType": "Signer",
-  "unlockerServiceType": "WalletUnlocker"
+  "unlockerServiceType": "WalletUnlocker",
+  "walletServiceType": "WalletKit"
 }

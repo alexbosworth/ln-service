@@ -10,6 +10,7 @@ const {packageTypes} = require('./conf/grpc_services');
 const {protoFiles} = require('./conf/grpc_services');
 const {signerServiceType} = require('./conf/grpc_services');
 const {unlockerServiceType} = require('./conf/grpc_services');
+const {walletServiceType} = require('./conf/grpc_services');
 
 const confDir = 'conf';
 const {GRPC_SSL_CIPHER_SUITES} = process.env;
@@ -85,6 +86,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
   case autopilotServiceType:
   case defaultServiceType:
   case signerServiceType:
+  case walletServiceType:
     let macaroonData;
 
     if (isHex(macaroon)) {

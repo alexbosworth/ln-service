@@ -11,4 +11,3 @@ const {addPeer} = require('./');
   }
 */
 module.exports = promisify(addPeer);
-
