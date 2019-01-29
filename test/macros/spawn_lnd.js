@@ -11,6 +11,7 @@ const openPortFinder = require('portfinder');
 
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
+const generateBlocks = require('./generate_blocks');
 const {lightningDaemon} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
 
@@ -103,8 +104,22 @@ module.exports = ({network}, cbk) => {
       cbk);
     }],
 
+    // Generate a block
+    generateBlock: ['spawnChainDaemon', ({spawnChainDaemon}, cbk) => {
+      return generateBlocks({
+        cert: readFileSync(spawnChainDaemon.rpc_cert),
+        count: 1,
+        host: localhost,
+        pass: chainPass,
+        port: spawnChainDaemon.rpc_port,
+        user: chainUser,
+      },
+      cbk);
+    }],
+
     // Spawn LND
     spawnLightningDaemon: [
+      'generateBlock',
       'getPorts',
       'spawnChainDaemon',
       ({getPorts, spawnChainDaemon}, cbk) =>

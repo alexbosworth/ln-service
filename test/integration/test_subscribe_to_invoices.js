@@ -28,25 +28,29 @@ test('Subscribe to invoices', async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  await delay(3000);
+
   // Create a channel from the control to the target node
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
+    give_tokens: 1e5,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await delay(3000);
 
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(2000);
+  await delay(3000);
 
   // Create a channel from the target back to the control
   const targetToControlChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
+    give_tokens: 1e5,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: (await getWalletInfo({lnd})).public_key,

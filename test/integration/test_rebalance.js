@@ -27,6 +27,7 @@ test('Rebalance', async ({end, equal}) => {
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
+    give_tokens: 1e5,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
@@ -42,6 +43,7 @@ test('Rebalance', async ({end, equal}) => {
   // Create a channel from the target back to the control
   const targetToControlChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
+    give_tokens: 1e5,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: (await getWalletInfo({lnd})).public_key,
@@ -53,11 +55,13 @@ test('Rebalance', async ({end, equal}) => {
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
+  await delay(3000);
+
   const height = (await getWalletInfo({lnd})).current_block_height;
   const invoice = await createInvoice({lnd, tokens});
   const mtokens = `${tokens}${mtok}`;
 
-  await delay(2000);
+  await delay(3000);
 
   // Get control's channels
   const hops = (await getChannels({lnd})).channels.map(({id}) => {
