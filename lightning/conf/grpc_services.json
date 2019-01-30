@@ -1,8 +1,10 @@
 {
   "autopilotServiceType": "Autopilot",
+  "chainNotifierServiceType": "ChainNotifier",
   "defaultServiceType": "Lightning",
   "packageTypes": {
     "Autopilot": "autopilotrpc",
+    "ChainNotifier": "chainrpc",
     "Lightning": "lnrpc",
     "Signer": "signrpc",
     "WalletKit": "walletrpc",
@@ -10,6 +12,7 @@
   },
   "protoFiles": {
     "Autopilot": "autopilot.proto",
+    "ChainNotifier": "chainnotifier.proto",
     "Lightning": "grpc.proto",
     "Signer": "signer.proto",
     "WalletKit": "walletkit.proto",

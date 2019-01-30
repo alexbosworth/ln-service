@@ -29,8 +29,6 @@ test(`Get routes`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(3000);
-
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -39,11 +37,7 @@ test(`Get routes`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(1000);
-
   await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await delay(3000);
 
   const [channel] = (await getChannels({lnd})).channels;
 

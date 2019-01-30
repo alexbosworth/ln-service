@@ -4,6 +4,7 @@ const grpc = require('grpc');
 const {loadSync} = require('@grpc/proto-loader');
 
 const {autopilotServiceType} = require('./conf/grpc_services');
+const {chainNotifierServiceType} = require('./conf/grpc_services');
 const expectedSslConfiguration = require('./conf/lnd').grpc_ssl_cipher_suites;
 const {defaultServiceType} = require('./conf/grpc_services');
 const {packageTypes} = require('./conf/grpc_services');
@@ -84,6 +85,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
 
   switch (serviceType) {
   case autopilotServiceType:
+  case chainNotifierServiceType:
   case defaultServiceType:
   case signerServiceType:
   case walletServiceType:

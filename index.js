@@ -40,6 +40,7 @@ const {setAutopilot} = require('./autopilot');
 const {signMessage} = require('./lightning');
 const {signTransaction} = require('./sign');
 const {stopDaemon} = require('./lightning');
+const {subscribeToBlocks} = require('./chain');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoices} = require('./lightning');
 const {subscribeToTransactions} = require('./lightning');
@@ -90,6 +91,7 @@ module.exports = {
   signMessage,
   signTransaction,
   stopDaemon,
+  subscribeToBlocks,
   subscribeToGraph,
   subscribeToInvoices,
   subscribeToTransactions,

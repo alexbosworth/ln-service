@@ -42,6 +42,7 @@ const startWalletTimeoutMs = 4500;
   {
     autopilot_lnd: <Autopilot LND GRPC API Object>
     chain_listen_port: <Chain Listen Port Number>
+    chain_notifier_lnd: <Chain Notifier LND GRPC API Object>
     chain_rpc_cert: <RPC Cert Path String>
     chain_rpc_pass: <Chain RPC Password String>
     chain_rpc_port: <RPC Port Number>
@@ -267,6 +268,20 @@ module.exports = ({network}, cbk) => {
       }
     }],
 
+    // Chain notifier LND GRPC API
+    chainNotifierLnd: ['wallet', ({wallet}, cbk) => {
+      try {
+        return cbk(null, lightningDaemon({
+          cert: wallet.cert,
+          macaroon: wallet.macaroon,
+          service: 'ChainNotifier',
+          socket: wallet.host,
+        }));
+      } catch (err) {
+        return cbk([503, 'FailedToInstantiateChainNotifierLnd', err]);
+      }
+    }],
+
     // Wallet LND GRPC API
     lnd: ['wallet', ({wallet}, cbk) => {
       try {
@@ -333,6 +348,7 @@ module.exports = ({network}, cbk) => {
       lnd,
       autopilot_lnd: res.autopilotLnd,
       chain_listen_port: res.spawnChainDaemon.listen_port,
+      chain_notifier_lnd: res.chainNotifierLnd,
       chain_rpc_cert: res.spawnChainDaemon.rpc_cert,
       chain_rpc_pass: chainPass,
       chain_rpc_port: res.spawnChainDaemon.rpc_port,
