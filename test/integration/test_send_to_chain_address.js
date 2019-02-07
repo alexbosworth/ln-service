@@ -45,6 +45,22 @@ test(`Send to chain address`, async ({end, equal}) => {
 
   equal(adjustment, tokens, 'Transaction balance is shifted');
 
+  try {
+    await sendToChainAddress({
+      address,
+      is_send_all: true,
+      lnd: cluster.control.lnd,
+    });
+
+    const controlFunds = await getChainBalance({lnd: cluster.control.lnd});
+
+    equal(controlFunds.chain_balance, 0, 'All funds sent on-chain');
+  } catch (err) {
+    if (err[2].message !== '2 UNKNOWN: transaction output is dust') {
+      throw err;
+    }
+  }
+
   await cluster.kill({});
 
   return end();

@@ -8,6 +8,8 @@ const decBase = 10;
 
 /** Get channels
 
+  Note: is_partner_initiated will be undefined if it is unknown or true.
+
   {
     [is_active]: <Limit Results To Only Active Channels Bool> // false
     [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -26,6 +28,7 @@ const decBase = 10;
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
+      is_partner_initiated: <Channel Partner Opened Channel>
       is_private: <Channel Is Private Bool>
       local_balance: <Local Balance Satoshis Number>
       partner_public_key: <Channel Partner Public Key String>
@@ -153,7 +156,10 @@ module.exports = (args, cbk) => {
           return cbk([503, 'ExpectedUnsettledBalance', channel]);
         }
 
+        const {initiator} = channel;
         const [transactionId, vout] = channel.channel_point.split(':');
+
+        const notInitiator = initiator === false ? undefined : !initiator;
 
         return cbk(null, {
           capacity: parseInt(channel.capacity, decBase),
@@ -163,6 +169,7 @@ module.exports = (args, cbk) => {
           is_active: channel.active,
           is_closing: false,
           is_opening: false,
+          is_partner_initiated: notInitiator || undefined,
           is_private: channel.private,
           local_balance: parseInt(channel.local_balance, decBase),
           partner_public_key: channel.remote_pubkey,

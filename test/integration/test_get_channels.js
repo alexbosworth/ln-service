@@ -33,6 +33,12 @@ test(`Get channels`, async ({end, equal}) => {
 
   const [channel] = channels;
 
+  const target = await getChannels({lnd: cluster.target.lnd});
+
+  if (target.channels[0].is_partner_initiated !== undefined) {
+    equal(target.channels[0].is_partner_initiated, false, 'Self-init channel');
+  }
+
   equal(channel.capacity, maxChannelCapacity, 'Channel capacity');
   equal(channel.is_active, true, 'Channel active');
   equal(channel.is_closing, false, 'Channel not closing');

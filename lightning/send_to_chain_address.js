@@ -10,6 +10,7 @@ const initialConfirmationCount = 0;
   {
     address: <Destination Chain Address String>
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
+    [is_send_all]: <Send All Funds Bool>
     lnd: <LND GRPC Object>
     [target_confirmations]: <Confirmations To Wait Number>
     tokens: <Satoshis Number>
@@ -35,8 +36,12 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedLndForChainSendRequest']);
   }
 
-  if (!args.tokens) {
+  if (!args.tokens && !args.is_send_all) {
     return cbk([400, 'MissingTokensToSendOnChain']);
+  }
+
+  if (!!args.tokens && !!args.is_send_all) {
+    return cbk([400, 'ExpectedNoTokensSpecifiedWhenSendingAllFunds']);
   }
 
   if (!!args.wss && !Array.isArray(args.wss)) {
@@ -49,8 +54,9 @@ module.exports = (args, cbk) => {
 
   return args.lnd.sendCoins({
     addr: args.address,
-    amount: args.tokens,
+    amount: args.tokens || undefined,
     sat_per_byte: args.fee_tokens_per_vbyte || undefined,
+    send_all: args.is_send_all || undefined,
     target_conf: args.target_confirmations || undefined,
   },
   (err, res) => {
