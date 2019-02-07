@@ -157,11 +157,12 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
         }
 
         const fee = new BN(forward.fee, decBase);
+        const feeMsat = forward.fee_msat === '0' ? 0 : forward.fee_msat;
 
         return cbk(null, {
           created_at: new Date(creationEpochDate * msPerSec).toISOString(),
           fee: fee.toNumber(),
-          fee_mtokens: fee.mul(mtokensPerToken).toString(decBase),
+          fee_mtokens: feeMsat || fee.mul(mtokensPerToken).toString(decBase),
           incoming_channel: incomingChannel,
           outgoing_channel: outgoingChannel,
           tokens: parseInt(forward.amt_out, decBase),
@@ -185,4 +186,3 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
   },
   returnResult({of: 'sortedForwards'}, cbk));
 };
-

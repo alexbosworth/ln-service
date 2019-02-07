@@ -6,20 +6,18 @@ const {chainSendTransaction} = require('./../macros');
 const createChainAddress = require('./../../createChainAddress');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const getChainBalance = require('./../../getChainBalance');
-const getChainTransactions = require('./../../getChainTransactions');
+const getUtxos = require('./../../getUtxos');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
 const defaultVout = 0;
-const emptyChainBalance = 0;
 const format = 'np2wpkh';
 const tokens = 1e8;
 
-// Getting chain transactions should list out the chain transactions
-test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
+// Getting utxos should list out the utxos
+test(`Get utxos`, async ({deepIs, end, equal, fail}) => {
   const node = await spawnLnd({});
 
   const cert = readFileSync(node.chain_rpc_cert);
@@ -50,17 +48,19 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
 
   await mineTransaction({cert, host, pass, port, transaction, user});
 
-  const {transactions} = await getChainTransactions({lnd});
+  const {utxos} = await getUtxos({lnd});
 
-  equal(transactions.length, [transaction].length, 'Transaction found');
+  equal(utxos.length, [transaction].length, 'Unspent output returned');
 
-  const [tx] = transactions;
+  const [utxo] = utxos;
 
-  equal(tx.is_confirmed, true, 'Transaction is confirmed');
-  equal(tx.is_outgoing, false, 'Transaction is incoming');
-  deepIs(tx.output_addresses, [address], 'Address is returned');
-  equal(tx.tokens, tokens - defaultFee, 'Chain tokens are returned');
-  equal(tx.type, 'chain_transaction', 'Chain transaction type');
+  equal(utxo.address, address, 'UTXO address returned');
+  equal(utxo.address_format, format, 'UTXO address format returned');
+  equal(utxo.confirmation_count, 6, 'Confirmation count returned');
+  equal(!!utxo.output_script, true, 'Output script returned');
+  equal(utxo.tokens, tokens - defaultFee, 'UTXO amount returned');
+  equal(!!utxo.transaction_id, true, 'UTXO transaction id returned');
+  equal(utxo.transaction_vout !== undefined, true, 'UTXO vout returned');
 
   kill();
 

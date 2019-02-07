@@ -27,6 +27,7 @@ const {getPeers} = require('./lightning');
 const {getPendingChainBalance} = require('./lightning');
 const {getPendingChannels} = require('./lightning');
 const {getRoutes} = require('./lightning');
+const {getUtxos} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
 const {lightningDaemon} = require('./lightning');
 const localLnd = require('./service/local_lnd');
@@ -79,6 +80,7 @@ module.exports = {
   getPendingChainBalance,
   getPendingChannels,
   getRoutes,
+  getUtxos,
   getWalletInfo,
   lightningDaemon,
   localLnd,

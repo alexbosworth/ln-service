@@ -24,6 +24,7 @@ const getPeers = require('./get_peers');
 const getPendingChainBalance = require('./get_pending_chain_balance');
 const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
+const getUtxos = require('./get_utxos');
 const getWalletInfo = require('./get_wallet_info');
 const lightningDaemon = require('./lightning_daemon');
 const openChannel = require('./open_channel');
@@ -67,6 +68,7 @@ module.exports = {
   getPendingChainBalance,
   getPendingChannels,
   getRoutes,
+  getUtxos,
   getWalletInfo,
   lightningDaemon,
   openChannel,
