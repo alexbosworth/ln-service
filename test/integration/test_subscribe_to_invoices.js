@@ -23,7 +23,7 @@ const secret = '0000000000000000000000000000000000000000000000000000000000000000
 const tokens = 1e4;
 
 // Subscribing to invoices should trigger invoice events
-test('Subscribe to invoices', async ({end, equal}) => {
+test('Subscribe to invoices', async ({end, equal, fail}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -64,6 +64,7 @@ test('Subscribe to invoices', async ({end, equal}) => {
 
   await delay(2000);
 
+  let gotUnconfirmedInvoice = false;
   let invoice;
   const sub = subscribeToInvoices({lnd});
 
@@ -77,6 +78,10 @@ test('Subscribe to invoices', async ({end, equal}) => {
     equal(invoice.tokens, tokens, 'Invoice tokens');
     equal(invoice.type, 'channel_transaction', 'Invoice is chan tx');
 
+    if (invoice.is_confirmed && !gotUnconfirmedInvoice) {
+      fail('Expected unconfirmed invoice before confirmed invoice');
+    }
+
     if (invoice.is_confirmed) {
       equal(!!invoice.confirmed_at, true, 'Invoice confirmed at date')
       equal(invoice.received, tokens + overPay, 'Invoice tokens received');
@@ -87,9 +92,9 @@ test('Subscribe to invoices', async ({end, equal}) => {
       equal(invoice.confirmed_at, undefined, 'Invoice not confirmed at date');
       equal(invoice.received, 0, 'Invoice tokens not received');
       equal(invoice.received_mtokens, '0', 'Invoice mtokens not received');
-    }
 
-    return;
+      return gotUnconfirmedInvoice = true;
+    }
   });
 
   sub.on('error', () => {});

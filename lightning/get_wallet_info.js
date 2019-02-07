@@ -21,7 +21,6 @@ const msPerSec = 1e3;
     current_block_hash: <Best Chain Hash Hex String>
     current_block_height: <Best Chain Height Number>
     is_synced_to_chain: <Is Synced To Chain Bool>
-    is_testnet: <Using Testnet Bool>
     latest_block_at: <Latest Known Block At Date String>
     peers_count: <Peer Count Number>
     pending_channels_count: <Pending Channels Count Number>
@@ -59,16 +58,20 @@ module.exports = ({lnd}, cbk) => {
       return cbk([503, 'ExpectedWalletAlias']);
     }
 
+    if (!res.best_header_timestamp) {
+      return cbk([503, 'ExpectedBestHeaderTimestampInWalletInfoResponse']);
+    }
+
     if (typeof res.block_hash !== 'string') {
       return cbk([503, 'ExpectedCurrentBlockHash']);
     }
 
-    if (!res.identity_pubkey) {
-      return cbk([503, 'ExpectedIdentityPubkey', res]);
+    if (!isNumber(res.block_height)) {
+      return cbk([500, 'ExpectedBlockHeight', res]);
     }
 
-    if (!isNumber(res.num_pending_channels)) {
-      return cbk([503, 'ExpectedNumPendingChannels', res]);
+    if (!res.identity_pubkey) {
+      return cbk([503, 'ExpectedIdentityPubkey', res]);
     }
 
     if (!isNumber(res.num_active_channels)) {
@@ -79,16 +82,12 @@ module.exports = ({lnd}, cbk) => {
       return cbk([503, 'ExpectedNumPeers', res]);
     }
 
-    if (!isNumber(res.block_height)) {
-      return cbk([500, 'ExpectedBlockHeight', res]);
+    if (!isNumber(res.num_pending_channels)) {
+      return cbk([503, 'ExpectedNumPendingChannels', res]);
     }
 
     if (!isBoolean(res.synced_to_chain)) {
       return cbk([400, 'ExpectedSyncedToChainStatus', res]);
-    }
-
-    if (!isBoolean(res.testnet)) {
-      return cbk([503, 'Expected testnet flag', res]);
     }
 
     if (typeof res.version !== 'string') {
@@ -103,7 +102,6 @@ module.exports = ({lnd}, cbk) => {
       current_block_hash: res.block_hash,
       current_block_height: res.block_height,
       is_synced_to_chain: res.synced_to_chain,
-      is_testnet: res.testnet,
       latest_block_at: latestBlockAt.toISOString(),
       peers_count: res.num_peers,
       pending_channels_count: res.num_pending_channels,

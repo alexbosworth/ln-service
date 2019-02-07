@@ -11,8 +11,6 @@ const walletInfoType = 'wallet';
 test(`Get wallet info`, async ({end, equal}) => {
   const {kill, lnd} = await spawnLnd({});
 
-  await delay(3000);
-
   const result = await getWalletInfo({lnd});
 
   equal(result.active_channels_count, 0, 'Expected channels count');
@@ -20,7 +18,6 @@ test(`Get wallet info`, async ({end, equal}) => {
   equal(!!result.current_block_hash, true, 'Expected best block hash');
   equal(result.current_block_height, 1, 'Expected best block height');
   equal(result.is_synced_to_chain, true, 'Expected synced to chain status');
-  equal(result.is_testnet, false, 'Expected is testnet');
   equal(!!result.latest_block_at, true, 'Last block time');
   equal(result.peers_count, 0, 'Expected wallet peers count');
   equal(result.pending_channels_count, 0, 'Expected pending channels count');
@@ -34,4 +31,3 @@ test(`Get wallet info`, async ({end, equal}) => {
 
   return end();
 });
-

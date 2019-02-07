@@ -30,4 +30,3 @@ test(`Stop daemon`, async ({end, equal, fail}) => {
 
   return end();
 });
-

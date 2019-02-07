@@ -1,4 +1,5 @@
 const {addPeer} = require('./lightning');
+const {changePassword} = require('./lightning');
 const {closeChannel} = require('./lightning');
 const {createChainAddress} = require('./lightning');
 const {createInvoice} = require('./lightning');
@@ -50,6 +51,7 @@ const {verifyMessage} = require('./lightning');
 
 module.exports = {
   addPeer,
+  changePassword,
   closeChannel,
   createChainAddress,
   createInvoice,

@@ -99,6 +99,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
   }
 
   lnd.sendToRouteSync({
+    payment_hash: Buffer.from(path.id, 'hex'),
     payment_hash_string: path.id,
     routes: path.routes
       .filter(route => fee === undefined || route.fee <= fee)
@@ -162,6 +163,10 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
       } catch (err) {
         // Ignore errors when parsing of unstructured error message fails.
       }
+    }
+
+    if (/UnknownPaymentHash/.test(res.payment_error)) {
+      return cbk([404, 'UnknownPaymentHash']);
     }
 
     if (/ChannelDisabled/.test(res.payment_error) && !!failChanId) {

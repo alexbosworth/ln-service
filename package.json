@@ -5,9 +5,10 @@
   },
   "dependencies": {
     "@grpc/proto-loader": "0.4.0",
+    "a-star-for-async-data": "1.0.3",
     "async": "2.6.1",
     "bech32": "1.1.3",
-    "bitcoinjs-lib": "4.0.2",
+    "bitcoinjs-lib": "4.0.3",
     "bn.js": "4.11.8",
     "body-parser": "1.18.3",
     "bolt07": "1.4.0",
@@ -31,7 +32,7 @@
   "devDependencies": {
     "portfinder": "1.0.20",
     "rimraf": "2.6.3",
-    "tap": "12.4.0",
+    "tap": "12.5.1",
     "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
   },
@@ -53,5 +54,5 @@
     "start": "node server.js",
     "test": "tap test/bolt11/*.js test/routing/*.js"
   },
-  "version": "33.1.0"
+  "version": "34.0.0"
 }

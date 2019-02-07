@@ -9,11 +9,13 @@ const {ECPair} = require('bitcoinjs-lib');
 const {networks} = require('bitcoinjs-lib');
 const openPortFinder = require('portfinder');
 
+const {changePassword} = require('./../../');
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
 const {lightningDaemon} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
+const {stopDaemon} = require('./../../');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainPass = 'pass';
@@ -254,34 +256,6 @@ module.exports = ({network}, cbk) => {
       });
     }],
 
-    // Autopilot LND GRPC API
-    autopilotLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'Autopilot',
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateAutopilotLnd', err]);
-      }
-    }],
-
-    // Chain notifier LND GRPC API
-    chainNotifierLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'ChainNotifier',
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateChainNotifierLnd', err]);
-      }
-    }],
-
     // Wallet LND GRPC API
     lnd: ['wallet', ({wallet}, cbk) => {
       try {
@@ -295,32 +269,92 @@ module.exports = ({network}, cbk) => {
       }
     }],
 
-    // Signer LND GRPC API
-    signerLnd: ['wallet', ({wallet}, cbk) => {
+    // Stop LND
+    stopLnd: ['lnd', ({lnd}, cbk) => {
+      return stopDaemon({lnd}, cbk);
+    }],
+
+    // Restart LND (locked)
+    restartLnd: [
+      'getPorts',
+      'spawnChainDaemon',
+      'stopLnd',
+      ({getPorts, spawnChainDaemon}, cbk) =>
+    {
+      const {dir} = spawnChainDaemon;
+
+      const daemon = spawn(lightningDaemonExecFileName, [
+        '--adminmacaroonpath', join(dir, adminMacaroonFileName),
+        '--bitcoin.active',
+        '--bitcoin.chaindir', dir,
+        '--bitcoin.node', 'btcd',
+        '--bitcoin.regtest',
+        '--btcd.dir', dir,
+        '--btcd.rpccert', join(dir, chainRpcCertName),
+        '--btcd.rpchost', `${localhost}:${spawnChainDaemon.rpc_port}`,
+        '--btcd.rpcpass', chainPass,
+        '--btcd.rpcuser', chainUser,
+        '--datadir', dir,
+        '--debuglevel', 'trace',
+        '--externalip', `${localhost}:${getPorts.listen}`,
+        '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
+        '--listen', `${localhost}:${getPorts.listen}`,
+        '--logdir', join(dir, lightningDaemonLogPath),
+        '--nobootstrap',
+        '--readonlymacaroonpath', join(dir, readMacaroonFileName),
+        '--restlisten', `${localhost}:${getPorts.rest}`,
+        '--rpclisten', `${localhost}:${getPorts.rpc}`,
+        '--tlscertpath', join(dir, lightningTlsCertFileName),
+        '--tlskeypath', join(dir, lightningTlsKeyFileName),
+      ]);
+
+      daemon.stderr.on('data', data => {});
+
+      let isReady = false;
+
+      daemon.stdout.on('data', data => {
+        if (!isReady && /gRPC.proxy.started/.test(data+'')) {
+          isReady = true;
+
+          return setTimeout(() => cbk(null, {daemon}), 2000);
+        };
+
+        return;
+      });
+
+      return;
+    }],
+
+    // Get locked restarted lnd
+    restartedLnd: [
+      'getPorts',
+      'restartLnd',
+      'spawnChainDaemon',
+      ({getPorts, spawnChainDaemon}, cbk) =>
+    {
+      const {dir} = spawnChainDaemon;
+
+      const cert = readFileSync(join(dir, lightningTlsCertFileName));
+
       try {
         return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'Signer',
-          socket: wallet.host,
+          cert: cert.toString('base64'),
+          service: lndWalletUnlockerService,
+          socket: `${localhost}:${getPorts.rpc}`,
         }));
       } catch (err) {
-        return cbk([503, 'FailedToInstantiateSignerLnd', err]);
+        return cbk([503, 'FailedToLaunchLightningDaemon', err]);
       }
     }],
 
-    // Wallet LND GRPC API
-    walletLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'WalletKit',
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateWalletLnd', err]);
-      }
+    // Change password
+    changePassword: ['restartedLnd', ({restartedLnd}, cbk) => {
+      return changePassword({
+        current_password: lightningWalletPassword,
+        lnd: restartedLnd,
+        new_password: 'changed_passphrase',
+      },
+      cbk);
     }],
   },
   (err, res) => {
@@ -332,7 +366,7 @@ module.exports = ({network}, cbk) => {
 
     const kill = () => {
       res.spawnChainDaemon.daemon.kill();
-      res.spawnLightningDaemon.daemon.kill();
+      res.restartLnd.daemon.kill();
 
       return;
     };
@@ -343,24 +377,6 @@ module.exports = ({network}, cbk) => {
       setTimeout(() => process.exit(1), 5000);
     });
 
-    return cbk(null, {
-      kill,
-      lnd,
-      autopilot_lnd: res.autopilotLnd,
-      chain_listen_port: res.spawnChainDaemon.listen_port,
-      chain_notifier_lnd: res.chainNotifierLnd,
-      chain_rpc_cert: res.spawnChainDaemon.rpc_cert,
-      chain_rpc_pass: chainPass,
-      chain_rpc_port: res.spawnChainDaemon.rpc_port,
-      chain_rpc_user: chainUser,
-      listen_ip: localhost,
-      listen_port: res.getPorts.listen,
-      lnd_cert: res.wallet.cert,
-      lnd_macaroon: res.wallet.macaroon,
-      lnd_socket: res.wallet.host,
-      mining_key: res.miningKey.private_key,
-      signer_lnd: res.signerLnd,
-      wallet_lnd: res.walletLnd,
-    });
+    return cbk(null, {kill});
   });
 };
