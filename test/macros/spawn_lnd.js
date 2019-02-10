@@ -151,6 +151,7 @@ module.exports = ({network}, cbk) => {
         '--rpclisten', `${localhost}:${getPorts.rpc}`,
         '--tlscertpath', join(dir, lightningTlsCertFileName),
         '--tlskeypath', join(dir, lightningTlsKeyFileName),
+        '--unsafe-disconnect',
       ]);
 
       daemon.stderr.on('data', data => {});

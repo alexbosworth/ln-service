@@ -107,8 +107,7 @@ test('Probe', async ({end, equal}) => {
 
   await cluster.kill({});
 
-  await delay(2000);
+  await delay(3000);
 
   return end();
 });
-

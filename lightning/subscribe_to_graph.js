@@ -237,4 +237,3 @@ module.exports = ({lnd}) => {
 
   return eventEmitter;
 };
-

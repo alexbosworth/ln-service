@@ -1,4 +1,4 @@
-/** Remove a peer if possible (no active or pending channels)
+/** Remove a peer if possible
 
   {
     lnd: <LND GRPC API Object>
@@ -22,4 +22,3 @@ module.exports = (args, cbk) => {
     return cbk();
   });
 };
-

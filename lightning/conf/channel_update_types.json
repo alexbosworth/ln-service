@@ -1,0 +1,6 @@
+{
+  "channel_activated": "active_channel",
+  "channel_deactivated": "inactive_channel",
+  "channel_closed": "closed_channel",
+  "channel_opened": "open_channel"
+}
