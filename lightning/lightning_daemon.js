@@ -68,7 +68,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
 
   // Exit early when cert passing with unexpected GRPC_SSL_CIPHER_SUITES type
   if (!!cert && GRPC_SSL_CIPHER_SUITES !== expectedSslConfiguration) {
-    throw new Error('ExpectedGrpcSslCipherSuitesEnvVar');
+    process.env.GRPC_SSL_CIPHER_SUITES = expectedSslConfiguration;
   }
 
   let credentials;

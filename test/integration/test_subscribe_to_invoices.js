@@ -128,4 +128,3 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
   return;
 });
-
