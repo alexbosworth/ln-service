@@ -1,7 +1,8 @@
 const {createHash} = require('crypto');
 
-const {broadcastResponse} = require('./../async-util');
 const {chanFormat} = require('bolt07');
+
+const {broadcastResponse} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
@@ -12,6 +13,7 @@ const decBase = 10;
     [fee]: <Maximum Additional Fee Tokens To Pay Number>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required if wss is set
+    [out]: <Force Payment Through Outbound Standard Channel Id String>
     request: <BOLT 11 Payment Request String>
     [tokens]: <Total Tokens To Pay to Request Number>
     [wss]: [<Web Socket Server Object>]
@@ -37,7 +39,7 @@ const decBase = 10;
     type: <Row Type String>
   }
 */
-module.exports = ({fee, lnd, log, request, tokens, wss}, cbk) => {
+module.exports = ({fee, lnd, log, out, request, tokens, wss}, cbk) => {
   if (!lnd || !lnd.sendPaymentSync) {
     return cbk([400, 'ExpectedLndForPayingPaymentRequest']);
   }
@@ -58,6 +60,14 @@ module.exports = ({fee, lnd, log, request, tokens, wss}, cbk) => {
 
   if (!!fee) {
     params.fee_limit = {fixed: fee};
+  }
+
+  if (!!out) {
+    try {
+      params.outgoing_chan_id = chanFormat({channel: out}).number;
+    } catch (err) {
+      return cbk([400, 'UnexpectedFormatForOutgoingChannelId']);
+    }
   }
 
   if (!!tokens) {

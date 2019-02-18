@@ -1,4 +1,5 @@
 const {addPeer} = require('./lightning');
+const {calculateHops} = require('./routing');
 const {changePassword} = require('./lightning');
 const {closeChannel} = require('./lightning');
 const {createChainAddress} = require('./lightning');
@@ -36,6 +37,7 @@ const {parsePaymentRequest} = require('./bolt11');
 const {pay} = require('./lightning');
 const {probe} = require('./routing');
 const {removePeer} = require('./lightning');
+const {routeFromHops} = require('./routing');
 const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
 const {setAutopilot} = require('./autopilot');
@@ -53,6 +55,7 @@ const {verifyMessage} = require('./lightning');
 
 module.exports = {
   addPeer,
+  calculateHops,
   changePassword,
   closeChannel,
   createChainAddress,
@@ -90,6 +93,7 @@ module.exports = {
   pay,
   probe,
   removePeer,
+  routeFromHops,
   rowTypes,
   sendToChainAddress,
   setAutopilot,

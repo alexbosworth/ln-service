@@ -13,7 +13,7 @@ const initialConfirmationCount = 0;
     [is_send_all]: <Send All Funds Bool>
     lnd: <LND GRPC Object>
     [target_confirmations]: <Confirmations To Wait Number>
-    tokens: <Satoshis Number>
+    tokens: <Tokens To Send Number>
     wss: <Web Socket Server Object>
   }
 

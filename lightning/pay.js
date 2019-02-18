@@ -23,6 +23,7 @@ const decBase = 10;
     [fee]: <Maximum Additional Fee Tokens To Pay Number>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required if wss is set
+    [out]: <Force Payment Through Outbound Standard Channel Id String>
     [path]: {
       id: <Payment Hash Hex String>
       routes: [{
@@ -68,7 +69,7 @@ const decBase = 10;
     type: <Type String>
   }
 */
-module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
+module.exports = ({fee, lnd, log, out, path, request, tokens, wss}, cbk) => {
   if (!path && !request) {
     return cbk([400, 'ExpectedPathOrRequestToPay']);
   }
@@ -87,7 +88,7 @@ module.exports = ({fee, lnd, log, path, request, tokens, wss}, cbk) => {
 
   // Exit early when the invoice is defined
   if (!path) {
-    return payPaymentRequest({fee, lnd, log, request, tokens, wss}, cbk);
+    return payPaymentRequest({fee, lnd, log, out, request, tokens, wss}, cbk);
   }
 
   try {
