@@ -83,7 +83,7 @@ module.exports = (args, cbk) => {
         return cbk([503, 'ExpectedTransactionIdForUtxoInUtxosResponse']);
       }
 
-      if (!utxo.script_pubkey) {
+      if (!utxo.pk_script) {
         return cbk([503, 'ExpectedScriptPubForUtxoInUtxosResponse']);
       }
 
@@ -91,7 +91,7 @@ module.exports = (args, cbk) => {
         address: utxo.address,
         address_format: addressFormat,
         confirmation_count: parseInt(utxo.confirmations, decBase),
-        output_script: utxo.script_pubkey,
+        output_script: utxo.pk_script,
         tokens: parseInt(utxo.amount_sat, decBase),
         transaction_id: utxo.outpoint.txid_str,
         transaction_vout: utxo.outpoint.output_index,
