@@ -2,6 +2,7 @@
   "autopilotServiceType": "Autopilot",
   "chainNotifierServiceType": "ChainNotifier",
   "defaultServiceType": "Lightning",
+  "maxReceiveMessageLength": 52428800,
   "packageTypes": {
     "Autopilot": "autopilotrpc",
     "ChainNotifier": "chainrpc",

@@ -1,129 +1,18 @@
 const {test} = require('tap');
 
 const {calculateHops} = require('./../../');
+const {graphAlpha} = require('./fixtures');
 
 const tests = [
   // Cheapest, but longest wins
   {
     args: {
-      channels: [
-        {
-          capacity: 10000,
-          id: 'ALICExBOB',
-          policies: [
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'ALICE',
-            },
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'BOB',
-            },
-          ],
-        },
-        {
-          capacity: 10000,
-          id: 'ALICExCAROL',
-          policies: [
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'ALICE',
-            },
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'CAROL',
-            },
-          ],
-        },
-        {
-          capacity: 10000,
-          id: 'BOBxELLEN',
-          policies: [
-            {
-              base_fee_mtokens: '10000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'BOB',
-            },
-            {
-              base_fee_mtokens: '1',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '10000',
-              public_key: 'ELLEN',
-            },
-          ],
-        },
-        {
-          capacity: 10000,
-          id: 'CAROLxDAVID',
-          policies: [
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'CAROL',
-            },
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1',
-              public_key: 'DAVID',
-            },
-          ],
-        },
-        {
-          capacity: 10000,
-          id: 'DAVIDxELLEN',
-          policies: [
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'DAVID',
-            },
-            {
-              base_fee_mtokens: '1000',
-              cltv_delta: 1,
-              fee_rate: 1,
-              is_disabled: false,
-              min_htlc_mtokens: '1000',
-              public_key: 'ELLEN',
-            },
-          ],
-        },
-      ],
+      channels: graphAlpha.channels,
       end: 'ELLEN',
       mtokens: 1000 * 1e3,
-      nodes: ['ALICE', 'BOB', 'CAROL', 'DAVID', 'ELLEN'],
       start: 'ALICE',
     },
-    description: 'A longer but cheaper path is selected',
+    description: 'Although longer to go through carol, low-cost is favored',
     expected: {
       hops: [
         {
@@ -145,6 +34,38 @@ const tests = [
         {
           base_fee_mtokens: '1000',
           channel: 'DAVIDxELLEN',
+          channel_capacity: 10000,
+          cltv_delta: 1,
+          fee_rate: 1,
+          public_key: 'ELLEN',
+        },
+      ],
+    },
+  },
+
+  // Cheapest path is deliberately ignored
+  {
+    args: {
+      channels: graphAlpha.channels,
+      end: 'ELLEN',
+      ignore: [{channel: 'CAROLxDAVID', public_key: 'DAVID'}],
+      mtokens: 1000 * 1e3,
+      start: 'ALICE',
+    },
+    description: 'The cheapest longer path is deliberately ignored',
+    expected: {
+      hops: [
+        {
+          base_fee_mtokens: '1000',
+          channel: 'ALICExBOB',
+          channel_capacity: 10000,
+          cltv_delta: 1,
+          fee_rate: 1,
+          public_key: 'BOB',
+        },
+        {
+          base_fee_mtokens: '1',
+          channel: 'BOBxELLEN',
           channel_capacity: 10000,
           cltv_delta: 1,
           fee_rate: 1,

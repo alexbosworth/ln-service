@@ -22,8 +22,11 @@ const queueStart = 1;
       }]
     }]
     end: <End Public Key Hex String>
+    [ignore]: [{
+      [channel]: <Standard Format Channel Id String>
+      public_key: <Public Key Hex String>
+    }]
     mtokens: <Millitokens Number>
-    nodes: [<Public Key Hex String>]
     start: <Start Public Key Hex String>
   }
 
@@ -42,7 +45,7 @@ const queueStart = 1;
     }]
   }
 */
-module.exports = ({channels, end, mtokens, nodes, start}) => {
+module.exports = ({channels, end, ignore, mtokens, start}) => {
   if (mtokens > maxMillitokens) {
     throw new Error('ExpectedFewerTokensForHopCalculation');
   }
@@ -52,12 +55,17 @@ module.exports = ({channels, end, mtokens, nodes, start}) => {
   const queue = PriorityQueue();
 
   // Set all distances to Infinity, meaning the nodes cannot be reached
-  nodes.forEach(key => {
-    distances[key] = {distance: Infinity, public_key: key};
+  channels.forEach(({policies}) => {
+    return policies.forEach(policy => {
+      distances[policy.public_key] = {
+        distance: Infinity,
+        public_key: policy.public_key,
+      };
 
-    next[key] = null;
+      next[policy.public_key] = null;
 
-    return;
+      return;
+    });
   });
 
   distances[end] = {
@@ -72,6 +80,7 @@ module.exports = ({channels, end, mtokens, nodes, start}) => {
       return;
     }
 
+    const {id} = channel;
     const mtokensToSend = distances[to].receive;
 
     if (channel.capacity * mtokPerTok < mtokensToSend) {
@@ -81,6 +90,14 @@ module.exports = ({channels, end, mtokens, nodes, start}) => {
     const policy = channel.policies.find(n => n.public_key === from);
 
     if (!!policy.is_disabled || policy.min_htlc_mtokens > mtokensToSend) {
+      return;
+    }
+
+    if (!!(ignore || []).find(n => !n.channel && n.public_key === from)) {
+      return;
+    }
+
+    if (!!(ignore || []).find(n => n.channel === id && n.public_key === to)) {
       return;
     }
 
@@ -126,15 +143,18 @@ module.exports = ({channels, end, mtokens, nodes, start}) => {
 
     channels
       .filter(({policies}) => {
+        // Eliminate empty policies
         if (!!policies.find(policy => !policy.public_key)) {
           return false;
         }
 
+        // Eliminate policies that aren't the best node
         return !!policies.find(policy => policy.public_key === bestNode);
       })
       .forEach(channel => {
         const policy = channel.policies.find(n => n.public_key !== bestNode);
 
+        // Check edge between the channel peers
         return checkEdge({channel, from: policy.public_key, to: bestNode});
       });
   }
