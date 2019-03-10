@@ -56,7 +56,7 @@ module.exports = ({channels, end, limit, mtokens, start}) => {
   shortestPaths.push([{public_key: start}].concat(startingPath.hops));
 
   for (let k = shortestPaths.length; k < limit || defaultLimit; k++) {
-    const prevShortest = shortestPaths[k - 1];
+    const prevShortest = shortestPaths[k - 1] || [];
 
     for (let i = 0; i < prevShortest.length - 1; i++) {
       const ignore = [];
@@ -104,5 +104,7 @@ module.exports = ({channels, end, limit, mtokens, start}) => {
     shortestPaths.push(candidatePaths.dequeue());
   }
 
-  return {paths: shortestPaths.map(n => ({hops: n.slice(1)}))};
+  const paths = shortestPaths.filter(n => !!n).map(n => ({hops: n.slice(1)}));
+
+  return {paths};
 };
