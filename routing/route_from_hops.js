@@ -138,12 +138,15 @@ module.exports = ({height, hops, mtokens}) => {
 
   const [firstRouteHop] = routeHops.slice().reverse();
 
+  // Avoid adding additional delta to direct hops
+  const delta = routeHops.length === 1 ? 0 : firstHop.cltv_delta;
+
   return {
     fee: floor(totalFees.div(mtokPerTok).toNumber()),
     fee_mtokens: totalFees.toString(),
     hops: routeHops.slice().reverse(),
     mtokens: total.toString(),
-    timeout: firstRouteHop.timeout + firstHop.cltv_delta,
+    timeout: firstRouteHop.timeout + delta,
     tokens: floor(total.div(mtokPerTok).toNumber()),
   };
 };

@@ -33,7 +33,6 @@ const tempChanFailType = 'temporary_channel_failure';
       }]
     }]
     timeout: <Probe Timeout Milliseconds Number>
-    tokens: <Tokens Number>
   }
 
   @returns via cbk
@@ -70,7 +69,7 @@ const tempChanFailType = 'temporary_channel_failure';
     }]
   }
 */
-module.exports = ({limit, lnd, routes, timeout, tokens}, cbk) => {
+module.exports = ({limit, lnd, routes, timeout}, cbk) => {
   if (!lnd) {
     return cbk([400, 'ExpectedLndForProbeAttempts']);
   }
@@ -79,13 +78,9 @@ module.exports = ({limit, lnd, routes, timeout, tokens}, cbk) => {
     return cbk([400, 'ExpectedArrayOfRoutesToProbe']);
   }
 
-  if (!tokens) {
-    return cbk([400, 'ExpectedTokensToUseForProbing']);
-  }
-
   const attempts = [];
   const payTimeoutMs = timeout || defaultProbeTimeoutMs;
-  const simultaneousProbeCount = limit || [tokens].length;
+  const simultaneousProbeCount = limit || [lnd].length;
 
   return asyncDetectLimit(routes, simultaneousProbeCount, (route, cbk) => {
     const routeHasFailedEdge = route.hops.find(hop => {
