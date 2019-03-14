@@ -3,6 +3,7 @@ const {readFileSync} = require('fs');
 
 const {test} = require('tap');
 
+const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {subscribeToBlocks} = require('./../../');
@@ -42,6 +43,8 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
     3000);
   });
 
+  await delay(3000);
+
   await generateBlocks({
     cert: readFileSync(spawned.chain_rpc_cert),
     count: confirmationCount,
@@ -50,6 +53,8 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
     port: spawned.chain_rpc_port,
     user: spawned.chain_rpc_user,
   });
+
+  await delay(3000);
 
   return;
 });

@@ -41,6 +41,7 @@ const {removePeer} = require('./lightning');
 const {routeFromHops} = require('./routing');
 const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
+const {sendToChainAddresses} = require('./lightning');
 const {setAutopilot} = require('./autopilot');
 const {signMessage} = require('./lightning');
 const {signTransaction} = require('./sign');
@@ -98,6 +99,7 @@ module.exports = {
   routeFromHops,
   rowTypes,
   sendToChainAddress,
+  sendToChainAddresses,
   setAutopilot,
   signMessage,
   signTransaction,

@@ -32,6 +32,7 @@ const pay = require('./pay');
 const removePeer = require('./remove_peer');
 const rowTypes = require('./conf/row_types');
 const sendToChainAddress = require('./send_to_chain_address');
+const sendToChainAddresses = require('./send_to_chain_addresses');
 const signMessage = require('./sign_message');
 const stopDaemon = require('./stop_daemon');
 const subscribeToChannels = require('./subscribe_to_channels');
@@ -77,6 +78,7 @@ module.exports = {
   removePeer,
   rowTypes,
   sendToChainAddress,
+  sendToChainAddresses,
   signMessage,
   stopDaemon,
   subscribeToChannels,

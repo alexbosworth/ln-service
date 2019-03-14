@@ -2,19 +2,20 @@ const {broadcastResponse} = require('./../async-util');
 
 const rowTypes = require('./conf/row_types');
 
-const decBase = 10;
 const initialConfirmationCount = 0;
+const {isArray} = Array;
 
-/** Send tokens in a blockchain transaction.
+/** Send tokens to multiple destinations in a blockchain transaction.
 
   {
-    address: <Destination Chain Address String>
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
-    [is_send_all]: <Send All Funds Bool>
     lnd: <LND GRPC Object>
     [log]: <Log Function>
+    send_to: [{
+      address: <Address String>
+      tokens: <Tokens Number>
+    }]
     [target_confirmations]: <Confirmations To Wait Number>
-    tokens: <Tokens To Send Number>
     [wss]: [<Web Socket Server Object>]
   }
 
@@ -29,48 +30,48 @@ const initialConfirmationCount = 0;
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.address) {
-    return cbk([400, 'ExpectedChainAddressToSendTo']);
+  if (!args.lnd) {
+    return cbk([400, 'ExpectedLndToSendToChainAddresses']);
   }
 
-  if (!args.lnd || !args.lnd.sendCoins) {
-    return cbk([400, 'ExpectedLndForChainSendRequest']);
+  if (!isArray(args.send_to) || !args.send_to.length) {
+    return cbk([400, 'ExpectedSendToAddressesAndTokens']);
   }
 
-  if (!args.tokens && !args.is_send_all) {
-    return cbk([400, 'MissingTokensToSendOnChain']);
+  if (args.send_to.find(({address, tokens}) => !address || !tokens)) {
+    return cbk([400, 'ExpectedDestinationsAndTokensWhenSendingToAddresses']);
   }
 
-  if (!!args.tokens && !!args.is_send_all) {
-    return cbk([400, 'ExpectedNoTokensSpecifiedWhenSendingAllFunds']);
-  }
 
-  if (!!args.wss && !Array.isArray(args.wss)) {
-    return cbk([400, 'ExpectedWssArrayForChainSend']);
+  if (!!args.wss && !isArray(args.wss)) {
+    return cbk([400, 'ExpectedWssArrayForSendToChainAddresses']);
   }
 
   if (!!args.wss && !args.log) {
     return cbk([400, 'ExpectedLogFunctionForChainSendWebSocketAnnouncement']);
   }
 
-  return args.lnd.sendCoins({
-    addr: args.address,
-    amount: args.tokens || undefined,
+  const AddrToAmount = {};
+
+  args.send_to.forEach(({address, tokens}) => AddrToAmount[address] = tokens);
+
+  const send = {
+    AddrToAmount,
     sat_per_byte: args.fee_tokens_per_vbyte || undefined,
-    send_all: args.is_send_all || undefined,
     target_conf: args.target_confirmations || undefined,
-  },
-  (err, res) => {
+  };
+
+  return args.lnd.sendMany(send, (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedSendCoinsError', err]);
+      return cbk([503, 'UnexpectedSendManyError', err]);
     }
 
     if (!res) {
-      return cbk([503, 'ExpectedResponseFromSendCoinsRequest']);
+      return cbk([503, 'ExpectedResponseFromSendManyRequest']);
     }
 
     if (!res.txid) {
-      return cbk([503, 'ExpectedTransactionIdForSendCoinsTransaction', res]);
+      return cbk([503, 'ExpectedTransactionIdForSendManyTransaction', res]);
     }
 
     const row = {
@@ -78,7 +79,7 @@ module.exports = (args, cbk) => {
       id: res.txid,
       is_confirmed: false,
       is_outgoing: true,
-      tokens: parseInt(args.tokens, decBase),
+      tokens: args.send_to.reduce((sum, n) => sum + n.tokens, 0),
       type: rowTypes.chain_transaction,
     };
 
@@ -89,4 +90,3 @@ module.exports = (args, cbk) => {
     return cbk(null, row);
   });
 };
-

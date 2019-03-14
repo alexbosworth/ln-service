@@ -24,4 +24,3 @@ const {sendToChainAddress} = require('./');
   }
 */
 module.exports = promisify(sendToChainAddress);
-
