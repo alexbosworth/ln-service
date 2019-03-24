@@ -73,7 +73,8 @@ module.exports = ({id, lnd}, cbk) => {
       id,
       description: response.memo,
       expires_at: new Date(expiryDateMs).toISOString(),
-      is_confirmed: response.settled,
+      is_canceled: !!response.canceled,
+      is_confirmed: response.settled || response.accepted,
       is_outgoing: false,
       is_private: response.private,
       mtokens: tokens.mul(mtokensPerToken).toString(decBase),
@@ -86,4 +87,3 @@ module.exports = ({id, lnd}, cbk) => {
     });
   });
 };
-

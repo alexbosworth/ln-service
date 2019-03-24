@@ -6,7 +6,7 @@ const getInvoice = require('./../../getInvoice');
 const {spawnLnd} = require('./../macros');
 
 const description = 'description';
-const secret = '0000000000000000000000000000000000000000000000000000000000000000';
+const secret = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
 const tokens = 42;
 
 // getInvoice results in invoice details

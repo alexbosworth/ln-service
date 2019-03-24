@@ -2,10 +2,12 @@
   "autopilotServiceType": "Autopilot",
   "chainNotifierServiceType": "ChainNotifier",
   "defaultServiceType": "Lightning",
+  "invoicesServiceType": "Invoices",
   "maxReceiveMessageLength": 52428800,
   "packageTypes": {
     "Autopilot": "autopilotrpc",
     "ChainNotifier": "chainrpc",
+    "Invoices": "invoicesrpc",
     "Lightning": "lnrpc",
     "Signer": "signrpc",
     "WalletKit": "walletrpc",
@@ -14,10 +16,11 @@
   "protoFiles": {
     "Autopilot": "autopilot.proto",
     "ChainNotifier": "chainnotifier.proto",
-    "Lightning": "grpc.proto",
+    "Invoices": "invoices.proto",
+    "Lightning": "rpc.proto",
     "Signer": "signer.proto",
     "WalletKit": "walletkit.proto",
-    "WalletUnlocker": "grpc.proto"
+    "WalletUnlocker": "rpc.proto"
   },
   "signerServiceType": "Signer",
   "unlockerServiceType": "WalletUnlocker",

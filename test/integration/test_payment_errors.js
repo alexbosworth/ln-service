@@ -4,9 +4,11 @@ const {test} = require('tap');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const {delay} = require('./../macros');
+const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const getPendingChannels = require('./../../getPendingChannels');
 const getWalletInfo = require('./../../getWalletInfo');
+const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
@@ -15,7 +17,7 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const mtok = '000';
-const tokens = 1e4;
+const tokens = 1e3;
 
 // Encountering errors in payment should return valid error codes
 test('Payment errors', async ({end, equal}) => {
@@ -53,37 +55,32 @@ test('Payment errors', async ({end, equal}) => {
 
   await delay(1000);
 
-  // Get control's channels
   const {channels} = await getChannels({lnd});
-
-  const hops = channels.map(({id}) => {
-    return {
-      base_fee_mtokens: '1000',
-      block_height: decodeChanId({channel: id}).block_height,
-      channel: id,
-      cltv_delta: 144,
-      fee_rate: 1,
-    };
-  });
-
   const {id} = invoice;
 
+  const [inChanId, outChanId] = channels.map(({id}) => id).sort();
+
+  const destination = (await getWalletInfo({lnd})).public_key;
+
   try {
-    const hops = channels.map(({id}) => {
-      return {
-        base_fee_mtokens: '1', // Lower fee rate
-        block_height: decodeChanId({channel: id}).block_height,
-        channel: id,
-        cltv_delta: 14,
-        fee_rate: 0, // Lower actual fee
-      };
-    });
+    const inChan = await getChannel({lnd, id: inChanId});
+    const outChan = await getChannel({lnd, id: outChanId});
 
-    hops.sort((a, b) => a.block_height < b.block_height ? -1 : 1);
+    inChan.id = inChanId;
+    outChan.id = outChanId;
 
-    const routes = [routeFromHops({height, hops, mtokens})];
+    const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
 
-    await pay({lnd, path: {id, routes}});
+    const route = routeFromHops({height, hops, mtokens});
+
+    route.hops[0].fee = 0;
+    route.hops[0].fee_mtokens = '0';
+    route.fee = 0;
+    route.fee_mtokens = '0';
+    route.mtokens = '1000000';
+    route.tokens = 1000;
+
+    await pay({lnd, path: {id, routes: [route]}});
   } catch (err) {
     const [, code, context] = err;
 
@@ -91,31 +88,7 @@ test('Payment errors', async ({end, equal}) => {
     equal(context.channel, channels.find(n => !n.local_balance).id);
   }
 
-  try {
-    const hops = channels.map(({id}) => {
-      return {
-        base_fee_mtokens: '1000',
-        block_height: decodeChanId({channel: id}).block_height,
-        channel: id,
-        cltv_delta: 14, // Lower CLTV delta
-        fee_rate: 1,
-      };
-    });
-
-    hops.sort((a, b) => a.block_height < b.block_height ? -1 : 1);
-
-    const routes = [routeFromHops({height, hops, mtokens})];
-
-    await pay({lnd, path: {id, routes}});
-  } catch (err) {
-    const [, code, context] = err;
-
-    equal(code, 'RejectedUnacceptableCltv', 'Pay fails due to low cltv');
-    equal(context.channel, channels.find(n => !n.local_balance).id);
-  }
-
   await cluster.kill({});
 
   return end();
 });
-

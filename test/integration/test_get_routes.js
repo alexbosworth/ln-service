@@ -71,6 +71,16 @@ test(`Get routes`, async ({end, equal}) => {
 
   const {routes} = await getRoutes({destination, lnd, tokens});
 
+  const ignorePath = await getRoutes({destination, lnd, tokens,
+    ignore: [{
+      channel: '463x1x0',
+      from_public_key: cluster.target_node_public_key,
+      to_public_key: cluster.remote_node_public_key,
+    }],
+  });
+
+  equal(ignorePath.routes.length, [].length, 'Ignore path removes from paths');
+
   const controlChans = (await getChannels({lnd})).channels;
   const remoteChans = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
@@ -98,6 +108,7 @@ test(`Get routes`, async ({end, equal}) => {
   const currentHeight = await getWalletInfo({lnd});
 
   const fullRoute = routeFromHops({
+    cltv: 144,
     height: (await getWalletInfo({lnd})).current_block_height,
     hops: [
       {

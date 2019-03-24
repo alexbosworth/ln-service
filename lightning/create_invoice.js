@@ -3,16 +3,15 @@ const asyncAuto = require('async/auto');
 const {broadcastResponse} = require('./../async-util');
 const createChainAddress = require('./create_chain_address');
 const getInvoice = require('./get_invoice');
+const rowTypes = require('./conf/row_types');
 
 const msPerSec = 1e3;
-const rowTypes = require('./conf/row_types');
 
 /** Create a channel invoice.
 
   {
     [description]: <Invoice Description String>
     [expires_at]: <Expires At ISO 8601 Date String>
-    [internal_description]: <Internal Description String>
     [is_fallback_included]: <Is Fallback Address Included Bool>
     [is_fallback_nested]: <Is Fallback Address Nested Bool>
     [is_including_private_channels]: <Invoice Includes Private Channels Bool>
@@ -49,15 +48,15 @@ module.exports = (args, cbk) => {
     // Check arguments
     validate: cbk => {
       if (!args.lnd) {
-        return cbk([500, 'ExpectedLnd']);
+        return cbk([400, 'ExpectedLndToCreateInvoice']);
       }
 
       if (!!args.wss && !Array.isArray(args.wss)) {
-        return cbk([500, 'ExpectedWssArray']);
+        return cbk([400, 'ExpectedWssArrayToCreateInvoice']);
       }
 
       if (!!args.wss && !args.log) {
-        return cbk([500, 'ExpectedLogFunction']);
+        return cbk([400, 'ExpectedLogFunctionToCreateInvoice']);
       }
 
       return cbk();
@@ -85,7 +84,6 @@ module.exports = (args, cbk) => {
       const fallbackAddress = !addAddress ? '' : addAddress.address;
       const createdAt = new Date();
       const expireAt = !args.expires_at ? null : Date.parse(args.expires_at);
-      const receipt = Buffer.from(args.internal_description || '', 'utf8');
 
       const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
@@ -95,7 +93,6 @@ module.exports = (args, cbk) => {
         memo: args.description,
         private: !!args.is_including_private_channels,
         r_preimage: preimage || undefined,
-        receipt: !!receipt.length ? receipt : undefined,
         value: args.tokens || undefined,
       },
       (err, response) => {
@@ -153,4 +150,3 @@ module.exports = (args, cbk) => {
     return cbk(null, res.invoice);
   });
 };
-

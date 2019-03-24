@@ -1,23 +1,20 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
-const BN = require('bn.js');
 const {flatten} = require('lodash');
 const {isFinite} = require('lodash');
 
 const getChannel = require('./get_channel');
 const getWalletInfo = require('./get_wallet_info');
 const {hopsFromChannels} = require('./../routing');
+const {ignoreAsIgnoredEdges} = require('./../routing');
 const {returnResult} = require('./../async-util');
 const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
 
 const defaultFinalCltvDelta = 144;
-const defaultMinHtlcTokens = '0';
 const defaultRoutesReturnCount = 10;
 const defaultTokens = 0;
-const intBase = 10;
-const msatsPerToken = 1e3;
 const mtokBuffer = '000';
 const notFoundCode = 404;
 
@@ -40,6 +37,11 @@ const pathNotFoundErrors = [
     [destination]: <Final Send Destination Hex Encoded Public Key String>
     [fee]: <Maximum Fee Tokens Number>
     [get_channel]: <Custom Get Channel Function>
+    [ignore]: [{
+      [channel]: <Channel Id String>
+      from_public_key: <Public Key Hex String>
+      [to_public_key]: <To Public Key Hex String>
+    }]
     [limit]: <Limit Results Count Number>
     lnd: <LND GRPC API Object>
     [routes]: [[{
@@ -83,6 +85,14 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedDestinationToFindRoutesTowards']);
       }
 
+      if (!!args.ignore) {
+        try {
+          ignoreAsIgnoredEdges({ignore: args.ignore});
+        } catch (err) {
+          return cbk([400, 'ExpectedValidIgnoreEdges', err]);
+        }
+      }
+
       if (!args.lnd || !args.lnd.queryRoutes) {
         return cbk([400, 'ExpectedLndForGetRoutesRequest']);
       }
@@ -118,6 +128,7 @@ module.exports = (args, cbk) => {
           amt: args.tokens || defaultTokens,
           fee_limit: !args.fee ? undefined : {fee_limit: args.fee},
           final_cltv_delta: args.timeout || defaultFinalCltvDelta,
+          ignored_edges: ignoreAsIgnoredEdges({ignore: args.ignore}).ignored,
           num_routes: args.limit || defaultRoutesReturnCount,
           pub_key: firstHop.public_key,
         },
@@ -164,30 +175,36 @@ module.exports = (args, cbk) => {
       const channels = {};
       const [firstRoute] = args.routes;
       const gotChannels = {};
+      let pkCursor;
       const source = getWallet.public_key;
 
       const [finalHop] = firstRoute.slice().reverse();
 
       args.routes.forEach(route => {
-        let precedingPubKey;
-
         return route.forEach(n => {
-          const publicKey = precedingPubKey;
-
           if (!n.channel) {
             return;
           }
 
-          return channels[n.channel] = {
+          channels[n.channel] = {
             capacity: args.tokens,
             id: n.channel,
-            policies: [{
-              base_fee_mtokens: n.base_fee_mtokens,
-              cltv_delta: n.cltv_delta,
-              fee_rate: n.fee_rate,
-              public_key: publicKey || args.destination,
-            }],
+            policies: [
+              {
+                base_fee_mtokens: n.base_fee_mtokens,
+                fee_rate: n.fee_rate,
+                public_key: pkCursor,
+              },
+              {
+                cltv_delta: n.cltv_delta,
+                public_key: n.public_key,
+              },
+            ],
           };
+
+          pkCursor = n.public_key;
+
+          return;
         });
       });
 
@@ -262,14 +279,17 @@ module.exports = (args, cbk) => {
               return cbk(err);
             }
 
+            const destination = args.destination;
+
             try {
               return cbk(null, routeFromHops({
+                cltv: args.timeout || defaultFinalCltvDelta,
                 height: getWallet.current_block_height,
-                hops: hopsFromChannels({channels}).hops,
+                hops: hopsFromChannels({channels, destination}).hops,
                 mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
               }));
             } catch (err) {
-              return cbk([500, 'UnexpectedHopsFromChannelsError', err, channels]);
+              return cbk([500, 'UnexpectedHopsFromChannelsError', err]);
             }
           });
         },

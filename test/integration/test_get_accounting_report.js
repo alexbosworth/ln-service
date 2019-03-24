@@ -101,6 +101,8 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
+  await delay(3000);
+
   const {request} = await createInvoice({lnd: cluster.remote.lnd, tokens});
 
   await pay({lnd, request});

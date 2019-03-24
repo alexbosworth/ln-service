@@ -8,8 +8,8 @@ const {spawnLnd} = require('./../macros');
 
 const description = 'description';
 const expiresAt = new Date().toISOString();
-const secret = Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex');
-const secretHash = '66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925';
+const secret = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f', 'hex');
+const secretHash = '7426ba0604c3f8682c7016b44673f85c5bd9da2fa6c1080810cf53ae320c9863';
 const tokens = 4194304;
 
 const tests = [
@@ -19,7 +19,7 @@ const tests = [
       description: 'Read: Global Cryptocurrency Regulation',
       destination: '02212d3ec887188b284dbb7b2e6eb40629a6e14fb049673f22d2a0aa05f902090e',
       expires_at: '2018-07-03T03:32:54.000Z',
-      id: '66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925',
+      id: secretHash,
       is_expired: false,
       mtokens: '150000',
       tokens: 150,
@@ -34,7 +34,7 @@ tests.forEach(({description, expected}) => {
     const {request} = await createInvoice({
       lnd,
       description: expected.description,
-      secret: '0000000000000000000000000000000000000000000000000000000000000000',
+      secret: secret.toString('hex'),
       tokens: expected.tokens,
       expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
     });

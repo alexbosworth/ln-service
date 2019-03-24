@@ -4,9 +4,11 @@ const {test} = require('tap');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const {delay} = require('./../macros');
+const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const getPendingChannels = require('./../../getPendingChannels');
 const getWalletInfo = require('./../../getWalletInfo');
+const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
@@ -15,7 +17,7 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const mtok = '000';
-const tokens = 1e4;
+const tokens = 1e3;
 
 // Rebalancing channels should result in balanced channels
 test('Rebalance', async ({end, equal}) => {
@@ -63,20 +65,20 @@ test('Rebalance', async ({end, equal}) => {
 
   await delay(3000);
 
-  // Get control's channels
-  const hops = (await getChannels({lnd})).channels.map(({id}) => {
-    return {
-      base_fee_mtokens: '1000',
-      block_height: decodeChanId({number: id}).block_height,
-      channel: id,
-      cltv_delta: 144,
-      fee_rate: 1,
-    };
-  });
+  const {channels} = await getChannels({lnd});
 
+  const [inChannelId, outChannelId] = channels.map(({id}) => id);
+
+  const inChan = await getChannel({lnd, id: inChannelId});
+  const outChan = await getChannel({lnd, id: outChannelId});
+
+  inChan.id = inChannelId;
+  outChan.id = outChannelId;
+
+  const destination = (await getWalletInfo({lnd})).public_key;
   const {id} = invoice;
 
-  hops.sort((a, b) => a.block_height < b.block_height ? -1 : 1);
+  const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
 
   const routes = [routeFromHops({height, hops, mtokens})];
 
@@ -88,4 +90,3 @@ test('Rebalance', async ({end, equal}) => {
 
   return end();
 });
-

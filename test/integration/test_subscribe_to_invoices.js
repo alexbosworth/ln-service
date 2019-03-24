@@ -4,9 +4,11 @@ const {test} = require('tap');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const {delay} = require('./../macros');
+const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const getPendingChannels = require('./../../getPendingChannels');
 const getWalletInfo = require('./../../getWalletInfo');
+const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
@@ -16,10 +18,10 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const description = 'x';
-const invoiceId = '66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925';
+const invoiceId = '7426ba0604c3f8682c7016b44673f85c5bd9da2fa6c1080810cf53ae320c9863';
 const mtok = '000';
 const overPay = 1;
-const secret = '0000000000000000000000000000000000000000000000000000000000000000';
+const secret = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
 const tokens = 1e4;
 
 // Subscribing to invoices should trigger invoice events
@@ -27,6 +29,8 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
+
+  const destination = (await getWalletInfo({lnd})).public_key;
 
   await delay(3000);
 
@@ -100,25 +104,22 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   sub.on('error', () => {});
 
   const height = (await getWalletInfo({lnd})).current_block_height;
+  const {channels} = await getChannels({lnd});
   invoice = await createInvoice({description, lnd, secret, tokens});
   const mtokens = `${tokens + overPay}${mtok}`;
 
+  const [inChanId, outChanId] = channels.map(({id}) => id).sort();
+
   await delay(1000);
 
-  // Get control's channels
-  const hops = (await getChannels({lnd})).channels.map(({id}) => {
-    return {
-      base_fee_mtokens: '1000',
-      block_height: decodeChanId({number: id}).block_height,
-      channel: id,
-      cltv_delta: 144,
-      fee_rate: 1,
-    };
-  });
+  const inChan = await getChannel({lnd, id: inChanId});
+  const outChan = await getChannel({lnd, id: outChanId});
 
+  inChan.id = inChanId;
+  outChan.id = outChanId;
+
+  const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
   const {id} = invoice;
-
-  hops.sort((a, b) => a.block_height < b.block_height ? -1 : 1);
 
   const routes = [routeFromHops({height, hops, mtokens})];
 

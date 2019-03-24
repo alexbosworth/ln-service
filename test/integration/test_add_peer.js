@@ -10,6 +10,8 @@ const notFoundIndex = -1;
 
 // Adding peers should result in a connected peer
 test(`Add a peer`, async ({end, equal}) => {
+  await delay(2000);
+
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -41,4 +43,3 @@ test(`Add a peer`, async ({end, equal}) => {
 
   return end();
 });
-

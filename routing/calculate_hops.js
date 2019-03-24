@@ -2,7 +2,9 @@ const PriorityQueue = require('@datastructures-js/priority-queue');
 
 const policyFee = require('./policy_fee');
 
-const maxMillitokens = 21 * 1e6 * 1e8;
+const decBase = 10;
+const minCltvDelta = 0;
+const minFee = 0;
 const mtokPerTok = 1e3;
 const queueStart = 1;
 
@@ -46,10 +48,6 @@ const queueStart = 1;
   }
 */
 module.exports = ({channels, end, ignore, mtokens, start}) => {
-  if (mtokens > maxMillitokens) {
-    throw new Error('ExpectedFewerTokensForHopCalculation');
-  }
-
   const distances = {};
   const next = {};
   const queue = PriorityQueue();
@@ -69,8 +67,8 @@ module.exports = ({channels, end, ignore, mtokens, start}) => {
   });
 
   distances[end] = {
-    distance: 0,
-    fee: 0,
+    distance: BigInt(0),
+    fee: BigInt(0),
     public_key: start,
     receive: mtokens,
   };
@@ -81,9 +79,9 @@ module.exports = ({channels, end, ignore, mtokens, start}) => {
     }
 
     const {id} = channel;
-    const mtokensToSend = distances[to].receive;
+    const mtokensToSend = BigInt(distances[to].receive);
 
-    if (channel.capacity * mtokPerTok < mtokensToSend) {
+    if (BigInt(channel.capacity) * BigInt(mtokPerTok) < mtokensToSend) {
       return;
     }
 
@@ -101,20 +99,23 @@ module.exports = ({channels, end, ignore, mtokens, start}) => {
       return;
     }
 
-    const {fee} = from === start ? {fee: 0} : policyFee({policy, mtokens});
-    const cltv = from === start ? 0 : policy.cltv_delta;
+    const cltv = from === start ? minCltvDelta : policy.cltv_delta;
+    const hopFeeMtokens = BigInt(policyFee({policy, mtokens}).fee_mtokens);
     const peer = channel.policies.find(n => n.public_key !== from);
-    const prospectiveDistance = distances[to].distance + fee;
+
+    const feeMtokens = from === start ? BigInt(minFee) : hopFeeMtokens;
+
+    const prospectiveDistance = distances[to].distance + feeMtokens;
 
     if (prospectiveDistance >= distances[from].distance) {
       return;
     }
 
     distances[from] = {
-      fee,
       distance: prospectiveDistance,
+      fee_mtokens: feeMtokens,
       public_key: from,
-      receive: mtokensToSend + fee,
+      receive: mtokensToSend + feeMtokens,
     };
 
     next[from] = {
@@ -126,12 +127,16 @@ module.exports = ({channels, end, ignore, mtokens, start}) => {
       public_key: peer.public_key,
     };
 
-    queue.enqueue(from, prospectiveDistance + queueStart);
+    const priority = parseInt(prospectiveDistance.toString(), decBase);
+
+    queue.enqueue(from, priority + queueStart);
 
     return;
   };
 
-  queue.enqueue(end, distances[end].distance + queueStart);
+  const priority = parseInt(distances[end].distance.toString(), decBase);
+
+  queue.enqueue(end, priority + queueStart);
 
   // Pull from the priority queue to check edges
   while (!queue.isEmpty()) {

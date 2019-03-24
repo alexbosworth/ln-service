@@ -19,6 +19,7 @@ const adminMacaroonFileName = 'admin.macaroon';
 const chainPass = 'pass';
 const chainRpcCertName = 'rpc.cert';
 const chainUser = 'user';
+const delayAfterSpawnMs = 3000;
 const invoiceMacaroonFileName = 'invoice.macaroon';
 const lightningDaemonExecFileName = 'lnd';
 const lightningDaemonLogPath = 'logs/';
@@ -283,6 +284,20 @@ module.exports = ({network}, cbk) => {
       }
     }],
 
+    // Invoices LND GRPC API
+    invoicesLnd: ['wallet', ({wallet}, cbk) => {
+      try {
+        return cbk(null, lightningDaemon({
+          cert: wallet.cert,
+          macaroon: wallet.macaroon,
+          service: 'Invoices',
+          socket: wallet.host,
+        }));
+      } catch (err) {
+        return cbk([503, 'FailedToInstantiateInvoicesLnd', err]);
+      }
+    }],
+
     // Wallet LND GRPC API
     lnd: ['wallet', ({wallet}, cbk) => {
       try {
@@ -323,6 +338,11 @@ module.exports = ({network}, cbk) => {
         return cbk([503, 'FailedToInstantiateWalletLnd', err]);
       }
     }],
+
+    // Delay to make sure everything has come together
+    delay: ['lnd', ({}, cbk) => {
+      return setTimeout(() => cbk(), delayAfterSpawnMs);
+    }],
   },
   (err, res) => {
     if (!!err) {
@@ -354,6 +374,7 @@ module.exports = ({network}, cbk) => {
       chain_rpc_pass: chainPass,
       chain_rpc_port: res.spawnChainDaemon.rpc_port,
       chain_rpc_user: chainUser,
+      invoices_lnd: res.invoicesLnd,
       listen_ip: localhost,
       listen_port: res.getPorts.listen,
       lnd_cert: res.wallet.cert,

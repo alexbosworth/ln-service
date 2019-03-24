@@ -7,6 +7,7 @@ const {autopilotServiceType} = require('./conf/grpc_services');
 const {chainNotifierServiceType} = require('./conf/grpc_services');
 const {defaultServiceType} = require('./conf/grpc_services');
 const expectedSslConfiguration = require('./conf/lnd').grpc_ssl_cipher_suites;
+const {invoicesServiceType} = require('./conf/grpc_services');
 const {maxReceiveMessageLength} = require('./conf/grpc_services');
 const {packageTypes} = require('./conf/grpc_services');
 const {protoFiles} = require('./conf/grpc_services');
@@ -88,6 +89,7 @@ module.exports = ({cert, macaroon, service, socket}) => {
   case autopilotServiceType:
   case chainNotifierServiceType:
   case defaultServiceType:
+  case invoicesServiceType:
   case signerServiceType:
   case walletServiceType:
     let macaroonData;

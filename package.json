@@ -12,7 +12,7 @@
     "bn.js": "4.11.8",
     "body-parser": "1.18.3",
     "bolt07": "1.4.0",
-    "compression": "1.7.3",
+    "compression": "1.7.4",
     "cors": "2.8.5",
     "dns-sync": "0.1.3",
     "dotenv": "7.0.0",
@@ -32,7 +32,7 @@
   "devDependencies": {
     "portfinder": "1.0.20",
     "rimraf": "2.6.3",
-    "tap": "12.6.0",
+    "tap": "12.6.1",
     "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
   },
@@ -54,5 +54,5 @@
     "start": "node server.js",
     "test": "tap test/bolt11/*.js test/routing/*.js"
   },
-  "version": "34.5.0"
+  "version": "34.6.0"
 }

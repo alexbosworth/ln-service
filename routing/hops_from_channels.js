@@ -1,11 +1,13 @@
-const {intersection} = require('lodash');
+const {isArray} = Array;
 
 /** Derive policy hops from an in-order set of channels with dual policies
+
+  Either individual destinations or a final destination is required
 
   {
     channels: [{
       capacity: <Maximum Tokens Number>
-      destination: <Next Hop Destination Public Key String>
+      [destination]: <Next Hop Destination Public Key String>
       id: <Standard Format Channel Id String>
       policies: [{
         base_fee_mtokens: <Base Fee Millitokens String>
@@ -16,6 +18,7 @@ const {intersection} = require('lodash');
         public_key: <Node Public Key String>
       }]
     }]
+    [destination]: <Destination Public Key Hex String>
   }
 
   @throws
@@ -33,17 +36,33 @@ const {intersection} = require('lodash');
     }]
   }
 */
-module.exports = ({channels}) => {
-  if (!Array.isArray(channels) || !channels.length) {
+module.exports = ({channels, destination}) => {
+  if (!isArray(channels) || !channels.length) {
     throw new Error('ExpectedChannelsToDeriveHops');
   }
+
+  let nextNode = destination;
+
+  const hopDestinations = channels.slice().reverse()
+    .map(channel => {
+      if (!isArray(channel.policies)) {
+        throw new Error('ExpectedChannelPoliciesWhenCalculatingHops');
+      }
+
+      const next = nextNode;
+
+      nextNode = channel.policies.map(n => n.public_key).find(n => n !== next);
+
+      return next;
+    })
+    .reverse();
 
   const hops = channels.map((channel, i, chans) => {
     if (!channel.capacity) {
       throw new Error('ExpectedChannelCapacityForChannelHop');
     }
 
-    if (!channel.destination) {
+    if (!destination && !channel.destination) {
       throw new Error('ExpectedNextHopPublicKey');
     }
 
@@ -55,24 +74,30 @@ module.exports = ({channels}) => {
       throw new Error('ExpectedArrayOfPoliciesForChannelInHop');
     }
 
-    const nextHop = channel.destination;
+    const nextHop = channel.destination || hopDestinations[i];
+    const nextPolicy = chans[i + [channel].length];
+    let overridePolicy;
 
-    const policy = channel.policies.find(n => n.public_key === nextHop);
+    const peer = channel.policies.find(n => n.public_key === nextHop);
+    const policy = channel.policies.find(n => n.public_key !== nextHop);
 
     if (!policy) {
       return null;
     }
 
+    if (!i && !!nextPolicy) {
+      overridePolicy = nextPolicy.policies.find(n => n.public_key === nextHop);
+    }
+
     return {
-      base_fee_mtokens: policy.base_fee_mtokens,
+      base_fee_mtokens: (overridePolicy || policy).base_fee_mtokens,
       channel: channel.id,
       channel_capacity: channel.capacity,
-      cltv_delta: policy.cltv_delta,
-      fee_rate: policy.fee_rate,
+      cltv_delta: peer.cltv_delta,
+      fee_rate: (overridePolicy || policy).fee_rate,
       public_key: nextHop,
     };
   });
 
   return {hops: hops.filter(n => !!n)};
 };
-

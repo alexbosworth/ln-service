@@ -1,18 +1,15 @@
-const BN = require('bn.js');
+const asTokens = require('./as_tokens');
+const policyFee = require('./policy_fee');
 
-const decBase = 10;
-const defaultChannelCapacity = 16777215;
 const defaultCltvBuffer = 144;
-const defaultFee = 0;
-const feeDivisor = new BN(1e6, 10);
-const {floor} = Math;
-const hopsWithoutFees = 2;
+const {isArray} = Array;
+const minCltv = 0;
 const minFee = 0;
-const mtokPerTok = new BN(1e3, 10);
 
 /** Given hops to a destination, construct a payable route
 
   {
+    [cltv]: <Final Cltv Delta Number>
     height: <Current Block Height Number>
     hops: [{
       base_fee_mtokens: <Base Fee Millitokens String>
@@ -20,7 +17,7 @@ const mtokPerTok = new BN(1e3, 10);
       [channel_capacity]: <Channel Capacity Tokens Number>
       cltv_delta: <CLTV Delta Number>
       fee_rate: <Fee Rate In Millitokens Per Million Number>
-      [public_key]: <Public Key Hex String>
+      public_key: <Next Hop Public Key Hex String>
     }]
     mtokens: <Millitokens To Send String>
   }
@@ -47,15 +44,22 @@ const mtokPerTok = new BN(1e3, 10);
     tokens: <Total Fee-Inclusive Tokens Number>
   }
 */
-module.exports = ({height, hops, mtokens}) => {
+module.exports = ({cltv, height, hops, mtokens}) => {
+  const finalCltvDelta = cltv || defaultCltvBuffer;
+
   if (height === undefined) {
     throw new Error('ExpectedChainHeightForRoute');
   }
 
-  if (!Array.isArray(hops) || !hops.length) {
+  if (!isArray(hops) || !hops.length) {
     throw new Error('ExpectedHopsToConstructRouteFrom');
   }
 
+  if (!mtokens) {
+    throw new Error('ExpectedMillitokensToSendAcrossHops');
+  }
+
+  // Check hops for validity
   hops.forEach(hop => {
     if (!hop.base_fee_mtokens) {
       throw new Error('ExpectedHopBaseFeeMillitokensForRouteConstruction');
@@ -73,81 +77,59 @@ module.exports = ({height, hops, mtokens}) => {
       throw new Error('ExpectedHopFeeRateForRouteConstruction');
     }
 
-    return;
-  });
-
-  if (!mtokens) {
-    throw new Error('ExpectedMillitokensToSendAcrossHops');
-  }
-
-  const [firstHop] = hops;
-  const [lastHop] = hops.slice().reverse();
-  const routeHops = [];
-
-  const total = hops.slice().reverse().reduce((sum, hop, i) => {
-    const baseFee = new BN(hop.base_fee_mtokens, decBase);
-    const feeRate = new BN(hop.fee_rate, decBase);
-
-    const rateFee = sum.mul(feeRate).div(new BN(feeDivisor, decBase));
-
-    const fees = baseFee.add(rateFee);
-
-    routeHops.push({
-      channel: hop.channel,
-      channel_capacity: hop.channel_capacity || defaultChannelCapacity,
-      cltv_delta: hop.cltv_delta,
-      fee: !i ? defaultFee : floor(fees.div(mtokPerTok).toNumber()),
-      fee_mtokens: !i ? defaultFee.toString() : fees.toString(),
-      public_key: hop.public_key,
-    });
-
-    const hopFees = !i ? sum : sum.add(fees);
-
-    return hopFees;
-  },
-  new BN(mtokens, decBase));
-
-  const totalFees = total.sub(new BN(mtokens, decBase));
-
-  routeHops.forEach((hop, i) => {
-    if (i < hopsWithoutFees) {
-      hop.forward = new BN(mtokens, decBase).div(mtokPerTok).toNumber();
-      hop.forward_mtokens = mtokens;
-
-      hop.timeout = height + defaultCltvBuffer;
-
-      delete hop.cltv_delta;
-
-      return;
+    if (!hop.public_key) {
+      throw new Error('ExpectedHopNextPublicKeyForRouteConstruction');
     }
 
-    const prevHop = routeHops[i - [hop].length];
-
-    hop.timeout = prevHop.timeout + hop.cltv_delta;
-
-    delete hop.cltv_delta;
-
-    const prevFee = new BN(prevHop.fee_mtokens, decBase);
-    const prevForward = new BN(prevHop.forward_mtokens, decBase);
-
-    hop.forward = floor(prevForward.add(prevFee).div(mtokPerTok).toNumber());
-    hop.forward_mtokens = prevForward.add(prevFee).toString();
-
     return;
   });
 
-  const [firstRouteHop] = routeHops.slice().reverse();
+  let forwardMtokens = BigInt(mtokens);
+  let nextFeeTokens = BigInt(minFee);
+  let timeoutHeight = height + finalCltvDelta;
 
-  // Avoid adding additional delta to direct hops
-  const delta = routeHops.length === 1 ? 0 : firstHop.cltv_delta;
+  // To construct the route, we need to go backwards from the end
+  const backwardsPath = hops.slice().reverse().map((hop, i) => {
+    const policy = {
+      base_fee_mtokens: hop.base_fee_mtokens,
+      fee_rate: hop.fee_rate,
+    };
+
+    const cltvDelta = !i ? minCltv : hop.cltv_delta;
+    const feeMtokens = nextFeeTokens;
+
+    const routeHop = {
+      channel: hop.channel,
+      channel_capacity: hop.channel_capacity,
+      fee: asTokens({mtokens: feeMtokens}).tokens,
+      fee_mtokens: feeMtokens.toString(),
+      forward: asTokens({mtokens: forwardMtokens}).tokens,
+      forward_mtokens: forwardMtokens.toString(),
+      public_key: hop.public_key,
+      timeout: timeoutHeight,
+    };
+
+    const fee = policyFee({policy, mtokens: forwardMtokens});
+    timeoutHeight += !i ? minCltv : hop.cltv_delta;
+
+    forwardMtokens += feeMtokens;
+    nextFeeTokens = BigInt(fee.fee_mtokens);
+
+    return routeHop;
+  });
+
+  const totalFeeMtokens = backwardsPath
+    .map(n => BigInt(n.fee_mtokens))
+    .reduce((sum, n) => sum + n, BigInt(minFee));
+
+  const totalMtokens = totalFeeMtokens + BigInt(mtokens);
 
   return {
-    fee: floor(totalFees.div(mtokPerTok).toNumber()),
-    fee_mtokens: totalFees.toString(),
-    hops: routeHops.slice().reverse(),
-    mtokens: total.toString(),
-    timeout: firstRouteHop.timeout + delta,
-    tokens: floor(total.div(mtokPerTok).toNumber()),
+    fee: asTokens({mtokens: totalFeeMtokens}).tokens,
+    fee_mtokens: totalFeeMtokens.toString(),
+    hops: backwardsPath.slice().reverse(),
+    mtokens: totalMtokens.toString(),
+    timeout: timeoutHeight,
+    tokens: asTokens({mtokens: totalMtokens}).tokens,
   };
 };
-

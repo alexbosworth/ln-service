@@ -143,6 +143,10 @@ module.exports = ({fee, lnd, log, out, path, request, tokens, wss}, cbk) => {
       return cbk([409, 'PaymentIsPendingResolution']);
     }
 
+    if (res.payment_error === 'unable to find a path to destination') {
+      return cbk([503, 'UnknownPathToDestination']);
+    }
+
     const paymentError = res.payment_error || '';
 
     const [chanFailure] = paymentError.match(chanIdMatch) || [];
@@ -200,6 +204,10 @@ module.exports = ({fee, lnd, log, out, path, request, tokens, wss}, cbk) => {
 
     if (/FeeInsufficient/.test(res.payment_error)) {
       return cbk([503, 'RejectedUnacceptableFee', res.payment_error]);
+    }
+
+    if (/FinalIncorrectCltvExpiry/.test(res.payment_error)) {
+      return cbk([503, 'ExpiryTooFar', res.payment_error]);
     }
 
     if (/IncorrectCltvExpiry/.test(res.payment_error) && !!failChanId) {
@@ -302,4 +310,3 @@ module.exports = ({fee, lnd, log, out, path, request, tokens, wss}, cbk) => {
     return cbk(null, row);
   });
 };
-

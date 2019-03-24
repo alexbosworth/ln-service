@@ -220,6 +220,16 @@ service Lightning {
         };
     }
 
+    /** lncli: `estimatefee`
+    EstimateFee asks the chain backend to estimate the fee rate and total fees
+    for a transaction that pays to multiple specified outputs.
+    */
+    rpc EstimateFee (EstimateFeeRequest) returns (EstimateFeeResponse) {
+        option (google.api.http) = {
+            get: "/v1/transactions/fee"
+        };
+    }
+
     /** lncli: `sendcoins`
     SendCoins executes a request to send coins to a particular address. Unlike
     SendMany, this RPC call only allows creating a single output at a time. If
@@ -839,6 +849,22 @@ message LightningAddress {
     string host = 2 [json_name = "host"];
 }
 
+message EstimateFeeRequest {
+    /// The map from addresses to amounts for the transaction.
+    map<string, int64> AddrToAmount = 1;
+
+    /// The target number of blocks that this transaction should be confirmed by.
+    int32 target_conf = 2;
+}
+
+message EstimateFeeResponse {
+    /// The total fee in satoshis.
+    int64 fee_sat = 1 [json_name = "fee_sat"];
+
+    /// The fee rate in satoshi/byte.
+    int64 feerate_sat_per_byte = 2 [json_name = "feerate_sat_per_byte"];
+}
+
 message SendManyRequest {
     /// The map from addresses to amounts
     map<string, int64> AddrToAmount = 1;
@@ -900,6 +926,8 @@ message ListUnspentResponse {
 enum AddressType {
         WITNESS_PUBKEY_HASH = 0;
         NESTED_PUBKEY_HASH = 1;
+        UNUSED_WITNESS_PUBKEY_HASH = 2;
+        UNUSED_NESTED_PUBKEY_HASH = 3;
 }
 
 message NewAddressRequest {
@@ -1041,7 +1069,7 @@ message Channel {
     /// Whether this channel is advertised to the network or not.
     bool private = 17 [json_name = "private"];
 
-    /// True if we were the ones that creted the channel.
+    /// True if we were the ones that created the channel.
     bool initiator = 18 [json_name = "initiator"];
 }
 
@@ -1465,8 +1493,11 @@ message QueryRoutesRequest {
     /// The amount to send expressed in satoshis
     int64 amt = 2;
 
-    /// The max number of routes to return.
-    int32 num_routes = 3;
+    /**
+    Deprecated. The max number of routes to return. In the future, QueryRoutes
+    will only return a single route.
+    */
+    int32 num_routes = 3 [deprecated = true]; 
 
     /// An optional CLTV delta from the current height that should be used for the timelock of the final hop
     int32 final_cltv_delta = 4;
@@ -1478,7 +1509,37 @@ message QueryRoutesRequest {
     send the payment.
     */
     FeeLimit fee_limit = 5;
+
+    /**
+    A list of nodes to ignore during path finding.
+    */
+    repeated bytes ignored_nodes = 6;
+
+    /**
+    A list of edges to ignore during path finding.
+    */
+    repeated EdgeLocator ignored_edges = 7;
+
+    /**
+    The source node where the request route should originated from. If empty,
+    self is assumed.
+    */
+    string source_pub_key = 8;
 }
+
+message EdgeLocator {
+    /// The short channel id of this edge.
+    uint64 channel_id = 1;
+
+    /**
+    The direction of this edge. If direction_reverse is false, the direction
+    of this edge is from the channel endpoint with the lexicographically smaller
+    pub key to the endpoint with the larger pub key. If direction_reverse is
+    is true, the edge goes the other way.
+    */
+    bool direction_reverse = 2;
+}
+
 message QueryRoutesResponse {
     repeated Route routes = 1 [json_name = "routes"];
 }
@@ -1597,6 +1658,7 @@ message RoutingPolicy {
     int64 fee_base_msat = 3 [json_name = "fee_base_msat"];
     int64 fee_rate_milli_msat = 4 [json_name = "fee_rate_milli_msat"];
     bool disabled = 5 [json_name = "disabled"];
+    uint64 max_htlc_msat = 6 [json_name = "max_htlc_msat"];
 }
 
 /**
@@ -1856,6 +1918,7 @@ message Invoice {
         OPEN = 0;
         SETTLED = 1;
         CANCELED = 2;
+        ACCEPTED = 3;
     }
 
     /**

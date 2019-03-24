@@ -1,11 +1,9 @@
-const decBase = 10;
-const {floor} = Math;
 const rateDivisor = 1e6;
 
 /** Fee for policy
 
   {
-    mtokens: <Millitokens Number>
+    mtokens: <Millitokens String>
     policy: {
       base_fee_mtokens: <Base Fee Millitokens String>
       fee_rate: <Fee Rate Number>
@@ -17,7 +15,7 @@ const rateDivisor = 1e6;
 
   @returns
   {
-    fee: <Fee Millitokens String>
+    fee_mtokens: <Fee Millitokens String>
   }
 */
 module.exports = ({mtokens, policy}) => {
@@ -33,8 +31,13 @@ module.exports = ({mtokens, policy}) => {
     throw new Error('ExpectedFeeRateForPolicyFeeCalculation');
   }
 
-  const baseFeeMtokens = parseInt(policy.base_fee_mtokens, decBase);
-  const feeRateMtokens = floor(mtokens * policy.fee_rate / rateDivisor);
+  const baseFeeMtokens = BigInt(policy.base_fee_mtokens);
+  const feeRate = BigInt(policy.fee_rate);
+  const forwardMtokens = BigInt(mtokens);
 
-  return {fee: baseFeeMtokens + feeRateMtokens};
+  const feeRateMtokens = forwardMtokens * feeRate / BigInt(rateDivisor);
+
+  const fee = baseFeeMtokens + feeRateMtokens;
+
+  return {fee_mtokens: fee.toString()};
 };
