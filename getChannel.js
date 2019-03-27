@@ -22,8 +22,7 @@ const {getChannel} = require('./');
     }]
     transaction_id: <Transaction Id Hex String>
     transaction_vout: <Transaction Output Index Number>
-    update_at: <Channel Last Updated At ISO 8601 Date String>
+    [updated_at]: <Channel Last Updated At ISO 8601 Date String>
   }
 */
 module.exports = promisify(getChannel);
-
