@@ -15,6 +15,7 @@ const decBase = 10;
     [log]: <Log Function> // Required if wss is set
     [out]: <Force Payment Through Outbound Standard Channel Id String>
     request: <BOLT 11 Payment Request String>
+    timeout: <Max CLTV Timeout Number>
     [tokens]: <Total Tokens To Pay to Request Number>
     [wss]: [<Web Socket Server Object>]
   }
@@ -39,7 +40,9 @@ const decBase = 10;
     type: <Row Type String>
   }
 */
-module.exports = ({fee, lnd, log, out, request, tokens, wss}, cbk) => {
+module.exports = (args, cbk) => {
+  const {fee, lnd, log, out, request, timeout, tokens, wss} = args;
+
   if (!lnd || !lnd.sendPaymentSync) {
     return cbk([400, 'ExpectedLndForPayingPaymentRequest']);
   }
@@ -68,6 +71,10 @@ module.exports = ({fee, lnd, log, out, request, tokens, wss}, cbk) => {
     } catch (err) {
       return cbk([400, 'UnexpectedFormatForOutgoingChannelId']);
     }
+  }
+
+  if (!!timeout) {
+    params.cltv_limit = timeout;
   }
 
   if (!!tokens) {
@@ -139,4 +146,3 @@ module.exports = ({fee, lnd, log, out, request, tokens, wss}, cbk) => {
     return cbk(null, row);
   });
 };
-

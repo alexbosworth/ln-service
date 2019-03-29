@@ -95,8 +95,10 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
+  await delay(3000);
+
   await addPeer({
-    lnd: cluster.control.lnd,
+    lnd,
     public_key: cluster.remote_node_public_key,
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
@@ -104,6 +106,8 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
   await delay(3000);
 
   const {request} = await createInvoice({lnd: cluster.remote.lnd, tokens});
+
+  await delay(5000);
 
   await pay({lnd, request});
 

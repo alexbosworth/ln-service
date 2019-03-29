@@ -8,6 +8,9 @@ const blockHashByteLen = 32;
     lnd: <Chain Notifier LND GRPC API Object>
   }
 
+  @throws
+  <Error>
+
   @returns
   <EventEmitter Object>
 
@@ -26,8 +29,13 @@ module.exports = ({lnd}) => {
   const sub = lnd.registerBlockEpochNtfn({});
 
   sub.on('end', () => eventEmitter.emit('end'));
-  sub.on('error', err => {});
   sub.on('status', n => eventEmitter.emit('status', n));
+
+  sub.on('error', err => {
+    eventEmitter.emit('error', new Error('UnexpectedErrInBlocksSubscription'));
+
+    return;
+  });
 
   sub.on('data', data => {
     if (!Buffer.isBuffer(data.hash)) {

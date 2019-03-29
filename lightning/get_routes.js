@@ -12,7 +12,7 @@ const {returnResult} = require('./../async-util');
 const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
 
-const defaultFinalCltvDelta = 144;
+const defaultFinalCltvDelta = 40;
 const defaultRoutesReturnCount = 10;
 const defaultTokens = 0;
 const mtokBuffer = '000';

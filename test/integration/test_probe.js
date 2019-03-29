@@ -48,6 +48,8 @@ test('Probe', async ({end, equal}) => {
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
+  await delay(3000);
+
   await addPeer({
     lnd,
     public_key: cluster.remote_node_public_key,

@@ -30,7 +30,11 @@ test('Get payments', async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await delay(3000);
+
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await delay(3000);
 
   const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
 
@@ -54,4 +58,3 @@ test('Get payments', async ({end, equal}) => {
 
   return end();
 });
-

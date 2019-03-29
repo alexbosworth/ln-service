@@ -47,6 +47,8 @@ const {signMessage} = require('./lightning');
 const {signTransaction} = require('./sign');
 const {stopDaemon} = require('./lightning');
 const {subscribeToBlocks} = require('./chain');
+const {subscribeToChainAddress} = require('./chain');
+const {subscribeToChainSpend} = require('./chain');
 const {subscribeToChannels} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoices} = require('./lightning');
@@ -105,6 +107,8 @@ module.exports = {
   signTransaction,
   stopDaemon,
   subscribeToBlocks,
+  subscribeToChainAddress,
+  subscribeToChainSpend,
   subscribeToChannels,
   subscribeToGraph,
   subscribeToInvoices,

@@ -1,5 +1,5 @@
 const defaultBaseFee = 1;
-const defaultCltvDelta = 144;
+const defaultCltvDelta = 40;
 const defaultFeeRate = 1;
 const feeRatio = 1e6;
 const tokensPerMTokens = 1e3;
@@ -8,7 +8,7 @@ const tokensPerMTokens = 1e3;
 
   {
     [base_fee_tokens]: <Base Fee Charged Tokens Number> // default: 1
-    [cltv_delta]: <CLTV Delta Number> // defaults to 144
+    [cltv_delta]: <CLTV Delta Number> // defaults to 40
     [fee_rate]: <Fee Rate In Millitokens Per Million Number> // default: 1
     lnd: <LND GRPC API Object>
     [transaction_id]: <Channel Transaction Id String>
@@ -51,4 +51,3 @@ module.exports = (args, cbk) => {
     return cbk();
   });
 };
-

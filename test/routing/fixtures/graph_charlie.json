@@ -7,13 +7,13 @@
       "policies": [
         {
           "base_fee_mtokens": "1000",
-          "cltv_delta": 144,
+          "cltv_delta": 40,
           "fee_rate": 1,
           "public_key": "origin"
         },
         {
           "base_fee_mtokens": "1000",
-          "cltv_delta": 144,
+          "cltv_delta": 40,
           "fee_rate": 2,
           "public_key": "alice"
         }
@@ -32,7 +32,7 @@
         },
         {
           "base_fee_mtokens": "2000",
-          "cltv_delta": 144,
+          "cltv_delta": 40,
           "fee_rate": 2,
           "public_key": "bob"
         }
@@ -45,7 +45,7 @@
       "policies": [
         {
           "base_fee_mtokens": "3000",
-          "cltv_delta": 144,
+          "cltv_delta": 40,
           "fee_rate": 3,
           "public_key": "charlie"
         },

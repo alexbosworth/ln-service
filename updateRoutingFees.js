@@ -6,7 +6,7 @@ const {updateRoutingFees} = require('./');
 
   {
     [base_fee_tokens]: <Base Fee Charged Tokens Number> // default: 1
-    [cltv_delta]: <CLTV Delta Number> // defaults to 144
+    [cltv_delta]: <CLTV Delta Number> // defaults to 40
     [fee_rate]: <Fee Rate In Millitokens Per Million Number> // default: 1
     lnd: <LND GRPC API Object>
     [transaction_id]: <Channel Transaction Id String>
@@ -14,4 +14,3 @@ const {updateRoutingFees} = require('./');
   }
 */
 module.exports = promisify(updateRoutingFees);
-

@@ -44,4 +44,3 @@ const {getRoutes} = require('./');
   }
 */
 module.exports = promisify(getRoutes);
-

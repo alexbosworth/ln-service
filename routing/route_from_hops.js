@@ -1,7 +1,7 @@
 const asTokens = require('./as_tokens');
 const policyFee = require('./policy_fee');
 
-const defaultCltvBuffer = 144;
+const defaultCltvBuffer = 40;
 const {isArray} = Array;
 const minCltv = 0;
 const minFee = 0;

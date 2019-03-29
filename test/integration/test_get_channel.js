@@ -43,7 +43,7 @@ test(`Get channel`, async ({end, equal}) => {
 
   details.policies.forEach(policy => {
     equal(policy.base_fee_mtokens, '1000', 'Base fee mtokens');
-    equal(policy.cltv_delta, 144, 'CLTV policy');
+    equal(policy.cltv_delta, 40, 'CLTV policy');
     equal(policy.fee_rate, 1, 'Fee rate');
     equal(policy.is_disabled, false, 'Disabled flag');
     equal(policy.min_htlc_mtokens, 1000, 'Min HTLC value');

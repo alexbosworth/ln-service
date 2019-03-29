@@ -45,6 +45,7 @@ const decBase = 10;
       }]
     }
     [request]: <BOLT 11 Payment Request String>
+    [timeout]: <Timeout Block Height Number>
     [tokens]: <Total Tokens To Pay to Payment Request Number>
     [wss]: [<Web Socket Server Object>]
   }
@@ -69,7 +70,9 @@ const decBase = 10;
     type: <Type String>
   }
 */
-module.exports = ({fee, lnd, log, out, path, request, tokens, wss}, cbk) => {
+module.exports = (args, cbk) => {
+  const {fee, lnd, log, out, path, request, timeout, tokens, wss} = args;
+
   if (!path && !request) {
     return cbk([400, 'ExpectedPathOrRequestToPay']);
   }
@@ -88,7 +91,17 @@ module.exports = ({fee, lnd, log, out, path, request, tokens, wss}, cbk) => {
 
   // Exit early when the invoice is defined
   if (!path) {
-    return payPaymentRequest({fee, lnd, log, out, request, tokens, wss}, cbk);
+    return payPaymentRequest({
+      fee,
+      lnd,
+      log,
+      out,
+      request,
+      timeout,
+      tokens,
+      wss,
+    },
+    cbk);
   }
 
   try {
@@ -104,6 +117,7 @@ module.exports = ({fee, lnd, log, out, path, request, tokens, wss}, cbk) => {
     payment_hash_string: path.id,
     routes: path.routes
       .filter(route => fee === undefined || route.fee <= fee)
+      .filter(route => timeout === undefined || route.timeout <= timeout)
       .map(route => {
         return {
           hops: route.hops.map(hop => {

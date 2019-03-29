@@ -96,7 +96,7 @@ const tests = [
   },
   {
     args: {
-      height: 144,
+      height: 40,
       hops: [
         {
           base_fee_mtokens: '1000',
@@ -138,7 +138,7 @@ const tests = [
           forward: 2000009,
           forward_mtokens: '2000009000',
           public_key: 'b',
-          timeout: 432,
+          timeout: 224,
         },
         {
           channel: '1',
@@ -148,7 +148,7 @@ const tests = [
           forward: 2000000,
           forward_mtokens: '2000000000',
           public_key: 'c',
-          timeout: 288,
+          timeout: 80,
         },
         {
           channel: '2',
@@ -158,11 +158,11 @@ const tests = [
           forward: 2000000,
           forward_mtokens: '2000000000',
           public_key: 'd',
-          timeout: 288,
+          timeout: 80,
         },
       ],
       mtokens: '2000015000',
-      timeout: 576,
+      timeout: 368,
       tokens: 2000015,
     },
   },
@@ -177,4 +177,3 @@ tests.forEach(({args, description, expected}) => {
     return end();
   });
 });
-

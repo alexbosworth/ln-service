@@ -97,14 +97,14 @@ test(`Pay`, async ({deepIs, end, equal}) => {
       channel_capacity: 999000,
       fee_mtokens: '1000',
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
-      timeout: 646,
+      timeout: 542,
     },
     {
       channel: '463x1x0',
       channel_capacity: 999000,
       fee_mtokens: '0',
       forward_mtokens: '100000',
-      timeout: 646,
+      timeout: 542,
     },
   ];
 

@@ -49,9 +49,11 @@ test(`Get routes`, async ({end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(1000);
+  await delay(3000);
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await delay(3000);
 
   await addPeer({
     lnd,
@@ -97,7 +99,7 @@ test(`Get routes`, async ({end, equal}) => {
         base_fee_mtokens: '1000',
         channel: remoteChannel.id,
         channel_capacity: remoteChannel.capacity,
-        cltv_delta: 144,
+        cltv_delta: 40,
         fee_rate: 1,
         public_key: cluster.remote_node_public_key,
       },
@@ -108,14 +110,14 @@ test(`Get routes`, async ({end, equal}) => {
   const currentHeight = await getWalletInfo({lnd});
 
   const fullRoute = routeFromHops({
-    cltv: 144,
+    cltv: 40,
     height: (await getWalletInfo({lnd})).current_block_height,
     hops: [
       {
         base_fee_mtokens: '1000',
         channel: targetChannel.id,
         channel_capacity: targetChannel.capacity,
-        cltv_delta: 144,
+        cltv_delta: 40,
         fee_rate: 1,
         public_key: targetChannel.partner_public_key,
       },
@@ -123,7 +125,7 @@ test(`Get routes`, async ({end, equal}) => {
         base_fee_mtokens: '1000',
         channel: remoteChannel.id,
         channel_capacity: remoteChannel.capacity,
-        cltv_delta: 144,
+        cltv_delta: 40,
         fee_rate: 1,
         public_key: cluster.remote_node_public_key,
       },

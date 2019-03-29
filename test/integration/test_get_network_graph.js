@@ -33,7 +33,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(5000);
+  await delay(3000);
 
   const graph = await getNetworkGraph({lnd});
 
@@ -50,7 +50,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
 
   channel.policies.forEach(policy => {
     equal(policy.base_fee_mtokens, '1000', 'Default channel base fee');
-    equal(policy.cltv_delta, 144, 'Default channel CLTV delta');
+    equal(policy.cltv_delta, 40, 'Default channel CLTV delta');
     equal(policy.fee_rate, 1, 'Default channel fee rate');
     equal(policy.is_disabled, false, 'Channels are active');
     equal(policy.min_htlc_mtokens, '1000', 'Default min htlc value');

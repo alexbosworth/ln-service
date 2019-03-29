@@ -25,7 +25,7 @@ const formats = {np2wpkh: 'NESTED_PUBKEY_HASH', p2wpkh: 'WITNESS_PUBKEY_HASH'};
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd) {
+  if (!args.lnd || !args.lnd.listUnspent) {
     return cbk([400, 'ExpectedLndToGetUtxos']);
   }
 
