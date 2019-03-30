@@ -15,6 +15,7 @@ const tokens = 1e6;
 // Subscribing to chain spend should push events on spend confirmations
 test(`Subscribe to chain spend`, async ({end, equal}) => {
   const cluster = await createCluster({});
+  let gotAddressConf = false;
 
   const {address} = await createChainAddress({
     format,
@@ -45,7 +46,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
     equal(!!transaction, true, 'Raw transaction is returned');
     equal(vin, 0, 'Transaction input index is returned');
 
-    return end();
+    return gotAddressConf = true;
   });
 
   const toTarget = await createChainAddress({format, lnd: cluster.target.lnd});
@@ -57,9 +58,11 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
   });
 
   // Generate to confirm the tx
-  await cluster.generate({count: 1, node: cluster.control});
+  await cluster.generate({count: confirmationCount, node: cluster.control});
 
   await cluster.kill({});
 
-  return;
+  equal(gotAddressConf, true, 'Subscribe to address sees confirmation');
+
+  return end();
 });

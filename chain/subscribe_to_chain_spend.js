@@ -5,7 +5,7 @@ const scriptFromChainAddress = require('./script_from_chain_address');
 
 /** Subscribe to confirmations of a spend
 
-  A chain address is required or a transaction id and transaction vout, or both
+  A chain address is required
 
   {
     [bech32_address]: <Address String>
@@ -36,9 +36,7 @@ const scriptFromChainAddress = require('./script_from_chain_address');
 */
 module.exports = args => {
   if (!args.bech32_address && !args.p2sh_address && !args.p2pkh_address) {
-    if (!args.transaction_id || args.transaction_vout === undefined) {
-      throw new Error('ExpectedChainAddressToSubscribeToSpendConfirmations');
-    }
+    throw new Error('ExpectedChainAddressToSubscribeToSpendConfirmations');
   }
 
   if (!args.lnd || !args.lnd.registerSpendNtfn) {
@@ -59,7 +57,7 @@ module.exports = args => {
 
   const subscription = args.lnd.registerSpendNtfn({
     outpoint: {
-      hash: Buffer.from(args.transaction_id || dummyTxId, 'hex'),
+      hash: Buffer.from(args.transaction_id || dummyTxId, 'hex').reverse(),
       index: args.transaction_vout || 0,
     },
     height_hint: args.min_height || 0,
