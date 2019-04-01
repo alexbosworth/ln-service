@@ -52,7 +52,7 @@ const pathNotFoundErrors = [
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
-    [timeout]: <CLTV Timeout Blocks Delta Number>
+    [timeout]: <Final CLTV Delta Number>
     [tokens]: <Tokens to Send Number>
   }
 
@@ -302,10 +302,6 @@ module.exports = (args, cbk) => {
     assembledRoutes: ['assemble', ({assemble}, cbk) => {
       const routes = flatten(assemble).filter(route => {
         if (!!args.fee && route.fee > args.fee) {
-          return false;
-        }
-
-        if (!!args.timeout && route.timeout > args.timeout) {
           return false;
         }
 
