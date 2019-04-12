@@ -60,6 +60,7 @@ const {subscribeToChainAddress} = require('./chain');
 const {subscribeToChainSpend} = require('./chain');
 const {subscribeToChannels} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
+const {subscribeToInvoice} = require('./invoices');
 const {subscribeToInvoices} = require('./lightning');
 const {subscribeToTransactions} = require('./lightning');
 const {unlockWallet} = require('./lightning');
@@ -131,6 +132,7 @@ module.exports = {
   subscribeToChainSpend,
   subscribeToChannels,
   subscribeToGraph,
+  subscribeToInvoice,
   subscribeToInvoices,
   subscribeToTransactions,
   unlockWallet,

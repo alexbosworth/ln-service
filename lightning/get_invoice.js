@@ -18,19 +18,23 @@ const mtokensPerToken = new BN(1e3, 10);
 
   @returns via cbk
   {
+    chain_address: <Fallback Chain Address String>
+    [confirmed_at]: <Settled at ISO 8601 Date String>
+    created_at: <ISO 8601 Date String>
     description: <Description String>
+    description_hash: <Description Hash Hex String>
     expires_at: <ISO 8601 Date String>
-    id: <Invoice Id String>
-    [is_accepted]: <Is Accepted Bool>
-    is_confirmed: <Is Finalized Bool>
-    is_outgoing: <Is Outgoing Bool>
-    is_private: <Is a Private Invoice Bool>
-    mtokens: <Millitokens String>
+    id: <Payment Hash String>
+    [is_canceled]: <Invoice is Canceled Bool>
+    is_confirmed: <Invoice is Confirmed Bool>
+    [is_held]: <HTLC is Held Bool>
+    is_outgoing: <Invoice is Outgoing Bool>
+    is_private: <Invoice is Private Bool>
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
-    request: <BOLT 11 Encoded Payment Request String>
-    secret: <Hex Encoded Payment Secret Preimage String>
-    [tokens]: <Tokens Number>
+    request: <Bolt 11 Invoice String>
+    secret: <Secret Preimage Hex String>
+    tokens: <Tokens Number>
     type: <Type String>
   }
 */
@@ -72,11 +76,13 @@ module.exports = ({id, lnd}, cbk) => {
 
     return cbk(null, {
       id,
+      chain_address: response.fallback_addr || undefined,
+      cltv_delta: parseInt(response.cltv_expiry, decBase),
       description: response.memo,
       expires_at: new Date(expiryDateMs).toISOString(),
-      is_accepted: response.state === 'ACCEPTED' || undefined,
-      is_canceled: !!response.canceled,
+      is_canceled: response.state === 'CANCELED' || undefined,
       is_confirmed: response.settled,
+      is_held: response.state === 'ACCEPTED' || undefined,
       is_outgoing: false,
       is_private: response.private,
       mtokens: tokens.mul(mtokensPerToken).toString(decBase),

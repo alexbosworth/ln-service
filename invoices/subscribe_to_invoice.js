@@ -1,36 +1,64 @@
 const EventEmitter = require('events');
 
-const rowTypes = require('./conf/row_types');
-
 const decBase = 10;
 const msPerSec = 1e3;
 
-/** Subscribe to invoices
+/** Subscribe to an invoice
 
   {
+    id: <Invoice Payment Hash Hex String>
     lnd: <LND GRPC API Object>
   }
+
+  @throws
+  <Error>
 
   @returns
   <EventEmitter Object>
 
   @on(data)
   {
-    [confirmed_at]: <Confirmed At ISO 8601 Date String>
-    created_at: <Created At ISO 8601 Date String>
+    chain_address: <Fallback Chain Address String>
+    [confirmed_at]: <Settled at ISO 8601 Date String>
+    created_at: <ISO 8601 Date String>
     description: <Description String>
-    expires_at: <Expires At ISO 8601 Date String>
-    id: <Invoice Id Hex String>
+    description_hash: <Description Hash Hex String>
+    expires_at: <ISO 8601 Date String>
+    id: <Payment Hash String>
+    [is_canceled]: <Invoice is Canceled Bool>
     is_confirmed: <Invoice is Confirmed Bool>
+    [is_held]: <HTLC is Held Bool>
     is_outgoing: <Invoice is Outgoing Bool>
-    secret: <Payment Secret Hex String>
+    is_private: <Invoice is Private Bool>
+    received: <Received Tokens Number>
+    received_mtokens: <Received Millitokens String>
+    request: <Bolt 11 Invoice String>
+    routes: [[{
+      base_fee_mtokens: <Base Routing Fee In Millitokens Number>
+      channel: <Standard Format Channel Id String>
+      cltv_delta: <CLTV Blocks Delta Number>
+      fee_rate: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Public Key Hex String>
+    }]]
+    secret: <Secret Preimage Hex String>
     tokens: <Tokens Number>
-    type: <Row Type String>
+    type: <Type String>
   }
 */
-module.exports = ({lnd}) => {
+module.exports = ({id, lnd}) => {
+  if (!id) {
+    throw new Error('ExpectedIdOfInvoiceToSubscribeTo');
+  }
+
+  if (!lnd || !lnd.subscribeSingleInvoice) {
+    throw new Error('ExpectedInvoiceLndToSubscribeToSingleInvoice');
+  }
+
   const eventEmitter = new EventEmitter();
-  const subscription = lnd.subscribeInvoices({});
+
+  const subscription = lnd.subscribeSingleInvoice({
+    r_hash: Buffer.from(id, 'hex'),
+  });
 
   subscription.on('data', invoice => {
     if (!invoice) {
@@ -86,18 +114,22 @@ module.exports = ({lnd}) => {
     const expiresAt = createdAt + parseInt(invoice.expiry);
 
     return eventEmitter.emit('data', {
+      cltv_delta: parseInt(invoice.cltv_expiry, decBase),
       confirmed_at: !invoice.settled ? undefined : confirmed,
       created_at: new Date(createdAt * msPerSec).toISOString(),
       description: invoice.memo || '',
       expires_at: new Date(expiresAt * msPerSec).toISOString(),
       id: invoice.r_hash.toString('hex'),
+      is_canceled: invoice.state === 'CANCELED' || undefined,
       is_confirmed: invoice.settled,
+      is_held: invoice.state === 'ACCEPTED' || undefined,
       is_outgoing: false,
+      is_private: invoice.private,
       secret: invoice.r_preimage.toString('hex'),
       tokens: parseInt(invoice.value, decBase),
       received: parseInt(invoice.amt_paid_sat, decBase),
       received_mtokens: invoice.amt_paid_msat,
-      type: rowTypes.channel_transaction,
+      type: 'invoice',
     });
   });
 

@@ -52,10 +52,10 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
 
     const invoice = await getInvoice({id, lnd: cluster.target.lnd});
 
-    equal(created.is_accepted, true, 'invoices shows HTLC locked in place');
     equal(created.is_confirmed, false, 'invoices shows not yet been settled');
-    equal(invoice.is_accepted, true, 'HTLC is locked in place');
+    equal(created.is_held, true, 'invoices shows HTLC locked in place');
     equal(invoice.is_confirmed, false, 'HTLC has not yet been settled');
+    equal(invoice.is_held, true, 'HTLC is locked in place');
 
     await cancelHodlInvoice({id, lnd: cluster.target.invoices_lnd});
 
