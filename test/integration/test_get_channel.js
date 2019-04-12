@@ -7,6 +7,7 @@ const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
 
 const confirmationCount = 20;
+const {ceil} = Math;
 
 // Getting a channel should return channel details from the channel graph
 test(`Get channel`, async ({end, equal}) => {
@@ -14,7 +15,7 @@ test(`Get channel`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(3000);
+  await delay(1000);
 
   await openChannel({
     lnd,
@@ -22,15 +23,15 @@ test(`Get channel`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(1000);
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(3000);
+  await delay(1000);
 
   const {channels} = await getChannels({lnd});
 
-  await delay(3000);
+  await delay(1000);
 
   const [channel] = channels;
 
@@ -46,7 +47,8 @@ test(`Get channel`, async ({end, equal}) => {
     equal(policy.cltv_delta, 40, 'CLTV policy');
     equal(policy.fee_rate, 1, 'Fee rate');
     equal(policy.is_disabled, false, 'Disabled flag');
-    equal(policy.min_htlc_mtokens, 1000, 'Min HTLC value');
+    equal(policy.max_htlc_mtokens, `${ceil(details.capacity * 0.99)}000`);
+    equal(policy.min_htlc_mtokens, '1000', 'Min HTLC value');
     equal(policy.public_key.length, 66, 'Policy public key');
 
     return;

@@ -37,7 +37,9 @@ const startWalletTimeoutMs = 4500;
 
 /** Spawn an lnd instance
 
-  {}
+  {
+    [seed]: <Seed Phrase String>
+  }
 
   @returns via cbk
   {
@@ -56,10 +58,11 @@ const startWalletTimeoutMs = 4500;
     lnd_macaroon: <LND Base64 Encoded Authentication Macaroon String>
     lnd_socket: <LND RPC Socket String>
     mining_key: <Mining Rewards Private Key WIF Encoded String>
+    seed: <Node Seed Phrase String>
     wallet_lnd: <Wallet LND GRPC API Object>
   }
 */
-module.exports = ({network}, cbk) => {
+module.exports = ({seed}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
@@ -201,6 +204,11 @@ module.exports = ({network}, cbk) => {
       'spawnChainDaemon',
       ({getPorts, nonAuthenticatedLnd, spawnChainDaemon}, cbk) =>
     {
+      // Exit early when a seed is pre-supplied
+      if (!!seed) {
+        return cbk(null, {seed});
+      }
+
       return asyncRetry(retryCreateSeedCount, cbk => {
         const {dir} = spawnChainDaemon;
 
@@ -381,6 +389,7 @@ module.exports = ({network}, cbk) => {
       lnd_macaroon: res.wallet.macaroon,
       lnd_socket: res.wallet.host,
       mining_key: res.miningKey.private_key,
+      seed: res.createSeed.seed,
       signer_lnd: res.signerLnd,
       wallet_lnd: res.walletLnd,
     });

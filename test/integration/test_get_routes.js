@@ -43,6 +43,7 @@ test(`Get routes`, async ({end, equal}) => {
 
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
+    give_tokens: Math.round(channelCapacityTokens / 2),
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.remote_node_public_key,
@@ -54,6 +55,8 @@ test(`Get routes`, async ({end, equal}) => {
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
   await delay(3000);
+
+  const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
   await addPeer({
     lnd,
@@ -73,15 +76,33 @@ test(`Get routes`, async ({end, equal}) => {
 
   const {routes} = await getRoutes({destination, lnd, tokens});
 
+  const backwardsRoutes = await getRoutes({
+    lnd,
+    tokens,
+    destination: (await getWalletInfo({lnd})).public_key,
+    start: cluster.remote_node_public_key,
+  });
+
+  equal(backwardsRoutes.routes.length, 1, 'Route can be calculated backwards');
+
   const ignorePath = await getRoutes({destination, lnd, tokens,
     ignore: [{
-      channel: '463x1x0',
+      channel: remoteChan.id,
       from_public_key: cluster.target_node_public_key,
       to_public_key: cluster.remote_node_public_key,
     }],
   });
 
   equal(ignorePath.routes.length, [].length, 'Ignore path removes from paths');
+
+  const ignoreNodes = await getRoutes({
+    destination,
+    lnd,
+    tokens,
+    ignore: [{from_public_key: cluster.target_node_public_key}],
+  });
+
+  equal(ignoreNodes.routes.length, [].length, 'Ignore nodes ignores nodes');
 
   const controlChans = (await getChannels({lnd})).channels;
   const remoteChans = (await getChannels({lnd: cluster.remote.lnd})).channels;

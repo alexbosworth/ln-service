@@ -16,7 +16,7 @@ const weightPerVByte = 4;
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd) {
+  if (!args.lnd || !args.lnd.estimateFee) {
     return cbk([400, 'ExpectedWalletLndToGetFeeEstimate']);
   }
 

@@ -2,22 +2,18 @@ const config = require('dotenv').config(); // Needed for .env support
 const {existsSync} = require('fs');
 const {join} = require('path');
 const {readFileSync} = require('fs');
-const {lookup} = require('dns-sync');
 
 const {lightningDaemon} = require('./../lightning');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainDirName = 'chain';
 const dataDirName = 'data';
-const host = process.env.LND_HOST || 'localhost';
-const isIp = /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/;
+const host = process.env.LND_HOST || '127.0.0.1';
 const lndGrpcPort = process.env.LND_GRPC_PORT || 10009;
 const {LNSERVICE_CHAIN} = process.env;
 const {LNSERVICE_LND_DIR} = process.env;
 const {LNSERVICE_NETWORK} = process.env;
 const tlsCertFileName = 'tls.cert';
-
-const lndHost = isIp.test(host) ? host : lookup(host);
 
 /** Get the Lightning Daemon connection
 
@@ -47,7 +43,7 @@ module.exports = args => {
   }
 
   const certPath = join(LNSERVICE_LND_DIR, tlsCertFileName);
-  const socket = `${lndHost}:${lndGrpcPort}`;
+  const socket = `${host}:${lndGrpcPort}`;
 
   if (!existsSync(certPath)) {
     throw new Error('ExpectedTlsCert');
@@ -77,4 +73,3 @@ module.exports = args => {
 
   return lightningDaemon({cert, macaroon, socket});
 };
-

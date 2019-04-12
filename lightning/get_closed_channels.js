@@ -30,7 +30,7 @@ const outpointSeparator = ':';
       is_cooperative_close: <Is Cooperative Close Bool>
       is_funding_cancel: <Is Funding Cancelled Close Bool>
       is_local_force_close: <Is Local Force Close Bool>
-      is_remote_force_close: <Is Remote Force close Bool>
+      is_remote_force_close: <Is Remote Force Close Bool>
       partner_public_key: <Partner Public Key Hex String>
       transaction_id: <Channel Funding Transaction Id Hex String>
       transaction_vout: <Channel Funding Output Index Number>

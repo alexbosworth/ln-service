@@ -19,7 +19,7 @@ const tokens = 100;
 test('Get forwards', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
-  await delay(3000);
+  await delay(2000);
 
   const controlToTargetChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -29,7 +29,7 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
@@ -41,11 +41,11 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await delay(2000);
 
   await addPeer({
     lnd: cluster.control.lnd,
@@ -53,7 +53,7 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   for (let i = 0, lnd = cluster.remote.lnd; i < 3; i++) {
     await pay({
@@ -146,4 +146,3 @@ test('Get forwards', async ({deepIs, end, equal}) => {
 
   return end();
 });
-

@@ -24,6 +24,7 @@ const outpointSeparatorChar = ':';
         [cltv_delta]: <CLTV Height Delta Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         [is_disabled]: <Edge is Disabled Bool>
+        [max_htlc_mtokens]: <Maximum HTLC Millitokens String>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
         public_key: <Public Key String>
       }]
@@ -97,6 +98,7 @@ module.exports = ({lnd}, cbk) => {
             cltv_delta: policy.time_lock_delta,
             fee_rate: parseInt(policy.fee_rate_milli_msat, decBase),
             is_disabled: !!policy.disabled,
+            max_htlc_mtokens: policy.max_htlc_msat,
             min_htlc_mtokens: policy.min_htlc,
           };
         });

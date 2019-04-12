@@ -26,6 +26,21 @@ test(`Create address results in address creation`, async ({end, equal}) => {
   equal(np2wpkh.type, chainAddressRowType, 'Nested row type');
   equal(p2wpkh.type, chainAddressRowType, 'Native row type');
 
+  const unusedNp2wpkh = await createChainAddress({
+    lnd,
+    format: 'np2wpkh',
+    is_unused: true,
+  });
+
+  const unusedP2wpkh = await createChainAddress({
+    lnd,
+    format: 'p2wpkh',
+    is_unused: true,
+  });
+
+  equal(np2wpkh.address, unusedNp2wpkh.address, 'Nested is reused');
+  equal(p2wpkh.address, unusedP2wpkh.address, 'Native is reused');
+
   kill();
 
   await delay(3000);

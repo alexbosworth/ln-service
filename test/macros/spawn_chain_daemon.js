@@ -58,7 +58,7 @@ module.exports = (args, cbk) => {
           return;
         }
 
-        console.log(`${data}`)
+        console.log(`${data}`);
       });
 
       res.daemon.on('close', code => removeDir(dir, () => {}));

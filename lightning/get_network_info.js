@@ -16,6 +16,7 @@ const decBase = 10;
     average_channel_size: <Tokens Number>
     channel_count: <Channels Count Number>
     max_channel_size: <Tokens Number>
+    [median_channel_size]: <Median Channel Tokens Number>
     min_channel_size: <Tokens Number>
     node_count: <Node Count Number>
     total_capacity: <Total Capacity Number>
@@ -56,10 +57,13 @@ module.exports = ({lnd}, cbk) => {
       return cbk([503, 'ExpectedMaxChannelSize']);
     }
 
+    const medianChannelSize = networkInfo.median_channel_size_sat || '0';
+
     return cbk(null, {
       average_channel_size: networkInfo.avg_channel_size,
       channel_count: networkInfo.num_channels,
       max_channel_size: parseInt(networkInfo.max_channel_size, decBase),
+      median_channel_size: parseInt(medianChannelSize, decBase) || undefined,
       min_channel_size: parseInt(networkInfo.min_channel_size, decBase),
       node_count: networkInfo.num_nodes,
       total_capacity: parseInt(networkInfo.total_network_capacity, decBase),
@@ -67,4 +71,3 @@ module.exports = ({lnd}, cbk) => {
     });
   });
 };
-

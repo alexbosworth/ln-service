@@ -7,6 +7,7 @@ const connectFailMessage = '14 UNAVAILABLE: Connect Failed';
 
   {
     format: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
+    [is_unused]: <Get As-Yet Unused Address Bool>
     lnd: <LND GRPC API Object>
   }
 
@@ -16,16 +17,18 @@ const connectFailMessage = '14 UNAVAILABLE: Connect Failed';
     type: <Row Type String>
   }
 */
-module.exports = ({format, lnd}, cbk) => {
-  if (!format || addressFormats[format] === undefined) {
+module.exports = (args, cbk) => {
+  if (!args.format || addressFormats[args.format] === undefined) {
     return cbk([400, 'ExpectedKnownAddressFormat']);
   }
 
-  if (!lnd || !lnd.newAddress) {
+  if (!args.lnd || !args.lnd.newAddress) {
     return cbk([400, 'ExpectedLndForAddressCreation']);
   }
 
-  return lnd.newAddress({type: addressFormats[format]}, (err, response) => {
+  const type = addressFormats[(!args.is_unused ? '': 'unused_') + args.format];
+
+  return args.lnd.newAddress({type}, (err, response) => {
     if (!!err && err.message === connectFailMessage) {
       return cbk([503, 'FailedToConnectToDaemonToCreateChainAddress', err]);
     }
@@ -48,4 +51,3 @@ module.exports = ({format, lnd}, cbk) => {
     });
   });
 };
-

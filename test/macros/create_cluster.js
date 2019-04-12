@@ -2,6 +2,7 @@ const {promisify} = require('util');
 const {readFileSync} = require('fs');
 
 const asyncAuto = require('async/auto');
+const asyncEach = require('async/each');
 const asyncRetry = require('async/retry');
 
 const {addPeer} = require('./../../');
@@ -19,12 +20,21 @@ const format = 'np2wpkh';
 const maturityBlockCount = 429;
 const retryMs = 200;
 const retryTimes = 10;
+const seed = 'abandon tank dose ripple foil subway close flock laptop cabbage primary silent plastic unhappy west weird panda plastic brave prefer diesel glad jazz isolate';
 const tokens = 1e8;
 
 /** Create a cluster of lnds
 
   {
-    [is_remote_skipped]: <Is Remote Node Creation Skipped BooL>
+    [is_remote_skipped]: <Is Remote Node Creation Skipped Bool>
+    [nodes]: [{
+      chain_rpc_cert: <RPC Cert Path String>
+      chain_rpc_pass: <Chain RPC Password String>
+      chain_rpc_port: <RPC Port Number>
+      chain_rpc_user: <Chain RPC Username String>
+      kill: <Kill Function>
+      listen_ip: <Listen Ip String>
+    }]
   }
 
   @returns via cbk
@@ -50,7 +60,7 @@ const tokens = 1e8;
 module.exports = (args, cbk) => {
   return asyncAuto({
     // Create control lnd
-    control: cbk => spawnLnd({}, cbk),
+    control: cbk => spawnLnd({seed}, cbk),
 
     // Create target lnd
     target: cbk => spawnLnd({}, cbk),
@@ -116,6 +126,21 @@ module.exports = (args, cbk) => {
         pass: control.chain_rpc_pass,
         port: control.chain_rpc_port,
         user: control.chain_rpc_user,
+      },
+      cbk);
+    }],
+
+    connectExtra: ['target', ({target}, cbk) => {
+      return asyncEach(args.nodes || [], (node, cbk) => {
+        return connectChainNode({
+          cert: readFileSync(node.chain_rpc_cert),
+          connect: `${target.listen_ip}:${target.chain_listen_port}`,
+          host: node.listen_ip,
+          pass: node.chain_rpc_pass,
+          port: node.chain_rpc_port,
+          user: node.chain_rpc_user,
+        },
+        cbk);
       },
       cbk);
     }],
@@ -306,9 +331,11 @@ module.exports = (args, cbk) => {
     const {target} = res;
 
     const kill = promisify((args, cbk) => {
-      [control, remote, target].filter(n => !!n).forEach(({kill}) => kill());
+      const nodes = [control, remote, target].concat(args.nodes);
 
-      return setTimeout(() => cbk(), 5000);
+      nodes.filter(n => !!n).forEach(({kill}) => kill());
+
+      return setTimeout(() => cbk(), 4000);
     });
 
     const generate = promisify((args, cbk) => {
@@ -334,4 +361,3 @@ module.exports = (args, cbk) => {
     });
   });
 };
-

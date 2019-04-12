@@ -69,4 +69,3 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   return end();
 });
-

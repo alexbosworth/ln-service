@@ -10,7 +10,7 @@ const {getUtxos} = require('./');
     [min_confirmations]: <Minimum Confirmations Number>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     utxos: [{
       address: <Chain Address String>

@@ -11,6 +11,7 @@ const scriptFromChainAddress = require('./script_from_chain_address');
     [bech32_address]: <Address String>
     lnd: <Chain RPC LND gRPC API Object>
     [min_height]: <Minimum Transaction Inclusion Blockchain Height Number>
+    [output_script]: <Output Script Hex String>
     [p2pkh_address]: <Address String>
     [p2sh_address]: <Address String>
     [transaction_id]: <Blockchain Transaction Id Hex String>
@@ -35,10 +36,6 @@ const scriptFromChainAddress = require('./script_from_chain_address');
   }
 */
 module.exports = args => {
-  if (!args.bech32_address && !args.p2sh_address && !args.p2pkh_address) {
-    throw new Error('ExpectedChainAddressToSubscribeToSpendConfirmations');
-  }
-
   if (!args.lnd || !args.lnd.registerSpendNtfn) {
     return cbk([400, 'ExpectedLndGrpcApiToSubscribeToSpendConfirmations']);
   }
@@ -49,7 +46,7 @@ module.exports = args => {
     p2sh_address: args.p2sh_address,
   });
 
-  if (!script) {
+  if (!script && !args.output_script) {
     throw new Error('ExpectedRecognizedAddressFormatToWatchForSpend');
   }
 
@@ -61,7 +58,7 @@ module.exports = args => {
       index: args.transaction_vout || 0,
     },
     height_hint: args.min_height || 0,
-    script: Buffer.from(script, 'hex'),
+    script: Buffer.from(script || args.output_script, 'hex'),
   });
 
   subscription.on('end', () => eventEmitter.emit('end'));

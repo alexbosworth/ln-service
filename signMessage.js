@@ -9,10 +9,9 @@ const {signMessage} = require('./');
     message: <Message String>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     signature: <Signature String>
   }
 */
 module.exports = promisify(signMessage);
-

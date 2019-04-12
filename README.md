@@ -93,7 +93,10 @@ the LND directory. (~/.lnd or ~/Library/Application Support/Lnd)
     base64 tls.cert
     base64 data/chain/bitcoin/mainnet/admin.macaroon
 
-Be careful to avoid copying any newline characters.
+Be careful to avoid copying any newline characters. To exclude them:
+
+    base64 ~/.lnd/tls.cert | tr -d '\n'
+    base64 ~/.lnd/data/chain/bitcoin/mainnet/admin.macaroon | tr -d '\n'
 
 You can then interact with your LND node directly:
 

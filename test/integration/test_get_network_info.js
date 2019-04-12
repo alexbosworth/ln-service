@@ -24,4 +24,3 @@ test(`Get network info`, async ({end, equal}) => {
 
   return end();
 });
-

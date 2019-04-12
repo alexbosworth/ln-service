@@ -8,6 +8,7 @@ const getChannel = require('./get_channel');
 const getWalletInfo = require('./get_wallet_info');
 const {hopsFromChannels} = require('./../routing');
 const {ignoreAsIgnoredEdges} = require('./../routing');
+const {ignoreAsIgnoredNodes} = require('./../routing');
 const {returnResult} = require('./../async-util');
 const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
@@ -52,6 +53,7 @@ const pathNotFoundErrors = [
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
+    [start]: <Starting Node Public Key Hex String>
     [timeout]: <Final CLTV Delta Number>
     [tokens]: <Tokens to Send Number>
   }
@@ -101,6 +103,10 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedArrayOfRoutesForRouteQuery']);
       }
 
+      if (!!args.routes && !!args.start) {
+        return cbk([400, 'ExpectedNoRoutesSetWhenSpecifyingStartingPubKey']);
+      }
+
       return cbk();
     },
 
@@ -129,8 +135,10 @@ module.exports = (args, cbk) => {
           fee_limit: !args.fee ? undefined : {fee_limit: args.fee},
           final_cltv_delta: args.timeout || defaultFinalCltvDelta,
           ignored_edges: ignoreAsIgnoredEdges({ignore: args.ignore}).ignored,
+          ignored_nodes: ignoreAsIgnoredNodes({ignore: args.ignore}).ignored,
           num_routes: args.limit || defaultRoutesReturnCount,
           pub_key: firstHop.public_key,
+          source_pub_key: args.start || undefined,
         },
         (err, response) => {
           // Exit early when an error indicates that no routes are possible

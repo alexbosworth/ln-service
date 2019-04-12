@@ -21,6 +21,7 @@ const mtokensPerToken = new BN(1e3, 10);
     description: <Description String>
     expires_at: <ISO 8601 Date String>
     id: <Invoice Id String>
+    [is_accepted]: <Is Accepted Bool>
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
     is_private: <Is a Private Invoice Bool>
@@ -73,8 +74,9 @@ module.exports = ({id, lnd}, cbk) => {
       id,
       description: response.memo,
       expires_at: new Date(expiryDateMs).toISOString(),
+      is_accepted: response.state === 'ACCEPTED' || undefined,
       is_canceled: !!response.canceled,
-      is_confirmed: response.settled || response.accepted,
+      is_confirmed: response.settled,
       is_outgoing: false,
       is_private: response.private,
       mtokens: tokens.mul(mtokensPerToken).toString(decBase),

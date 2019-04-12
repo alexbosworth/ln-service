@@ -111,4 +111,3 @@ module.exports = ({lnd}, cbk) => {
     });
   });
 };
-

@@ -20,6 +20,7 @@ const {ceil} = Math;
       bytes_received: <Bytes Received Number>
       bytes_sent: <Bytes Sent Number>
       is_inbound: <Is Inbound Peer Bool>
+      [is_sync_peer]: <Is Syncing Graph Data Bool>
       ping_time: <Milliseconds Number>
       public_key: <Public Key String>
       socket: <Network Address And Port String>
@@ -75,10 +76,27 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedSatSent']);
         }
 
+        let isSyncPeer;
+
+        switch (peer.sync_type) {
+        case 'ACTIVE_SYNC':
+          isSyncPeer = true;
+          break;
+
+        case 'PASSIVE_SYNC':
+          isSyncPeer = false;
+          break;
+
+        default:
+          isSyncPeer = undefined;
+          break;
+        }
+
         return cbk(null, {
           bytes_received: parseInt(peer.bytes_recv, decBase),
           bytes_sent: parseInt(peer.bytes_sent, decBase),
           is_inbound: peer.inbound,
+          is_sync_peer: isSyncPeer,
           ping_time: ceil(parseInt(peer.ping_time, decBase) / microPerMilli),
           public_key: peer.pub_key,
           socket: peer.address,

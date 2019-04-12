@@ -14,6 +14,7 @@ const {getInvoice} = require('./');
     description: <Description String>
     expires_at: <ISO 8601 Date String>
     id: <Invoice Id String>
+    [is_accepted]: <Is Accepted Bool>
     is_confirmed: <Is Finalized Bool>
     is_outgoing: <Is Outgoing Bool>
     is_private: <Is a Private Invoice Bool>
@@ -27,4 +28,3 @@ const {getInvoice} = require('./');
   }
 */
 module.exports = promisify(getInvoice);
-

@@ -18,6 +18,7 @@ const {getInvoices} = require('./');
       description_hash: <Description Hash Hex String>
       expires_at: <ISO 8601 Date String>
       id: <Payment Hash String>
+      [is_accepted]: <Invoice is Accepted Bool>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>

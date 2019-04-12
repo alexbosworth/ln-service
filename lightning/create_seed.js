@@ -44,4 +44,3 @@ module.exports = ({lnd, passphrase}, cbk) => {
     return cbk(null, {seed: res.cipher_seed_mnemonic.join(' ')});
   });
 };
-

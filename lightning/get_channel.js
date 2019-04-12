@@ -2,6 +2,7 @@ const {chanNumber} = require('bolt07');
 const {isFinite} = require('lodash');
 
 const decBase = 10;
+const edgeIsZombieErrorMessage = 'edge marked as zombie';
 const edgeNotFoundErrorMessage = 'edge not found';
 const msPerSec = 1e3;
 const separatorChar = ':';
@@ -21,7 +22,8 @@ const separatorChar = ':';
       [cltv_delta]: <Locktime Delta Number>
       [fee_rate]: <Fees Charged Per Million Tokens Number>
       [is_disabled]: <Channel Is Disabled Bool>
-      [min_htlc_mtokens]: <Minimum HTLC Millitokens Value Number>
+      [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
+      [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
       public_key: <Node Public Key String>
     }]
     transaction_id: <Transaction Id Hex String>
@@ -48,6 +50,10 @@ module.exports = ({id, lnd}, cbk) => {
   }
 
   return lnd.getChanInfo({chan_id: channelNumber}, (err, response) => {
+    if (!!err && err.details === edgeIsZombieErrorMessage) {
+      return cbk([404, 'FullChannelDetailsNotFound']);
+    }
+
     if (!!err && err.details === edgeNotFoundErrorMessage) {
       return cbk([404, 'FullChannelDetailsNotFound']);
     }
@@ -149,7 +155,8 @@ module.exports = ({id, lnd}, cbk) => {
         cltv_delta: n.time_lock_delta,
         fee_rate: parseInt(n.fee_rate_milli_msat, decBase),
         is_disabled: n.disabled,
-        min_htlc_mtokens: parseInt(n.min_htlc, decBase),
+        max_htlc_mtokens: n.max_htlc_msat,
+        min_htlc_mtokens: n.min_htlc,
       };
     });
 

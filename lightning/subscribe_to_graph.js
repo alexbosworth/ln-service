@@ -25,6 +25,7 @@ const msPerSec = 1e3;
     fee_rate: <Channel Feel Rate In Millitokens Per Million Number>
     id: <Standard Format Channel Id String>
     is_disabled: <Channel Is Disabled Bool>
+    [max_htlc_mtokens]: <Channel Maximum HTLC Millitokens String>
     min_htlc_mtokens: <Channel Minimum HTLC Millitokens String>
     public_keys: [<Announcing Public Key>, <Target Public Key String>]
     transaction_id: <Channel Transaction Id String>
@@ -142,6 +143,7 @@ module.exports = ({lnd}) => {
         fee_rate: parseInt(update.routing_policy.fee_rate_milli_msat, decBase),
         id: chanFormat({number: update.chan_id}).channel,
         is_disabled: update.routing_policy.disabled,
+        max_htlc_mtokens: update.routing_policy.max_htlc_msat,
         min_htlc_mtokens: update.routing_policy.min_htlc,
         public_keys: [update.advertising_node, update.connecting_node],
         transaction_id: transactionId.toString('hex'),

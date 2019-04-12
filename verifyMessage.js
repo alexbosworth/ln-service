@@ -10,10 +10,9 @@ const {verifyMessage} = require('./');
     signature: <Signature String>
   }
 
-  @returns via cbk
+  @returns via Promise
   {
     [signed_by]: <Public Key String>
   }
 */
 module.exports = promisify(verifyMessage);
-

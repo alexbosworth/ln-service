@@ -22,6 +22,7 @@ test('Get peers', async ({end, equal}) => {
   equal(peer.bytes_received !== undefined, true, 'Bytes received');
   equal(peer.bytes_sent !== undefined, true, 'Bytes sent');
   equal(peer.is_inbound, false, 'Is inbound peer');
+  equal(peer.is_sync_peer, true, 'Is sync peer');
   equal(peer.ping_time, 0, 'Ping time');
   equal(!!peer.public_key, true, 'Public key');
   equal(!!peer.socket, true, 'Socket');

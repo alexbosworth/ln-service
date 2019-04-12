@@ -1,4 +1,6 @@
 {
   "np2wpkh": 1,
-  "p2wpkh": 0
+  "p2wpkh": 0,
+  "unused_p2wpkh": 2,
+  "unused_np2wpkh": 3
 }

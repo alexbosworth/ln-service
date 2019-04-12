@@ -12,6 +12,7 @@ const {sortBy} = require('lodash');
 const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
+const acceptedState = 'ACCEPTED';
 const decBase = 10;
 const defaultLimit = 100;
 const lastPageFirstIndexOffset = 1;
@@ -36,6 +37,7 @@ const mtokensPerToken = new BN(1e3, 10);
       description_hash: <Description Hash Hex String>
       expires_at: <ISO 8601 Date String>
       id: <Payment Hash String>
+      [is_accepted]: <Invoice is Accepted Bool>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
@@ -229,6 +231,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
           description_hash: !descHash.length ? null : descHash.toString('hex'),
           expires_at: new Date(createTimeMs + expiresInMs).toISOString(),
           id: invoice.r_hash.toString('hex'),
+          is_accepted: invoice.state === acceptedState || undefined,
           is_confirmed: invoice.settled,
           is_outgoing: false,
           is_private: !!invoice.private,
