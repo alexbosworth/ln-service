@@ -16,7 +16,7 @@ const {getBackup} = require('./lightning');
 const {getBackups} = require('./lightning');
 const {getChainBalance} = require('./lightning');
 const {getChainFeeEstimate} = require('./lightning');
-const {getChainFeeRate} = require('./chain');
+const {getChainFeeRate} = require('./wallet');
 const {getChainTransactions} = require('./lightning');
 const {getChannel} = require('./lightning');
 const {getChannelBalance} = require('./lightning');
@@ -33,6 +33,7 @@ const {getPayments} = require('./lightning');
 const {getPeers} = require('./lightning');
 const {getPendingChainBalance} = require('./lightning');
 const {getPendingChannels} = require('./lightning');
+const {getPublicKey} = require('./wallet');
 const {getRoutes} = require('./lightning');
 const {getUtxos} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
@@ -105,6 +106,7 @@ module.exports = {
   getPeers,
   getPendingChainBalance,
   getPendingChannels,
+  getPublicKey,
   getRoutes,
   getUtxos,
   getWalletInfo,

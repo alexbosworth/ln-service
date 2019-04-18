@@ -17,8 +17,8 @@
     "dotenv": "7.0.0",
     "express": "4.16.4",
     "express-basic-auth": "1.1.6",
-    "grpc": "1.19.0",
-    "json2csv": "4.4.1",
+    "grpc": "1.20.0",
+    "json2csv": "4.5.0",
     "lodash": "4.17.11",
     "morgan": "1.9.1",
     "promptly": "3.0.3",
@@ -31,7 +31,7 @@
   "devDependencies": {
     "portfinder": "1.0.20",
     "rimraf": "2.6.3",
-    "tap": "12.6.1",
+    "tap": "12.6.2",
     "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
   },
@@ -55,5 +55,5 @@
     "start": "node server.js",
     "test": "tap test/bolt11/*.js test/routing/*.js"
   },
-  "version": "36.0.0"
+  "version": "36.1.0"
 }
