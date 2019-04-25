@@ -139,12 +139,20 @@ instead of setting environment variables.
 
 Environment variables:
 
-    export GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
+    export GRPC_SSL_CIPHER_SUITES="HIGH+ECDSA"
     export LNSERVICE_CHAIN="bitcoin" // or litecoin
-    export LNSERVICE_LND_DIR='~/.lnd/'
+    export LNSERVICE_LND_DIR="/PATH/TO/.lnd/"
     export LNSERVICE_NETWORK="testnet" // or mainnet
-    export LNSERVICE_SECRET_KEY=REPLACE!WITH!SECRET!KEY!
+    export LNSERVICE_SECRET_KEY="REPLACE!WITH!SECRET!KEY!"
 
+.env file:
+    
+    GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
+    LNSERVICE_CHAIN='bitcoin'
+    LNSERVICE_LND_DIR='/PATH/TO/.lnd/'
+    LNSERVICE_NETWORK='testnet'
+    LNSERVICE_SECRET_KEY='REPLACE!WITH!SECRET!KEY!'
+    
 Setting environment variables in Linux:
 
 - Edit `.bashrc` or `~/.profile`
