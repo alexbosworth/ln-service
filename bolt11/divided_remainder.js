@@ -24,4 +24,3 @@ module.exports = ({mod, div, max}) => {
   },
   start);
 };
-

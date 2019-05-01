@@ -12,6 +12,7 @@ const openPortFinder = require('portfinder');
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
+const {getWalletInfo} = require('./../../');
 const {lightningDaemon} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
 
@@ -144,21 +145,21 @@ module.exports = ({seed}, cbk) => {
         '--btcd.rpcpass', chainPass,
         '--btcd.rpcuser', chainUser,
         '--datadir', dir,
-        '--debuglevel', 'trace',
         '--externalip', `${localhost}:${getPorts.listen}`,
         '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
         '--listen', `${localhost}:${getPorts.listen}`,
         '--logdir', join(dir, lightningDaemonLogPath),
+        '--maxlogfilesize', 1,
         '--nobootstrap',
         '--readonlymacaroonpath', join(dir, readMacaroonFileName),
         '--restlisten', `${localhost}:${getPorts.rest}`,
         '--rpclisten', `${localhost}:${getPorts.rpc}`,
         '--tlscertpath', join(dir, lightningTlsCertFileName),
         '--tlskeypath', join(dir, lightningTlsKeyFileName),
+        '--trickledelay', 1,
         '--unsafe-disconnect',
       ]);
 
-      daemon.stderr.on('data', data => {});
 
       let isReady = false;
 
@@ -175,23 +176,40 @@ module.exports = ({seed}, cbk) => {
       return;
     }],
 
-    // Get connection to the no-wallet lnd
-    nonAuthenticatedLnd: [
-      'getPorts',
+    // Get the cert
+    cert: [
       'spawnChainDaemon',
       'spawnLightningDaemon',
-      ({getPorts, spawnChainDaemon}, cbk) =>
+      ({spawnChainDaemon}, cbk) =>
     {
       const {dir} = spawnChainDaemon;
+      const interval = retryCount => 50 * Math.pow(2, retryCount);
+      const times = 15;
 
-      const cert = readFileSync(join(dir, lightningTlsCertFileName));
+      const certPath = join(dir, lightningTlsCertFileName);
+
+      return asyncRetry({interval, times}, cbk => {
+        try {
+          return cbk(null, readFileSync(certPath).toString('base64'));
+        } catch (err) {
+          return cbk([503, 'FailedToGetTlsCertWhenSpawningLnd', err]);
+        }
+      },
+      cbk);
+    }],
+
+    // Get connection to the no-wallet lnd
+    nonAuthenticatedLnd: [
+      'cert',
+      'getPorts',
+      'spawnLightningDaemon',
+      ({cert, getPorts}, cbk) =>
+    {
+      const service = lndWalletUnlockerService;
+      const socket = `${localhost}:${getPorts.rpc}`;
 
       try {
-        return cbk(null, lightningDaemon({
-          cert: cert.toString('base64'),
-          service: lndWalletUnlockerService,
-          socket: `${localhost}:${getPorts.rpc}`,
-        }));
+        return cbk(null, lightningDaemon({cert, service, socket}));
       } catch (err) {
         return cbk([503, 'FailedToLaunchLightningDaemon', err]);
       }
@@ -237,30 +255,47 @@ module.exports = ({seed}, cbk) => {
         password: lightningWalletPassword,
         seed: createSeed.seed,
       },
-      err => {
-        if (!!err) {
-          return cbk(err);
-        }
+      cbk);
+    }],
 
-        return setTimeout(() => cbk(), startWalletTimeoutMs);
-      });
+    // Get admin macaroon
+    macaroon: [
+      'createWallet',
+      'spawnChainDaemon',
+      ({spawnChainDaemon}, cbk) =>
+    {
+      const {dir} = spawnChainDaemon;
+      const interval = retryCount => 50 * Math.pow(2, retryCount);
+      const times = 15;
+
+      const macaroonPath = join(dir, adminMacaroonFileName);
+
+      return asyncRetry({interval, times}, cbk => {
+        try {
+          return cbk(null, readFileSync(macaroonPath).toString('base64'));
+        } catch (err) {
+          return cbk([503, 'FailedToGetAdminMacaroon', err]);
+        }
+      },
+      cbk);
     }],
 
     // Wallet details
     wallet: [
       'createWallet',
+      'macaroon',
       'spawnChainDaemon',
       'getPorts',
-      ({getPorts, spawnChainDaemon}, cbk) =>
+      ({getPorts, macaroon, spawnChainDaemon}, cbk) =>
     {
       const {dir} = spawnChainDaemon;
+
       const certPath = join(dir, lightningTlsCertFileName);
-      const macaroonPath = join(dir, adminMacaroonFileName);
 
       return cbk(null, {
+        macaroon,
         cert: readFileSync(certPath).toString('base64'),
         host: `${localhost}:${getPorts.rpc}`,
-        macaroon: readFileSync(macaroonPath).toString('base64'),
       });
     }],
 
@@ -348,8 +383,14 @@ module.exports = ({seed}, cbk) => {
     }],
 
     // Delay to make sure everything has come together
-    delay: ['lnd', ({}, cbk) => {
-      return setTimeout(() => cbk(), delayAfterSpawnMs);
+    delay: ['lnd', ({lnd}, cbk) => {
+      const interval = retryCount => 50 * Math.pow(2, retryCount);
+      const times = 15;
+
+      return asyncRetry({interval, times}, cbk => {
+        return getWalletInfo({lnd}, cbk);
+      },
+      cbk);
     }],
   },
   (err, res) => {

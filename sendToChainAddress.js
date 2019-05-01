@@ -7,20 +7,22 @@ const {sendToChainAddress} = require('./');
   {
     address: <Destination Chain Address String>
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
+    [is_send_all]: <Send All Funds Bool>
     lnd: <LND GRPC Object>
+    [log]: <Log Function>
     [target_confirmations]: <Confirmations To Wait Number>
-    tokens: <Satoshis Number>
-    wss: <Web Socket Server Object>
+    tokens: <Tokens To Send Number>
+    [wss]: [<Web Socket Server Object>]
   }
 
   @returns via Promise
   {
-    confirmation_count: <Number>
-    id: <Transaction Id String>
-    is_confirmed: <Is Confirmed Bool>
-    is_outgoing: <Is Outgoing Bool>
-    tokens: <Tokens Number>
-    type: <Type String>
+    confirmation_count: <Total Confirmations Number>
+    id: <Transaction Id Hex String>
+    is_confirmed: <Transaction Is Confirmed Bool>
+    is_outgoing: <Transaction Is Outgoing Bool>
+    tokens: <Transaction Tokens Number>
+    type: <Row Type String>
   }
 */
 module.exports = promisify(sendToChainAddress);

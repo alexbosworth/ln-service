@@ -37,7 +37,7 @@ test(`Remove a peer`, async ({end, equal}) => {
   equal(controlWallet.is_synced_to_chain, true, 'Control syncs to chain');
   equal(targetWallet.is_synced_to_chain, true, 'Target syncs to chain');
 
-  await delay(2000);
+  await delay(1000);
 
   await addPeer({
     lnd: control.lnd,
@@ -45,11 +45,11 @@ test(`Remove a peer`, async ({end, equal}) => {
     socket: `${target.listen_ip}:${target.listen_port}`,
   });
 
-  await delay(2000);
+  await delay(1000);
 
   const {peers} = await getPeers({lnd: control.lnd});
 
-  await delay(2000);
+  await delay(1000);
 
   const [targetPeer] = peers;
 
@@ -57,7 +57,7 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   await removePeer({lnd: control.lnd, public_key: targetPeer.public_key});
 
-  await delay(2000);
+  await delay(1000);
 
   const postRemovalPeers = await getPeers({lnd: control.lnd});
 
@@ -65,7 +65,7 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   lnds.forEach(({kill}) => kill());
 
-  await delay(3000);
+  await delay(2000);
 
   return end();
 });

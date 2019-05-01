@@ -21,4 +21,3 @@ module.exports = (args) => {
 
   return new Date(createdAtMs + secondsToAdd * msPerSec).toISOString();
 };
-

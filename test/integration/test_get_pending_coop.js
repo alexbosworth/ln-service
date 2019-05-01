@@ -21,7 +21,7 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(3000);
+  await delay(2000);
 
   const coopChan = await openChannel({
     lnd,
@@ -32,11 +32,11 @@ test(`Get pending channels`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(3000);
+  await delay(2000);
 
   const niceClose = await closeChannel({
     lnd: cluster.target.lnd,
@@ -49,17 +49,14 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   await delay(3000);
 
-  await cluster.generate({count: 6, node: cluster.target});
-
   const [coopClose] = (await getPendingChannels({lnd})).pending_channels;
 
-  equal(coopClose.close_transaction_id, niceClose.transaction_id, 'End tx id');
   equal(coopClose.is_active, false, 'Ended');
   equal(coopClose.is_closing, true, 'Closing');
   equal(coopClose.is_opening, false, 'Not Opening');
   equal(coopClose.local_balance, 979950, 'Original balance');
   equal(coopClose.partner_public_key, cluster.target_node_public_key, 'pubk');
-  equal(coopClose.pending_balance, undefined, 'Not waiting on balance');
+  equal(coopClose.pending_balance, 979950, 'Waiting on balance');
   equal(coopClose.received, 0, 'Never received');
   equal(coopClose.recovered_tokens, undefined, 'Nothing to recover in sweep');
   equal(coopClose.remote_balance, 0, 'Opposing channel balance nil');
@@ -73,4 +70,3 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   return end();
 });
-

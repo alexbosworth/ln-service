@@ -20,7 +20,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
 
   const {lnd} = control;
 
-  await delay(3000);
+  await delay(2000);
 
   const controlToTargetChannel = await openChannel({
     lnd,
@@ -30,11 +30,11 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(4000);
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(3000);
+  await delay(4000);
 
   const graph = await getNetworkGraph({lnd});
 

@@ -3,10 +3,16 @@ const {test} = require('tap');
 const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
+const {parsePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
 const getAccountingReport = require('./../../getAccountingReport');
+const getChannel = require('./../../getChannel');
+const getChannels = require('./../../getChannels');
+const getWalletInfo = require('./../../getWalletInfo');
+const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
+const {routeFromHops} = require('./../../');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -91,11 +97,11 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await delay(2000);
 
   await addPeer({
     lnd,
@@ -103,13 +109,37 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
-
   const {request} = await createInvoice({lnd: cluster.remote.lnd, tokens});
 
-  await delay(5000);
+  const decoded = await parsePaymentRequest({request});
 
-  await pay({lnd, request});
+  const [localChan] = (await getChannels({lnd})).channels;
+  const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
+
+  const localChannel = await getChannel({lnd, id: localChan.id});
+
+  localChannel.id = localChan.id;
+
+  const remoteChannel = await getChannel({
+    id: remoteChan.id,
+    lnd: cluster.remote.lnd,
+  });
+
+  remoteChannel.id = remoteChan.id;
+
+  const {hops} = hopsFromChannels({
+    channels: [localChannel, remoteChannel],
+    destination: decoded.destination,
+  });
+
+  const route = routeFromHops({
+    hops,
+    cltv: decoded.cltv_delta,
+    height: (await getWalletInfo({lnd})).current_block_height,
+    mtokens: decoded.mtokens,
+  });
+
+  await pay({lnd, path: {id: decoded.id, routes: [route]}});
 
   await delay(1000);
 

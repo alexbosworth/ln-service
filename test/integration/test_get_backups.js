@@ -9,7 +9,7 @@ const confirmationCount = 20;
 
 // Getting a set of channel backups should return channel backups
 test(`Get channel backup`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 

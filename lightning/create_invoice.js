@@ -10,6 +10,7 @@ const msPerSec = 1e3;
 /** Create a channel invoice.
 
   {
+    [cltv_delta]: <CLTV Delta Number>
     [description]: <Invoice Description String>
     [expires_at]: <Expires At ISO 8601 Date String>
     [is_fallback_included]: <Is Fallback Address Included Bool>
@@ -88,6 +89,7 @@ module.exports = (args, cbk) => {
       const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
       return args.lnd.addInvoice({
+        cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
         expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
         fallback_addr: fallbackAddress,
         memo: args.description,

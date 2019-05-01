@@ -26,6 +26,16 @@ const {isArray} = Array;
       multi_chan_backup: <Backup Buffer Object>
     }
   }
+
+  @returns via cbk
+  {
+    backup: <Multiple Backup Hex String>
+    channels: [{
+      backup: <Backup Hex String>
+      transaction_id: <Transaction Id Hex String>
+      transaction_vout: <Transaction Output Index Number>
+    }]
+  }
 */
 module.exports = (args, cbk) => {
   return asyncAuto({

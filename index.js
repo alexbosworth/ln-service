@@ -1,4 +1,5 @@
 const {addPeer} = require('./lightning');
+const {broadcastChainTransaction} = require('./wallet');
 const {calculateHops} = require('./routing');
 const {calculatePaths} = require('./routing');
 const {cancelHodlInvoice} = require('./invoices');
@@ -8,6 +9,8 @@ const {createChainAddress} = require('./lightning');
 const {createHodlInvoice} = require('./invoices');
 const {createInvoice} = require('./lightning');
 const {createSeed} = require('./lightning');
+const {createSignedRequest} = require('./bolt11');
+const {createUnsignedRequest} = require('./bolt11');
 const {createWallet} = require('./lightning');
 const {decodePaymentRequest} = require('./lightning');
 const {getAccountingReport} = require('./accounting');
@@ -72,6 +75,7 @@ const {verifyMessage} = require('./lightning');
 
 module.exports = {
   addPeer,
+  broadcastChainTransaction,
   calculateHops,
   calculatePaths,
   cancelHodlInvoice,
@@ -81,6 +85,8 @@ module.exports = {
   createHodlInvoice,
   createInvoice,
   createSeed,
+  createSignedRequest,
+  createUnsignedRequest,
   createWallet,
   decodePaymentRequest,
   getAccountingReport,

@@ -10,28 +10,20 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
-const giftTokens = 1e4;
 
 // Closing a channel should close the channel
 test(`Close channel`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
-  await delay(1000);
-
   const channelOpen = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
     lnd: cluster.control.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(1000);
-
   await cluster.generate({count: confirmationCount});
-
-  await delay(1000);
 
   const channelClose = await closeChannel({
     is_force_close: true,
@@ -49,4 +41,3 @@ test(`Close channel`, async ({end, equal}) => {
 
   return end();
 });
-

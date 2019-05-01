@@ -21,8 +21,6 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(3000);
-
   const channelOpen = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -32,7 +30,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   const [pendingOpen] = (await getPendingChannels({lnd})).pending_channels;
 
@@ -62,7 +60,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     transaction_vout: channelOpen.transaction_vout,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   const [waitClose] = (await getPendingChannels({lnd})).pending_channels;
 
@@ -84,7 +82,7 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(3000);
+  await delay(2000);
 
   const [forceClose] = (await getPendingChannels({lnd})).pending_channels;
 
@@ -106,8 +104,7 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   await cluster.kill({});
 
-  await delay(2000);
+  await delay(1000);
 
   return end();
 });
-

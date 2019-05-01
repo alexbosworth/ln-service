@@ -14,7 +14,6 @@ const config = require('dotenv').config();
 const cors = require('cors');
 const express = require('express');
 const logger = require('morgan');
-const walnut = require('walnut');
 const WebSocketServer = require('ws').Server;
 
 const {addressesRouter} = require('./routers');
@@ -51,10 +50,6 @@ const {NODE_ENV} = process.env;
 const port = process.env.PORT || 10553;
 const unlockDelayMs = 1000;
 const unlockerLnd = localLnd({is_unlocker: true});
-
-if (NODE_ENV !== 'production') {
-  walnut.check(require('./package'));
-}
 
 return asyncAuto({
   // Determine if the wallet is locked

@@ -13,6 +13,7 @@ const rowType = 'invoice';
     HTLC arrives. It must be settled separately with a preimage.
 
   {
+    [cltv_delta]: <CLTV Delta Number>
     [description]: <Invoice Description String>
     [expires_at]: <Expires At ISO 8601 Date String>
     id: <Payment Hash Hex String>
@@ -86,6 +87,7 @@ module.exports = (args, cbk) => {
       const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
       return args.lnd.addHoldInvoice({
+        cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
         expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
         fallback_addr: fallbackAddress,
         hash: Buffer.from(args.id, 'hex'),

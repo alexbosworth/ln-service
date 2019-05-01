@@ -21,7 +21,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
 
   const {lnd} = control;
 
-  await delay(3000);
+  await delay(2000);
 
   const controlToTargetChannel = await openChannel({
     lnd,
@@ -31,7 +31,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -41,11 +41,11 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await delay(2000);
 
   await addPeer({
     lnd,
@@ -53,7 +53,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(2000);
 
   const controlListenIp = cluster.control.listen_ip;
   const controlListenPort = cluster.control.listen_port;
@@ -65,8 +65,6 @@ test(`Get node`, async ({deepIs, end, equal}) => {
   const [socket] = node.sockets;
 
   equal(node.alias, controlPublicKey.slice(0, defaultAliasLength), 'Alias');
-  equal(node.capacity, 999000, 'Capacity');
-  equal(node.channel_count, 1, 'Channel count');
   equal(node.color, '#3399ff', 'Color');
   equal(node.sockets.length, 1, 'Socket');
   equal(socket.socket, `${controlListenIp}:${controlListenPort}`, 'Ip, port');

@@ -41,8 +41,6 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(2000);
-
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
   await delay(2000);

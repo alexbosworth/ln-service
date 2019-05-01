@@ -238,21 +238,42 @@ module.exports = ({network}, cbk) => {
       });
     }],
 
-    // Wallet details
-    wallet: [
+    // Get admin macaroon
+    macaroon: [
       'createWallet',
       'spawnChainDaemon',
+      ({spawnChainDaemon}, cbk) =>
+    {
+      const {dir} = spawnChainDaemon;
+      const interval = retryCount => 50 * Math.pow(2, retryCount);
+      const times = 15;
+
+      const macaroonPath = join(dir, adminMacaroonFileName);
+
+      return asyncRetry({interval, times}, cbk => {
+        try {
+          return cbk(null, readFileSync(macaroonPath).toString('base64'));
+        } catch (err) {
+          return cbk([503, 'FailedToGetAdminMacaroon', err]);
+        }
+      },
+      cbk);
+    }],
+
+    // Wallet details
+    wallet: [
+      'macaroon',
+      'spawnChainDaemon',
       'getPorts',
-      ({getPorts, spawnChainDaemon}, cbk) =>
+      ({getPorts, macaroon, spawnChainDaemon}, cbk) =>
     {
       const {dir} = spawnChainDaemon;
       const certPath = join(dir, lightningTlsCertFileName);
-      const macaroonPath = join(dir, adminMacaroonFileName);
 
       return cbk(null, {
+        macaroon,
         cert: readFileSync(certPath).toString('base64'),
         host: `${localhost}:${getPorts.rpc}`,
-        macaroon: readFileSync(macaroonPath).toString('base64'),
       });
     }],
 
@@ -271,7 +292,13 @@ module.exports = ({network}, cbk) => {
 
     // Stop LND
     stopLnd: ['lnd', ({lnd}, cbk) => {
-      return stopDaemon({lnd}, cbk);
+      const interval = retryCount => 50 * Math.pow(2, retryCount);
+      const times = 15;
+
+      return asyncRetry({interval, times}, cbk => {
+        return stopDaemon({lnd}, cbk);
+      },
+      cbk);
     }],
 
     // Restart LND (locked)
@@ -325,20 +352,33 @@ module.exports = ({network}, cbk) => {
       return;
     }],
 
-    // Get locked restarted lnd
-    restartedLnd: [
-      'getPorts',
+    // Get tls cert
+    cert: [
       'restartLnd',
       'spawnChainDaemon',
-      ({getPorts, spawnChainDaemon}, cbk) =>
+      ({spawnChainDaemon}, cbk) =>
     {
       const {dir} = spawnChainDaemon;
+      const interval = retryCount => 50 * Math.pow(2, retryCount);
+      const times = 15;
 
-      const cert = readFileSync(join(dir, lightningTlsCertFileName));
+      const certPath = join(dir, lightningTlsCertFileName);
 
+      return asyncRetry({interval, times}, cbk => {
+        try {
+          return cbk(null, readFileSync(certPath).toString('base64'));
+        } catch (err) {
+          return cbk([503, 'FailedToGetCertAfterRestart', err]);
+        }
+      },
+      cbk);
+    }],
+
+    // Get locked restarted lnd
+    restartedLnd: ['cert', 'getPorts', ({cert, getPorts}, cbk) => {
       try {
         return cbk(null, lightningDaemon({
-          cert: cert.toString('base64'),
+          cert,
           service: lndWalletUnlockerService,
           socket: `${localhost}:${getPorts.rpc}`,
         }));

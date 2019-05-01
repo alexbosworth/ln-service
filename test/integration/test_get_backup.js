@@ -9,7 +9,7 @@ const confirmationCount = 20;
 
 // Getting a channel backup should return a channel backup
 test(`Get channel backup`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
@@ -18,6 +18,8 @@ test(`Get channel backup`, async ({end, equal}) => {
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
+
+  await delay(2000);
 
   const {backup} = await getBackup({
     lnd,

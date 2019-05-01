@@ -24,4 +24,3 @@ const {getChainTransactions} = require('./');
   }
 */
 module.exports = promisify(getChainTransactions);
-

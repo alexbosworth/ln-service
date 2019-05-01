@@ -256,7 +256,7 @@ module.exports = ({request}) => {
 
   const hash = createHash('sha256').update(
     Buffer.concat([
-      Buffer.from(prefix, 'utf8'),
+      Buffer.from(prefix, 'ascii'),
       wordsAsBuffer({words: wordsWithoutSig}),
     ])
   );
@@ -294,4 +294,3 @@ module.exports = ({request}) => {
     tokens: tokens || undefined,
   };
 };
-

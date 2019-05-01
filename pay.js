@@ -8,6 +8,7 @@ const {pay} = require('./');
     [fee]: <Maximum Additional Fee Tokens To Pay Number>
     lnd: <LND GRPC API Object>
     [log]: <Log Function> // Required if wss is set
+    [out]: <Force Payment Through Outbound Standard Channel Id String>
     [path]: {
       id: <Payment Hash Hex String>
       routes: [{
@@ -20,6 +21,7 @@ const {pay} = require('./');
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
           forward_mtokens: <Forward Millitokens String>
+          [public_key]: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Millitokens To Pay String>
@@ -28,7 +30,8 @@ const {pay} = require('./');
       }]
     }
     [request]: <BOLT 11 Payment Request String>
-    [tokens]: <Total Tokens To Pay Number>
+    [timeout]: <Timeout Block Height Number>
+    [tokens]: <Total Tokens To Pay to Payment Request Number>
     [wss]: [<Web Socket Server Object>]
   }
 

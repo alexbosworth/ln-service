@@ -11,19 +11,21 @@ const identityKeyFamily = 6;
 test(`Get public key`, async ({end, equal}) => {
   const spawned = await spawnLnd({});
 
+  delay(2000);
+
   const key = await getPublicKey({
     family: identityKeyFamily,
     index: [].length,
     lnd: spawned.wallet_lnd,
   });
 
+  delay(2000);
+
   const wallet = await getWalletInfo({lnd: spawned.lnd});
 
   equal(wallet.public_key, key.public_key, 'Derive identity public key');
 
   spawned.kill();
-
-  await delay(3000);
 
   return end();
 });

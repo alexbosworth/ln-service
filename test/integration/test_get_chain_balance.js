@@ -63,7 +63,7 @@ test(`Get the chain balance`, async ({end, equal}) => {
 
   kill();
 
-  await delay(3000);
+  await delay(2000);
 
   return end();
 });

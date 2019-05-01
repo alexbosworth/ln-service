@@ -85,4 +85,3 @@ test(`Decode a payment request`, async ({end, equal}) => {
 
   return end();
 });
-

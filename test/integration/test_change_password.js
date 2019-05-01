@@ -3,8 +3,8 @@ const {test} = require('tap');
 const {changePassword} = require('./../macros');
 const {delay} = require('./../macros');
 
-// Getting the wallet info should return info about the wallet
-test(`Get wallet info`, async ({end, equal}) => {
+// Changing a wallet password should change the password to the wallet
+test(`Change wallet password`, async ({end, equal}) => {
   const {kill} = await changePassword({});
 
   kill();

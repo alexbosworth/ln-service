@@ -64,7 +64,6 @@ module.exports = (args, cbk) => {
       res.daemon.on('close', code => removeDir(dir, () => {}));
 
       process.on('uncaughtException', err => {
-        console.log('CHAIN ERROR', err);
         res.daemon.kill();
         process.exit(1)
       });

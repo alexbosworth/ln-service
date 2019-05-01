@@ -53,4 +53,3 @@ test(`Create an invoice`, async ({end, equal}) => {
 
   return end();
 });
-

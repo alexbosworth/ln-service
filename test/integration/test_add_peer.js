@@ -6,24 +6,17 @@ const {delay} = require('./../macros');
 const getPeers = require('./../../getPeers');
 
 const addPeerDelayMs = 2000;
-const notFoundIndex = -1;
 
 // Adding peers should result in a connected peer
 test(`Add a peer`, async ({end, equal}) => {
-  await delay(2000);
-
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
-
-  await delay(3000);
-
-  const {peers} = await getPeers({lnd});
   const remoteNodeKey = cluster.remote_node_public_key;
 
-  const connectedKeys = peers.filter(n => n.public_key);
+  const connectedKeys = (await getPeers({lnd})).peers.map(n => n.public_key);
 
-  equal(connectedKeys.indexOf(remoteNodeKey), notFoundIndex, 'No peer');
+  equal(connectedKeys.find(n => n === remoteNodeKey), undefined, 'No peer');
 
   await addPeer({
     lnd,
@@ -33,9 +26,9 @@ test(`Add a peer`, async ({end, equal}) => {
 
   await delay(addPeerDelayMs);
 
-  const updatedPeers = (await getPeers({lnd})).peers;
+  const {peers} = await getPeers({lnd});
 
-  const connected = updatedPeers.find(n => n.public_key === remoteNodeKey);
+  const connected = peers.find(n => n.public_key === remoteNodeKey);
 
   equal(connected.public_key, remoteNodeKey, 'Connected to remote node');
 
