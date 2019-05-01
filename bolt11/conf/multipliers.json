@@ -1,0 +1,24 @@
+{
+  "multipliers": [
+    {
+      "letter": "",
+      "value": "100000000000"
+    },
+    {
+      "letter": "m",
+      "value": "100000000"
+    },
+    {
+      "letter": "n",
+      "value": "100"
+    },
+    {
+      "letter": "p",
+      "value": "10"
+    },
+    {
+      "letter": "u",
+      "value": "100000"
+    }
+  ]
+}
