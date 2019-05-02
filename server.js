@@ -7,7 +7,7 @@ const {readFileSync} = require('fs');
 
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
-const basicAuth = require('express-basic-auth');
+const basicAuth = require('basicauth-middleware');
 const bodyParser = require('body-parser');
 const compress = require('compression')();
 const config = require('dotenv').config();
@@ -106,7 +106,7 @@ return asyncAuto({
     app.use(cors());
     app.use(bodyParser.json());
     app.use(logger(logFormat));
-    app.use(basicAuth({authorizer, authorizeAsync: true}));
+    app.use(basicAuth(authorizer));
 
     app.use('/v0/addresses', addressesRouter({lnd, log}));
     app.use('/v0/balance', balanceRouter({lnd, log}));

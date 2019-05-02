@@ -1,3 +1,5 @@
+const constantTimeComparison = require('safe-compare');
+
 const {LNSERVICE_SECRET_KEY} = process.env;
 
 /** Authorize a user
@@ -8,6 +10,5 @@ module.exports = ({}, password, cbk) => {
     return cbk(null, false);
   }
 
-  return cbk(null, password === LNSERVICE_SECRET_KEY);
+  return cbk(null, constantTimeComparison(password, LNSERVICE_SECRET_KEY));
 };
-
