@@ -17,6 +17,7 @@ const separatorChar = ':';
   @returns via cbk
   {
     capacity: <Maximum Tokens Number>
+    id: <Standard Format Channel Id String>
     policies: [{
       [base_fee_mtokens]: <Base Fee Millitokens String>
       [cltv_delta]: <Locktime Delta Number>
@@ -169,6 +170,7 @@ module.exports = ({id, lnd}, cbk) => {
     const secondPolicy = response.node2_policy;
 
     return cbk(null, {
+      id,
       policies,
       capacity: parseInt(response.capacity, decBase),
       transaction_id: transactionId,

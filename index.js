@@ -49,6 +49,7 @@ const {probe} = require('./routing');
 const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
 const {removePeer} = require('./lightning');
+const {routeFromChannels} = require('./routing');
 const {routeFromHops} = require('./routing');
 const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
@@ -125,6 +126,7 @@ module.exports = {
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,
+  routeFromChannels,
   routeFromHops,
   rowTypes,
   sendToChainAddress,

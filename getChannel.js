@@ -12,6 +12,7 @@ const {getChannel} = require('./');
   @returns via Promise
   {
     capacity: <Maximum Tokens Number>
+    id: <Standard Format Channel Id String>
     policies: [{
       base_fee_mtokens: <Base Fee Millitokens String>
       cltv_delta: <Locktime Delta Number>
