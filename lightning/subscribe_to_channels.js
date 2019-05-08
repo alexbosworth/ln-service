@@ -30,7 +30,7 @@ const outpointSeparator = ':';
     is_opening: <Channel Is Opening Bool>
     is_partner_initiated: <Channel Partner Opened Channel>
     is_private: <Channel Is Private Bool>
-    local_balance: <Local Balance Satoshis Number>
+    local_balance: <Local Balance Tokens Number>
     partner_public_key: <Channel Partner Public Key String>
     pending_payments: [{
       id: <Payment Preimage Hash Hex String>
@@ -38,12 +38,12 @@ const outpointSeparator = ':';
       timeout: <Chain Height Expiration Number>
       tokens: <Payment Tokens Number>
     }]
-    received: <Received Satoshis Number>
-    remote_balance: <Remote Balance Satoshis Number>
-    sent: <Sent Satoshis Number>
+    received: <Received Tokens Number>
+    remote_balance: <Remote Balance Tokens Number>
+    sent: <Sent Tokens Number>
     transaction_id: <Blockchain Transaction Id String>
     transaction_vout: <Blockchain Transaction Vout Number>
-    unsettled_balance: <Unsettled Balance Satoshis Number>
+    unsettled_balance: <Unsettled Balance Tokens Number>
   }
 
   @on(data) // channel_status

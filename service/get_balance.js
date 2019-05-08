@@ -15,10 +15,10 @@ const {rowTypes} = require('./../lightning');
 
   @returns via cbk
   {
-    chain_balance: <Satoshis Number>
-    channel_balance: <Satoshis Number>
-    pending_chain_balance: <Satoshis Number>
-    pending_channel_balance: <Satoshis Number>
+    chain_balance: <Tokens Number>
+    channel_balance: <Tokens Number>
+    pending_chain_balance: <Tokens Number>
+    pending_channel_balance: <Tokens Number>
     type: <Type String>
   }
 */

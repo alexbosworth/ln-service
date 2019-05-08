@@ -14,20 +14,31 @@ const {getPendingChannels} = require('./');
   @returns via Promise
   {
     pending_channels: [{
-      id: <Standard Format Channel Id String>
-      is_active: <Channel Active Bool>
-      is_closing: <Channel Closing Bool>
-      is_opening: <Channel Opening Bool>
-      local_balance: <Local Balance Satoshis Number>
-      partner_public_key: <Channel Partner Public Key String>
-      received: <Received Satoshis Number>
-      remote_balance: <Remote Balance Satoshis Number>
-      sent: <Sent Satoshis Number>
-      transaction_id: <Blockchain Transaction Id>
-      transaction_vout: <Blockchain Transaction Vout Number>
-      transfers_count: <Channel Transfers Total Number>
+      [close_transaction_id]: <Channel Closing Transaction Id String>
+      is_active: <Channel Is Active Bool>
+      is_closing: <Channel Is Closing Bool>
+      is_opening: <Channel Is Opening Bool>
+      local_balance: <Channel Local Tokens Balance Number>
+      partner_public_key: <Channel Peer Public Key String>
+      [pending_balance]: <Tokens Pending Recovery Number>
+      [pending_payments]: [{
+        is_incoming: <Payment Is Incoming Bool>
+        timelock_height: <Payment Timelocked Until Height Number>
+        tokens: <Payment Tokens Number>
+        transaction_id: <Payment Transaction Id String>
+        transaction_vout: <Payment Transaction Vout Number>
+      }]
+      received: <Tokens Received Number>
+      [recovered_tokens]: <Tokens Recovered From Close Number>
+      remote_balance: <Remote Tokens Balance Number>
+      sent: <Send Tokens Number>
+      [timelock_expiration]: <Pending Tokens Block Height Timelock Number>
+      [transaction_fee]: <Funding Transaction Fee Tokens Number>
+      transaction_id: <Channel Funding Transaction Id String>
+      transaction_vout: <Channel Funding Transaction Vout Number>
+      [transaction_weight]: <Funding Transaction Weight Number>
+      type: <Row Type String>
     }]
   }
 */
 module.exports = promisify(getPendingChannels);
-

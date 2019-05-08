@@ -22,22 +22,22 @@ const {rowTypes} = require('./../lightning');
         is_active: <Channel Active Bool>
         is_closing: <Channel Closing Bool>
         is_opening: <Channel Opening Bool>
-        local_balance: <Local Balance Satoshis Number>
-        received: <Received Satoshis Number>
-        remote_balance: <Remote Balance Satoshis Number>
-        sent: <Sent Satoshis Number>
+        local_balance: <Local Balance Tokens Number>
+        received: <Received Tokens Number>
+        remote_balance: <Remote Balance Tokens Number>
+        sent: <Sent Tokens Number>
         transaction_id: <Blockchain Transaction Id>
         transaction_vout: <Blockchain Transaction Vout Number>
         transfers_count: <Channel Transfers Total Number>
-        [unsettled_balance]: <Unsettled Balance Satoshis Number>
+        [unsettled_balance]: <Unsettled Balance Tokens Number>
       }]
       peers: [{
         bytes_received: <Bytes Received Number>
         bytes_sent: <Bytes Sent Number>
         network_address: <Network Address String>
         ping_time: <Milliseconds Number>
-        tokens_received: <Amount Received Satoshis Number>
-        tokens_sent: <Amount Sent Satoshis Number>
+        tokens_received: <Amount Received Tokens Number>
+        tokens_sent: <Amount Sent Tokens Number>
       }]
       public_key: <Public Key String>
       type: <Type String>

@@ -135,6 +135,8 @@ module.exports = ({seed}, cbk) => {
 
       const daemon = spawn(lightningDaemonExecFileName, [
         '--adminmacaroonpath', join(dir, adminMacaroonFileName),
+        '--autopilot.heuristic', 'externalscore:0.5',
+        '--autopilot.heuristic', 'preferential:0.5',
         '--bitcoin.active',
         '--bitcoin.chaindir', dir,
         '--bitcoin.node', 'btcd',
@@ -159,7 +161,6 @@ module.exports = ({seed}, cbk) => {
         '--trickledelay', 1,
         '--unsafe-disconnect',
       ]);
-
 
       let isReady = false;
 

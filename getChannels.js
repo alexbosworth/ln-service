@@ -4,6 +4,8 @@ const {getChannels} = require('./');
 
 /** Get channels
 
+  Note: is_partner_initiated will be undefined if it is unknown or true.
+
   {
     [is_active]: <Limit Results To Only Active Channels Bool> // false
     [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -22,8 +24,9 @@ const {getChannels} = require('./');
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
+      is_partner_initiated: <Channel Partner Opened Channel>
       is_private: <Channel Is Private Bool>
-      local_balance: <Local Balance Satoshis Number>
+      local_balance: <Local Balance Tokens Number>
       partner_public_key: <Channel Partner Public Key String>
       pending_payments: [{
         id: <Payment Preimage Hash Hex String>
@@ -31,14 +34,13 @@ const {getChannels} = require('./');
         timeout: <Chain Height Expiration Number>
         tokens: <Payment Tokens Number>
       }]
-      received: <Received Satoshis Number>
-      remote_balance: <Remote Balance Satoshis Number>
-      sent: <Sent Satoshis Number>
+      received: <Received Tokens Number>
+      remote_balance: <Remote Balance Tokens Number>
+      sent: <Sent Tokens Number>
       transaction_id: <Blockchain Transaction Id String>
       transaction_vout: <Blockchain Transaction Vout Number>
-      unsettled_balance: <Unsettled Balance Satoshis Number>
+      unsettled_balance: <Unsettled Balance Tokens Number>
     }]
   }
 */
 module.exports = promisify(getChannels);
-

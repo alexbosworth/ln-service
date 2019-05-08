@@ -31,7 +31,7 @@ const {stringify} = JSON;
   {
     forwards: [{
       created_at: <Forward Record Created At ISO 8601 Date String>
-      fee: <Fee Satoshis Charged Number>
+      fee: <Fee Tokens Charged Number>
       fee_mtokens: <Approximated Fee Millitokens Charged String>
       incoming_channel: <Incoming Standard Format Channel Id String>
       outgoing_channel: <Outgoing Standard Format Channel Id String>

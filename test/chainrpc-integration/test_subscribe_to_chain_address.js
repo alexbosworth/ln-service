@@ -55,13 +55,6 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
     equal(conf.block.length, 64, 'Confirmation block hash is returned');
     equal(conf.height, 102, 'Confirmation block height is returned');
     equal(conf.transaction, transaction, 'Confirmation raw tx is returned');
-
-    return setTimeout(() => {
-      kill();
-
-      return end();
-    },
-    3000);
   });
 
   sub.on('error', err => {});
@@ -69,6 +62,28 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
   await delay(3000);
 
   await mineTransaction({cert, host, pass, port, transaction, user});
+
+  await delay(3000);
+
+  const sub2 = subscribeToChainAddress({
+    lnd: node.chain_notifier_lnd,
+    min_confirmations: 6,
+    p2sh_address: address,
+  });
+
+  sub2.on('error', () => {});
+
+  sub2.on('confirmation', conf => {
+    equal(conf.block.length, 64, 'Confirmation block hash is returned');
+    equal(conf.height, 102, 'Confirmation block height is returned');
+    equal(conf.transaction, transaction, 'Confirmation raw tx is returned');
+
+    kill();
+
+    return end();
+  });
+
+  await delay(1000);
 
   return;
 });
