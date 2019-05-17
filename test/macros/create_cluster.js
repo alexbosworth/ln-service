@@ -19,7 +19,7 @@ const defaultVout = 0;
 const format = 'np2wpkh';
 const maturityBlockCount = 429;
 const retryMs = 200;
-const retryTimes = 10;
+const retryTimes = 20;
 const seed = 'abandon tank dose ripple foil subway close flock laptop cabbage primary silent plastic unhappy west weird panda plastic brave prefer diesel glad jazz isolate';
 const tokens = 1e8;
 

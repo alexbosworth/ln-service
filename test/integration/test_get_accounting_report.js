@@ -30,6 +30,8 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  await delay(2000);
+
   const chan = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
@@ -37,6 +39,8 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
+
+  await delay(2000);
 
   const report = await getAccountingReport({currency, fiat, lnd, rate});
 

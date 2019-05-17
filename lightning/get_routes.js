@@ -14,8 +14,8 @@ const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
 
 const defaultFinalCltvDelta = 40;
-const defaultRoutesReturnCount = 10;
 const defaultTokens = 0;
+const isArray = Array;
 const mtokBuffer = '000';
 const notFoundCode = 404;
 
@@ -32,8 +32,6 @@ const pathNotFoundErrors = [
   When paying to a private route, make sure to pass the final destination in
   addition to routes.
 
-  If extending routes are provided, the results limit will be multiplicative.
-
   {
     [destination]: <Final Send Destination Hex Encoded Public Key String>
     [fee]: <Maximum Fee Tokens Number>
@@ -43,7 +41,6 @@ const pathNotFoundErrors = [
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
-    [limit]: <Limit Results Count Number>
     lnd: <LND GRPC API Object>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
@@ -99,7 +96,7 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedLndForGetRoutesRequest']);
       }
 
-      if (!!args.routes && !Array.isArray(args.routes)) {
+      if (!!args.routes && !isArray(args.routes)) {
         return cbk([400, 'ExpectedArrayOfRoutesForRouteQuery']);
       }
 
@@ -136,7 +133,6 @@ module.exports = (args, cbk) => {
           final_cltv_delta: args.timeout || defaultFinalCltvDelta,
           ignored_edges: ignoreAsIgnoredEdges({ignore: args.ignore}).ignored,
           ignored_nodes: ignoreAsIgnoredNodes({ignore: args.ignore}).ignored,
-          num_routes: args.limit || defaultRoutesReturnCount,
           pub_key: firstHop.public_key,
           source_pub_key: args.start || undefined,
         },

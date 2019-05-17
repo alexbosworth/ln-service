@@ -1,5 +1,6 @@
 const {createHash} = require('crypto');
 
+const asyncTryEach = require('async/tryEach');
 const {chanFormat} = require('bolt07');
 const {chanNumber} = require('bolt07');
 const {encodeChanId} = require('bolt07');
@@ -11,6 +12,7 @@ const rowTypes = require('./conf/row_types');
 const chanIdMatch = /(\d+[x\:]\d+[\:x]\d+)/gim;
 const chanSplit = /[\:x\,]/;
 const decBase = 10;
+const isArray = Array;
 
 /** Make a payment.
 
@@ -85,7 +87,7 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedPaymentHashStringToExecutePayment']);
   }
 
-  if (!!path && (!Array.isArray(path.routes) || !path.routes.length)) {
+  if (!!path && (!isArray(path.routes) || !path.routes.length)) {
     return cbk([400, 'ExpectedRoutesToExecutePaymentOver']);
   }
 
@@ -112,215 +114,241 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedValidRouteChannelIds', err]);
   }
 
-  lnd.sendToRouteSync({
-    payment_hash: Buffer.from(path.id, 'hex'),
-    payment_hash_string: path.id,
-    routes: path.routes
-      .filter(route => fee === undefined || route.fee <= fee)
-      .filter(route => timeout === undefined || route.timeout <= timeout)
-      .map(route => {
-        return {
-          hops: route.hops.map(hop => {
+  const routes = path.routes
+    .filter(route => fee === undefined || route.fee <= fee)
+    .filter(route => timeout === undefined || route.timeout <= timeout)
+    .map(route => {
+      return {
+        hops: route.hops.map(hop => {
+          return {
+            amt_to_forward: hop.forward.toString(),
+            amt_to_forward_msat: hop.forward_mtokens,
+            chan_id: chanNumber({channel: hop.channel}).number,
+            chan_capacity: hop.channel_capacity.toString(),
+            expiry: hop.timeout,
+            fee: hop.fee.toString(),
+            fee_msat: hop.fee_mtokens,
+            pub_key: hop.public_key || undefined,
+          };
+        }),
+        total_amt: route.tokens.toString(),
+        total_amt_msat: route.mtokens,
+        total_fees: route.fee.toString(),
+        total_fees_msat: route.fee_mtokens,
+        total_time_lock: route.timeout,
+      };
+    });
+
+  const routesToTry = routes.map(route => {
+    return cbk => {
+      return lnd.sendToRouteSync({
+        route,
+        payment_hash: Buffer.from(path.id, 'hex'),
+        payment_hash_string: path.id,
+      },
+      (err, res) => {
+        if (!!err) {
+          return cbk([503, 'PaymentError', err]);
+        }
+
+        if (!res) {
+          return cbk([503, 'ExpectedResponseWhenSendingPayment']);
+        }
+
+        if (res.payment_error === 'UnknownPaymentHash') {
+          return cbk(null, {type: 'unknown_payment_hash'});
+        }
+
+        if (res.payment_error === 'payment is in transition') {
+          return cbk(null, {type: 'payment_in_flight'});
+        }
+
+        if (res.payment_error === 'unable to find a path to destination') {
+          return cbk([503, 'UnknownPathToDestination']);
+        }
+
+        const paymentError = res.payment_error || '';
+
+        const [chanFailure] = paymentError.match(chanIdMatch) || [];
+        let failChanId;
+
+        if (!!chanFailure) {
+          const chanId = chanFailure.split(chanSplit);
+
+          try {
+            const [blockHeight, blockIndex, outputIndex] = chanId;
+
+            const encodedFailChanId = encodeChanId({
+              block_height: parseInt(blockHeight, decBase),
+              block_index: parseInt(blockIndex, decBase),
+              output_index: parseInt(outputIndex, decBase),
+            });
+
+            failChanId = encodedFailChanId.channel;
+          } catch (err) {
+            // Ignore errors when parsing of unstructured error message fails.
+          }
+        }
+
+        if (/UnknownPaymentHash/.test(res.payment_error)) {
+          return cbk(null, {type: 'unknown_payment_hash'});
+        }
+
+        if (/ChannelDisabled/.test(res.payment_error) && !!failChanId) {
+          return cbk([503, 'NextHopChannelDisabled', {channel: failChanId}]);
+        }
+
+        if (/ChannelDisabled/.test(res.payment_error)) {
+          return cbk([503, 'NextHopChannelDisabled', res.payment_route]);
+        }
+
+        if (/ExpiryTooFar/.test(res.payment_error) && !!failChanId) {
+          return cbk([503, 'ExpiryTooFar', {channel: failChanId}]);
+        }
+
+        if (/ExpiryTooFar/.test(res.payment_error)) {
+          return cbk([503, 'ExpiryTooFar', res.payment_error]);
+        }
+
+        if (/ExpiryTooSoon/.test(res.payment_error) && !!failChanId) {
+          return cbk([503, 'RejectedTooNearTimeout', {channel: failChanId}]);
+        }
+
+        if (/ExpiryTooSoon/.test(res.payment_error)) {
+          return cbk([503, 'RejectedTooNearTimeout', res.payment_error]);
+        }
+
+        if (/FeeInsufficient/.test(res.payment_error) && !!failChanId) {
+          return cbk([503, 'RejectedUnacceptableFee', {channel: failChanId}]);
+        }
+
+        if (/FeeInsufficient/.test(res.payment_error)) {
+          return cbk([503, 'RejectedUnacceptableFee', res.payment_error]);
+        }
+
+        if (/FinalIncorrectCltvExpiry/.test(res.payment_error)) {
+          return cbk([503, 'ExpiryTooFar', res.payment_error]);
+        }
+
+        if (/IncorrectCltvExpiry/.test(res.payment_error) && !!failChanId) {
+          return cbk([503, 'RejectedUnacceptableCltv', {channel: failChanId}]);
+        }
+
+        if (/IncorrectCltvExpiry/.test(res.payment_error)) {
+          return cbk([503, 'RejectedUnacceptableCltv', res.payment_error]);
+        }
+
+        if (/TemporaryChannelFailure/.test(res.payment_error) && !!failChanId) {
+          return cbk([503, 'TemporaryChannelFailure', {channel: failChanId}]);
+        }
+
+        if (/TemporaryChannelFailure/.test(res.payment_error)) {
+          return cbk([503, 'TemporaryChannelFailure', res.payment_error]);
+        }
+
+        if (/TemporaryNodeFailure/.test(res.payment_error)) {
+          return cbk([503, 'TemporaryNodeFailure', res.payment_error]);
+        }
+
+        if (/UnknownNextPeer/.test(res.payment_error) && !!failChanId) {
+          return cbk([503, 'UnknownNextHopChannel', {channel: failChanId}]);
+        }
+
+        if (/UnknownNextPeer/.test(res.payment_error)) {
+          return cbk([503, 'UnknownNextHopChannel', res.payment_error]);
+        }
+
+        if (!!res.payment_error) {
+          return cbk([503, 'UnableToCompletePayment', res.payment_error]);
+        }
+
+        if (!res.payment_route) {
+          return cbk([503, 'ExpectedPaymentRouteInformation', res]);
+        }
+
+        if (!isArray(res.payment_route.hops)) {
+          return cbk([503, 'ExpectedPaymentRouteHops']);
+        }
+
+        if (!Buffer.isBuffer(res.payment_preimage)) {
+          return cbk([503, 'ExpectedPaymentPreimageBuffer']);
+        }
+
+        if (!isArray(res.payment_route.hops)) {
+          return cbk([503, 'ExpectedPaymentRouteHops']);
+        }
+
+        if (res.payment_route.total_amt === undefined) {
+          return cbk([503, 'ExpectedPaymentTotalSentAmount']);
+        }
+
+        if (res.payment_route.total_amt_msat === undefined) {
+          return cbk([503, 'ExpectedPaymentTotalMillitokensSentAmount']);
+        }
+
+        if (res.payment_route.total_fees === undefined) {
+          return cbk([503, 'ExpectedRouteFeesPaidValue']);
+        }
+
+        if (res.payment_route.total_fees_msat === undefined) {
+          return cbk([503, 'ExpectedRouteFeesMillitokensPaidValue']);
+        }
+
+        const {hops} = res.payment_route;
+
+        try {
+          hops.forEach(hop => chanFormat({number: hop.chan_id}));
+        } catch (err) {
+          return cbk([503, 'ExpectedNumericChannelIdInPaymentResponse', err]);
+        }
+
+        const row = {
+          fee: parseInt(res.payment_route.total_fees, decBase),
+          fee_mtokens: res.payment_route.total_fees_msat,
+          hops: res.payment_route.hops.map(hop => {
             return {
-              amt_to_forward: hop.forward.toString(),
-              amt_to_forward_msat: hop.forward_mtokens,
-              chan_id: chanNumber({channel: hop.channel}).number,
-              chan_capacity: hop.channel_capacity.toString(),
-              expiry: hop.timeout,
-              fee: hop.fee.toString(),
-              fee_msat: hop.fee_mtokens,
-              pub_key: hop.public_key || undefined,
+              channel_capacity: parseInt(hop.chan_capacity, decBase),
+              channel: chanFormat({number: hop.chan_id}).channel,
+              fee_mtokens: hop.fee_msat,
+              forward_mtokens: hop.amt_to_forward_msat,
+              timeout: hop.expiry,
             };
           }),
-          total_amt: route.tokens.toString(),
-          total_amt_msat: route.mtokens,
-          total_fees: route.fee.toString(),
-          total_fees_msat: route.fee_mtokens,
-          total_time_lock: route.timeout,
+          id: createHash('sha256').update(res.payment_preimage).digest('hex'),
+          is_confirmed: true,
+          is_outgoing: true,
+          mtokens: res.payment_route.total_amt_msat,
+          secret: res.payment_preimage.toString('hex'),
+          tokens: parseInt(res.payment_route.total_amt, decBase),
+          type: rowTypes.channel_transaction,
         };
-      }),
-  },
-  (err, res) => {
-    if (!!err) {
-      return cbk([503, 'PaymentError', err]);
-    }
 
-    if (!res) {
-      return cbk([503, 'ExpectedResponseWhenSendingPayment']);
-    }
+        if (!!wss) {
+          broadcastResponse({log, row, wss});
+        }
 
-    if (res.payment_error === 'UnknownPaymentHash') {
-      return cbk([404, 'UnknownPaymentHash']);
-    }
-
-    if (res.payment_error === 'payment is in transition') {
-      return cbk([409, 'PaymentIsPendingResolution']);
-    }
-
-    if (res.payment_error === 'unable to find a path to destination') {
-      return cbk([503, 'UnknownPathToDestination']);
-    }
-
-    const paymentError = res.payment_error || '';
-
-    const [chanFailure] = paymentError.match(chanIdMatch) || [];
-    let failChanId;
-
-    if (!!chanFailure) {
-      const chanId = chanFailure.split(chanSplit);
-
-      try {
-        const [blockHeight, blockIndex, outputIndex] = chanId;
-
-        const encodedFailChanId = encodeChanId({
-          block_height: parseInt(blockHeight, decBase),
-          block_index: parseInt(blockIndex, decBase),
-          output_index: parseInt(outputIndex, decBase),
-        });
-
-        failChanId = encodedFailChanId.channel;
-      } catch (err) {
-        // Ignore errors when parsing of unstructured error message fails.
-      }
-    }
-
-    if (/UnknownPaymentHash/.test(res.payment_error)) {
-      return cbk([404, 'UnknownPaymentHash']);
-    }
-
-    if (/ChannelDisabled/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'NextHopChannelDisabled', {channel: failChanId}]);
-    }
-
-    if (/ChannelDisabled/.test(res.payment_error)) {
-      return cbk([503, 'NextHopChannelDisabled', res.payment_route]);
-    }
-
-    if (/ExpiryTooFar/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'ExpiryTooFar', {channel: failChanId}]);
-    }
-
-    if (/ExpiryTooFar/.test(res.payment_error)) {
-      return cbk([503, 'ExpiryTooFar', res.payment_error]);
-    }
-
-    if (/ExpiryTooSoon/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'RejectedTooNearTimeout', {channel: failChanId}]);
-    }
-
-    if (/ExpiryTooSoon/.test(res.payment_error)) {
-      return cbk([503, 'RejectedTooNearTimeout', res.payment_error]);
-    }
-
-    if (/FeeInsufficient/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'RejectedUnacceptableFee', {channel: failChanId}]);
-    }
-
-    if (/FeeInsufficient/.test(res.payment_error)) {
-      return cbk([503, 'RejectedUnacceptableFee', res.payment_error]);
-    }
-
-    if (/FinalIncorrectCltvExpiry/.test(res.payment_error)) {
-      return cbk([503, 'ExpiryTooFar', res.payment_error]);
-    }
-
-    if (/IncorrectCltvExpiry/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'RejectedUnacceptableCltv', {channel: failChanId}]);
-    }
-
-    if (/IncorrectCltvExpiry/.test(res.payment_error)) {
-      return cbk([503, 'RejectedUnacceptableCltv', res.payment_error]);
-    }
-
-    if (/TemporaryChannelFailure/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'TemporaryChannelFailure', {channel: failChanId}]);
-    }
-
-    if (/TemporaryChannelFailure/.test(res.payment_error)) {
-      return cbk([503, 'TemporaryChannelFailure', res.payment_error]);
-    }
-
-    if (/TemporaryNodeFailure/.test(res.payment_error)) {
-      return cbk([503, 'TemporaryNodeFailure', res.payment_error]);
-    }
-
-    if (/UnknownNextPeer/.test(res.payment_error) && !!failChanId) {
-      return cbk([503, 'UnknownNextHopChannel', {channel: failChanId}]);
-    }
-
-    if (/UnknownNextPeer/.test(res.payment_error)) {
-      return cbk([503, 'UnknownNextHopChannel', res.payment_error]);
-    }
-
-    if (!!res.payment_error) {
-      return cbk([503, 'UnableToCompletePayment', res.payment_error]);
-    }
-
-    if (!res.payment_route) {
-      return cbk([503, 'ExpectedPaymentRouteInformation', res]);
-    }
-
-    if (!Array.isArray(res.payment_route.hops)) {
-      return cbk([503, 'ExpectedPaymentRouteHops']);
-    }
-
-    if (!Buffer.isBuffer(res.payment_preimage)) {
-      return cbk([503, 'ExpectedPaymentPreimageBuffer']);
-    }
-
-    if (!Array.isArray(res.payment_route.hops)) {
-      return cbk([503, 'ExpectedPaymentRouteHops']);
-    }
-
-    if (res.payment_route.total_amt === undefined) {
-      return cbk([503, 'ExpectedPaymentTotalSentAmount']);
-    }
-
-    if (res.payment_route.total_amt_msat === undefined) {
-      return cbk([503, 'ExpectedPaymentTotalMillitokensSentAmount']);
-    }
-
-    if (res.payment_route.total_fees === undefined) {
-      return cbk([503, 'ExpectedRouteFeesPaidValue']);
-    }
-
-    if (res.payment_route.total_fees_msat === undefined) {
-      return cbk([503, 'ExpectedRouteFeesMillitokensPaidValue']);
-    }
-
-    const {hops} = res.payment_route;
-
-    try {
-      hops.forEach(hop => chanFormat({number: hop.chan_id}));
-    } catch (err) {
-      return cbk([503, 'ExpectedNumericChannelIdInPaymentResponse', err]);
-    }
-
-    const row = {
-      fee: parseInt(res.payment_route.total_fees, decBase),
-      fee_mtokens: res.payment_route.total_fees_msat,
-      hops: res.payment_route.hops.map(hop => {
-        return {
-          channel_capacity: parseInt(hop.chan_capacity, decBase),
-          channel: chanFormat({number: hop.chan_id}).channel,
-          fee_mtokens: hop.fee_msat,
-          forward_mtokens: hop.amt_to_forward_msat,
-          timeout: hop.expiry,
-        };
-      }),
-      id: createHash('sha256').update(res.payment_preimage).digest('hex'),
-      is_confirmed: true,
-      is_outgoing: true,
-      mtokens: res.payment_route.total_amt_msat,
-      secret: res.payment_preimage.toString('hex'),
-      tokens: parseInt(res.payment_route.total_amt, decBase),
-      type: rowTypes.channel_transaction,
+        return cbk(null, {row, type: 'success'});
+      });
     };
+  });
 
-    if (!!wss) {
-      broadcastResponse({log, row, wss});
+  return asyncTryEach(routesToTry, (err, res) => {
+    if (!!err) {
+      return cbk(err);
     }
 
-    return cbk(null, row);
+    switch (res.type) {
+    case 'payment_in_flight':
+      return cbk([409, 'PaymentIsPendingResolution']);
+
+    case 'success':
+      return cbk(null, res.row);
+
+    case 'unknown_payment_hash':
+      return cbk([404, 'UnknownPaymentHash']);
+
+    default:
+      return cbk([500, 'UnrecognizedTypeOfRouteResponse']);
+    }
   });
 };

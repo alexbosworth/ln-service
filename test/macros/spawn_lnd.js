@@ -30,11 +30,11 @@ const lightningTlsKeyFileName = 'tls.key';
 const lightningWalletPassword = 'password';
 const lndWalletUnlockerService = 'WalletUnlocker';
 const localhost = '127.0.0.1';
-const maxSpawnChainDaemonAttempts = 3;
+const maxSpawnChainDaemonAttempts = 10;
 const readMacaroonFileName = 'readonly.macaroon';
 const retryCreateSeedCount = 5;
 const startPortRange = 7593;
-const startWalletTimeoutMs = 4500;
+const startWalletTimeoutMs = 5500;
 
 /** Spawn an lnd instance
 
@@ -184,8 +184,8 @@ module.exports = ({seed}, cbk) => {
       ({spawnChainDaemon}, cbk) =>
     {
       const {dir} = spawnChainDaemon;
-      const interval = retryCount => 50 * Math.pow(2, retryCount);
-      const times = 15;
+      const interval = retryCount => 10 * Math.pow(2, retryCount);
+      const times = 20;
 
       const certPath = join(dir, lightningTlsCertFileName);
 
@@ -266,8 +266,8 @@ module.exports = ({seed}, cbk) => {
       ({spawnChainDaemon}, cbk) =>
     {
       const {dir} = spawnChainDaemon;
-      const interval = retryCount => 50 * Math.pow(2, retryCount);
-      const times = 15;
+      const interval = retryCount => 10 * Math.pow(2, retryCount);
+      const times = 20;
 
       const macaroonPath = join(dir, adminMacaroonFileName);
 
@@ -385,8 +385,8 @@ module.exports = ({seed}, cbk) => {
 
     // Delay to make sure everything has come together
     delay: ['lnd', ({lnd}, cbk) => {
-      const interval = retryCount => 50 * Math.pow(2, retryCount);
-      const times = 15;
+      const interval = retryCount => 10 * Math.pow(2, retryCount);
+      const times = 20;
 
       return asyncRetry({interval, times}, cbk => {
         return getWalletInfo({lnd}, cbk);
