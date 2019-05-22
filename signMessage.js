@@ -5,7 +5,7 @@ const {signMessage} = require('./');
 /** Sign a message
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     message: <Message String>
   }
 

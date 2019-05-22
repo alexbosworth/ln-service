@@ -1,8 +1,8 @@
 const {test} = require('tap');
 
-const {delay} = require('./../macros');
 const getNetworkInfo = require('./../../getNetworkInfo');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 // Getting the network info should return basic network statistics
 test(`Get network info`, async ({end, equal}) => {
@@ -20,7 +20,7 @@ test(`Get network info`, async ({end, equal}) => {
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });

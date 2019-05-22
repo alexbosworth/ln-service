@@ -1,9 +1,9 @@
 const {test} = require('tap');
 
 const createInvoice = require('./../../createInvoice');
-const {delay} = require('./../macros');
 const getInvoices = require('./../../getInvoices');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const limit = 1;
 
@@ -49,7 +49,7 @@ test(`Create an invoice`, async ({end, equal}) => {
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });

@@ -6,7 +6,7 @@ const {changePassword} = require('./');
 
   {
     current_password: <Current Password String>
-    lnd: <WalletUnlocker LND GRPC API Object>
+    lnd: <Unauthenticated LND gRPC API Object>
     new_password: <New Password String>
   }
 */

@@ -5,7 +5,7 @@ const {broadcastChainTransaction} = require('./');
 /** Publish a raw blockchain transaction to Blockchain network peers
 
   {
-    lnd: <WalletRPC LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     transaction: <Transaction Hex String>
   }
 

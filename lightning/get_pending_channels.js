@@ -6,6 +6,7 @@ const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const {isArray} = Array;
 const outpointSeparator = ':';
 
 /** Get pending channels.
@@ -14,7 +15,7 @@ const outpointSeparator = ':';
   a channel may be opening, closing, or active.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -48,27 +49,32 @@ const outpointSeparator = ':';
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.pendingChannels) {
-    return cbk([400, 'ExpectedLndForPendingChannelsRequest']);
-  }
-
   return asyncAuto({
-    getPending: cbk => {
-      return lnd.pendingChannels({}, (err, res) => {
+    // Check arguments
+    validate: cbk => {
+      if (!lnd || !lnd.default || !lnd.default.pendingChannels) {
+        return cbk([400, 'ExpectedLndForPendingChannelsRequest']);
+      }
+
+      return cbk();
+    },
+
+    getPending: ['validate', ({}, cbk) => {
+      return lnd.default.pendingChannels({}, (err, res) => {
         if (!!err) {
-          return cbk([503, 'PendingChannelsErr', err]);
+          return cbk([503, 'UnexpectedPendingChannelsErr', {err}]);
         }
 
-        if (!res || !Array.isArray(res.pending_open_channels)) {
-          return cbk([503, 'ExpectedPendingOpenChannels', res]);
+        if (!res || !isArray(res.pending_open_channels)) {
+          return cbk([503, 'ExpectedPendingOpenChannels']);
         }
 
-        if (!res || !Array.isArray(res.pending_closing_channels)) {
-          return cbk([503, 'ExpectedPendingClosingChannels', res]);
+        if (!res || !isArray(res.pending_closing_channels)) {
+          return cbk([503, 'ExpectedPendingClosingChannels']);
         }
 
-        if (!res || !Array.isArray(res.pending_force_closing_channels)) {
-          return cbk([503, 'ExpectedPendingForceCloseChannels', res]);
+        if (!res || !isArray(res.pending_force_closing_channels)) {
+          return cbk([503, 'ExpectedPendingForceCloseChannels']);
         }
 
         const forceClosing = {};
@@ -133,8 +139,9 @@ module.exports = ({lnd}, cbk) => {
           waitClosing,
         });
       });
-    },
+    }],
 
+    // Assemble and check pending channels
     pendingChannels: ['getPending', ({getPending}, cbk) => {
       const {coopClosing} = getPending;
       const {forceClosing} = getPending;
@@ -143,7 +150,7 @@ module.exports = ({lnd}, cbk) => {
 
       return asyncMap(getPending.channels, (channel, cbk) => {
         if (!channel.channel_point) {
-          return cbk([503, 'ExpectedChannelOutpoint', channel]);
+          return cbk([503, 'ExpectedChannelOutpoint']);
         }
 
         const coop = coopClosing[channel.channel_point] || {};
@@ -153,15 +160,15 @@ module.exports = ({lnd}, cbk) => {
         const wait = waitClosing[channel.channel_point] || {};
 
         if (channel.local_balance === undefined) {
-          return cbk([503, 'ExpectedLocalBalance', channel]);
+          return cbk([503, 'ExpectedLocalBalance']);
         }
 
         if (!channel.remote_node_pub) {
-          return cbk([503, 'ExpectedRemoteNodePub', channel]);
+          return cbk([503, 'ExpectedRemoteNodePub']);
         }
 
         if (channel.remote_balance === undefined) {
-          return cbk([503, 'ExpectedRemoteBalance', channel]);
+          return cbk([503, 'ExpectedRemoteBalance']);
         }
 
         const pendingBalance = wait.pending_balance || forced.pending_balance;
@@ -192,10 +199,10 @@ module.exports = ({lnd}, cbk) => {
       cbk);
     }],
 
+    // Final set of pending channels
     pending: ['pendingChannels', ({pendingChannels}, cbk) => {
       return cbk(null, {pending_channels: pendingChannels});
     }],
   },
   returnResult({of: 'pending'}, cbk));
 };
-

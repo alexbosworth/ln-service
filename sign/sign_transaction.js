@@ -2,6 +2,7 @@ const asyncAuto = require('async/auto');
 
 const {returnResult} = require('./../async-util');
 
+const {isArray} = Array;
 const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
 /** Sign transaction
@@ -16,7 +17,7 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
       vin: <Input Index To Sign Number>
       witness_script: <Witness Script Hex String>
     }]
-    lnd: <LND Signer GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     transaction: <Unsigned Transaction Hex String>
   }
 
@@ -29,12 +30,12 @@ module.exports = ({inputs, lnd, transaction}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!Array.isArray(inputs) || !inputs.length) {
+      if (!isArray(inputs) || !inputs.length) {
         return cbk([400, 'ExpectedInputsToSignTransaction']);
       }
 
-      if (!lnd) {
-        return cbk([400, 'ExpectedLndToSignTransaction']);
+      if (!lnd || !lnd.signer || !lnd.signer.signOutputRaw) {
+        return cbk([400, 'ExpectedAuthenticatedLndToSignTransaction']);
       }
 
       if (!transaction) {
@@ -46,7 +47,7 @@ module.exports = ({inputs, lnd, transaction}, cbk) => {
 
     // Get signatures
     signTransaction: ['validate', ({}, cbk) => {
-      return lnd.signOutputRaw({
+      return lnd.signer.signOutputRaw({
         raw_tx_bytes: Buffer.from(transaction, 'hex'),
         sign_descs: inputs.map(input => ({
           input_index: input.vin,
@@ -66,19 +67,19 @@ module.exports = ({inputs, lnd, transaction}, cbk) => {
       },
       (err, res) => {
         if (!!err && err.message === unimplementedError) {
-          return cbk([400, 'ExpectedSignerLnd']);
+          return cbk([400, 'ExpectedLndBuiltWithSignerRpcBuildTag']);
         }
 
         if (!!err) {
-          return cbk([503, 'UnexpectedErrorWhenSigning', err]);
+          return cbk([503, 'UnexpectedErrorWhenSigning', {err}]);
         }
 
         if (!res) {
-          return cbk([503, 'UnexpectedEmptyResponseWhenSigning', err]);
+          return cbk([503, 'UnexpectedEmptyResponseWhenSigning']);
         }
 
-        if (!Array.isArray(res.raw_sigs) || !res.raw_sigs.length) {
-          return cbk([503, 'ExpectedSignaturesInSignatureResponse', err]);
+        if (!isArray(res.raw_sigs) || !res.raw_sigs.length) {
+          return cbk([503, 'ExpectedSignaturesInSignatureResponse']);
         }
 
         if (res.raw_sigs.find(n => !Buffer.isBuffer(n))) {

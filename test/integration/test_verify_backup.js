@@ -1,15 +1,14 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const getBackup = require('./../../getBackup');
 const getWalletInfo = require('./../../getWalletInfo');
 const openChannel = require('./../../openChannel');
 const {spawnLnd} = require('./../macros');
 const verifyBackup = require('./../../verifyBackup');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
 const defaultFee = 1e3;
 const giftTokens = 1e5;
 
@@ -26,6 +25,11 @@ test(`Test verify backup`, async ({end, equal}) => {
     local_tokens: channelCapacityTokens,
     partner_public_key: (await getWalletInfo({lnd})).public_key,
     socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
+  });
+
+  await waitForPendingChannel({
+    id: channelOpen.transaction_id,
+    lnd: cluster.target.lnd,
   });
 
   const {backup} = await getBackup({
@@ -50,8 +54,6 @@ test(`Test verify backup`, async ({end, equal}) => {
 
   equal(badBackup.is_valid, false, 'Invalid channel backup is invalid');
   equal(goodBackup.is_valid, true, 'Channel backup is validated');
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
 
   await cluster.kill({});
 

@@ -5,7 +5,7 @@ const {getNode} = require('./');
 /** Get information about a node
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     public_key: <Node Public Key Hex String>
   }
 
@@ -23,4 +23,3 @@ const {getNode} = require('./');
   }
 */
 module.exports = promisify(getNode);
-

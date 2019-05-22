@@ -8,6 +8,9 @@ const delay = promisify(setTimeout);
 const generateBlocks = promisify(require('./generate_blocks'));
 const mineTransaction = promisify(require('./mine_transaction'));
 const spawnLnd = promisify(require('./spawn_lnd'));
+const waitForChannel = promisify(require('./wait_for_channel'));
+const waitForPendingChannel = promisify(require('./wait_for_pending_channel'));
+const waitForTermination = promisify(require('./wait_for_termination'));
 
 module.exports = {
   chainSendTransaction,
@@ -18,5 +21,7 @@ module.exports = {
   generateBlocks,
   mineTransaction,
   spawnLnd,
+  waitForChannel,
+  waitForPendingChannel,
+  waitForTermination,
 };
-

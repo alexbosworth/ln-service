@@ -5,7 +5,7 @@ const {getNetworkGraph} = require('./');
 /** Get network graph
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -18,6 +18,7 @@ const {getNetworkGraph} = require('./');
         [cltv_delta]: <CLTV Height Delta Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         [is_disabled]: <Edge is Disabled Bool>
+        [max_htlc_mtokens]: <Maximum HTLC Millitokens String>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
         public_key: <Public Key String>
       }]
@@ -35,4 +36,3 @@ const {getNetworkGraph} = require('./');
   }
 */
 module.exports = promisify(getNetworkGraph);
-

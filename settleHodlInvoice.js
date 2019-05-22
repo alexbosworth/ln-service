@@ -5,7 +5,7 @@ const {settleHodlInvoice} = require('./');
 /** Settle hodl invoice
 
   {
-    lnd: <Invoices RPC LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     secret: <Payment Preimage Hex String>
   }
 */

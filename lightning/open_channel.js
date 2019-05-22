@@ -1,14 +1,14 @@
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
 
-const channelLimit = require('./conf/lnd').channel_limit_tokens;
 const getChainBalance = require('./get_chain_balance');
 const {returnResult} = require('./../async-util');
 
 const defaultMinConfs = 1;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const staticFee = 1e3;
-const minimumChannelSize = 20000;
+const maxChannelTokens = 16777215;
+const minChannelTokens = 20000;
 const times = 7;
 
 /** Open a new channel.
@@ -17,7 +17,7 @@ const times = 7;
     [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
     [give_tokens]: <Tokens to Give To Partner Number> // Defaults to zero
     [is_private]: <Channel is Private Bool> // Defaults to false
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [local_tokens]: <Local Tokens Number> // Defaults to max possible tokens
     partner_public_key: <Public Key Hex String>
   }
@@ -33,7 +33,7 @@ module.exports = (args, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!args.lnd || !args.lnd.openChannel) {
+      if (!args.lnd || !args.lnd.default || !args.lnd.default.openChannel) {
         return cbk([400, 'ExpectedLndForChannelOpen']);
       }
 
@@ -41,11 +41,11 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedPartnerPublicKey']);
       }
 
-      if (args.local_tokens < minimumChannelSize) {
+      if (args.local_tokens < minChannelTokens) {
         return cbk([400, 'ExpectedLargerChannelSize']);
       }
 
-      if (args.local_tokens > channelLimit) {
+      if (args.local_tokens > maxChannelTokens) {
         return cbk([400, 'ChannelSizeExceedsChannelLimit']);
       }
 
@@ -61,7 +61,7 @@ module.exports = (args, cbk) => {
     openChannel: ['getBalance', ({getBalance}, cbk) => {
       const balance = getBalance.chain_balance;
       let isAnnounced = false;
-      const limit = channelLimit;
+      const limit = maxChannelTokens;
 
       const maxTokens = balance > limit ? limit : balance;
 
@@ -82,7 +82,7 @@ module.exports = (args, cbk) => {
         options.push_sat = args.give_tokens;
       }
 
-      const channelOpen = args.lnd.openChannel(options);
+      const channelOpen = args.lnd.default.openChannel(options);
 
       channelOpen.on('data', chan => {
         switch (chan.update) {
@@ -95,6 +95,8 @@ module.exports = (args, cbk) => {
           }
 
           isAnnounced = true;
+
+          channelOpen.removeAllListeners();
 
           return cbk(null, {
             transaction_id: chan.chan_pending.txid.reverse().toString('hex'),
@@ -121,6 +123,8 @@ module.exports = (args, cbk) => {
         }
 
         isAnnounced = true;
+
+        channelOpen.removeAllListeners();
 
         if (!n || !n.details) {
           return cbk([503, 'UnknownChannelOpenStatus']);
@@ -153,4 +157,3 @@ module.exports = (args, cbk) => {
   },
   returnResult({of: 'openChannel'}, cbk));
 };
-

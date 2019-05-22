@@ -34,4 +34,3 @@ test('Get peers', async ({end, equal}) => {
 
   return end();
 });
-

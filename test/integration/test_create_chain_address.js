@@ -2,10 +2,11 @@ const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
 const createChainAddress = require('./../../createChainAddress');
-const {delay} = require('./../macros');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const chainAddressRowType = 'chain_address';
+const formats = ['np2wpkh', 'p2wpkh'];
 const p2shAddressVersion = 196;
 const pkHashByteLength = 20;
 const regtestBech32AddressHrp = 'bcrt';
@@ -14,8 +15,10 @@ const regtestBech32AddressHrp = 'bcrt';
 test(`Create address results in address creation`, async ({end, equal}) => {
   const {kill, lnd} = await spawnLnd({});
 
-  const np2wpkh = await createChainAddress({lnd, format: 'np2wpkh'});
-  const p2wpkh = await createChainAddress({lnd, format: 'p2wpkh'});
+  const createNewChainAddresses = formats
+    .map(async format => await createChainAddress({lnd, format}));
+
+  const [np2wpkh, p2wpkh] = await Promise.all(createNewChainAddresses);
 
   const nativeAddress = address.fromBech32(p2wpkh.address);
   const nestedAddress = address.fromBase58Check(np2wpkh.address);
@@ -26,17 +29,18 @@ test(`Create address results in address creation`, async ({end, equal}) => {
   equal(np2wpkh.type, chainAddressRowType, 'Nested row type');
   equal(p2wpkh.type, chainAddressRowType, 'Native row type');
 
-  const [unusedNp2wpkh, unusedP2wpkh] = await Promise.all(['np2wpkh', 'p2wpkh']
-    .map(async format => {
-      return await createChainAddress({lnd, format, is_unused: true});
-    }));
+  const getUnused = formats.map(async format => {
+    return await createChainAddress({lnd, format, is_unused: true});
+  });
+
+  const [unusedNp2wpkh, unusedP2wpkh] = await Promise.all(getUnused);
 
   equal(np2wpkh.address, unusedNp2wpkh.address, 'Nested is reused');
   equal(p2wpkh.address, unusedP2wpkh.address, 'Native is reused');
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });

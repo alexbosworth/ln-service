@@ -16,15 +16,18 @@ const acceptedState = 'ACCEPTED';
 const canceledState = 'CANCELED';
 const decBase = 10;
 const defaultLimit = 100;
+const {isArray} = Array;
 const lastPageFirstIndexOffset = 1;
 const msPerSec = 1e3;
 const mtokensPerToken = new BN(1e3, 10);
+const {parse} = JSON;
+const {stringify} = JSON;
 
 /** Get all created invoices.
 
   {
     [limit]: <Page Result Limit Number>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [token]: <Opaque Paging Token String>
   }
 
@@ -64,12 +67,12 @@ module.exports = ({limit, lnd, token}, cbk) => {
   return asyncAuto({
     // Validate arguments
     validate: cbk => {
-      if (!lnd) {
-        return cbk([400, 'ExpectedLndForInvoiceListing']);
-      }
-
       if (!!limit && !!token) {
         return cbk([400, 'UnexpectedLimitWhenPagingInvoicesWithToken']);
+      }
+
+      if (!lnd || !lnd.default || !lnd.default.listInvoices) {
+        return cbk([400, 'ExpectedLndForInvoiceListing']);
       }
 
       return cbk();
@@ -82,36 +85,36 @@ module.exports = ({limit, lnd, token}, cbk) => {
 
       if (!!token) {
         try {
-          const pagingToken = JSON.parse(token);
+          const pagingToken = parse(token);
 
           offset = pagingToken.offset;
           resultsLimit = pagingToken.limit;
         } catch (err) {
-          return cbk([400, 'ExpectedValidPagingToken', err, token]);
+          return cbk([400, 'ExpectedValidPagingTokenForInvoicesReq', {err}]);
         }
       }
 
-      return lnd.listInvoices({
+      return lnd.default.listInvoices({
         index_offset: offset || 0,
         num_max_invoices: resultsLimit,
         reversed: true,
       },
       (err, res) => {
         if (!!err) {
-          return cbk([503, 'GetInvoicesError', err]);
+          return cbk([503, 'UnexpectedGetInvoicesError', {err}]);
         }
 
-        if (!res || !Array.isArray(res.invoices)) {
-          return cbk([503, 'ExpectedInvoicesList', res]);
+        if (!res || !isArray(res.invoices)) {
+          return cbk([503, 'ExpectedInvoicesListInResponseToInvoicesQuery']);
         }
 
         if (typeof res.last_index_offset !== 'string') {
-          return cbk([503, 'ExpectedLastIndexOffset']);
+          return cbk([503, 'ExpectedLastIndexOffsetWhenRequestingInvoices']);
         }
 
         const offset = parseInt(res.first_index_offset, decBase);
 
-        const token = JSON.stringify({offset, limit: resultsLimit});
+        const token = stringify({offset, limit: resultsLimit});
 
         return cbk(null, {
           token: offset === lastPageFirstIndexOffset ? undefined : token,
@@ -129,39 +132,39 @@ module.exports = ({limit, lnd, token}, cbk) => {
         let settledDate = undefined;
 
         if (!invoice.amt_paid_msat) {
-          return cbk([503, 'ExpectedInvoiceAmountPaidMillitokens', invoice]);
+          return cbk([503, 'ExpectedInvoiceAmountPaidMillitokensInInvoice']);
         }
 
         if (!invoice.amt_paid_sat) {
-          return cbk([503, 'ExpectedInvoiceAmountPaid', invoice]);
+          return cbk([503, 'ExpectedInvoiceAmountPaidInInvoicesResult']);
         }
 
         if (!invoice.cltv_expiry) {
-          return cbk([503, 'ExpectedCltvExpiryForInvoice', invoice]);
+          return cbk([503, 'ExpectedCltvExpiryForInvoice']);
         }
 
         if (!isFinite(creationEpochDate)) {
-          return cbk([503, 'ExpectedCreationDate', invoice]);
+          return cbk([503, 'ExpectedCreationDateForInvoice']);
         }
 
         if (!isFinite(expiresInMs)) {
-          return cbk([503, 'ExpectedExpirationTime', invoice]);
+          return cbk([503, 'ExpectedExpirationTimeInInvoice']);
         }
 
         if (!!descHash.length && !Buffer.isBuffer(invoice.description_hash)) {
-          return cbk([503, 'ExpectedDescriptionHashBuffer', invoice]);
+          return cbk([503, 'ExpectedDescriptionHashBuffer']);
         }
 
         if (invoice.private === undefined) {
-          return cbk([503, 'ExpectedInvoicePrivateStatus', invoice]);
+          return cbk([503, 'ExpectedInvoicePrivateStatus']);
         }
 
         if (!isString(invoice.payment_request)) {
-          return cbk([503, 'ExpectedPaymentRequest', invoice]);
+          return cbk([503, 'ExpectedPaymentRequestInInvoice']);
         }
 
         if (!Buffer.isBuffer(invoice.r_preimage)) {
-          return cbk([503, 'ExpectedPreimage', invoice]);
+          return cbk([503, 'ExpectedPreimageInInvoice']);
         }
 
         if (!!invoice.settle_date) {
@@ -183,7 +186,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
 
         try {
           routes = invoice.route_hints.map(route => {
-            if (!Array.isArray(route.hop_hints)) {
+            if (!isArray(route.hop_hints)) {
               throw new Error('ExpectedRouteHopHints');
             }
 

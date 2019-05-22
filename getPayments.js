@@ -5,7 +5,7 @@ const {getPayments} = require('./');
 /** Get payments made through channels.
 
   {
-    lnd: <Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -25,4 +25,3 @@ const {getPayments} = require('./');
   }
 */
 module.exports = promisify(getPayments);
-

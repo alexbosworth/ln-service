@@ -2,11 +2,11 @@ const {test} = require('tap');
 
 const closeChannel = require('./../../closeChannel');
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
-const getPeers = require('./../../getPeers');
 const getPendingChannels = require('./../../getPendingChannels');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -21,8 +21,6 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(2000);
-
   const coopChan = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -32,11 +30,11 @@ test(`Get pending channels`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({lnd, id: coopChan.transaction_id});
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(2000);
+  await waitForChannel({lnd, id: coopChan.transaction_id});
 
   const niceClose = await closeChannel({
     lnd: cluster.target.lnd,
@@ -47,7 +45,10 @@ test(`Get pending channels`, async ({end, equal}) => {
     transaction_vout: coopChan.transaction_vout,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    lnd: cluster.target.lnd,
+    id: coopChan.transaction_id,
+  });
 
   const [coopClose] = (await getPendingChannels({lnd})).pending_channels;
 

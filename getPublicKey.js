@@ -7,7 +7,7 @@ const {getPublicKey} = require('./');
   {
     family: <Key Family Number>
     index: <Key Index Number>
-    lnd: <WalletRpc GRPC API LND Object>
+    lnd: <Authenticated gRPC API LND Object>
   }
 
   @returns via Promise

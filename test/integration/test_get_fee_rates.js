@@ -4,8 +4,12 @@ const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const getFeeRates = require('./../../getFeeRates');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const confirmationCount = 20;
+const defaultBaseFee = 1;
+const defaultFeeRate = 1;
 
 // Getting fee rates should return the fee rates of nodes in the channel graph
 test(`Get fee rates`, async ({end, equal}) => {
@@ -13,19 +17,17 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(3000);
-
   const channelOpen = await openChannel({
     lnd,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({lnd, id: channelOpen.transaction_id});
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(2000);
+  await waitForChannel({lnd, id: channelOpen.transaction_id});
 
   const {channels} = await getFeeRates({lnd});
 
@@ -33,8 +35,8 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   const [channel] = channels;
 
-  equal(channel.base_fee, 1, 'Channel base fee');
-  equal(channel.fee_rate, 1, 'Channel fee rate');
+  equal(channel.base_fee, defaultFeeRate, 'Channel base fee');
+  equal(channel.fee_rate, defaultBaseFee, 'Channel fee rate');
   equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
   equal(channel.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
@@ -42,4 +44,3 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   return end();
 });
-

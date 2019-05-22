@@ -1,7 +1,7 @@
 /** Verify a message was signed by a known pubkey
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     message: <Message String>
     signature: <Signature String>
   }
@@ -12,7 +12,7 @@
   }
 */
 module.exports = ({lnd, message, signature}, cbk) => {
-  if (!lnd || !lnd.verifyMessage) {
+  if (!lnd || !lnd.default || !lnd.default.verifyMessage) {
     return cbk([400, 'ExpectedLndForVerifyMessage']);
   }
 
@@ -26,13 +26,13 @@ module.exports = ({lnd, message, signature}, cbk) => {
 
   const msg = Buffer.from(message, 'utf8');
 
-  return lnd.verifyMessage({msg, signature}, (err, res) => {
+  return lnd.default.verifyMessage({msg, signature}, (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedVerifyMessageError', err]);
+      return cbk([503, 'UnexpectedVerifyMessageError', {err}]);
     }
 
     if (!res.pubkey) {
-      return cbk([503, 'ExpectedPublicKey', res]);
+      return cbk([503, 'ExpectedPublicKeyInVerifyMessageResponse']);
     }
 
     if (!res.valid) {
@@ -42,4 +42,3 @@ module.exports = ({lnd, message, signature}, cbk) => {
     return cbk(null, {signed_by: res.pubkey});
   });
 };
-

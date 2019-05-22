@@ -6,19 +6,20 @@ const {returnResult} = require('./../async-util');
 
 const connectionFailureMessage = 'FailedToConnectToDaemon';
 const interval = retryCount => 10 * Math.pow(2, retryCount);
+const {isArray} = Array;
 const times = 10;
 
 /** Stop the Lightning daemon.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 */
 module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd || !lnd.stopDaemon) {
+      if (!lnd || !lnd.default || !lnd.default.stopDaemon) {
         return cbk([400, 'ExpectedLndToStopDaemon']);
       }
 
@@ -27,9 +28,9 @@ module.exports = ({lnd}, cbk) => {
 
     // Stop the daemon
     stopDaemon: ['validate', ({}, cbk) => {
-      return lnd.stopDaemon({}, err => {
+      return lnd.default.stopDaemon({}, err => {
         if (!!err) {
-          return cbk([503, 'UnexpectedErrorStoppingLightningDaemon', err]);
+          return cbk([503, 'UnexpectedErrorStoppingLightningDaemon', {err}]);
         }
 
         return cbk();
@@ -40,8 +41,8 @@ module.exports = ({lnd}, cbk) => {
     waitForGetInfoFailure: ['stopDaemon', ({stopDaemon}, cbk) => {
       return asyncRetry({interval, times}, cbk => {
         return getWalletInfo({lnd}, err => {
-          if (!Array.isArray(err)) {
-            return cbk([503, 'FailedToStopDaemon']);
+          if (!isArray(err)) {
+            return cbk([503, 'FailedToStopDaemon', {err}]);
           }
 
           const [, message] = err;
@@ -58,4 +59,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({}, cbk));
 };
-

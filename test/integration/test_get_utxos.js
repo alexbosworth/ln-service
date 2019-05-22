@@ -9,6 +9,7 @@ const {generateBlocks} = require('./../macros');
 const getUtxos = require('./../../getUtxos');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -64,7 +65,7 @@ test(`Get utxos`, async ({deepIs, end, equal, fail}) => {
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });

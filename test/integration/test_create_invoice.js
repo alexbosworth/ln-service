@@ -1,8 +1,8 @@
 const {test} = require('tap');
 
 const createInvoice = require('./../../createInvoice');
-const {delay} = require('./../macros');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 // createInvoice should result in a created invoice
 test(`Create an invoice`, async ({end, equal}) => {
@@ -15,15 +15,11 @@ test(`Create an invoice`, async ({end, equal}) => {
   equal(invoice.tokens, 0, 'Default tokens are 0');
   equal(invoice.type, 'invoice', 'Invoice row type');
 
-  const fancyInvoice = await createInvoice({
-    lnd,
-    is_including_private_channels: true,
-  });
+  await createInvoice({lnd, is_including_private_channels: true});
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });
-

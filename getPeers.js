@@ -5,7 +5,7 @@ const {getPeers} = require('./');
 /** Get connected peers.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -24,4 +24,3 @@ const {getPeers} = require('./');
   }
 */
 module.exports = promisify(getPeers);
-

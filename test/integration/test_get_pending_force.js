@@ -2,11 +2,12 @@ const {test} = require('tap');
 
 const closeChannel = require('./../../closeChannel');
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getPeers = require('./../../getPeers');
 const getPendingChannels = require('./../../getPendingChannels');
 const openChannel = require('./../../openChannel');
+const {waitChannel} = require('./../macros');
+const {waitPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -30,7 +31,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await getPendingChannels({lnd, id: channelOpen.transaction_id});
 
   const [pendingOpen] = (await getPendingChannels({lnd})).pending_channels;
 
@@ -52,6 +53,8 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
+  await getChannels({lnd, id: channelOpen.transaction_id});
+
   const channelClose = await closeChannel({
     lnd,
     is_force_close: true,
@@ -60,7 +63,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     transaction_vout: channelOpen.transaction_vout,
   });
 
-  await delay(2000);
+  await getPendingChannels({lnd, id: channelOpen.transaction_id});
 
   const [waitClose] = (await getPendingChannels({lnd})).pending_channels;
 
@@ -82,8 +85,6 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(2000);
-
   const [forceClose] = (await getPendingChannels({lnd})).pending_channels;
 
   equal(forceClose.close_transaction_id, channelClose.transaction_id, 'Txid');
@@ -103,8 +104,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(forceClose.type, 'channel', 'Force closing channel is a channel');
 
   await cluster.kill({});
-
-  await delay(1000);
 
   return end();
 });

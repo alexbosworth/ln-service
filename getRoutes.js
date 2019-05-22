@@ -7,19 +7,25 @@ const {getRoutes} = require('./');
   Either a destination or extended routes are required.
 
   {
-    [destination]: <Send Destination Hex Encoded Public Key String>
+    [destination]: <Final Send Destination Hex Encoded Public Key String>
     [fee]: <Maximum Fee Tokens Number>
-    [limit]: <Limit Results Count Number>
-    lnd: <LND GRPC API Object>
+    [get_channel]: <Custom Get Channel Function>
+    [ignore]: [{
+      [channel]: <Channel Id String>
+      from_public_key: <Public Key Hex String>
+      [to_public_key]: <To Public Key Hex String>
+    }]
+    lnd: <Authenticated LND gRPC API Object>
     [routes]: [[{
-      base_fee_mtokens: <Base Routing Fee In Millitokens Number>
-      channel: <Standard Format Channel Id String>
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
-      cltv_delta: <CLTV Blocks Delta Number>
-      fee_rate: <Fee Rate In Millitokens Per Million Number>
-      public_key: <Public Key Hex String>
+      [channel]: <Standard Format Channel Id String>
+      [cltv_delta]: <CLTV Blocks Delta Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
     }]]
-    [timeout]: <Final CLTV Timeout Blocks Delta Number>
+    [start]: <Starting Node Public Key Hex String>
+    [timeout]: <Final CLTV Delta Number>
     [tokens]: <Tokens to Send Number>
   }
 
@@ -35,11 +41,12 @@ const {getRoutes} = require('./');
         fee_mtokens: <Fee Millitokens String>
         forward: <Forward Tokens Number>
         forward_mtokens: <Forward Millitokens String>
+        public_key: <Forward Edge Public Key Hex String>
         timeout: <Timeout Block Height Number>
       }]
-      mtokens: <Total Millitokens String>
+      mtokens: <Total Fee-Inclusive Millitokens String>
       timeout: <Timeout Block Height Number>
-      tokens: <Total Tokens Number>
+      tokens: <Total Fee-Inclusive Tokens Number>
     }]
   }
 */

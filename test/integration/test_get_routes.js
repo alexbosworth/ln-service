@@ -14,6 +14,8 @@ const getWalletInfo = require('./../../getWalletInfo');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -37,7 +39,17 @@ test(`Get routes`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
+
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   const [channel] = (await getChannels({lnd})).channels;
 
@@ -50,11 +62,17 @@ test(`Get routes`, async ({end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await waitForChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
@@ -201,4 +219,3 @@ test(`Get routes`, async ({end, equal}) => {
 
   return end();
 });
-

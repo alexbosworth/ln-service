@@ -5,7 +5,7 @@ const {getWalletInfo} = require('./');
 /** Get overall wallet info.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authentication LND gRPC API Object>
   }
 
   @returns via Promise
@@ -24,4 +24,3 @@ const {getWalletInfo} = require('./');
   }
 */
 module.exports = promisify(getWalletInfo);
-

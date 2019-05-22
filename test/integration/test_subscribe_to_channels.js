@@ -21,8 +21,6 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   const {lnd} = cluster.control;
   const socket = `${cluster.target.listen_ip}:${cluster.target.listen_port}`;
 
-  await delay(3000);
-
   const sub = subscribeToChannels({lnd});
 
   sub.on('data', update => deepIs(update, expected.shift()));

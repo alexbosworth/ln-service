@@ -2,13 +2,14 @@ const transactionRowType = require('./conf/row_types').chain_transaction;
 
 const {abs} = Math;
 const decBase = 10;
+const {isArray} = Array;
 const msPerSec = 1e3;
 const noFee = '0';
 
 /** Get chain transactions.
 
   {
-    lnd: <LND GRPC Object>
+    lnd: <Authenticated LND gRPC Object>
   }
 
   @returns via cbk
@@ -29,20 +30,20 @@ const noFee = '0';
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.getTransactions) {
+  if (!lnd || !lnd.default || !lnd.default.getTransactions) {
     return cbk([400, 'ExpectedLndToGetChainTransactions']);
   }
 
-  return lnd.getTransactions({}, (err, res) => {
+  return lnd.default.getTransactions({}, (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedGetChainTransactionsError', err]);
+      return cbk([503, 'UnexpectedGetChainTransactionsError', {err}]);
     }
 
     if (!res) {
       return cbk([503, 'ExpectedGetChainTransactionsResponse']);
     }
 
-    if (!Array.isArray(res.transactions)) {
+    if (!isArray(res.transactions)) {
       return cbk([503, 'ExpectedTransactionsList', res]);
     }
 
@@ -60,7 +61,7 @@ module.exports = ({lnd}, cbk) => {
           throw new Error('ExpectedTransactionBlockHeightNumber');
         }
 
-        if (!Array.isArray(transaction.dest_addresses)) {
+        if (!isArray(transaction.dest_addresses)) {
           throw new Error('ExpectedTransactionDestinationAddresses');
         }
 

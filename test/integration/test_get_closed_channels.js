@@ -6,9 +6,11 @@ const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getClosedChannels = require('./../../getClosedChannels');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
 
 const confirmationCount = 20;
 const defaultFee = 1e3;
+const maxChanTokens = Math.pow(2, 24) - 1;
 
 // Getting closed channels should return closed channels
 test(`Close channel`, async ({end, equal}) => {
@@ -21,9 +23,14 @@ test(`Close channel`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await delay(1000);
 
   await cluster.generate({count: confirmationCount});
+
+  await waitForChannel({
+    id: channelOpen.transaction_id,
+    lnd: cluster.control.lnd,
+  });
 
   const closing = await closeChannel({
     lnd: cluster.control.lnd,
@@ -32,7 +39,7 @@ test(`Close channel`, async ({end, equal}) => {
     transaction_vout: channelOpen.transaction_vout,
   });
 
-  await delay(3000);
+  await delay(1000);
 
   await cluster.generate({count: confirmationCount});
 
@@ -42,10 +49,10 @@ test(`Close channel`, async ({end, equal}) => {
 
   equal(channels.length, [channelOpen].length, 'Channel close listed');
 
-  equal(channel.capacity, Math.pow(2, 24) - 1e3, 'Channel capacity reflected');
+  equal(channel.capacity, maxChanTokens - 1e3, 'Channel capacity reflected');
   equal(!!channel.close_confirm_height, true, 'Channel close height');
   equal(channel.close_transaction_id, closing.transaction_id, 'Close tx id');
-  equal(Math.pow(2, 24) - channel.final_local_balance, 10050, 'Final balance');
+  equal(maxChanTokens - channel.final_local_balance, 10050, 'Final balance');
   equal(channel.final_time_locked_balance, 0, 'Final locked balance');
   equal(!!channel.id, true, 'Channel id');
   equal(channel.is_breach_close, false, 'Not breach close');
@@ -61,4 +68,3 @@ test(`Close channel`, async ({end, equal}) => {
 
   return end();
 });
-

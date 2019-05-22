@@ -18,7 +18,7 @@ const {keys} = Object;
   // Local scores reflect an internal scoring that includes local channel info
 
   {
-    lnd: <Autopilot Service LND GRPC Object>
+    lnd: <Authenticated LND gRPC Object>
     [node_scores]: [<Get Score For Public Key Hex String>]
   }
 
@@ -40,7 +40,7 @@ module.exports = (args, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!args.lnd || !args.lnd.queryScores || !args.lnd.status) {
+      if (!args.lnd || !args.lnd.autopilot || !args.lnd.autopilot.status) {
         return cbk([400, 'ExpectedAutopilotEnabledLndToGetAutopilotStatus']);
       }
 
@@ -54,13 +54,13 @@ module.exports = (args, cbk) => {
           return cbk();
         }
 
-        return args.lnd.queryScores({
+        return args.lnd.autopilot.queryScores({
           ignore_local_state: !isLocal,
           pubkeys: args.node_scores,
         },
         (err, res) => {
           if (!!err) {
-            return cbk([503, 'UnexpectedErrorGettingNodeScores', err]);
+            return cbk([503, 'UnexpectedErrorGettingNodeScores', {err}]);
           }
 
           if (!res) {
@@ -83,9 +83,9 @@ module.exports = (args, cbk) => {
 
     // Get status
     getStatus: ['validate', ({}, cbk) => {
-      return args.lnd.status({}, (err, res) => {
+      return args.lnd.autopilot.status({}, (err, res) => {
         if (!!err && err.message === wrongLnd) {
-          return cbk([400, 'ExpectedAutopilotEnabledLndToGetAutopilotStatus']);
+          return cbk([400, 'ExpectedLndBuiltWithAutopilotToGetStatus']);
         }
 
         if (!!err) {

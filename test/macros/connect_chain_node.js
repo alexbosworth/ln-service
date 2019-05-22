@@ -23,10 +23,9 @@ module.exports = ({cert, connect, host, pass, port, user}, cbk) => {
 
   return rpc({cert, cmd, host, params, pass, port, user}, err => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorAddingNode', err]);
+      return cbk([503, 'UnexpectedErrorAddingNode', {err}]);
     }
 
     return cbk();
   });
 };
-

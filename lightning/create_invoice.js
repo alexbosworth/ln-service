@@ -1,11 +1,14 @@
 const asyncAuto = require('async/auto');
+const isHex = require('is-hex');
 
 const {broadcastResponse} = require('./../async-util');
 const createChainAddress = require('./create_chain_address');
 const getInvoice = require('./get_invoice');
 const rowTypes = require('./conf/row_types');
 
+const {isArray} = Array;
 const msPerSec = 1e3;
+const {parse} = Date;
 
 /** Create a channel invoice.
 
@@ -16,7 +19,7 @@ const msPerSec = 1e3;
     [is_fallback_included]: <Is Fallback Address Included Bool>
     [is_fallback_nested]: <Is Fallback Address Nested Bool>
     [is_including_private_channels]: <Invoice Includes Private Channels Bool>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
     [secret]: <Payment Secret Hex String>
     [tokens]: <Tokens Number>
@@ -43,16 +46,24 @@ module.exports = (args, cbk) => {
         return cbk();
       }
 
+      if (!isHex(args.secret)) {
+        return cbk([400, 'ExpectedHexSecretForNewInvoice']);
+      }
+
       return cbk(null, Buffer.from(args.secret, 'hex'));
     },
 
     // Check arguments
     validate: cbk => {
-      if (!args.lnd) {
-        return cbk([400, 'ExpectedLndToCreateInvoice']);
+      if (!!args.expires_at && new Date().toISOString() > args.expires_at) {
+        return cbk([400, 'ExpectedFutureDateForInvoiceExpiration']);
       }
 
-      if (!!args.wss && !Array.isArray(args.wss)) {
+      if (!args.lnd) {
+        return cbk([400, 'ExpectedLndToCreateNewInvoice']);
+      }
+
+      if (!!args.wss && !isArray(args.wss)) {
         return cbk([400, 'ExpectedWssArrayToCreateInvoice']);
       }
 
@@ -71,24 +82,19 @@ module.exports = (args, cbk) => {
       }
 
       const format = !!args.is_fallback_nested ? 'np2wpkh' : 'p2wpkh';
-      const {lnd} = args;
 
-      if (!args.include_address) {
-        return cbk();
-      }
-
-      return createChainAddress({format, lnd}, cbk);
+      return createChainAddress({format, lnd: args.lnd}, cbk);
     }],
 
     // Add invoice
     addInvoice: ['addAddress', 'preimage', ({addAddress, preimage}, cbk) => {
       const fallbackAddress = !addAddress ? '' : addAddress.address;
       const createdAt = new Date();
-      const expireAt = !args.expires_at ? null : Date.parse(args.expires_at);
+      const expireAt = !args.expires_at ? null : parse(args.expires_at);
 
       const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
-      return args.lnd.addInvoice({
+      return args.lnd.default.addInvoice({
         cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
         expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
         fallback_addr: fallbackAddress,

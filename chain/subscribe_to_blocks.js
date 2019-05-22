@@ -5,7 +5,7 @@ const blockHashByteLen = 32;
 /** Subscribe to blocks
 
   {
-    lnd: <Chain Notifier LND GRPC API Object>
+    lnd: <Authenticated LND gRPC Object>
   }
 
   @throws
@@ -21,12 +21,12 @@ const blockHashByteLen = 32;
   }
 */
 module.exports = ({lnd}) => {
-  if (!lnd) {
+  if (!lnd || !lnd.chain || !lnd.chain.registerBlockEpochNtfn) {
     throw new Error('ExpectedLndToSubscribeToBlocks');
   }
 
   const eventEmitter = new EventEmitter();
-  const sub = lnd.registerBlockEpochNtfn({});
+  const sub = lnd.chain.registerBlockEpochNtfn({});
 
   sub.on('end', () => eventEmitter.emit('end'));
   sub.on('status', n => eventEmitter.emit('status', n));

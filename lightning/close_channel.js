@@ -15,7 +15,7 @@ const {returnResult} = require('./../async-util');
   {
     [id]: <Standard Format Channel Id String>
     [is_force_close]: <Is Force Close Bool>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [public_key]: <Peer Public Key String>
     [socket]: <Peer Socket String>
     [target_confirmations]: <Confirmation Target Number>
@@ -44,7 +44,7 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedIdOfChannelToClose', args]);
       }
 
-      if (!args.lnd || !args.lnd.closeChannel) {
+      if (!args.lnd || !args.lnd.default || !args.lnd.default.closeChannel) {
         return cbk([400, 'ExpectedLndToExecuteChannelClose']);
       }
 
@@ -92,7 +92,7 @@ module.exports = (args, cbk) => {
       const transactionId = Buffer.from(getChannel.transaction_id, 'hex');
       const transactionVout = getChannel.transaction_vout;
 
-      const closeChannel = args.lnd.closeChannel({
+      const closeChannel = args.lnd.default.closeChannel({
         channel_point: {
           funding_txid_bytes: transactionId.reverse(),
           output_index: transactionVout,
@@ -128,6 +128,8 @@ module.exports = (args, cbk) => {
 
           const closeTxId = chan.close_pending.txid.reverse();
 
+          closeChannel.removeAllListeners();
+
           return cbk(null, {
             transaction_id: closeTxId.toString('hex'),
             transaction_vout: chan.close_pending.output_index,
@@ -158,13 +160,11 @@ module.exports = (args, cbk) => {
           return cbk([503, 'UnknownChannelOpenStatus']);
         }
 
-        switch (n.details) {
-        default:
-          return cbk([503, 'FailedToCloseChannel', n]);
-        }
+        return cbk([503, 'FailedToCloseChannel']);
       });
+
+      return;
     }],
   },
   returnResult({of: 'closeChannel'}, cbk));
 };
-

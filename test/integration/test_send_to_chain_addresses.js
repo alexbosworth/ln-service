@@ -16,7 +16,7 @@ const txIdHexByteLength = 64;
 
 // Sending to chain addresses should result in on-chain sent funds
 test(`Send to chain address`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.target;
 
@@ -28,12 +28,10 @@ test(`Send to chain address`, async ({end, equal}) => {
   const sent = await sendToChainAddresses({
     lnd: cluster.control.lnd,
     send_to: [
-      {address: address1, tokens: tokens / 2},
-      {address: address2, tokens: tokens / 2},
+      {address: address1, tokens: tokens / [address1, address2].length},
+      {address: address2, tokens: tokens / [address1, address2].length},
     ],
   });
-
-  await delay(3000);
 
   equal(sent.id.length, txIdHexByteLength, 'Transaction id is returned');
   equal(sent.is_confirmed, false, 'Transaction is not yet confirmed');
@@ -44,7 +42,7 @@ test(`Send to chain address`, async ({end, equal}) => {
   // Generate to confirm the tx
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(3000);
+  await delay(4000);
 
   const endBalance = await getChainBalance({lnd});
 

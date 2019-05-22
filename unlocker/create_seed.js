@@ -4,7 +4,7 @@ const expectedMnemonicLength = 24;
 /** Create a wallet seed
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Unauthenticed LND gRPC API Object>
     [passphrase]: <Seed Passphrase String>
   }
 
@@ -14,13 +14,13 @@ const expectedMnemonicLength = 24;
   }
 */
 module.exports = ({lnd, passphrase}, cbk) => {
-  if (!lnd) {
-    return cbk([400, 'ExpectedLndForSeedCreation']);
+  if (!lnd || !lnd.unlocker || !lnd.unlocker.genSeed) {
+    return cbk([400, 'ExpectedNonAuthenticatedLndForSeedCreation']);
   }
 
   const pass = !passphrase ? undefined : Buffer.from(passphrase, 'utf8');
 
-  return lnd.genSeed({aezeed_passphrase: pass}, (err, res) => {
+  return lnd.unlocker.genSeed({aezeed_passphrase: pass}, (err, res) => {
     if (!!err && err.message === connectionFailure) {
       return cbk([503, 'UnexpectedConnectionFailure']);
     }

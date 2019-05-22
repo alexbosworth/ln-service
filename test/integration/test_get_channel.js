@@ -5,6 +5,8 @@ const {delay} = require('./../macros');
 const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const confirmationCount = 20;
 const {ceil} = Math;
@@ -15,23 +17,19 @@ test(`Get channel`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(1000);
-
-  await openChannel({
+  const controlToTarget = await openChannel({
     lnd,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(1000);
+  await waitForPendingChannel({lnd, id: controlToTarget.transaction_id});
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(1000);
+  await waitForChannel({lnd, id: controlToTarget.transaction_id});
 
   const {channels} = await getChannels({lnd});
-
-  await delay(1000);
 
   const [channel] = channels;
 
@@ -62,4 +60,3 @@ test(`Get channel`, async ({end, equal}) => {
 
   return end();
 });
-

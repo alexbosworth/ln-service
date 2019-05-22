@@ -107,7 +107,7 @@ You can then interact with your LND node directly:
 ```node
 const lnService = require('ln-service');
 
-const lnd = lnService.lightningDaemon({
+const {lnd} = lnService.authenticatedLndGrpc({
   cert: 'base64 encoded tls.cert',
   macaroon: 'base64 encoded admin.macaroon',
   socket: '127.0.0.1:10009',

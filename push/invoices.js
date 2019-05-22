@@ -1,10 +1,12 @@
 const {broadcastResponse} = require('./../async-util');
 const {subscribeToInvoices} = require('./../lightning');
 
+const {isArray} = Array;
+
 /** Subscribe to invoices.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     log: <Log Function>
     wss: [<Web Socket Server Object>]
   }
@@ -14,24 +16,23 @@ const {subscribeToInvoices} = require('./../lightning');
 */
 module.exports = ({lnd, log, wss}) => {
   if (!lnd) {
-    throw new Error('ExpectedLndObject');
+    throw new Error('ExpectedLndObjectToSubscribeToInvoices');
   }
 
   if (!log) {
-    throw new Error('ExpectedLogFunction');
+    throw new Error('ExpectedLogFunctionWhenSubscribingToInvoices');
   }
 
-  if (!Array.isArray(wss)) {
-    throw new Error('ExpectedWebSocketServers');
+  if (!isArray(wss)) {
+    throw new Error('ExpectedWebSocketServersToForwardInvoicesTo');
   }
 
   const subscription = subscribeToInvoices({lnd});
 
   subscription.on('data', row => broadcastResponse({log, row, wss}));
   subscription.on('end', () => {});
-  subscription.on('error', err => log([503, 'InvoicesSubscriptionErr', err]));
+  subscription.on('error', err => log([503, 'SubscribeInvoicesErr', {err}]));
   subscription.on('status', ({}) => {});
 
   return;
 };
-

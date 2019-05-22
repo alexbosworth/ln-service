@@ -9,7 +9,7 @@ const existsErr = 'unable to unpack single backups: channel already exists';
 
   {
     backup: <Backup Hex String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     transaction_id: <Channel Funding Transaction Id Hex String>
     transaction_vout: <Channel Funding Transaction Output Index Hex String>
   }
@@ -22,7 +22,7 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedBackupWhenAttemptingChannelRestoration']);
       }
 
-      if (!args.lnd || !args.lnd.restoreChannelBackups) {
+      if (!args.lnd || !args.lnd.default) {
         return cbk([400, 'ExpectedLndToRestoreChannelFromBackup']);
       }
 
@@ -56,7 +56,7 @@ module.exports = (args, cbk) => {
 
       const transactionId = Buffer.from(args.transaction_id, 'hex');
 
-      return args.lnd.restoreChannelBackups({
+      return args.lnd.default.restoreChannelBackups({
         chan_backups: {
           chan_backups: [{
             chan_backup: Buffer.from(args.backup, 'hex'),
@@ -73,7 +73,7 @@ module.exports = (args, cbk) => {
         }
 
         if (!!err) {
-          return cbk([503, 'UnexpectedErrorWhenRestoringChanFromBackup', err]);
+          return cbk([503, 'UnexpectedErrWhenRestoringChanFromBackup', {err}]);
         }
 
         return cbk();

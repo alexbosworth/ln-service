@@ -57,4 +57,3 @@ module.exports = ({cert, host, pass, port, transaction, user}, cbk) => {
     return generateBlocks({cert, count, host, pass, port, user}, cbk);
   });
 };
-

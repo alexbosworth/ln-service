@@ -7,10 +7,10 @@ const {verifyBackups} = require('./');
   {
     backup: <Multi-Backup Hex String>
     channels: [{
-      transaction_id: <Transaction Id String>
+      transaction_id: <Transaction Id Hex String>
       transaction_vout: <Transaction Output Index Number>
     }]
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise

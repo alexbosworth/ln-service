@@ -10,6 +10,7 @@ const getChainBalance = require('./../../getChainBalance');
 const getChainTransactions = require('./../../getChainTransactions');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -64,7 +65,7 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });

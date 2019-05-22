@@ -1,25 +1,27 @@
+const isHex = require('is-hex');
+
 /** Verify and restore channels from a multi-channel backup
 
   {
     backup: <Backup Hex String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 */
 module.exports = ({backup, lnd}, cbk) => {
-  if (!backup) {
+  if (!backup || !isHex(backup)) {
     return cbk([400, 'ExpectedBackupWhenAttemptingToRestoreChannelFunds']);
   }
 
-  if (!lnd || !lnd.restoreChannelBackups) {
+  if (!lnd || !lnd.default || !lnd.default.restoreChannelBackups) {
     return cbk([400, 'ExpectedLndWhenAttemptingToRestoreChannelFunds']);
   }
 
-  return lnd.restoreChannelBackups({
+  return lnd.default.restoreChannelBackups({
     multi_chan_backup: Buffer.from(backup, 'hex'),
   },
   err => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorWhenAttemptingChannelFundsRestore']);
+      return cbk([503, 'UnexpectedErrWhenRestoringChannelFunds', {err}]);
     }
 
     return cbk();

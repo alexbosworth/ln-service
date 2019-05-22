@@ -5,7 +5,7 @@ const {getBackups} = require('./');
 /** Get all channel backups
 
   {
-    lnd: <GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise

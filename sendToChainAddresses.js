@@ -6,7 +6,7 @@ const {sendToChainAddresses} = require('./');
 
   {
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
-    lnd: <LND GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function>
     send_to: [{
       address: <Address String>

@@ -7,7 +7,7 @@ const {createChainAddress} = require('./');
   {
     format: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
     [is_unused]: <Get As-Yet Unused Address Bool>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise

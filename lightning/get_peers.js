@@ -5,13 +5,14 @@ const peerType = require('./conf/row_types').peer;
 const {returnResult} = require('./../async-util');
 
 const decBase = 10;
-const microPerMilli = 1e3;
 const {ceil} = Math;
+const {isArray} = Array;
+const microPerMilli = 1e3;
 
 /** Get connected peers.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -32,15 +33,30 @@ const {ceil} = Math;
 */
 module.exports = ({lnd}, cbk) => {
   return asyncAuto({
+    // Check arguments
+    validate: cbk => {
+      if (!lnd || !lnd.default || !lnd.default.listPeers) {
+        return cbk([400, 'ExpectedAuthenticatedLndToGetConnectedPeers']);
+      }
+
+      return cbk();
+    },
+
     // List the set of connected peers
-    listPeers: cbk => lnd.listPeers({}, (err, res) => {
-      return !!err ? cbk([503, 'UnexpectedGetPeersErr', err]) : cbk(null, res);
-    }),
+    listPeers: ['validate', ({}, cbk) => {
+      return lnd.default.listPeers({}, (err, res) => {
+        if (!!err) {
+          return cbk([503, 'UnexpectedGetPeersError', {err}]);
+        }
+
+        return cbk(null, res);
+      });
+    }],
 
     // Check the list of peers and map into final format
     peers: ['listPeers', ({listPeers}, cbk) => {
-      if (!listPeers || !Array.isArray(listPeers.peers)) {
-        return cbk([503, 'ExpectedPeersArray', listPeers]);
+      if (!listPeers || !isArray(listPeers.peers)) {
+        return cbk([503, 'ExpectedPeersArrayWhenListingPeers']);
       }
 
       return asyncMap(listPeers.peers, (peer, cbk) => {
@@ -57,7 +73,7 @@ module.exports = ({lnd}, cbk) => {
         }
 
         if (peer.inbound !== true && peer.inbound !== false) {
-          return cbk([503, 'ExpectedPeerInbound', peer]);
+          return cbk([503, 'ExpectedPeerInbound']);
         }
 
         if (typeof peer.ping_time !== 'string') {
@@ -108,10 +124,10 @@ module.exports = ({lnd}, cbk) => {
       cbk);
     }],
 
+    // Final set of peers
     finalPeers: ['peers', ({peers}, cbk) => {
       return cbk(null, {peers});
     }],
   },
   returnResult({of: 'finalPeers'}, cbk));
 };
-

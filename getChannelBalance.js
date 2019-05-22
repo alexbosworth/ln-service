@@ -5,13 +5,13 @@ const {getChannelBalance} = require('./');
 /** Get channel balance
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
   {
-    channel_balance: <Channels Balance Tokens>
+    channel_balance: <Channels Balance Tokens Number>
+    pending_balance: <Pending Channels Balance Tokens Number>
   }
 */
 module.exports = promisify(getChannelBalance);
-

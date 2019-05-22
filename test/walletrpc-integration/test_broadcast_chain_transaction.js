@@ -9,6 +9,7 @@ const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const getChainTransactions = require('./../../getChainTransactions');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const count = 100;
 const defaultVout = 0;
@@ -45,10 +46,7 @@ test(`Send chain transaction`, async ({end, equal}) => {
     spend_vout: defaultVout,
   });
 
-  const {id} = await broadcastChainTransaction({
-    transaction,
-    lnd: node.wallet_lnd,
-  });
+  const {id} = await broadcastChainTransaction({transaction, lnd: node.lnd});
 
   await delay(5000);
 
@@ -59,6 +57,8 @@ test(`Send chain transaction`, async ({end, equal}) => {
   equal(id, tx.id, 'Transaction is found in broadcast');
 
   kill();
+
+  await waitForTermination({lnd});
 
   return end();
 });

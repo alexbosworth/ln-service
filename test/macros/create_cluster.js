@@ -13,15 +13,16 @@ const generateBlocks = require('./generate_blocks');
 const {getWalletInfo} = require('./../../');
 const mineTransaction = require('./mine_transaction');
 const spawnLnd = require('./spawn_lnd');
+const waitForTermination = require('./wait_for_termination');
 
 const defaultFee = 1e3;
 const defaultVout = 0;
 const format = 'np2wpkh';
 const maturityBlockCount = 429;
 const retryMs = 200;
-const retryTimes = 20;
+const retryTimes = 50;
 const seed = 'abandon tank dose ripple foil subway close flock laptop cabbage primary silent plastic unhappy west weird panda plastic brave prefer diesel glad jazz isolate';
-const tokens = 1e8;
+const tokens = 50e8;
 
 /** Create a cluster of lnds
 
@@ -41,17 +42,17 @@ const tokens = 1e8;
   {
     control: {
       kill: <Kill Function>
-      lnd: <Control LND GRPC Object>
+      lnd: <Authenticated LND gRPC Object>
     }
     generate: <Generate Function> ({node, count}) -> (err) -> ()
     kill: <Kill Nodes Function>
     [remote]: {
       kill: <Kill Function>
-      lnd: <Remote LND GRPC Object>
+      lnd: <Authenticated LND gRPC Object>
     }
     target: {
       kill: <Kill Function>
-      lnd: <Target LND GRPC Object>
+      lnd: <Authenticated LND gRPC Object>
     }
     [remote_node_public_key]: <Remote Node Public Key Hex String>
     target_node_public_key: <Target Node Public Key Hex String>
@@ -331,11 +332,15 @@ module.exports = (args, cbk) => {
     const {target} = res;
 
     const kill = promisify((args, cbk) => {
-      const nodes = [control, remote, target].concat(args.nodes);
+      const nodes = [control, remote, target].concat(args.nodes)
+        .filter(n => !!n);
 
-      nodes.filter(n => !!n).forEach(({kill}) => kill());
+      nodes.forEach(({kill}) => kill());
 
-      return setTimeout(() => cbk(), 4000);
+      return asyncEach(nodes, ({lnd}, cbk) => {
+        return waitForTermination({lnd}, cbk);
+      },
+      cbk);
     });
 
     const generate = promisify((args, cbk) => {

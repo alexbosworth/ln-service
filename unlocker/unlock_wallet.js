@@ -3,13 +3,13 @@ const invalidPasswordError = 'invalid passphrase for master public key';
 /** Unlock the wallet
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Unauthenticated LND gRPC API Object>
     password: <Password String>
   }
 */
 module.exports = ({lnd, password}, cbk) => {
-  if (!lnd) {
-    return cbk([400, 'ExpectedLnd']);
+  if (!lnd || !lnd.unlocker || !lnd.unlocker.unlockWallet) {
+    return cbk([400, 'ExpectedLndWhenUnlockingWallet']);
   }
 
   if (!password) {
@@ -18,16 +18,15 @@ module.exports = ({lnd, password}, cbk) => {
 
   const walletPassword = Buffer.from(password, 'utf8');
 
-  return lnd.unlockWallet({wallet_password: walletPassword}, err => {
+  return lnd.unlocker.unlockWallet({wallet_password: walletPassword}, err => {
     if (!!err && err.details === invalidPasswordError) {
       return cbk([401, 'InvalidWalletUnlockPassword']);
     }
 
     if (!!err) {
-      return cbk([503, 'UnexpectedUnlockWalletErr', err]);
+      return cbk([503, 'UnexpectedUnlockWalletErr', {err}]);
     }
 
     return cbk();
   });
 };
-

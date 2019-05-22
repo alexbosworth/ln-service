@@ -10,7 +10,7 @@ const {getForwards} = require('./');
     [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
     [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>
     [limit]: <Page Result Limit Number>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [token]: <Opaque Paging Token String>
   }
 

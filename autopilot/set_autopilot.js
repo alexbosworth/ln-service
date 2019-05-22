@@ -21,7 +21,7 @@ const {isArray} = Array;
       score: <Score Number>
     }]
     [is_enabled]: <Enable Autopilot Bool>
-    lnd: <Autopilot Service LND GRPC Object>
+    lnd: <Authenticated LND gRPC Object>
   }
 */
 module.exports = (args, cbk) => {
@@ -32,7 +32,7 @@ module.exports = (args, cbk) => {
         return cbk([400, 'ExpectedNodesOrEnabledSettingToAdjustAutopilot']);
       }
 
-      if (!args.lnd || !args.lnd.modifyStatus) {
+      if (!args.lnd || !args.lnd.autopilot || !args.lnd.autopilot.status) {
         return cbk([400, 'ExpectedAutopilotEnabledLndToSetAutopilot']);
       }
 
@@ -73,7 +73,7 @@ module.exports = (args, cbk) => {
 
       nodes.forEach(n => scores[n.public_key] = n.score);
 
-      return args.lnd.setScores({heuristic, scores}, (err, res) => {
+      return args.lnd.autopilot.setScores({heuristic, scores}, (err, res) => {
         if (!!err && err.message === unknownHeuristicErrorMessage) {
           return cbk([400, 'ExternalScoreHeuristicNotEnabled']);
         }
@@ -95,7 +95,7 @@ module.exports = (args, cbk) => {
         return cbk();
       }
 
-      return args.lnd.modifyStatus({enable}, err => {
+      return args.lnd.autopilot.modifyStatus({enable}, err => {
         if (!!err && err.message === wrongLnd) {
           return cbk([400, 'ExpectedAutopilotEnabledLndToSetAutopilotStatus']);
         }

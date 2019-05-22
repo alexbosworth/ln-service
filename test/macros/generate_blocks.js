@@ -111,4 +111,3 @@ module.exports = ({cert, count, host, pass, port, user}, cbk) => {
     return cbk(null, {blocks: res.blocks})
   });
 };
-

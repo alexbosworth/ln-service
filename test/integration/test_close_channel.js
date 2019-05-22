@@ -2,7 +2,6 @@ const {test} = require('tap');
 
 const closeChannel = require('./../../closeChannel');
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
 

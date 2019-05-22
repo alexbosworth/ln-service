@@ -13,10 +13,12 @@ const getAutopilot = require('./../../getAutopilot');
 const openChannel = require('./../../openChannel');
 const setAutopilot = require('./../../setAutopilot');
 const {spawnLnd} = require('./../macros');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const avg = array => array.reduce((a, b) => a + b) / array.length;
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
 const maxScore = 1e8;
 const score = 50000000;
@@ -27,8 +29,6 @@ test(`Autopilot`, async ({end, equal}) => {
 
   const {kill} = cluster;
 
-  await delay(2000);
-
   const controlToTargetChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
@@ -37,20 +37,26 @@ test(`Autopilot`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(4000);
+  await waitForPendingChannel({
+    id: controlToTargetChannel.transaction_id,
+    lnd: cluster.control.lnd,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(4000);
+  await waitForChannel({
+    id: controlToTargetChannel.transaction_id,
+    lnd: cluster.control.lnd,
+  });
 
-  const lnd = cluster.control.autopilot_lnd;
+  const {lnd} = cluster.control;
 
   equal((await getAutopilot({lnd})).is_enabled, false, 'Autopilot starts off');
 
   await Promise.all([
     generateBlocks({
       cert: readFileSync(cluster.control.chain_rpc_cert),
-      count: 6,
+      count: confirmationCount,
       host: cluster.control.listen_ip,
       pass: cluster.control.chain_rpc_pass,
       port: cluster.control.chain_rpc_port,

@@ -9,7 +9,7 @@ const {isArray} = Array;
 
   {
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
-    lnd: <LND GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function>
     send_to: [{
       address: <Address String>
@@ -30,7 +30,7 @@ const {isArray} = Array;
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd) {
+  if (!args.lnd || !args.lnd.default) {
     return cbk([400, 'ExpectedLndToSendToChainAddresses']);
   }
 
@@ -61,9 +61,9 @@ module.exports = (args, cbk) => {
     target_conf: args.target_confirmations || undefined,
   };
 
-  return args.lnd.sendMany(send, (err, res) => {
+  return args.lnd.default.sendMany(send, (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedSendManyError', err]);
+      return cbk([503, 'UnexpectedSendManyError', {err}]);
     }
 
     if (!res) {

@@ -2,10 +2,7 @@ const {test} = require('tap');
 
 const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const getPeers = require('./../../getPeers');
-
-const addPeerDelayMs = 2000;
 
 // Adding peers should result in a connected peer
 test(`Add a peer`, async ({end, equal}) => {
@@ -23,8 +20,6 @@ test(`Add a peer`, async ({end, equal}) => {
     public_key: cluster.remote_node_public_key,
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
-
-  await delay(addPeerDelayMs);
 
   const {peers} = await getPeers({lnd});
 

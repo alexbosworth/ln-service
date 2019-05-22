@@ -6,14 +6,15 @@ const {broadcastResponse} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const {isArray} = Array;
 
 /** Send a channel payment.
 
   {
-    [fee]: <Maximum Additional Fee Tokens To Pay Number>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required if wss is set
-    [out]: <Force Payment Through Outbound Standard Channel Id String>
+    [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
+    [outgoing_channel]: <Pay Through Outbound Standard Channel Id String>
     request: <BOLT 11 Payment Request String>
     timeout: <Max CLTV Timeout Number>
     [tokens]: <Total Tokens To Pay to Request Number>
@@ -41,49 +42,49 @@ const decBase = 10;
   }
 */
 module.exports = (args, cbk) => {
-  const {fee, lnd, log, out, request, timeout, tokens, wss} = args;
-
-  if (!lnd || !lnd.sendPaymentSync) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.sendPaymentSync) {
     return cbk([400, 'ExpectedLndForPayingPaymentRequest']);
   }
 
-  if (!request) {
+  if (!args.request) {
     return cbk([400, 'ExpectedPaymentRequestToPay']);
   }
 
-  if (!!wss && !Array.isArray(wss)) {
+  if (!!args.wss && !isArray(args.wss)) {
     return cbk([400, 'ExpectedWebSocketServerArrayForPaymentNotification']);
   }
 
-  if (!!wss && !log) {
+  if (!!args.wss && !args.log) {
     return cbk([400, 'ExpectedLogFunctionForPaymentNotificationStatus']);
   }
 
-  const params = {payment_request: request};
+  const params = {payment_request: args.request};
 
-  if (!!fee) {
-    params.fee_limit = {fixed: fee};
+  if (!!args.max_fee) {
+    params.fee_limit = {fixed: args.max_fee};
   }
 
-  if (!!out) {
+  if (!!args.outgoing_channel) {
     try {
-      params.outgoing_chan_id = chanFormat({channel: out}).number;
+      const channel = args.outgoing_channel;
+
+      params.outgoing_chan_id = chanFormat({channel}).number;
     } catch (err) {
-      return cbk([400, 'UnexpectedFormatForOutgoingChannelId']);
+      return cbk([400, 'UnexpectedFormatForOutgoingChannelId', {err}]);
     }
   }
 
-  if (!!timeout) {
-    params.cltv_limit = timeout;
+  if (!!args.timeout) {
+    params.cltv_limit = args.timeout;
   }
 
-  if (!!tokens) {
-    params.amt = tokens.toString();
+  if (!!args.tokens) {
+    params.amt = args.tokens.toString();
   }
 
-  return lnd.sendPaymentSync(params, (err, res) => {
+  return args.lnd.default.sendPaymentSync(params, (err, res) => {
     if (!!err) {
-      return cbk([503, 'SendPaymentErr', err, res]);
+      return cbk([503, 'UnexpectedSendPaymentError', {err}]);
     }
 
     if (!!res && /UnknownPaymentHash/.test(res.payment_error)) {
@@ -91,7 +92,7 @@ module.exports = (args, cbk) => {
     }
 
     if (!!res && !!res.payment_error) {
-      return cbk([503, 'SendPaymentFail', res.payment_error]);
+      return cbk([503, 'SendPaymentFail', {message: res.payment_error}]);
     }
 
     if (!res.payment_preimage) {
@@ -119,7 +120,7 @@ module.exports = (args, cbk) => {
     try {
       const _ = hops.map(n => chanFormat({number: n.chan_id}));
     } catch (err) {
-      return cbk([503, 'ExpectedValidChannelIdsInHopsForRoute', err]);
+      return cbk([503, 'ExpectedValidChannelIdsInHopsForRoute', {err}]);
     }
 
     const row = {
@@ -143,8 +144,8 @@ module.exports = (args, cbk) => {
       type: rowTypes.channel_transaction,
     };
 
-    if (!!wss) {
-      broadcastResponse({log, row, wss});
+    if (!!args.wss) {
+      broadcastResponse({row, log: args.log, wss: args.wss});
     }
 
     return cbk(null, row);

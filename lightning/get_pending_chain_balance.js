@@ -4,10 +4,10 @@ const {returnResult} = require('./../async-util');
 
 const decBase = 10;
 
-/** Get pending chain balance.
+/** Get pending chain balance in unconfirmed outputs and in channel limbo.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -19,7 +19,7 @@ module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd || !lnd.pendingChannels || !lnd.walletBalance) {
+      if (!lnd || !lnd.default || !lnd.default.pendingChannels) {
         return cbk([400, 'ExpectedLndForPendingChainBalance']);
       }
 
@@ -28,13 +28,13 @@ module.exports = ({lnd}, cbk) => {
 
     // Determine the balance that is still in timelocks
     channelsLimboBalance: ['validate', ({}, cbk) => {
-      return lnd.pendingChannels({}, (err, res) => {
+      return lnd.default.pendingChannels({}, (err, res) => {
         if (!!err) {
-          return cbk([503, 'GetPendingChannelsErr', err]);
+          return cbk([503, 'GetPendingChannelsErr', {err}]);
         }
 
         if (!res || res.total_limbo_balance === undefined) {
-          return cbk([503, 'ExpectedTotalLimboBalance', res]);
+          return cbk([503, 'ExpectedTotalLimboBalance']);
         }
 
         return cbk(null, parseInt(res.total_limbo_balance, decBase));
@@ -43,9 +43,9 @@ module.exports = ({lnd}, cbk) => {
 
     // Determine the balance that is in unconfirmed chain outputs
     unconfirmedChainBalance: ['validate', ({}, cbk) => {
-      return lnd.walletBalance({}, (err, res) => {
+      return lnd.default.walletBalance({}, (err, res) => {
         if (!!err) {
-          return cbk([503, 'GetChainBalanceError', err]);
+          return cbk([503, 'GetChainBalanceError', {err}]);
         }
 
         if (!res || res.unconfirmed_balance === undefined) {
@@ -69,4 +69,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({of: 'pendingChainBalance'}, cbk));
 };
-

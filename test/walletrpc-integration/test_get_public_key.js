@@ -4,6 +4,7 @@ const getPublicKey = require('./../../getPublicKey');
 const getWalletInfo = require('./../../getWalletInfo');
 const {delay} = require('./../macros');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const identityKeyFamily = 6;
 
@@ -16,7 +17,7 @@ test(`Get public key`, async ({end, equal}) => {
   const key = await getPublicKey({
     family: identityKeyFamily,
     index: [].length,
-    lnd: spawned.wallet_lnd,
+    lnd: spawned.lnd,
   });
 
   delay(2000);
@@ -26,6 +27,8 @@ test(`Get public key`, async ({end, equal}) => {
   equal(wallet.public_key, key.public_key, 'Derive identity public key');
 
   spawned.kill();
+
+  await waitForTermination({lnd: spawned.lnd});
 
   return end();
 });

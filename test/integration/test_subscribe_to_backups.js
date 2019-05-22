@@ -48,6 +48,7 @@ test(`Subscribe to backups`, async ({end, equal}) => {
 
     equal(singleVerification.is_valid, true, 'Single backup is valid');
 
+    // Give blocks some time to be generated
     await delay(3000);
 
     await cluster.kill({});

@@ -8,7 +8,7 @@ const connectFailMessage = '14 UNAVAILABLE: Connect Failed';
   {
     format: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
     [is_unused]: <Get As-Yet Unused Address Bool>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -22,13 +22,13 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedKnownAddressFormat']);
   }
 
-  if (!args.lnd || !args.lnd.newAddress) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.newAddress) {
     return cbk([400, 'ExpectedLndForAddressCreation']);
   }
 
   const type = addressFormats[(!args.is_unused ? '': 'unused_') + args.format];
 
-  return args.lnd.newAddress({type}, (err, response) => {
+  return args.lnd.default.newAddress({type}, (err, res) => {
     if (!!err && err.message === connectFailMessage) {
       return cbk([503, 'FailedToConnectToDaemonToCreateChainAddress', err]);
     }
@@ -37,17 +37,14 @@ module.exports = (args, cbk) => {
       return cbk([503, 'CreateAddressError', err]);
     }
 
-    if (!response) {
+    if (!res) {
       return cbk([503, 'ExpectedResponseForAddressCreation']);
     }
 
-    if (!response.address) {
-      return cbk([503, 'ExpectedAddressInCreateAddressResponse', response]);
+    if (!res.address) {
+      return cbk([503, 'ExpectedAddressInCreateAddressResponse']);
     }
 
-    return cbk(null, {
-      address: response.address,
-      type: rowTypes.chain_address,
-    });
+    return cbk(null, {address: res.address, type: rowTypes.chain_address});
   });
 };

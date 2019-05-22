@@ -1,22 +1,27 @@
+const isHex = require('is-hex');
+
+const bufferFromHex = hex => Buffer.from(hex, 'hex');
+const expectedSecretHexLength = 64;
+
 /** Settle hodl invoice
 
   {
-    lnd: <Invoices RPC LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     secret: <Payment Preimage Hex String>
   }
 */
 module.exports = ({lnd, secret}, cbk) => {
-  if (!lnd) {
-    return cbk([400, 'ExpectedInvoicesLndToAcceptHodlInvoice']);
+  if (!lnd || !lnd.invoices || !lnd.invoices.settleInvoice) {
+    return cbk([400, 'ExpectedInvoicesLndToSettleHodlInvoice']);
   }
 
-  if (!secret) {
-    return cbk([400, 'ExpectedPaymentSecretPreimageToAcceptHodlInvoice']);
+  if (!secret || !isHex(secret) || secret.length !== expectedSecretHexLength) {
+    return cbk([400, 'ExpectedPaymentSecretPreimageToSettleHodlInvoice']);
   }
 
-  return lnd.settleInvoice({preimage: Buffer.from(secret, 'hex')}, err => {
+  return lnd.invoices.settleInvoice({preimage: bufferFromHex(secret)}, err => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorWhenAcceptingHodlInvoice', err]);
+      return cbk([503, 'UnexpectedErrorWhenSettlingHodlInvoice', {err}]);
     }
 
     return cbk();

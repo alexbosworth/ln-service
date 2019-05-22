@@ -1,7 +1,7 @@
 /** Sign a message
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     message: <Message String>
   }
 
@@ -11,7 +11,7 @@
   }
 */
 module.exports = ({lnd, message}, cbk) => {
-  if (!lnd || !lnd.signMessage) {
+  if (!lnd || !lnd.default || !lnd.default.signMessage) {
     return cbk([400, 'ExpectedLndToSignMessage']);
   }
 
@@ -19,16 +19,18 @@ module.exports = ({lnd, message}, cbk) => {
     return cbk([400, 'ExpectedMessageToSign']);
   }
 
-  return lnd.signMessage({msg: Buffer.from(message, 'utf8')}, (err, res) => {
+  return lnd.default.signMessage({
+    msg: Buffer.from(message, 'utf8'),
+  },
+  (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedSignMessageError', err]);
+      return cbk([503, 'UnexpectedSignMessageError', {err}]);
     }
 
     if (!res.signature) {
-      return cbk([503, 'ExpectedSignatureForMessageSignRequest', res]);
+      return cbk([503, 'ExpectedSignatureForMessageSignRequest']);
     }
 
     return cbk(null, {signature: res.signature});
   });
 };
-

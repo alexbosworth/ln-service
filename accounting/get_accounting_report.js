@@ -166,20 +166,23 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
       let next;
 
       // Iterate through invoice pages until all invoices are collected
-      return asyncUntil(() => next === false, cbk => {
-        return getInvoices({lnd, token: next}, (err, res) => {
-          if (!!err) {
-            return cbk(err);
-          }
+      return asyncUntil(
+        cbk => {
+          return getInvoices({lnd, token: next}, (err, res) => {
+            if (!!err) {
+              return cbk(err);
+            }
 
-          next = res.next || false;
+            next = res.next || false;
 
-          res.invoices.forEach(invoice => invoices.push(invoice));
+            res.invoices.forEach(invoice => invoices.push(invoice));
 
-          return cbk(null, invoices);
-        });
-      },
-      cbk);
+            return cbk(null, invoices);
+          });
+        },
+        cbk => cbk(null, next === false),
+        cbk
+      );
     }],
 
     // Get payments

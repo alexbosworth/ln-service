@@ -6,6 +6,7 @@ const ignoreAsIgnoredNodes = require('./ignore_as_ignored_nodes');
 const probe = require('./probe');
 const routeFromChannels = require('./route_from_channels');
 const routeFromHops = require('./route_from_hops');
+const routeFromRouteHint = require('./route_from_route_hint');
 const routesFromQueryRoutes = require('./routes_from_query_routes');
 
 module.exports = {
@@ -17,5 +18,6 @@ module.exports = {
   probe,
   routeFromChannels,
   routeFromHops,
+  routeFromRouteHint,
   routesFromQueryRoutes,
 };

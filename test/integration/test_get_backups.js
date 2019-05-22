@@ -1,11 +1,8 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const getBackups = require('./../../getBackups');
 const openChannel = require('./../../openChannel');
-
-const confirmationCount = 20;
 
 // Getting a set of channel backups should return channel backups
 test(`Get channel backup`, async ({end, equal}) => {

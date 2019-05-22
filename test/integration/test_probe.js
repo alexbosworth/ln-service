@@ -9,6 +9,8 @@ const getRoutes = require('./../../getRoutes');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const probe = require('./../../probe');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -29,10 +31,18 @@ test('Probe', async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
+
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(3000);
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   const [controlChannel] = (await getChannels({lnd})).channels;
 
@@ -45,10 +55,18 @@ test('Probe', async ({end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
+  await waitForPendingChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
+
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await waitForChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   await addPeer({
     lnd,
@@ -83,7 +101,7 @@ test('Probe', async ({end, equal}) => {
 
   // Create a new channel to increase total edge liquidity
 
-  await openChannel({
+  const newChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
@@ -91,8 +109,18 @@ test('Probe', async ({end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
+  await waitForPendingChannel({
+    id: newChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
+
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await waitForChannel({
+id: newChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   const success = await probe({lnd, routes, tokens: invoice.tokens});
 
@@ -108,8 +136,6 @@ test('Probe', async ({end, equal}) => {
   equal(success.temporary_failures.length, [].length, 'No temp failures');
 
   await cluster.kill({});
-
-  await delay(3000);
 
   return end();
 });

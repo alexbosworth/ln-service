@@ -5,9 +5,8 @@ const {unlockWallet} = require('./');
 /** Unlock the wallet
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Unauthenticed LND gRPC API Object>
     password: <Password String>
   }
 */
 module.exports = promisify(unlockWallet);
-

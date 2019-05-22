@@ -3,7 +3,6 @@ const {test} = require('tap');
 
 const createChainAddress = require('./../../createChainAddress');
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const getChainBalance = require('./../../getChainBalance');
 const getWalletInfo = require('./../../getWalletInfo');
 const sendToChainAddress = require('./../../sendToChainAddress');

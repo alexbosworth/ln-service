@@ -11,7 +11,7 @@ const {rowTypes} = require('./../lightning');
 /** Get all connections, offline and online.
 
   {
-    lnd: <Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -85,4 +85,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({of: 'connections'}, cbk));
 };
-

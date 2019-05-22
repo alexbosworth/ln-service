@@ -30,4 +30,3 @@ module.exports = scriptElements => {
 
   return fullScript.toString('hex');
 };
-

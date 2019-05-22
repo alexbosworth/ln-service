@@ -16,9 +16,11 @@ const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const mtokPadding = '000';
@@ -32,8 +34,6 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(3000);
-
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -42,11 +42,14 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(3000);
+  await waitForChannel({lnd, id: controlToTargetChannel.transaction_id});
 
   const [channel] = (await getChannels({lnd})).channels;
 
@@ -58,21 +61,25 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await waitForChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
+
+  const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
   await addPeer({
     lnd,
     public_key: cluster.remote_node_public_key,
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
-
-  await delay(3000);
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
 
   await delay(3000);
 
@@ -97,14 +104,14 @@ test(`Pay`, async ({deepIs, end, equal}) => {
       channel_capacity: 999000,
       fee_mtokens: '1000',
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
-      timeout: 542,
+      timeout: 494,
     },
     {
-      channel: '463x1x0',
+      channel: remoteChan.id,
       channel_capacity: 999000,
       fee_mtokens: '0',
       forward_mtokens: '100000',
-      timeout: 542,
+      timeout: 494,
     },
   ];
 

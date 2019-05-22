@@ -5,7 +5,7 @@ const {verifyMessage} = require('./');
 /** Verify a message was signed by a known pubkey
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     message: <Message String>
     signature: <Signature String>
   }

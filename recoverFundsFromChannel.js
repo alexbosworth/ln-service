@@ -6,7 +6,7 @@ const {recoverFundsFromChannel} = require('./');
 
   {
     backup: <Backup Hex String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     transaction_id: <Channel Funding Transaction Id Hex String>
     transaction_vout: <Channel Funding Transaction Output Index Hex String>
   }

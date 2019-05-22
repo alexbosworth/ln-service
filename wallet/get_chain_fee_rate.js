@@ -7,7 +7,7 @@ const weightPerVByte = 4;
 
   {
     [confirmation_target]: <Future Blocks Confirmation Number>
-    lnd: <Wallet LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -16,15 +16,15 @@ const weightPerVByte = 4;
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.estimateFee) {
-    return cbk([400, 'ExpectedWalletLndToGetFeeEstimate']);
+  if (!args.lnd || !args.lnd.wallet || !args.lnd.wallet.estimateFee) {
+    return cbk([400, 'ExpecteAuthenticatedLndToGetFeeEstimate']);
   }
 
   const confs = args.confirmation_target || defaultConfirmationTarget;
 
-  return args.lnd.estimateFee({conf_target: confs}, (err, res) => {
+  return args.lnd.wallet.estimateFee({conf_target: confs}, (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorGettingFeeFromLnd']);
+      return cbk([503, 'UnexpectedErrorGettingFeeFromLnd', {err}]);
     }
 
     if (!res || !res.sat_per_kw) {

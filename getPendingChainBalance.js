@@ -5,7 +5,7 @@ const {getPendingChainBalance} = require('./');
 /** Get pending chain balance.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -14,4 +14,3 @@ const {getPendingChainBalance} = require('./');
   }
 */
 module.exports = promisify(getPendingChainBalance);
-

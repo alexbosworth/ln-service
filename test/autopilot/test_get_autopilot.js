@@ -14,8 +14,10 @@ const tests = [
   {
     args: {
       lnd: {
-        queryScores: ({}, cbk) => cbk(),
-        status: ({}, cbk) => cbk(null, {active: false}),
+        autopilot: {
+          queryScores: ({}, cbk) => cbk(),
+          status: ({}, cbk) => cbk(null, {active: false}),
+        },
       },
     },
     description: 'Lookup enabled status',
@@ -24,16 +26,18 @@ const tests = [
   {
     args: {
       lnd: {
-        queryScores: ({}, cbk) => {
-          return cbk(null, {
-            results: [
-              {heuristic: 'externalscore', scores: {foo: 0.5}},
-              {heuristic: 'preferential', scores: {foo: 1}},
-              {heuristic: 'weightedcomb', scores: {foo: 0.75}},
-            ],
-          });
+        autopilot: {
+          queryScores: ({}, cbk) => {
+            return cbk(null, {
+              results: [
+                {heuristic: 'externalscore', scores: {foo: 0.5}},
+                {heuristic: 'preferential', scores: {foo: 1}},
+                {heuristic: 'weightedcomb', scores: {foo: 0.75}},
+              ],
+            });
+          },
+          status: ({}, cbk) => cbk(null, {active: true}),
         },
-        status: ({}, cbk) => cbk(null, {active: true}),
       },
       node_scores: ['foo'],
     },

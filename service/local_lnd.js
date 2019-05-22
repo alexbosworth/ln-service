@@ -3,7 +3,8 @@ const {existsSync} = require('fs');
 const {join} = require('path');
 const {readFileSync} = require('fs');
 
-const {lightningDaemon} = require('./../lightning');
+const {authenticatedLndGrpc} = require('./../grpc');
+const {unauthenticatedLndGrpc} = require('./../grpc');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainDirName = 'chain';
@@ -22,11 +23,11 @@ const tlsCertFileName = 'tls.cert';
   }
 
   @throws
-  <Lightning Daemon Connection Failure>
+  <Error>
 
   @returns
   {
-    lnd: <Lightning Network Daemon GRPC Connection Object>
+    lnd: <Lightning Network Daemon gRPC Connection Object>
   }
 */
 module.exports = args => {
@@ -46,14 +47,14 @@ module.exports = args => {
   const socket = `${host}:${lndGrpcPort}`;
 
   if (!existsSync(certPath)) {
-    throw new Error('ExpectedTlsCert');
+    throw new Error('ExpectedTlsCertForLocalLndConnection');
   }
 
   const cert = readFileSync(certPath).toString('base64');
 
   // Exit early with unauthenticated connection when in unlocker mode
   if (!!args.is_unlocker) {
-    return lightningDaemon({cert, socket, service: 'WalletUnlocker'});
+    return {lnd: unauthenticatedLndGrpc({cert, socket}).lnd};
   }
 
   const macaroonPath = join(
@@ -71,5 +72,5 @@ module.exports = args => {
 
   const macaroon = readFileSync(macaroonPath).toString('base64');
 
-  return lightningDaemon({cert, macaroon, socket});
+  return {lnd: authenticatedLndGrpc({cert, macaroon, socket}).lnd};
 };

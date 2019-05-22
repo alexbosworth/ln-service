@@ -12,6 +12,8 @@ const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -21,7 +23,7 @@ const tokens = 1e3;
 
 // Rebalancing channels should result in balanced channels
 test('Rebalance', async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
@@ -35,12 +37,18 @@ test('Rebalance', async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(3000);
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   // Create a channel from the target back to the control
   const targetToControlChannel = await openChannel({
@@ -52,12 +60,18 @@ test('Rebalance', async ({end, equal}) => {
     socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    id: targetToControlChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await waitForChannel({
+    id: targetToControlChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   const height = (await getWalletInfo({lnd})).current_block_height;
   const invoice = await createInvoice({lnd, tokens});

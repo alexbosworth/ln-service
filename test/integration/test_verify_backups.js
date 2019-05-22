@@ -7,6 +7,7 @@ const getWalletInfo = require('./../../getWalletInfo');
 const openChannel = require('./../../openChannel');
 const {spawnLnd} = require('./../macros');
 const verifyBackups = require('./../../verifyBackups');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -26,6 +27,11 @@ test(`Test verify backups`, async ({end, equal}) => {
     local_tokens: channelCapacityTokens,
     partner_public_key: (await getWalletInfo({lnd})).public_key,
     socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
+  });
+
+  await waitForPendingChannel({
+    id: channelOpen.transaction_id,
+    lnd: cluster.target.lnd,
   });
 
   const {backup} = await getBackups({lnd});

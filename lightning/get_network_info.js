@@ -8,7 +8,7 @@ const decBase = 10;
 /** Get network info
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -24,11 +24,11 @@ const decBase = 10;
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.getNetworkInfo) {
+  if (!lnd || !lnd.default || !lnd.default.getNetworkInfo) {
     return cbk([400, 'ExpectedLndForNetworkInfoRequest']);
   }
 
-  return lnd.getNetworkInfo({}, (err, networkInfo) => {
+  return lnd.default.getNetworkInfo({}, (err, networkInfo) => {
     if (!!err) {
       return cbk([503, 'GetNetworkInfoErr', err]);
     }

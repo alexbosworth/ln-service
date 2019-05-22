@@ -5,9 +5,10 @@ const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getPendingChannels = require('./../../getPendingChannels');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
 
 const confirmationCount = 20;
-const maxChannelCapacity = 16776216;
+const maxChannelCapacity = 16776215;
 
 // Getting channels should return the list of channels
 test(`Get channels`, async ({end, equal}) => {
@@ -25,7 +26,7 @@ test(`Get channels`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(2000);
+  await waitForChannel({lnd, id: chanOpen.transaction_id});
 
   const pending = await getPendingChannels({lnd});
 
@@ -55,4 +56,3 @@ test(`Get channels`, async ({end, equal}) => {
 
   return end();
 });
-

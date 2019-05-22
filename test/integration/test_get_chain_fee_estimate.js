@@ -6,6 +6,8 @@ const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const getChainFeeEstimate = require('./../../getChainFeeEstimate');
 
+const expectedFee = 9750;
+const expectedFeeRate = 50;
 const format = 'p2wpkh';
 const tokens = 1e6;
 
@@ -21,13 +23,13 @@ test(`Get chain fee estimate`, async ({end, equal}) => {
   const estimate = await getChainFeeEstimate({
     lnd: cluster.control.lnd,
     send_to: [
-      {address: address1, tokens: tokens / 2},
-      {address: address2, tokens: tokens / 2},
+      {address: address1, tokens: tokens / [address1, address2].length},
+      {address: address2, tokens: tokens / [address1, address2].length},
     ],
   });
 
-  equal(estimate.fee, 9750, 'Total fee is estimated');
-  equal(estimate.tokens_per_vbyte, 50, 'Fee per vbyte is given');
+  equal(estimate.fee, expectedFee, 'Total fee is estimated');
+  equal(estimate.tokens_per_vbyte, expectedFeeRate, 'Fee per vbyte is given');
 
   await cluster.kill({});
 

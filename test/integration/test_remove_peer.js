@@ -10,6 +10,7 @@ const getPeers = require('./../../getPeers');
 const getWalletInfo = require('./../../getWalletInfo');
 const removePeer = require('./../../removePeer');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const maturityCount = 100;
 
@@ -65,7 +66,8 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   lnds.forEach(({kill}) => kill());
 
-  await delay(2000);
+  await waitForTermination({lnd: control.lnd});
+  await waitForTermination({lnd: target.lnd});
 
   return end();
 });

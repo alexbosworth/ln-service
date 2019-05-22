@@ -2,11 +2,13 @@ const asyncMapSeries = require('async/mapSeries');
 
 const decBase = 10;
 const formats = {np2wpkh: 'NESTED_PUBKEY_HASH', p2wpkh: 'WITNESS_PUBKEY_HASH'};
+const {isArray} = Array;
+const {keys} = Object;
 
 /** Get unspent transaction outputs
 
   {
-    lnd: <LND GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     [max_confirmations]: <Maximum Confirmations Number>
     [min_confirmations]: <Minimum Confirmations Number>
   }
@@ -25,24 +27,24 @@ const formats = {np2wpkh: 'NESTED_PUBKEY_HASH', p2wpkh: 'WITNESS_PUBKEY_HASH'};
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.listUnspent) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.listUnspent) {
     return cbk([400, 'ExpectedLndToGetUtxos']);
   }
 
-  return args.lnd.listUnspent({
+  return args.lnd.default.listUnspent({
     max_confs: args.max_confirmations || 9999,
     min_confs: args.min_confirmations || 0,
   },
   (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorGettingUnspentTransactionOutputs']);
+      return cbk([503, 'UnexpectedErrorGettingUnspentTxOutputs', {err}]);
     }
 
     if (!res) {
       return cbk([503, 'ExpectedResponseForListUnspentRequest']);
     }
 
-    if (!Array.isArray(res.utxos)) {
+    if (!isArray(res.utxos)) {
       return cbk([503, 'ExpectedUtxosInListUnspentsResponse']);
     }
 
@@ -55,9 +57,7 @@ module.exports = (args, cbk) => {
         return cbk([503, 'ExpectedAddressTypeInListedUtxo']);
       }
 
-      const addressFormat = Object.keys(formats).find(key => {
-        return formats[key] === utxo.type;
-      });
+      const addressFormat = keys(formats).find(k => formats[k] === utxo.type);
 
       if (!addressFormat) {
         return cbk([503, 'UnexpectedAddressTypeInUtxoResponse']);

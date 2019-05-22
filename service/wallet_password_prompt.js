@@ -11,4 +11,3 @@ const walletPasswordPrompt = 'Wallet is locked. Enter wallet password:';
 module.exports = async ({}) => {
   return await promptly.password(walletPasswordPrompt, {replace: mask});
 };
-

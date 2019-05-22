@@ -1,7 +1,7 @@
 const {test} = require('tap');
 
 const {delay} = require('./../macros');
-const {lightningDaemon} = require('./../../');
+const {authenticatedLndGrpc} = require('./../../');
 const getWalletInfo = require('./../../getWalletInfo');
 const {spawnLnd} = require('./../macros');
 
@@ -16,20 +16,20 @@ test(`Lightning daemon`, async ({end, equal}) => {
   const cert = Buffer.from(spawned.lnd_cert, 'base64');
   const macaroon = Buffer.from(spawned.lnd_macaroon, 'base64');
 
-  const base64Lnd = lightningDaemon({
+  const base64Lnd = authenticatedLndGrpc({
     cert: cert.toString('base64'),
     macaroon: macaroon.toString('base64'),
     socket: spawned.lnd_socket,
   });
 
-  const hexLnd = lightningDaemon({
+  const hexLnd = authenticatedLndGrpc({
     cert: cert.toString('hex'),
     macaroon: macaroon.toString('hex'),
     socket: spawned.lnd_socket,
   });
 
-  const base64Result = await getWalletInfo({lnd: base64Lnd});
-  const hexResult = await getWalletInfo({lnd: hexLnd});
+  const base64Result = await getWalletInfo({lnd: base64Lnd.lnd});
+  const hexResult = await getWalletInfo({lnd: hexLnd.lnd});
 
   equal(base64Result.public_key.length, pubKeyHexLength, 'Expected b64 info');
   equal(hexResult.public_key.length, pubKeyHexLength, 'Expected hex info');
@@ -40,4 +40,3 @@ test(`Lightning daemon`, async ({end, equal}) => {
 
   return end();
 });
-

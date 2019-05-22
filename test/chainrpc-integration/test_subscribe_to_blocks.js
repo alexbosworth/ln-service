@@ -7,6 +7,7 @@ const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {subscribeToBlocks} = require('./../../');
+const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
 
@@ -15,9 +16,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
   let confs = confirmationCount;
   const spawned = await spawnLnd({});
 
-  const {kill} = spawned;
-
-  const lnd = spawned.chain_notifier_lnd;
+  const {kill, lnd} = spawned;
 
   const sub = subscribeToBlocks({lnd});
 
@@ -25,7 +24,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
   sub.on('error', err => {});
   sub.on('status', () => {});
 
-  sub.on('data', data => {
+  sub.on('data', async data => {
     equal(data.id.length, 64, 'Block id emitted');
     equal(!!data.height, true, 'Block height emitted');
 
@@ -35,15 +34,14 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
       return;
     }
 
-    return setTimeout(() => {
-      kill();
+    await delay(3000);
 
-      return end();
-    },
-    3000);
+    kill();
+
+    await waitForTermination({lnd});
+
+    return end();
   });
-
-  await delay(3000);
 
   await generateBlocks({
     cert: readFileSync(spawned.chain_rpc_cert),
@@ -53,8 +51,6 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
     port: spawned.chain_rpc_port,
     user: spawned.chain_rpc_user,
   });
-
-  await delay(3000);
 
   return;
 });

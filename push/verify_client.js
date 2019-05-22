@@ -1,6 +1,8 @@
 const parseQueryString = require('querystring').parse;
 const parseUrl = require('url').parse;
 
+const constantTimeComparison = require('safe-compare');
+
 const secretKey = process.env.LNSERVICE_SECRET_KEY;
 const urlPrefix = '/?';
 
@@ -24,6 +26,5 @@ module.exports = (args, cbk) => {
     return false;
   }
 
-  return cbk(parsedQuery.secret_key === secretKey);
+  return cbk(constantTimeComparison(parsedQuery.secret_key, secretKey));
 };
-

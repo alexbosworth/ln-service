@@ -5,12 +5,13 @@ const {returnResult} = require('./../async-util');
 const transactionType = require('./conf/row_types').channel_transaction;
 
 const decBase = 10;
+const {isArray} = Array;
 const msPerSecond = 1e3;
 
 /** Get payments made through channels.
 
   {
-    lnd: <Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -34,7 +35,7 @@ module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd || !lnd.listPayments) {
+      if (!lnd || !lnd.default || !lnd.default.listPayments) {
         return cbk([400, 'ExpectedLndForGetPaymentsRequest']);
       }
 
@@ -43,13 +44,13 @@ module.exports = ({lnd}, cbk) => {
 
     // Get all payments
     listPayments: ['validate', ({}, cbk) => {
-      return lnd.listPayments({}, (err, res) => {
+      return lnd.default.listPayments({}, (err, res) => {
         if (!!err) {
-          return cbk([503, 'GetPaymentsError', err]);
+          return cbk([503, 'UnexpectedGetPaymentsError', {err}]);
         }
 
-        if (!res || !Array.isArray(res.payments)) {
-          return cbk([503, 'ExpectedPayments', res]);
+        if (!res || !isArray(res.payments)) {
+          return cbk([503, 'ExpectedPaymentsInListPaymentsResponse']);
         }
 
         return cbk(null, res.payments);
@@ -60,25 +61,25 @@ module.exports = ({lnd}, cbk) => {
     foundPayments: ['listPayments', ({listPayments}, cbk) => {
       return asyncMap(listPayments, (payment, cbk) => {
         if (!payment) {
-          return cbk([503, 'ExpectedPayment']);
+          return cbk([503, 'ExpectedPaymentInListPaymentsResponse']);
         }
 
         if (!payment.creation_date) {
-          return cbk([503, 'ExpectedCreationDate']);
+          return cbk([503, 'ExpectedCreationDateInListPaymentsResponse']);
         }
 
         if (typeof payment.fee !== 'string') {
-          return cbk([503, 'ExpectedPaymentFee', payment]);
+          return cbk([503, 'ExpectedPaymentFeeInListPaymentsResponse']);
         }
 
-        if (!Array.isArray(payment.path) || !payment.path.length) {
-          return cbk([503, 'ExpectedPaymentPath']);
+        if (!isArray(payment.path) || !payment.path.length) {
+          return cbk([503, 'ExpectedPaymentPathInListPaymentsResponse']);
         }
 
         try {
           payment.path.forEach(key => {
             if (!key) {
-              throw new Error('ExpectedPathHopKey');
+              throw new Error('ExpectedPathHopKeyInListPaymentsResponse');
             }
 
             return;
@@ -88,15 +89,15 @@ module.exports = ({lnd}, cbk) => {
         }
 
         if (!payment.payment_hash) {
-          return cbk([503, 'ExpectedPaymentHash']);
+          return cbk([503, 'ExpectedPaymentHashInListPaymentsResponse']);
         }
 
         if (!payment.payment_preimage) {
-          return cbk([503, 'ExpectedPaymentPreimage']);
+          return cbk([503, 'ExpectedPaymentPreimageInListPaymentsResponse']);
         }
 
         if (typeof payment.value_sat !== 'string') {
-          return cbk([503, 'ExpectedPaymentValue']);
+          return cbk([503, 'ExpectedPaymentValueInListPaymentsResponse']);
         }
 
         const creationDate = parseInt(payment.creation_date, decBase);
@@ -126,4 +127,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({of: 'payments'}, cbk));
 };
-

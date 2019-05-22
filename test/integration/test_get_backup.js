@@ -4,8 +4,7 @@ const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const getBackup = require('./../../getBackup');
 const openChannel = require('./../../openChannel');
-
-const confirmationCount = 20;
+const verifyBackup = require('./../../verifyBackup');
 
 // Getting a channel backup should return a channel backup
 test(`Get channel backup`, async ({end, equal}) => {
@@ -28,6 +27,15 @@ test(`Get channel backup`, async ({end, equal}) => {
   });
 
   equal(!!backup, true, 'Channel backup is returned');
+
+  const channelBackup = await verifyBackup({
+    backup,
+    lnd,
+    transaction_id: channel.transaction_id,
+    transaction_vout: channel.transaction_vout,
+  });
+
+  equal(channelBackup.is_valid, true, 'Channel backup is a valid backup');
 
   await cluster.kill({});
 

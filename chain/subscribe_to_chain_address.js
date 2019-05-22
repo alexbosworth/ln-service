@@ -39,8 +39,8 @@ module.exports = args => {
     throw new Error('ExpectedChainAddressToSubscribeForConfirmationEvents');
   }
 
-  if (!args.lnd) {
-    return cbk([400, 'ExpectedLndGrpcApiToSubscribeToChainTransaction']);
+  if (!args.lnd || !args.lnd.chain) {
+    throw new Error('ExpectedLndGrpcApiToSubscribeToChainTransaction');
   }
 
   const {script} = scriptFromChainAddress({
@@ -55,7 +55,7 @@ module.exports = args => {
 
   const eventEmitter = new EventEmitter();
 
-  const sub = args.lnd.registerConfirmationsNtfn({
+  const sub = args.lnd.chain.registerConfirmationsNtfn({
     height_hint: args.min_height || 0,
     num_confs: args.min_confirmations || 1,
     script: Buffer.from(script, 'hex'),

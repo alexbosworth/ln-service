@@ -3,7 +3,7 @@ const getWalletInfo = require('./get_wallet_info');
 /** Get current wallet chain height
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -24,4 +24,3 @@ module.exports = ({lnd}, cbk) => {
     return cbk(null, {height: wallet.current_block_height});
   });
 };
-

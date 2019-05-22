@@ -12,6 +12,7 @@ const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
+const {waitForChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -48,6 +49,11 @@ test('Payment errors', async ({end, equal}) => {
 
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await waitForChannel({
+    id: targetToControlChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   const height = (await getWalletInfo({lnd})).current_block_height;
   const invoice = await createInvoice({lnd, tokens});

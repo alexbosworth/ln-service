@@ -1,10 +1,7 @@
 const addPeer = require('./add_peer');
-const changePassword = require('./change_password');
 const closeChannel = require('./close_channel');
 const createChainAddress = require('./create_chain_address');
 const createInvoice = require('./create_invoice');
-const createSeed = require('./create_seed');
-const createWallet = require('./create_wallet');
 const decodePaymentRequest = require('./decode_payment_request');
 const getBackup = require('./get_backup');
 const getBackups = require('./get_backups');
@@ -29,7 +26,6 @@ const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
 const getUtxos = require('./get_utxos');
 const getWalletInfo = require('./get_wallet_info');
-const lightningDaemon = require('./lightning_daemon');
 const openChannel = require('./open_channel');
 const pay = require('./pay');
 const recoverFundsFromChannel = require('./recover_funds_from_channel');
@@ -45,7 +41,6 @@ const subscribeToChannels = require('./subscribe_to_channels');
 const subscribeToGraph = require('./subscribe_to_graph');
 const subscribeToInvoices = require('./subscribe_to_invoices');
 const subscribeToTransactions = require('./subscribe_to_transactions');
-const unlockWallet = require('./unlock_wallet');
 const updateRoutingFees = require('./update_routing_fees');
 const verifyBackup = require('./verify_backup');
 const verifyBackups = require('./verify_backups');
@@ -53,12 +48,9 @@ const verifyMessage = require('./verify_message');
 
 module.exports = {
   addPeer,
-  changePassword,
   closeChannel,
   createChainAddress,
   createInvoice,
-  createSeed,
-  createWallet,
   decodePaymentRequest,
   getBackup,
   getBackups,
@@ -83,7 +75,6 @@ module.exports = {
   getRoutes,
   getUtxos,
   getWalletInfo,
-  lightningDaemon,
   openChannel,
   pay,
   recoverFundsFromChannel,
@@ -99,7 +90,6 @@ module.exports = {
   subscribeToGraph,
   subscribeToInvoices,
   subscribeToTransactions,
-  unlockWallet,
   updateRoutingFees,
   verifyBackup,
   verifyBackups,

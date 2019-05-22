@@ -12,9 +12,11 @@ const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const settleHodlInvoice = require('./../../settleHodlInvoice');
 const {subscribeToInvoice} = require('./../../');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const tokens = 100;
@@ -26,8 +28,6 @@ test(`Subscribe to settled invoice`, async ({deepIs, end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(2000);
-
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -36,17 +36,23 @@ test(`Subscribe to settled invoice`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(2000);
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   const secret = randomBytes(32);
 
   const sub = subscribeToInvoice({
     id: createHash('sha256').update(secret).digest('hex'),
-    lnd: cluster.target.invoices_lnd,
+    lnd: cluster.target.lnd,
   });
 
   sub.on('data', data => currentInvoice = data);
@@ -54,7 +60,7 @@ test(`Subscribe to settled invoice`, async ({deepIs, end, equal}) => {
   const invoice = await createHodlInvoice({
     tokens,
     id: createHash('sha256').update(secret).digest('hex'),
-    lnd: cluster.target.invoices_lnd,
+    lnd: cluster.target.lnd,
   });
 
   await delay(1000);
@@ -69,7 +75,7 @@ test(`Subscribe to settled invoice`, async ({deepIs, end, equal}) => {
     equal(!!currentInvoice.is_confirmed, false, 'Invoice is confirmed');
 
     await settleHodlInvoice({
-      lnd: cluster.target.invoices_lnd,
+      lnd: cluster.target.lnd,
       secret: secret.toString('hex'),
     });
 

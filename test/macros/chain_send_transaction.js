@@ -97,4 +97,3 @@ module.exports = (args, cbk) => {
 
   return {transaction: tx.toHex()};
 };
-

@@ -2,7 +2,6 @@ const https = require('https');
 
 const defaultTimeout = 1000 * 30;
 const agents = {};
-
 let requests = 0;
 
 /** Call JSON RPC
@@ -81,4 +80,3 @@ module.exports = (args, cbk) => {
 
   return;
 };
-

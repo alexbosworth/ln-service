@@ -1,6 +1,8 @@
 const {broadcastResponse} = require('./../async-util');
 const {subscribeToTransactions} = require('./../lightning');
 
+const {isArray} = Array;
+
 /** Subscribe to transactions.
 
   {
@@ -13,24 +15,23 @@ const {subscribeToTransactions} = require('./../lightning');
 */
 module.exports = ({lnd, log, wss}) => {
   if (!lnd) {
-    throw new Error('ExpectedLnd');
+    throw new Error('ExpectedLndToSubscribeToTransactions');
   }
 
   if (!log) {
-    throw new Error('ExpectedLogFunction');
+    throw new Error('ExpectedLogFunctionToSubscribeToTransactions');
   }
 
-  if (!Array.isArray(wss)) {
-    throw new Error('ExpectedWebSocketServers');
+  if (!isArray(wss)) {
+    throw new Error('ExpectedWebSocketServersToPushTransactions');
   }
 
   const subscription = subscribeToTransactions({lnd});
 
   subscription.on('data', row => broadcastResponse({log, row, wss}));
   subscription.on('end', () => {});
-  subscription.on('error', err => log([503, 'SubscribeTransactionsErr', err]));
+  subscription.on('error', err => log([503, 'TxSubscribeErr', {err}]));
   subscription.on('status', ({}) => {});
 
   return;
 };
-

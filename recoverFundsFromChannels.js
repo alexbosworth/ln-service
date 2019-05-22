@@ -6,7 +6,7 @@ const {recoverFundsFromChannels} = require('./');
 
   {
     backup: <Backup Hex String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 */
 module.exports = promisify(recoverFundsFromChannels);

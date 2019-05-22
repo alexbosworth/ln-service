@@ -26,7 +26,6 @@ const {exchangeRouter} = require('./routers');
 const {historyRouter} = require('./routers');
 const {invoicesRouter} = require('./routers');
 const {isWalletLocked} = require('./service');
-const {lightningDaemon} = require('./lightning');
 const {localLnd} = require('./service');
 const {networkInfoRouter} = require('./routers');
 const {paymentsRouter} = require('./routers');

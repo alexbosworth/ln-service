@@ -2,11 +2,11 @@ const {promisify} = require('util');
 
 const {cancelHodlInvoice} = require('./');
 
-/** Cancel back a hodl invoice
+/** Cancel back an invoice
 
   {
     id: <Payment Hash Hex String>
-    lnd: <Invoices RPC LND GRPC API Object>
+    lnd: <Authenticated RPC LND gRPC API Object>
   }
 */
 module.exports = promisify(cancelHodlInvoice);

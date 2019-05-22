@@ -6,6 +6,8 @@ const getChannels = require('./../../getChannels');
 const getNetworkGraph = require('./../../getNetworkGraph');
 const getWalletInfo = require('./../../getWalletInfo');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const {ceil} = Math;
 const channelCapacityTokens = 1e6;
@@ -17,10 +19,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {control} = cluster;
-
   const {lnd} = control;
-
-  await delay(2000);
 
   const controlToTargetChannel = await openChannel({
     lnd,
@@ -30,16 +29,22 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(4000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+  await cluster.generate({count: confirmationCount, node: control});
 
-  await delay(4000);
-
-  const graph = await getNetworkGraph({lnd});
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   const [expectedChannel] = (await getChannels({lnd})).channels;
   const expectedNode = await getWalletInfo({lnd});
+  const graph = await getNetworkGraph({lnd});
+
   const [node] = graph.nodes;
   const [channel] = graph.channels;
 
@@ -71,4 +76,3 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
 
   return end();
 });
-

@@ -6,7 +6,7 @@ const {getChainFeeRate} = require('./');
 
   {
     [confirmation_target]: <Future Blocks Confirmation Number>
-    lnd: <Wallet LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise

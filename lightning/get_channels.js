@@ -5,6 +5,7 @@ const {chanFormat} = require('bolt07');
 const {returnResult} = require('./../async-util');
 
 const decBase = 10;
+const {isArray} = Array;
 
 /** Get channels
 
@@ -15,7 +16,7 @@ const decBase = 10;
     [is_offline]: <Limit Results To Only Offline Channels Bool> // false
     [is_private]: <Limit Results To Only Private Channels Bool> // false
     [is_public]: <Limit Results To Only Public Channels Bool> // false
-    lnd: {listChannels: <Function>}
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -51,7 +52,7 @@ module.exports = (args, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!args.lnd || !args.lnd.listChannels) {
+      if (!args.lnd || !args.lnd.default || !args.lnd.default.listChannels) {
         return cbk([400, 'ExpectedLndToGetChannels']);
       }
 
@@ -60,7 +61,7 @@ module.exports = (args, cbk) => {
 
     // Get channels
     getChannels: ['validate', ({}, cbk) => {
-      return args.lnd.listChannels({
+      return args.lnd.default.listChannels({
         active_only: !!args.is_active ? true : undefined,
         inactive_only: !!args.is_offline ? true : undefined,
         private_only: !!args.is_private ? true : undefined,
@@ -71,7 +72,7 @@ module.exports = (args, cbk) => {
           return cbk([503, 'UnexpectedGetChannelsError', err]);
         }
 
-        if (!res || !Array.isArray(res.channels)) {
+        if (!res || !isArray(res.channels)) {
           return cbk([503, 'ExpectedChannelsArray', res]);
         }
 
@@ -82,7 +83,7 @@ module.exports = (args, cbk) => {
     // Map channel response to channels list
     mappedChannels: ['getChannels', ({getChannels}, cbk) => {
       return asyncMap(getChannels, (channel, cbk) => {
-        if (!Array.isArray(channel.pending_htlcs)) {
+        if (!isArray(channel.pending_htlcs)) {
           return cbk([503, 'ExpectedPendingHtlcs', channel]);
         }
 
@@ -128,7 +129,7 @@ module.exports = (args, cbk) => {
           return cbk([503, 'ExpectedNumUpdates', channel]);
         }
 
-        if (!Array.isArray(channel.pending_htlcs)) {
+        if (!isArray(channel.pending_htlcs)) {
           return cbk([503, 'ExpectedChannelPendingHtlcs']);
         }
 
@@ -197,4 +198,3 @@ module.exports = (args, cbk) => {
   },
   returnResult({of: 'channels'}, cbk));
 };
-

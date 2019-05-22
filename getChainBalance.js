@@ -5,7 +5,7 @@ const {getChainBalance} = require('./');
 /** Get balance
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -14,4 +14,3 @@ const {getChainBalance} = require('./');
   }
 */
 module.exports = promisify(getChainBalance);
-

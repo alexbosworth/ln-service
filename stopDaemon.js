@@ -5,8 +5,7 @@ const {stopDaemon} = require('./');
 /** Stop the Lightning daemon
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 */
 module.exports = promisify(stopDaemon);
-

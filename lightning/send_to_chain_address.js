@@ -11,7 +11,7 @@ const initialConfirmationCount = 0;
     address: <Destination Chain Address String>
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
     [is_send_all]: <Send All Funds Bool>
-    lnd: <LND GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function>
     [target_confirmations]: <Confirmations To Wait Number>
     tokens: <Tokens To Send Number>
@@ -33,7 +33,7 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedChainAddressToSendTo']);
   }
 
-  if (!args.lnd || !args.lnd.sendCoins) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.sendCoins) {
     return cbk([400, 'ExpectedLndForChainSendRequest']);
   }
 
@@ -53,7 +53,7 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedLogFunctionForChainSendWebSocketAnnouncement']);
   }
 
-  return args.lnd.sendCoins({
+  return args.lnd.default.sendCoins({
     addr: args.address,
     amount: args.tokens || undefined,
     sat_per_byte: args.fee_tokens_per_vbyte || undefined,
@@ -62,7 +62,7 @@ module.exports = (args, cbk) => {
   },
   (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedSendCoinsError', err]);
+      return cbk([503, 'UnexpectedSendCoinsError', {err}]);
     }
 
     if (!res) {
@@ -70,7 +70,7 @@ module.exports = (args, cbk) => {
     }
 
     if (!res.txid) {
-      return cbk([503, 'ExpectedTransactionIdForSendCoinsTransaction', res]);
+      return cbk([503, 'ExpectedTransactionIdForSendCoinsTransaction']);
     }
 
     const row = {
@@ -89,4 +89,3 @@ module.exports = (args, cbk) => {
     return cbk(null, row);
   });
 };
-

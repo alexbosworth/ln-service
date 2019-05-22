@@ -1,11 +1,12 @@
 const colorTemplate = '#000000';
 const decBase = 10;
+const {isArray} = Array;
 const msPerSec = 1e3;
 
 /** Get information about a node
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     public_key: <Node Public Key Hex String>
   }
 
@@ -23,7 +24,7 @@ const msPerSec = 1e3;
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.getNodeInfo) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.getNodeInfo) {
     return cbk([400, 'ExpectedLndApiObjectToGetNodeInfo']);
   }
 
@@ -31,20 +32,20 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedPublicKeyForNodeInfo']);
   }
 
-  args.lnd.getNodeInfo({pub_key: args.public_key}, (err, res) => {
+  args.lnd.default.getNodeInfo({pub_key: args.public_key}, (err, res) => {
     if (!!err && err.details === 'unable to find node') {
       return cbk([404, 'NodeIsUnknown']);
     }
 
     if (!!err) {
-      return cbk([503, 'FailedToRetrieveNodeDetails', err]);
+      return cbk([503, 'FailedToRetrieveNodeDetails', {err}]);
     }
 
     if (!res.node) {
       return cbk([503, 'ExpectedNodeDetailsForNodeDetailsRequest']);
     }
 
-    if (!Array.isArray(res.node.addresses)) {
+    if (!isArray(res.node.addresses)) {
       return cbk([503, 'ExpectedArrayOfNodeAddressForNodeDetails']);
     }
 
@@ -93,11 +94,11 @@ module.exports = (args, cbk) => {
       capacity: parseInt(res.total_capacity, decBase),
       channel_count: res.num_channels,
       color: res.node.color,
-      sockets: res.node.addresses.map(({addr, network}) => {
-        return {socket: addr, type: network};
-      }),
+      sockets: res.node.addresses.map(({addr, network}) => ({
+        socket: addr,
+        type: network,
+      })),
       updated_at: !!updatedAt ? new Date(updatedAt).toISOString() : undefined,
     });
   });
 };
-

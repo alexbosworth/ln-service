@@ -8,11 +8,14 @@ const {delay} = require('./../macros');
 const getAccountingReport = require('./../../getAccountingReport');
 const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
+const getUtxos = require('./../../getUtxos');
 const getWalletInfo = require('./../../getWalletInfo');
 const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -30,8 +33,6 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(2000);
-
   const chan = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
@@ -40,7 +41,10 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({
+    id: chan.transaction_id,
+    lnd: cluster.control.lnd,
+  });
 
   const report = await getAccountingReport({currency, fiat, lnd, rate});
 
@@ -91,7 +95,11 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
   deepEqual(chainFeeHeaders, fields, 'Chain fee rows start with fields list');
   deepEqual(chainFeeRow, expectedChainFeeRow, 'Got expected chain fee row');
 
+  await cluster.generate({count: confirmationCount, node: cluster.target});
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+
+  await waitForChannel({id: chan.transaction_id, lnd: cluster.control.lnd});
 
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -101,11 +109,17 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({
+    lnd: cluster.target.lnd,
+    id: targetToRemoteChannel.transaction_id,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(2000);
+  await waitForChannel({
+    lnd: cluster.target.lnd,
+    id: targetToRemoteChannel.transaction_id,
+  });
 
   await addPeer({
     lnd,
@@ -147,6 +161,12 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
 
   await delay(1000);
 
+  const controlLnd = cluster.control.lnd;
+  const remoteLnd = cluster.remote.lnd;
+
+  const [controlToTarget] = (await getChannels({lnd: controlLnd})).channels;
+  const [targetToRemote] = (await getChannels({lnd: remoteLnd})).channels;
+
   const forwardsReport = await getAccountingReport({
     currency,
     fiat,
@@ -162,10 +182,10 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
   equal(!!forwardRecord.created_at, true, 'Expected created at for forward');
   equal(forwardRecord.external_id, '', 'Expected no external id for forward');
   equal(forwardRecord.fiat_amount, 0.0000000001, 'Expected fiat forward fee');
-  equal(forwardRecord.from_id, '443x1x0', 'Expected from chan id for forward');
+  equal(forwardRecord.from_id, controlToTarget.id, 'From chan id for forward');
   equal(forwardRecord.id, '', 'Forwards do not have ids yet');
   equal(forwardRecord.notes, tokens, 'Expected forwarded tokens');
-  equal(forwardRecord.to_id, '463x1x0', 'Expected chan id for forward');
+  equal(forwardRecord.to_id, targetToRemote.id, 'To chan id for forward');
   equal(forwardRecord.type, 'income', 'Expected forward fee type');
 
   await cluster.kill({});

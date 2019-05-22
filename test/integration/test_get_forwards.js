@@ -8,6 +8,8 @@ const {delay} = require('./../macros');
 const getForwards = require('./../../getForwards');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -19,8 +21,6 @@ const tokens = 100;
 test('Get forwards', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
-  await delay(2000);
-
   const controlToTargetChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
@@ -29,9 +29,17 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({
+    id: controlToTargetChannel.transaction_id,
+    lnd: cluster.control.lnd,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await waitForChannel({
+    id: controlToTargetChannel.transaction_id,
+    lnd: cluster.control.lnd,
+  });
 
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -41,9 +49,17 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
+  await waitForPendingChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
+
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(2000);
+  await waitForChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   await addPeer({
     lnd: cluster.control.lnd,

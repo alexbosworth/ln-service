@@ -19,20 +19,22 @@ const tests = [
       }],
       is_enabled: true,
       lnd: {
-        modifyStatus: ({}, cbk) => cbk(),
-        queryScores: ({}, cbk) => cbk(),
-        setScores: ({heuristic, scores}, cbk) => {
-          if (scores[Buffer.alloc(33).toString('hex')] !== 0.5) {
-            return cbk([500, 'ExpectedExternalScorePassed']);
-          }
+        autopilot: {
+          modifyStatus: ({}, cbk) => cbk(),
+          queryScores: ({}, cbk) => cbk(),
+          setScores: ({heuristic, scores}, cbk) => {
+            if (scores[Buffer.alloc(33).toString('hex')] !== 0.5) {
+              return cbk([500, 'ExpectedExternalScorePassed']);
+            }
 
-          if (heuristic !== 'externalscore') {
-            return cbk([500, 'ExpectedExternalScoreHeuristicSpecified']);
-          }
+            if (heuristic !== 'externalscore') {
+              return cbk([500, 'ExpectedExternalScoreHeuristicSpecified']);
+            }
 
-          return cbk();
+            return cbk();
+          },
+          status: ({}, cbk) => cbk(null, {active: false}),
         },
-        status: ({}, cbk) => cbk(null, {active: false}),
       },
     },
     description: 'Set enabled status',

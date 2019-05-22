@@ -9,6 +9,7 @@ const {generateBlocks} = require('./../macros');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {subscribeToChainAddress} = require('./../../');
+const {waitForTermination} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -46,10 +47,7 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
     spend_vout: defaultVout,
   });
 
-  const sub = subscribeToChainAddress({
-    lnd: node.chain_notifier_lnd,
-    p2sh_address: address,
-  });
+  const sub = subscribeToChainAddress({lnd, p2sh_address: address});
 
   sub.on('confirmation', conf => {
     equal(conf.block.length, 64, 'Confirmation block hash is returned');
@@ -59,26 +57,28 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
 
   sub.on('error', err => {});
 
-  await delay(3000);
+  await delay(2000);
 
   await mineTransaction({cert, host, pass, port, transaction, user});
 
-  await delay(3000);
+  await delay(2000);
 
   const sub2 = subscribeToChainAddress({
-    lnd: node.chain_notifier_lnd,
+    lnd,
     min_confirmations: 6,
     p2sh_address: address,
   });
 
   sub2.on('error', () => {});
 
-  sub2.on('confirmation', conf => {
+  sub2.on('confirmation', async conf => {
     equal(conf.block.length, 64, 'Confirmation block hash is returned');
     equal(conf.height, 102, 'Confirmation block height is returned');
     equal(conf.transaction, transaction, 'Confirmation raw tx is returned');
 
     kill();
+
+    await waitForTermination({lnd});
 
     return end();
   });

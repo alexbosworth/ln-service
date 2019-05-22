@@ -5,7 +5,7 @@ const {getFeeRates} = require('./');
 /** Get a rundown on fees for channels
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -19,4 +19,3 @@ const {getFeeRates} = require('./');
   }
 */
 module.exports = promisify(getFeeRates);
-

@@ -12,7 +12,7 @@ const transactionIdHexLength = 32 * 2;
 /** Get a rundown on fees for channels
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -29,7 +29,7 @@ module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd || !lnd.feeReport) {
+      if (!lnd || !lnd.default || !lnd.default.feeReport) {
         return cbk([400, 'ExpectedLndForFeeRatesRequest']);
       }
 
@@ -38,7 +38,7 @@ module.exports = ({lnd}, cbk) => {
 
     // Query for fee rates report
     getFeeReport: ['validate', ({}, cbk) => {
-      return lnd.feeReport({}, (err, res) => {
+      return lnd.default.feeReport({}, (err, res) => {
         if (!!err) {
           return cbk([503, 'GetFeeReportError', err]);
         }
@@ -76,17 +76,13 @@ module.exports = ({lnd}, cbk) => {
           return cbk([503, 'ExpectedBaseFeeForChannel']);
         }
 
-        const baseFee = parseInt(channel.base_fee_msat, decBase) / satsPerMSat;
-
         if (!channel.fee_per_mil) {
           return cbk([503, 'ExpectedFeeRatePerMillion']);
         }
 
-        const feeRate = parseInt(channel.fee_per_mil, decBase);
-
         return cbk(null, {
-          base_fee: baseFee,
-          fee_rate: feeRate,
+          base_fee: parseInt(channel.base_fee_msat, decBase) / satsPerMSat,
+          fee_rate: parseInt(channel.fee_per_mil, decBase),
           transaction_id: id,
           transaction_vout: parseInt(index, decBase),
         });
@@ -101,4 +97,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({of: 'channels'}, cbk));
 };
-

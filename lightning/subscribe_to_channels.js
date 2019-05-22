@@ -8,14 +8,17 @@ const updateTypes = require('./conf/channel_update_types');
 
 const decBase = 10;
 const emptyChanId = '0';
-const emptyTxId = '0000000000000000000000000000000000000000000000000000000000000000';
+const emptyTxId = Buffer.alloc(32).toString('hex');
 const outpointSeparator = ':';
 
 /** Subscribe to channel updates
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
+
+  @throws
+  <Error>
 
   @returns
   <EventEmitter Object>
@@ -74,8 +77,12 @@ const outpointSeparator = ':';
   }
 */
 module.exports = ({lnd}) => {
+  if (!lnd || !lnd.default || !lnd.default.subscribeChannelEvents) {
+    throw new Error('ExpectedAuthenticatedLndToSubscribeToChannels');
+  }
+
   const eventEmitter = new EventEmitter();
-  const subscription = lnd.subscribeChannelEvents({});
+  const subscription = lnd.default.subscribeChannelEvents({});
 
   subscription.on('data', update => {
     const updatedAt = new Date().toISOString();

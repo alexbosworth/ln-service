@@ -1,4 +1,5 @@
 const BN = require('bn.js');
+const isHex = require('is-hex');
 
 const rowTypes = require('./conf/row_types');
 
@@ -13,7 +14,7 @@ const mtokensPerToken = new BN(1e3, 10);
 
   {
     id: <Payment Hash Id Hex String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -39,15 +40,15 @@ const mtokensPerToken = new BN(1e3, 10);
   }
 */
 module.exports = ({id, lnd}, cbk) => {
-  if (!id) {
-    return cbk([400, 'ExpectedId']);
+  if (!id || !isHex(id)) {
+    return cbk([400, 'ExpectedIdToGetInvoiceDetails']);
   }
 
-  if (!lnd) {
-    return cbk([500, 'ExpectedLnd']);
+  if (!lnd || !lnd.default || !lnd.default.lookupInvoice) {
+    return cbk([400, 'ExpectedLndToGetInvoiceDetails']);
   }
 
-  return lnd.lookupInvoice({r_hash_str: id}, (err, response) => {
+  return lnd.default.lookupInvoice({r_hash_str: id}, (err, response) => {
     if (!!err) {
       return cbk([503, 'LookupInvoiceErr', err]);
     }

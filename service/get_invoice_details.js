@@ -9,7 +9,7 @@ const {returnResult} = require('./../async-util');
 /** Get payment request
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     request: <BOLT 11 Payment Request String>
   }
 
@@ -81,4 +81,3 @@ module.exports = ({lnd, request}, cbk) => {
   },
   returnResult({of: 'invoiceDetails'}, cbk));
 };
-

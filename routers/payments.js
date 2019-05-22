@@ -5,9 +5,9 @@ const Router = require('./router');
 /** Get a payments router.
 
   {
-    lnd: <LND API Object>
+    lnd: <Authenticated LND gRPC API Object>
     log: <Log Function>>
-    wss: [<Websocket Server>]
+    wss: [<Websocket Server Object>]
   }
 
   @returns
@@ -27,9 +27,8 @@ module.exports = ({lnd, log, wss}) => {
     const {fee} = body;
     const {request} = body;
 
-    return pay({fee, lnd, log, request, wss}, returnJson({log, res}));
+    return pay({lnd, log, request, wss, max_fee: fee}, returnJson({log, res}));
   });
 
   return router;
 };
-

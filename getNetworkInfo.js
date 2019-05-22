@@ -5,7 +5,7 @@ const {getNetworkInfo} = require('./');
 /** Get network info
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -20,4 +20,3 @@ const {getNetworkInfo} = require('./');
   }
 */
 module.exports = promisify(getNetworkInfo);
-

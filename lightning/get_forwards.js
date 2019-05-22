@@ -9,6 +9,7 @@ const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
 const defaultLimit = 100;
+const {isArray} = Array;
 const msPerSec = 1e3;
 const mtokensPerToken = new BN(1e3, 10);
 const {parse} = JSON;
@@ -23,7 +24,7 @@ const {stringify} = JSON;
     [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
     [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>
     [limit]: <Page Result Limit Number>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [token]: <Opaque Paging Token String>
   }
 
@@ -48,12 +49,12 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
         return cbk([400, 'ExpectedBeforeDateWhenUsingAfterDate']);
       }
 
-      if (!lnd) {
-        return cbk([400, 'ExpectedLndForInvoiceListing']);
+      if (!lnd || !lnd.default || !lnd.default.forwardingHistory) {
+        return cbk([400, 'ExpectedLndToGetForwardingHistory']);
       }
 
       if (!!limit && !!token) {
-        return cbk([400, 'UnexpectedLimitWhenPagingInvoicesWithToken']);
+        return cbk([400, 'UnexpectedLimitWhenPagingForwardsWithToken']);
       }
 
       return cbk();
@@ -75,11 +76,11 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
           resultsLimit = pagingToken.limit;
           start = pagingToken.after || null;
         } catch (err) {
-          return cbk([400, 'ExpectedValidPagingToken', err, token]);
+          return cbk([400, 'ExpectedValidPagingToken', {err}]);
         }
       }
 
-      return lnd.forwardingHistory({
+      return lnd.default.forwardingHistory({
         end_time: !endTime ? null : round(new Date(endTime).getTime() / 1e3),
         index_offset: offset || 0,
         num_max_events: resultsLimit,
@@ -87,19 +88,19 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
       },
       (err, res) => {
         if (!!err) {
-          return cbk([503, 'GetForwardingHistoryError', err]);
+          return cbk([503, 'GetForwardingHistoryError', {err}]);
         }
 
         if (!res) {
           return cbk([503, 'ExpedtedForwardingHistoryResults']);
         }
 
-        if (!Array.isArray(res.forwarding_events)) {
+        if (!isArray(res.forwarding_events)) {
           return cbk([503, 'ExpectedForwardingEvents']);
         }
 
         if (res.last_offset_index === undefined) {
-          return cbk([503, 'ExpectedLastIndexOffset', res]);
+          return cbk([503, 'ExpectedLastIndexOffsetInForwardsResponse']);
         }
 
         const token = stringify({

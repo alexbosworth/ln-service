@@ -3,14 +3,14 @@ const utf8 = 'utf8';
 /** Create a wallet
 
   {
-    lnd: <LND GRPC API Object>
-    [passphrase]: <Seed Passphrase String>
+    lnd: <Unauthenticated LND gRPC API Object>
+    [passphrase]: <AEZSeed Encryption Passphrase String>
     password: <Wallet Password String>
     seed: <Seed Mnemonic String>
   }
 */
 module.exports = ({lnd, passphrase, password, seed}, cbk) => {
-  if (!lnd || !lnd.initWallet) {
+  if (!lnd || !lnd.unlocker || !lnd.unlocker.initWallet) {
     return cbk([400, 'ExpectedLndForWalletCreation']);
   }
 
@@ -22,17 +22,16 @@ module.exports = ({lnd, passphrase, password, seed}, cbk) => {
     return cbk([400, 'ExpectedSeedMnemonicForWalletCreation']);
   }
 
-  return lnd.initWallet({
+  return lnd.unlocker.initWallet({
     aezeed_passphrase: !passphrase ? undefined : Buffer.from(passphrase, utf8),
     cipher_seed_mnemonic: seed.split(' '),
     wallet_password: Buffer.from(password, utf8),
   },
   err => {
     if (!!err) {
-      return cbk([503, 'UnexpectedUnlockWalletErr', err]);
+      return cbk([503, 'UnexpectedUnlockWalletError', {err}]);
     }
 
     return cbk();
   });
 };
-

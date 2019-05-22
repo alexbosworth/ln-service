@@ -1,9 +1,10 @@
+const isHex = require('is-hex');
 const {Transaction} = require('bitcoinjs-lib');
 
 /** Publish a raw blockchain transaction to Blockchain network peers
 
   {
-    lnd: <WalletRPC LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     transaction: <Transaction Hex String>
   }
 
@@ -13,11 +14,11 @@ const {Transaction} = require('bitcoinjs-lib');
   }
 */
 module.exports = ({lnd, transaction}, cbk) => {
-  if (!lnd || !lnd.publishTransaction) {
+  if (!lnd || !lnd.wallet || !lnd.wallet.publishTransaction) {
     return cbk([400, 'ExpectedWalletRpcLndToSendRawTransaction']);
   }
 
-  if (!transaction) {
+  if (!transaction || !isHex(transaction)) {
     return cbk([400, 'ExpectedRawTransactionToBroadcastToPeers']);
   }
 
@@ -27,9 +28,12 @@ module.exports = ({lnd, transaction}, cbk) => {
     return cbk([400, 'ExpectedValidTransactionToBroadcastToPeers']);
   }
 
-  return lnd.publishTransaction({tx_hex: Buffer.from(transaction, 'hex')}, (err, res) => {
+  return lnd.wallet.publishTransaction({
+    tx_hex: Buffer.from(transaction, 'hex'),
+  },
+  (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorBroadcastingRawTransaction', err]);
+      return cbk([503, 'UnexpectedErrorBroadcastingRawTransaction', {err}]);
     }
 
     if (!res) {

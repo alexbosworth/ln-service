@@ -1,8 +1,6 @@
 {
-  "autopilotServiceType": "Autopilot",
-  "chainNotifierServiceType": "ChainNotifier",
-  "defaultServiceType": "Lightning",
-  "invoicesServiceType": "Invoices",
+  "defaultSocket": "localhost:10009",
+  "grpcSslCipherSuites": "HIGH+ECDSA",
   "maxReceiveMessageLength": 52428800,
   "packageTypes": {
     "Autopilot": "autopilotrpc",
@@ -10,8 +8,9 @@
     "Invoices": "invoicesrpc",
     "Lightning": "lnrpc",
     "Signer": "signrpc",
-    "WalletKit": "walletrpc",
-    "WalletUnlocker": "lnrpc"
+    "Router": "routerrpc",
+    "WalletUnlocker": "lnrpc",
+    "WalletKit": "walletrpc"
   },
   "protoFiles": {
     "Autopilot": "autopilot.proto",
@@ -19,10 +18,17 @@
     "Invoices": "invoices.proto",
     "Lightning": "rpc.proto",
     "Signer": "signer.proto",
-    "WalletKit": "walletkit.proto",
-    "WalletUnlocker": "rpc.proto"
+    "Router": "router.proto",
+    "WalletUnlocker": "rpc.proto",
+    "WalletKit": "walletkit.proto"
   },
-  "signerServiceType": "Signer",
-  "unlockerServiceType": "WalletUnlocker",
-  "walletServiceType": "WalletKit"
+  "serviceTypes": {
+    "autopilot": "Autopilot",
+    "chain": "ChainNotifier",
+    "default": "Lightning",
+    "invoices": "Invoices",
+    "router": "Router",
+    "signer": "Signer",
+    "wallet": "WalletKit"
+  }
 }

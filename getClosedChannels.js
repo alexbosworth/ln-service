@@ -12,7 +12,7 @@ const {getClosedChannels} = require('./');
     [is_funding_cancel]: <Bool>
     [is_local_force_close]: <Bool>
     [is_remote_force_close]: <Bool>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -23,12 +23,12 @@ const {getClosedChannels} = require('./');
       [close_transaction_id]: <Closing Transaction Id Hex String>
       final_local_balance: <Channel Close Final Local Balance Tokens Number>
       final_time_locked_balance: <Closed Channel Timelocked Tokens Number>
-      [id]: <Standard Format Channel Id String>
+      [id]: <Closed Standard Format Channel Id String>
       is_breach_close: <Is Breach Close Bool>
       is_cooperative_close: <Is Cooperative Close Bool>
       is_funding_cancel: <Is Funding Cancelled Close Bool>
       is_local_force_close: <Is Local Force Close Bool>
-      is_remote_force_close: <Is Remote Force close Bool>
+      is_remote_force_close: <Is Remote Force Close Bool>
       partner_public_key: <Partner Public Key Hex String>
       transaction_id: <Channel Funding Transaction Id Hex String>
       transaction_vout: <Channel Funding Output Index Number>
@@ -36,4 +36,3 @@ const {getClosedChannels} = require('./');
   }
 */
 module.exports = promisify(getClosedChannels);
-

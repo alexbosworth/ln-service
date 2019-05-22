@@ -8,8 +8,11 @@ const msPerSec = 1e3;
 /** Subscribe to invoices
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
+
+  @throws
+  <Error>
 
   @returns
   <EventEmitter Object>
@@ -29,8 +32,12 @@ const msPerSec = 1e3;
   }
 */
 module.exports = ({lnd}) => {
+  if (!lnd || !lnd.default || !lnd.default.subscribeInvoices) {
+    throw new Error('ExpectedAuthenticatedLndToSubscribeInvoices');
+  }
+
   const eventEmitter = new EventEmitter();
-  const subscription = lnd.subscribeInvoices({});
+  const subscription = lnd.default.subscribeInvoices({});
 
   subscription.on('data', invoice => {
     if (!invoice) {

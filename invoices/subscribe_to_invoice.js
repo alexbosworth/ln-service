@@ -1,5 +1,7 @@
 const EventEmitter = require('events');
 
+const isHex = require('is-hex');
+
 const decBase = 10;
 const msPerSec = 1e3;
 
@@ -7,7 +9,7 @@ const msPerSec = 1e3;
 
   {
     id: <Invoice Payment Hash Hex String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @throws
@@ -46,17 +48,17 @@ const msPerSec = 1e3;
   }
 */
 module.exports = ({id, lnd}) => {
-  if (!id) {
+  if (!id || !isHex(id)) {
     throw new Error('ExpectedIdOfInvoiceToSubscribeTo');
   }
 
-  if (!lnd || !lnd.subscribeSingleInvoice) {
+  if (!lnd || !lnd.invoices.subscribeSingleInvoice) {
     throw new Error('ExpectedInvoiceLndToSubscribeToSingleInvoice');
   }
 
   const eventEmitter = new EventEmitter();
 
-  const subscription = lnd.subscribeSingleInvoice({
+  const subscription = lnd.invoices.subscribeSingleInvoice({
     r_hash: Buffer.from(id, 'hex'),
   });
 

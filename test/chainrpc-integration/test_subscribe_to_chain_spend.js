@@ -8,7 +8,7 @@ const getUtxos = require('./../../getUtxos');
 const sendToChainAddress = require('./../../sendToChainAddress');
 const {subscribeToChainSpend} = require('./../../');
 
-const confirmationCount = 6;
+const confirmationCount = 20;
 const format = 'p2wpkh';
 const tokens = 1e6;
 
@@ -34,7 +34,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
 
   const sub = subscribeToChainSpend({
     bech32_address: utxo.address,
-    lnd: cluster.target.chain_notifier_lnd,
+    lnd: cluster.control.lnd,
     transaction_id: utxo.transaction_id,
     transaction_vout: utxo.transaction_vout,
   });
@@ -61,6 +61,8 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
   await cluster.kill({});
+
+  await delay(2000);
 
   equal(gotAddressConf, true, 'Subscribe to address sees confirmation');
 

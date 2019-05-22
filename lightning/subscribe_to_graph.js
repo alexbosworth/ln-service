@@ -6,13 +6,17 @@ const getNode = require('./get_node');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
+const {isArray} = Array;
 const msPerSec = 1e3;
 
 /** Subscribe to graph updates
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
+
+  @throws
+  <Error>
 
   @returns
   <EventEmitter Object>
@@ -56,21 +60,25 @@ const msPerSec = 1e3;
   }
 */
 module.exports = ({lnd}) => {
+  if (!lnd || !lnd.default || !lnd.default.subscribeChannelGraph) {
+    throw new Error('ExpectedAuthenticatedLndToSubscribeToChannelGraph');
+  }
+
   const eventEmitter = new EventEmitter();
-  const subscription = lnd.subscribeChannelGraph({});
+  const subscription = lnd.default.subscribeChannelGraph({});
 
   subscription.on('data', update => {
     const updatedAt = new Date().toISOString();
 
-    if (!Array.isArray(update.channel_updates)) {
+    if (!isArray(update.channel_updates)) {
       return eventEmitter.emit('error', new Error('ExpectedChannelUpdates'));
     }
 
-    if (!Array.isArray(update.closed_chans)) {
+    if (!isArray(update.closed_chans)) {
       return eventEmitter.emit('error', new Error('ExpectedClosedChans'));
     }
 
-    if (!Array.isArray(update.node_updates)) {
+    if (!isArray(update.node_updates)) {
       return eventEmitter.emit('error', new Error('ExpectedNodeUpdates'));
     }
 
@@ -200,7 +208,7 @@ module.exports = ({lnd}) => {
 
     // Emit node updates
     update.node_updates.forEach(node => {
-      if (!Array.isArray(node.addresses)) {
+      if (!isArray(node.addresses)) {
         return eventEmitter.emit('error', new Error('ExpectedNodeAddresses'));
       }
 

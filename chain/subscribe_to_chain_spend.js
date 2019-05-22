@@ -36,8 +36,8 @@ const scriptFromChainAddress = require('./script_from_chain_address');
   }
 */
 module.exports = args => {
-  if (!args.lnd || !args.lnd.registerSpendNtfn) {
-    return cbk([400, 'ExpectedLndGrpcApiToSubscribeToSpendConfirmations']);
+  if (!args.lnd || !args.lnd.chain || !args.lnd.chain.registerSpendNtfn) {
+    throw new Error('ExpectedLndGrpcApiToSubscribeToSpendConfirmations');
   }
 
   const {script} = scriptFromChainAddress({
@@ -52,7 +52,7 @@ module.exports = args => {
 
   const eventEmitter = new EventEmitter();
 
-  const subscription = args.lnd.registerSpendNtfn({
+  const subscription = args.lnd.chain.registerSpendNtfn({
     outpoint: {
       hash: Buffer.from(args.transaction_id || dummyTxId, 'hex').reverse(),
       index: args.transaction_vout || 0,

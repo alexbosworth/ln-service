@@ -4,7 +4,7 @@ const {isArray} = Array;
 /** Get a chain fee estimate for a prospective chain send
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND GRPC API Object>
     send_to: [{
       address: <Address String>
       tokens: <Tokens Number>
@@ -19,7 +19,7 @@ const {isArray} = Array;
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.estimateFee) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.estimateFee) {
     return cbk([400, 'ExpectedLndToEstimateChainFee']);
   }
 
@@ -27,10 +27,12 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedSendToAddressesToEstimateChainFee']);
   }
 
+  // Confirm send_to array has addresses
   if (!!args.send_to.find(({address}) => !address)) {
     return cbk([400, 'ExpectedSendToAddressInEstimateChainFee']);
   }
 
+  // Confirm send_to array has tokens
   if (!!args.send_to.find(({tokens}) => !tokens)) {
     return cbk([400, 'ExpectedSendToTokensInEstimateChainFee']);
   }
@@ -39,13 +41,13 @@ module.exports = (args, cbk) => {
 
   args.send_to.forEach(({address, tokens}) => AddrToAmount[address] = tokens);
 
-  return args.lnd.estimateFee({
+  return args.lnd.default.estimateFee({
     AddrToAmount,
     target_conf: args.target_confirmations || undefined,
   },
   (err, res) => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorEstimatingFeeForChainSend', err]);
+      return cbk([503, 'UnexpectedErrorEstimatingFeeForChainSend', {err}]);
     }
 
     if (!res.fee_sat) {

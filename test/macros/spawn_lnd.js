@@ -3,38 +3,46 @@ const {readFileSync} = require('fs');
 const {spawn} = require('child_process');
 
 const asyncAuto = require('async/auto');
+const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
 const asyncRetry = require('async/retry');
 const {ECPair} = require('bitcoinjs-lib');
 const {networks} = require('bitcoinjs-lib');
 const openPortFinder = require('portfinder');
 
+const {authenticatedLndGrpc} = require('./../../grpc');
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
 const {getWalletInfo} = require('./../../');
-const {lightningDaemon} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
+const {unauthenticatedLndGrpc} = require('./../../grpc');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainPass = 'pass';
 const chainRpcCertName = 'rpc.cert';
 const chainUser = 'user';
 const delayAfterSpawnMs = 3000;
+const grpcs = ['', 'Autopilot', 'Chain', 'Invoices', 'Signer', 'Wallet'];
+const interval = retryCount => 10 * Math.pow(2, retryCount);
 const invoiceMacaroonFileName = 'invoice.macaroon';
+const {isArray} = Array;
 const lightningDaemonExecFileName = 'lnd';
 const lightningDaemonLogPath = 'logs/';
 const lightningSeedPassphrase = 'passphrase';
 const lightningTlsCertFileName = 'tls.cert';
 const lightningTlsKeyFileName = 'tls.key';
 const lightningWalletPassword = 'password';
-const lndWalletUnlockerService = 'WalletUnlocker';
+const lndWalletUnlockerService = 'Unlocker';
 const localhost = '127.0.0.1';
 const maxSpawnChainDaemonAttempts = 10;
+const {random} = Math;
 const readMacaroonFileName = 'readonly.macaroon';
 const retryCreateSeedCount = 5;
+const {round} = Math;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 5500;
+const times = 20;
 
 /** Spawn an lnd instance
 
@@ -44,9 +52,7 @@ const startWalletTimeoutMs = 5500;
 
   @returns via cbk
   {
-    autopilot_lnd: <Autopilot LND GRPC API Object>
     chain_listen_port: <Chain Listen Port Number>
-    chain_notifier_lnd: <Chain Notifier LND GRPC API Object>
     chain_rpc_cert: <RPC Cert Path String>
     chain_rpc_pass: <Chain RPC Password String>
     chain_rpc_port: <RPC Port Number>
@@ -60,7 +66,6 @@ const startWalletTimeoutMs = 5500;
     lnd_socket: <LND RPC Socket String>
     mining_key: <Mining Rewards Private Key WIF Encoded String>
     seed: <Node Seed Phrase String>
-    wallet_lnd: <Wallet LND GRPC API Object>
   }
 */
 module.exports = ({seed}, cbk) => {
@@ -68,7 +73,7 @@ module.exports = ({seed}, cbk) => {
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
       return asyncMapSeries(['listen', 'rest', 'rpc'], (_, cbk) => {
-        const port = startPortRange + Math.round(Math.random() * 2000);
+        const port = startPortRange + round(random() * 2000);
 
         const stopPort = port + 20000;
 
@@ -78,8 +83,8 @@ module.exports = ({seed}, cbk) => {
         50);
       },
       (err, ports) => {
-        if (!!err || !Array.isArray(ports) || !ports.length) {
-          return cbk([500, 'FailedToFindOpenPorts', err]);
+        if (!!err || !isArray(ports) || !ports.length) {
+          return cbk([500, 'FailedToFindOpenPortsWhenSpawningLnd', {err}]);
         }
 
         const [listen, rest, rpc] = ports;
@@ -111,15 +116,22 @@ module.exports = ({seed}, cbk) => {
       cbk);
     }],
 
-    // Generate a block
+    // Generate a block to prevent lnd from getting stuck
     generateBlock: ['spawnChainDaemon', ({spawnChainDaemon}, cbk) => {
-      return generateBlocks({
-        cert: readFileSync(spawnChainDaemon.rpc_cert),
-        count: 1,
-        host: localhost,
-        pass: chainPass,
-        port: spawnChainDaemon.rpc_port,
-        user: chainUser,
+      return asyncRetry({interval, times}, cbk => {
+        try {
+          return generateBlocks({
+            cert: readFileSync(spawnChainDaemon.rpc_cert),
+            count: 1,
+            host: localhost,
+            pass: chainPass,
+            port: spawnChainDaemon.rpc_port,
+            user: chainUser,
+          },
+          cbk);
+        } catch (err) {
+          return cbk([503, 'FailedToGenerateBlockWhenSpawningLnd', {err}]);
+        }
       },
       cbk);
     }],
@@ -168,7 +180,7 @@ module.exports = ({seed}, cbk) => {
         if (!isReady && /gRPC.proxy.started/.test(data+'')) {
           isReady = true;
 
-          return setTimeout(() => cbk(null, {daemon}), 2000);
+          return cbk(null, {daemon});
         };
 
         return;
@@ -183,11 +195,7 @@ module.exports = ({seed}, cbk) => {
       'spawnLightningDaemon',
       ({spawnChainDaemon}, cbk) =>
     {
-      const {dir} = spawnChainDaemon;
-      const interval = retryCount => 10 * Math.pow(2, retryCount);
-      const times = 20;
-
-      const certPath = join(dir, lightningTlsCertFileName);
+      const certPath = join(spawnChainDaemon.dir, lightningTlsCertFileName);
 
       return asyncRetry({interval, times}, cbk => {
         try {
@@ -206,40 +214,25 @@ module.exports = ({seed}, cbk) => {
       'spawnLightningDaemon',
       ({cert, getPorts}, cbk) =>
     {
-      const service = lndWalletUnlockerService;
       const socket = `${localhost}:${getPorts.rpc}`;
 
       try {
-        return cbk(null, lightningDaemon({cert, service, socket}));
+        return cbk(null, unauthenticatedLndGrpc({cert, socket}).lnd);
       } catch (err) {
-        return cbk([503, 'FailedToLaunchLightningDaemon', err]);
+        return cbk([503, 'FailedToInstantiateNonAuthentictedLnd', {err}]);
       }
     }],
 
     // Create seed
-    createSeed: [
-      'getPorts',
-      'nonAuthenticatedLnd',
-      'spawnChainDaemon',
-      ({getPorts, nonAuthenticatedLnd, spawnChainDaemon}, cbk) =>
-    {
+    createSeed: ['nonAuthenticatedLnd', ({nonAuthenticatedLnd}, cbk) => {
       // Exit early when a seed is pre-supplied
       if (!!seed) {
         return cbk(null, {seed});
       }
 
-      return asyncRetry(retryCreateSeedCount, cbk => {
-        const {dir} = spawnChainDaemon;
-
-        const cert = readFileSync(join(dir, lightningTlsCertFileName));
-
-        const lnd = lightningDaemon({
-          cert: cert.toString('base64'),
-          service: lndWalletUnlockerService,
-          socket: `${localhost}:${getPorts.rpc}`,
-        });
-
-        return createSeed({lnd, passphrase: lightningSeedPassphrase}, cbk);
+      return createSeed({
+        lnd: nonAuthenticatedLnd,
+        passphrase: lightningSeedPassphrase,
       },
       cbk);
     }],
@@ -265,17 +258,13 @@ module.exports = ({seed}, cbk) => {
       'spawnChainDaemon',
       ({spawnChainDaemon}, cbk) =>
     {
-      const {dir} = spawnChainDaemon;
-      const interval = retryCount => 10 * Math.pow(2, retryCount);
-      const times = 20;
-
-      const macaroonPath = join(dir, adminMacaroonFileName);
+      const macaroonPath = join(spawnChainDaemon.dir, adminMacaroonFileName);
 
       return asyncRetry({interval, times}, cbk => {
         try {
           return cbk(null, readFileSync(macaroonPath).toString('base64'));
         } catch (err) {
-          return cbk([503, 'FailedToGetAdminMacaroon', err]);
+          return cbk([503, 'FailedToGetAdminMacaroon', {err}]);
         }
       },
       cbk);
@@ -283,123 +272,46 @@ module.exports = ({seed}, cbk) => {
 
     // Wallet details
     wallet: [
-      'createWallet',
-      'macaroon',
-      'spawnChainDaemon',
+      'cert',
       'getPorts',
-      ({getPorts, macaroon, spawnChainDaemon}, cbk) =>
+      'macaroon',
+      ({cert, getPorts, macaroon}, cbk) =>
     {
-      const {dir} = spawnChainDaemon;
-
-      const certPath = join(dir, lightningTlsCertFileName);
-
       return cbk(null, {
+        cert,
         macaroon,
-        cert: readFileSync(certPath).toString('base64'),
-        host: `${localhost}:${getPorts.rpc}`,
+        socket: `${localhost}:${getPorts.rpc}`,
       });
     }],
 
-    // Autopilot LND GRPC API
-    autopilotLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'Autopilot',
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateAutopilotLnd', err]);
-      }
-    }],
-
-    // Chain notifier LND GRPC API
-    chainNotifierLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'ChainNotifier',
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateChainNotifierLnd', err]);
-      }
-    }],
-
-    // Invoices LND GRPC API
-    invoicesLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'Invoices',
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateInvoicesLnd', err]);
-      }
-    }],
-
-    // Wallet LND GRPC API
+    // Instantiate lnd
     lnd: ['wallet', ({wallet}, cbk) => {
       try {
-        return cbk(null, lightningDaemon({
+        const {lnd} = authenticatedLndGrpc({
           cert: wallet.cert,
           macaroon: wallet.macaroon,
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateWalletLnd', err]);
-      }
-    }],
+          socket: wallet.socket,
+        });
 
-    // Signer LND GRPC API
-    signerLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'Signer',
-          socket: wallet.host,
-        }));
+        return cbk(null, lnd);
       } catch (err) {
-        return cbk([503, 'FailedToInstantiateSignerLnd', err]);
-      }
-    }],
-
-    // Wallet LND GRPC API
-    walletLnd: ['wallet', ({wallet}, cbk) => {
-      try {
-        return cbk(null, lightningDaemon({
-          cert: wallet.cert,
-          macaroon: wallet.macaroon,
-          service: 'WalletKit',
-          socket: wallet.host,
-        }));
-      } catch (err) {
-        return cbk([503, 'FailedToInstantiateWalletLnd', err]);
+        return cbk([503, 'FailedToInstantiateLndWhenSpawning', {err}]);
       }
     }],
 
     // Delay to make sure everything has come together
     delay: ['lnd', ({lnd}, cbk) => {
-      const interval = retryCount => 10 * Math.pow(2, retryCount);
-      const times = 20;
-
-      return asyncRetry({interval, times}, cbk => {
-        return getWalletInfo({lnd}, cbk);
-      },
-      cbk);
+      return asyncRetry(
+        {interval, times},
+        cbk => getWalletInfo({lnd}, cbk),
+        cbk
+      );
     }],
   },
   (err, res) => {
     if (!!err) {
       return cbk(err);
     }
-
-    const {lnd} = res;
 
     const kill = () => {
       res.spawnChainDaemon.daemon.kill();
@@ -411,29 +323,24 @@ module.exports = ({seed}, cbk) => {
     process.on('uncaughtException', err => {
       kill();
 
-      setTimeout(() => process.exit(1), 5000);
+      return setTimeout(() => process.exit(1), 5000);
     });
 
     return cbk(null, {
       kill,
-      lnd,
-      autopilot_lnd: res.autopilotLnd,
       chain_listen_port: res.spawnChainDaemon.listen_port,
-      chain_notifier_lnd: res.chainNotifierLnd,
       chain_rpc_cert: res.spawnChainDaemon.rpc_cert,
       chain_rpc_pass: chainPass,
       chain_rpc_port: res.spawnChainDaemon.rpc_port,
       chain_rpc_user: chainUser,
-      invoices_lnd: res.invoicesLnd,
       listen_ip: localhost,
       listen_port: res.getPorts.listen,
+      lnd: res.lnd,
       lnd_cert: res.wallet.cert,
       lnd_macaroon: res.wallet.macaroon,
-      lnd_socket: res.wallet.host,
+      lnd_socket: res.wallet.socket,
       mining_key: res.miningKey.private_key,
       seed: res.createSeed.seed,
-      signer_lnd: res.signerLnd,
-      wallet_lnd: res.walletLnd,
     });
   });
 };

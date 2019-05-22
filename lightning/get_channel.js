@@ -11,7 +11,7 @@ const separatorChar = ':';
 
   {
     id: <Standard Format Channel Id String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -37,20 +37,20 @@ module.exports = ({id, lnd}, cbk) => {
     return cbk([400, 'ExpectedChannelIdToGet']);
   }
 
-  if (!lnd || !lnd.getChanInfo) {
-    return cbk([400, 'ExpectedLndToGetChannelDetails']);
-  }
-
-  // LND expects the numeric format channel id
-  let channelNumber;
-
   try {
-    channelNumber = chanNumber({channel: id}).number
+    chanNumber({channel: id}).number
   } catch (err) {
     return cbk([400, 'ExpectedValidChannelIdToGetChannel', err]);
   }
 
-  return lnd.getChanInfo({chan_id: channelNumber}, (err, response) => {
+  if (!lnd || !lnd.default || !lnd.default.getChanInfo) {
+    return cbk([400, 'ExpectedLndToGetChannelDetails']);
+  }
+
+  // LND expects the numeric format channel id
+  const channelNumber = chanNumber({channel: id}).number;
+
+  return lnd.default.getChanInfo({chan_id: channelNumber}, (err, response) => {
     if (!!err && err.details === edgeIsZombieErrorMessage) {
       return cbk([404, 'FullChannelDetailsNotFound']);
     }

@@ -5,25 +5,29 @@ const {getInvoice} = require('./');
 /** Lookup a channel invoice.
 
   {
-    lnd: <LND GRPC API Object>
     id: <Payment Hash Id Hex String>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
   {
+    chain_address: <Fallback Chain Address String>
+    [confirmed_at]: <Settled at ISO 8601 Date String>
+    created_at: <ISO 8601 Date String>
     description: <Description String>
+    description_hash: <Description Hash Hex String>
     expires_at: <ISO 8601 Date String>
-    id: <Invoice Id String>
-    is_confirmed: <Is Finalized Bool>
+    id: <Payment Hash String>
+    [is_canceled]: <Invoice is Canceled Bool>
+    is_confirmed: <Invoice is Confirmed Bool>
     [is_held]: <HTLC is Held Bool>
-    is_outgoing: <Is Outgoing Bool>
-    is_private: <Is a Private Invoice Bool>
-    mtokens: <Millitokens String>
+    is_outgoing: <Invoice is Outgoing Bool>
+    is_private: <Invoice is Private Bool>
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
-    request: <BOLT 11 Encoded Payment Request String>
-    secret: <Hex Encoded Payment Secret Preimage String>
-    [tokens]: <Tokens Number>
+    request: <Bolt 11 Invoice String>
+    secret: <Secret Preimage Hex String>
+    tokens: <Tokens Number>
     type: <Type String>
   }
 */

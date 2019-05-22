@@ -1,16 +1,19 @@
-const {chanFormat} = require('bolt07');
 const {isFinite} = require('lodash');
+const isHex = require('is-hex');
 
+const {routeFromRouteHint} = require('./../routing');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
-const defaultExp = 1000 * 60 * 60;
+const defaultExpirationMs = 1000 * 60 * 60;
+const {isArray} = Array;
 const msPerSec = 1e3;
+const {now} = Date;
 
 /** Get decoded payment request
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     request: <BOLT 11 Payment Request String>
   }
 
@@ -35,7 +38,7 @@ const msPerSec = 1e3;
   }
 */
 module.exports = ({lnd, request}, cbk) => {
-  if (!lnd || !lnd.decodePayReq) {
+  if (!lnd || !lnd.default || !lnd.default.decodePayReq) {
     return cbk([400, 'ExpectedLndForDecodingPaymentRequest']);
   }
 
@@ -43,29 +46,38 @@ module.exports = ({lnd, request}, cbk) => {
     return cbk([400, 'ExpectedPaymentRequestToDecode']);
   }
 
-  return lnd.decodePayReq({pay_req: request}, (err, res) => {
+  return lnd.default.decodePayReq({pay_req: request}, (err, res) => {
     if (!!err) {
-      return cbk([503, 'DecodePayReqErr', err]);
+      return cbk([503, 'UnexpectedDecodePaymentRequestError', {err}]);
     }
 
     if (!res.destination) {
-      return cbk([503, 'ExpectedDestination', res]);
+      return cbk([503, 'ExpectedDestinationInDecodedPaymentRequest']);
     }
 
     if (!res.expiry) {
-      return cbk([503, 'ExpectedPaymentRequestExpiration', res]);
+      return cbk([503, 'ExpectedPaymentRequestExpirationInDecodedPayReq']);
     }
 
-    if (!res.payment_hash) {
-      return cbk([503, 'ExpectedPaymentHash', res]);
+    if (!res.payment_hash || !isHex(res.payment_hash)) {
+      return cbk([503, 'ExpectedPaymentHashFromDecodePayReqResponse']);
     }
 
     if (!isFinite(parseInt(res.num_satoshis, decBase))) {
       return cbk([503, 'ExpectedNumSatoshis', res]);
     }
 
-    if (!Array.isArray(res.route_hints)) {
+    if (!isArray(res.route_hints)) {
       return cbk([503, 'ExpectedRouteHintsArray']);
+    }
+
+    try {
+      res.route_hints.forEach(route => routeFromRouteHint({
+        destination: res.destination,
+        hop_hints: route.hop_hints,
+      }));
+    } catch (err) {
+      return cbk([503, 'ExpectedValidRouteHintsInPaymentRequest', {err}]);
     }
 
     if (!res.timestamp) {
@@ -73,59 +85,11 @@ module.exports = ({lnd, request}, cbk) => {
     }
 
     const createdAtMs = parseInt(res.timestamp, decBase) * msPerSec;
-    const expiresInMs = parseInt(res.expiry, decBase) * msPerSec || defaultExp;
+    const expiresInMs = parseInt(res.expiry, decBase) * msPerSec;
 
-    const expiryDateMs = createdAtMs + expiresInMs;
-
-    let routes;
-
-    try {
-      routes = res.route_hints.map(route => {
-        if (!Array.isArray(route.hop_hints)) {
-          throw new Error('ExpectedRouteHopHints');
-        }
-
-        const [firstHint] = route.hop_hints;
-        const lastHop = {node_id: res.destination};
-
-        const lastHops = route.hop_hints.map((hop, i, hops) => {
-          if (!hop.chan_id) {
-            throw new Error('ExpectedRouteHopChannelId');
-          }
-
-          if (hop.cltv_expiry_delta === undefined) {
-            throw new Error('ExpectedRouteHopCltvExpiryDelta');
-          }
-
-          if (!hop.fee_base_msat) {
-            throw new Error('ExpectedRouteHopBaseFee');
-          }
-
-          if (hop.fee_proportional_millionths === undefined) {
-            throw new Error('ExpectedRouteHopFeeRate');
-          }
-
-          if (!hop.node_id) {
-            throw new Error('ExpectedRouteHopPublicKey');
-          }
-
-          return {
-            base_fee_mtokens: hop.fee_base_msat,
-            channel: chanFormat({number: hop.chan_id}).channel,
-            cltv_delta: hop.cltv_expiry_delta,
-            fee_rate: hop.fee_proportional_millionths,
-            public_key: (hops[(i + [hop].length)] || lastHop).node_id,
-          };
-        });
-
-        return [].concat([{public_key: firstHint.node_id}]).concat(lastHops);
-      });
-    } catch (err) {
-      return cbk([503, err.message, res]);
-    }
+    const expiryDateMs = createdAtMs + (expiresInMs || defaultExpirationMs);
 
     return cbk(null, {
-      routes,
       chain_address: res.fallback_addr || undefined,
       cltv_delta: parseInt(res.cltv_delta || 0, decBase) || undefined,
       created_at: new Date(createdAtMs).toISOString(),
@@ -134,10 +98,13 @@ module.exports = ({lnd, request}, cbk) => {
       destination: res.destination,
       expires_at: new Date(expiryDateMs).toISOString(),
       id: res.payment_hash,
-      is_expired: Date.now() > expiryDateMs,
+      is_expired: now() > expiryDateMs,
+      routes: res.route_hints.map(route => routeFromRouteHint({
+        destination: res.destination,
+        hop_hints: route.hop_hints,
+      })),
       tokens: parseInt(res.num_satoshis, decBase),
       type: rowTypes.payment_request,
     });
   });
 };
-

@@ -5,8 +5,11 @@ const {backupsFromSnapshot} = require('./../backups');
 /** Subscribe to backup snapshot updates
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
+
+  @throws
+  <Error>
 
   @returns
   <EventEmitter Object>
@@ -22,8 +25,12 @@ const {backupsFromSnapshot} = require('./../backups');
   }
 */
 module.exports = ({lnd}) => {
+  if (!lnd || !lnd.default) {
+    throw new Error('ExpectedAuthenticatedLndToSubscribeToBackups');
+  }
+
   const eventEmitter = new EventEmitter();
-  const subscription = lnd.subscribeChannelBackups({});
+  const subscription = lnd.default.subscribeChannelBackups({});
 
   subscription.on('data', snapshot => {
     return backupsFromSnapshot(snapshot, (err, res) => {

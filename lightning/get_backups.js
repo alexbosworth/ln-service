@@ -1,11 +1,12 @@
-const {backupsFromSnapshot} = require('./../backups');
+const asyncAuto = require('async/auto');
 
-const {isArray} = Array;
+const {backupsFromSnapshot} = require('./../backups');
+const {returnResult} = require('./../async-util');
 
 /** Get all channel backups
 
   {
-    lnd: <GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -19,25 +20,35 @@ const {isArray} = Array;
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.exportAllChannelBackups) {
-    return cbk([400, 'Expected'])
-  }
-
-  return lnd.exportAllChannelBackups({}, (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorGettingChannelBackups', err]);
-    }
-
-    if (!res) {
-      return cbk([503, 'ExpectedChannelBackupsResponse']);
-    }
-
-    return backupsFromSnapshot(res, (err, res) => {
-      if (!!err) {
-        return cbk(err);
+  return asyncAuto({
+    // Check arguments
+    validate: cbk => {
+      if (!lnd || !lnd.default || !lnd.default.exportAllChannelBackups) {
+        return cbk([400, 'ExpectedLndGrpcToExportAllChannelBackups']);
       }
 
-      return cbk(null, res);
-    });
-  });
+      return cbk();
+    },
+
+    // Get backups snapshot
+    getBackupsSnapshot: ['validate', ({}, cbk) => {
+      return lnd.default.exportAllChannelBackups({}, (err, res) => {
+        if (!!err) {
+          return cbk([503, 'UnexpectedErrorGettingAllChannelBackups', {err}]);
+        }
+
+        if (!res) {
+          return cbk([503, 'ExpectedChannelBackupsResponseForBackupsRequest']);
+        }
+
+        return cbk(null, res);
+      });
+    }],
+
+    // Backups format of snapshot
+    backups: ['getBackupsSnapshot', ({getBackupsSnapshot}, cbk) => {
+      return backupsFromSnapshot(getBackupsSnapshot, cbk);
+    }],
+  },
+  returnResult({of: 'backups'}, cbk));
 };

@@ -1,17 +1,18 @@
 const {addPeer} = require('./lightning');
+const {authenticatedLndGrpc} = require('./grpc');
 const {broadcastChainTransaction} = require('./wallet');
 const {calculateHops} = require('./routing');
 const {calculatePaths} = require('./routing');
 const {cancelHodlInvoice} = require('./invoices');
-const {changePassword} = require('./lightning');
+const {changePassword} = require('./unlocker');
 const {closeChannel} = require('./lightning');
 const {createChainAddress} = require('./lightning');
 const {createHodlInvoice} = require('./invoices');
 const {createInvoice} = require('./lightning');
-const {createSeed} = require('./lightning');
+const {createSeed} = require('./unlocker');
 const {createSignedRequest} = require('./bolt11');
 const {createUnsignedRequest} = require('./bolt11');
-const {createWallet} = require('./lightning');
+const {createWallet} = require('./unlocker');
 const {decodePaymentRequest} = require('./lightning');
 const {getAccountingReport} = require('./accounting');
 const {getAutopilot} = require('./autopilot');
@@ -40,7 +41,6 @@ const {getPublicKey} = require('./wallet');
 const {getRoutes} = require('./lightning');
 const {getUtxos} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
-const {lightningDaemon} = require('./lightning');
 const localLnd = require('./service/local_lnd');
 const {openChannel} = require('./lightning');
 const {parsePaymentRequest} = require('./bolt11');
@@ -68,7 +68,8 @@ const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoice} = require('./invoices');
 const {subscribeToInvoices} = require('./lightning');
 const {subscribeToTransactions} = require('./lightning');
-const {unlockWallet} = require('./lightning');
+const {unauthenticatedLndGrpc} = require('./grpc');
+const {unlockWallet} = require('./unlocker');
 const {updateRoutingFees} = require('./lightning');
 const {verifyBackup} = require('./lightning');
 const {verifyBackups} = require('./lightning');
@@ -76,6 +77,7 @@ const {verifyMessage} = require('./lightning');
 
 module.exports = {
   addPeer,
+  authenticatedLndGrpc,
   broadcastChainTransaction,
   calculateHops,
   calculatePaths,
@@ -117,7 +119,6 @@ module.exports = {
   getRoutes,
   getUtxos,
   getWalletInfo,
-  lightningDaemon,
   localLnd,
   openChannel,
   parsePaymentRequest,
@@ -145,6 +146,7 @@ module.exports = {
   subscribeToInvoice,
   subscribeToInvoices,
   subscribeToTransactions,
+  unauthenticatedLndGrpc,
   unlockWallet,
   updateRoutingFees,
   verifyBackup,

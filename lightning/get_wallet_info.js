@@ -11,7 +11,7 @@ const msPerSec = 1e3;
 /** Get overall wallet info.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authentication LND gRPC API Object>
   }
 
   @returns via cbk
@@ -29,11 +29,11 @@ const msPerSec = 1e3;
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.getInfo) {
+  if (!lnd || !lnd.default || !lnd.default.getInfo) {
     return cbk([400, 'ExpectedLndForGetInfoRequest']);
   }
 
-  return lnd.getInfo({}, (err, res) => {
+  return lnd.default.getInfo({}, (err, res) => {
     if (!!err && err.details === lockedLndErrorMessage) {
       return cbk([503, 'LndLocked']);
     }
@@ -47,7 +47,7 @@ module.exports = ({lnd}, cbk) => {
     }
 
     if (!!err) {
-      return cbk([503, 'GetWalletInfoErr', err]);
+      return cbk([503, 'GetWalletInfoErr', {err}]);
     }
 
     if (!res) {
@@ -67,27 +67,27 @@ module.exports = ({lnd}, cbk) => {
     }
 
     if (!isNumber(res.block_height)) {
-      return cbk([500, 'ExpectedBlockHeight', res]);
+      return cbk([500, 'ExpectedBlockHeight']);
     }
 
     if (!res.identity_pubkey) {
-      return cbk([503, 'ExpectedIdentityPubkey', res]);
+      return cbk([503, 'ExpectedIdentityPubkey']);
     }
 
     if (!isNumber(res.num_active_channels)) {
-      return cbk([503, 'ExpectedNumActiveChannels', res]);
+      return cbk([503, 'ExpectedNumActiveChannels']);
     }
 
     if (!isNumber(res.num_peers)) {
-      return cbk([503, 'ExpectedNumPeers', res]);
+      return cbk([503, 'ExpectedNumPeers']);
     }
 
     if (!isNumber(res.num_pending_channels)) {
-      return cbk([503, 'ExpectedNumPendingChannels', res]);
+      return cbk([503, 'ExpectedNumPendingChannels']);
     }
 
     if (!isBoolean(res.synced_to_chain)) {
-      return cbk([400, 'ExpectedSyncedToChainStatus', res]);
+      return cbk([400, 'ExpectedSyncedToChainStatus']);
     }
 
     if (typeof res.version !== 'string') {

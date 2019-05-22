@@ -1,8 +1,8 @@
 const {test} = require('tap');
 
-const {delay} = require('./../macros');
 const getChannelBalance = require('./../../getChannelBalance');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const emptyBalance = 0;
 
@@ -10,16 +10,13 @@ const emptyBalance = 0;
 test(`Get the channel balance`, async ({end, equal}) => {
   const {kill, lnd} = await spawnLnd({});
 
-  await delay(3000);
-
   const result = await getChannelBalance({lnd});
 
   equal(result.channel_balance, emptyBalance, 'Valid channel balance');
 
-  await delay(2000);
-
   kill();
+
+  await waitForTermination({lnd});
 
   return end();
 });
-

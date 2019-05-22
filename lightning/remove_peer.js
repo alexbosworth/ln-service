@@ -1,12 +1,14 @@
+const isHex = require('is-hex');
+
 /** Remove a peer if possible
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     public_key: <Public Key Hex String>
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.disconnectPeer) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.disconnectPeer) {
     return cbk([400, 'ExpectedLndForPeerDisconnection']);
   }
 
@@ -14,9 +16,9 @@ module.exports = (args, cbk) => {
     return cbk([400, 'ExpectedPublicKeyOfPeerToRemove']);
   }
 
-  return args.lnd.disconnectPeer({pub_key: args.public_key}, err => {
+  return args.lnd.default.disconnectPeer({pub_key: args.public_key}, err => {
     if (!!err) {
-      return cbk([503, 'UnexpectedErrorRemovingPeer', err]);
+      return cbk([503, 'UnexpectedErrorRemovingPeer', {err}]);
     }
 
     return cbk();

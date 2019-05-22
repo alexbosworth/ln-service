@@ -5,7 +5,7 @@ const {getChainFeeEstimate} = require('./');
 /** Get a chain fee estimate for a prospective chain send
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND GRPC API Object>
     send_to: [{
       address: <Address String>
       tokens: <Tokens Number>

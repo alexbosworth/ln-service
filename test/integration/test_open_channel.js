@@ -11,7 +11,7 @@ const txIdHexLength = 32 * 2;
 
 // Opening a channel should open a channel
 test(`Open channel`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const channelOpen = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -30,4 +30,3 @@ test(`Open channel`, async ({end, equal}) => {
 
   return end();
 });
-

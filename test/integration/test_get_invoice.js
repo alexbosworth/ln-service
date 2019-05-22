@@ -1,9 +1,9 @@
 const {test} = require('tap');
 
 const createInvoice = require('./../../createInvoice');
-const {delay} = require('./../macros');
 const getInvoice = require('./../../getInvoice');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const description = 'description';
 const secret = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
@@ -26,8 +26,7 @@ test(`Get an invoice`, async ({end, equal}) => {
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });
-

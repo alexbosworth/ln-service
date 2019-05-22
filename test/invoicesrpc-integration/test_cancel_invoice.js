@@ -11,9 +11,11 @@ const getInvoice = require('./../../getInvoice');
 const getInvoices = require('./../../getInvoices');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
 const tokens = 100;
 
@@ -23,8 +25,6 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await delay(2000);
-
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
@@ -33,18 +33,24 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(2000);
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   const id = createHash('sha256').update(randomBytes(32)).digest('hex');
 
   const invoice = await createHodlInvoice({
     id,
     tokens,
-    lnd: cluster.target.invoices_lnd,
+    lnd: cluster.target.lnd,
   });
 
   setTimeout(async () => {
@@ -57,7 +63,7 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     equal(invoice.is_confirmed, false, 'HTLC has not yet been settled');
     equal(invoice.is_held, true, 'HTLC is locked in place');
 
-    await cancelHodlInvoice({id, lnd: cluster.target.invoices_lnd});
+    await cancelHodlInvoice({id, lnd: cluster.target.lnd});
 
     const [canceled] = (await getInvoices({lnd: cluster.target.lnd})).invoices;
 
@@ -68,7 +74,7 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     },
     1000);
   },
-  1000);
+  3000);
 
   let cancelErr = [];
 

@@ -15,9 +15,11 @@ const getWalletInfo = require('./../../getWalletInfo');
 const {hopsFromChannels} = require('./../../routing');
 const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const mtokPadding = '000';
@@ -25,14 +27,12 @@ const reserveRatio = 0.99;
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
-// Paying an invoice should settle the invoice
-test(`Pay`, async ({deepIs, end, equal}) => {
+// Paying a private invoice should settle the invoice
+test(`Pay private invoice`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
   const remoteLnd = cluster.remote.lnd;
-
-  await delay(3000);
 
   const controlToTargetChannel = await openChannel({
     lnd,
@@ -42,9 +42,14 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.control});
+
+  await waitForChannel({lnd, id: controlToTargetChannel.transaction_id});
 
   const [channel] = (await getChannels({lnd})).channels;
 
@@ -57,9 +62,17 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    lnd: cluster.target.lnd,
+    id: targetToRemoteChannel.transaction_id,
+  });
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await waitForChannel({
+    lnd: cluster.target.lnd,
+    id: targetToRemoteChannel.transaction_id,
+  });
 
   const [remoteChannel] = (await getChannels({lnd: remoteLnd})).channels;
 
@@ -100,4 +113,3 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   return end();
 });
-

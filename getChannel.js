@@ -6,7 +6,7 @@ const {getChannel} = require('./');
 
   {
     id: <Standard Format Channel Id String>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise
@@ -14,11 +14,12 @@ const {getChannel} = require('./');
     capacity: <Maximum Tokens Number>
     id: <Standard Format Channel Id String>
     policies: [{
-      base_fee_mtokens: <Base Fee Millitokens String>
-      cltv_delta: <Locktime Delta Number>
-      fee_rate: <Fees Charged Per Million Tokens Number>
-      is_disabled: <Channel Is Disabled Bool>
-      min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+      [base_fee_mtokens]: <Base Fee Millitokens String>
+      [cltv_delta]: <Locktime Delta Number>
+      [fee_rate]: <Fees Charged Per Million Tokens Number>
+      [is_disabled]: <Channel Is Disabled Bool>
+      [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
+      [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
       public_key: <Node Public Key String>
     }]
     transaction_id: <Transaction Id Hex String>

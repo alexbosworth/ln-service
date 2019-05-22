@@ -13,7 +13,7 @@ const {createHodlInvoice} = require('./');
     [is_fallback_included]: <Is Fallback Address Included Bool>
     [is_fallback_nested]: <Is Fallback Address Nested Bool>
     [is_including_private_channels]: <Invoice Includes Private Channels Bool>
-    lnd: <Invoices RPC LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
     [tokens]: <Tokens Number>
     [wss]: [<Web Socket Server Object>]

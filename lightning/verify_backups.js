@@ -1,3 +1,5 @@
+const isHex = require('is-hex');
+
 const {isArray} = Array;
 
 /** Verify a set of aggregated channel backups
@@ -5,10 +7,10 @@ const {isArray} = Array;
   {
     backup: <Multi-Backup Hex String>
     channels: [{
-      transaction_id: <Transaction Id String>
+      transaction_id: <Transaction Id Hex String>
       transaction_vout: <Transaction Output Index Number>
     }]
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -17,12 +19,16 @@ const {isArray} = Array;
   }
 */
 module.exports = ({backup, channels, lnd}, cbk) => {
-  if (!backup) {
+  if (!backup || !isHex(backup)) {
     return cbk([400, 'ExpectedMultiChannelBackupToVerify']);
   }
 
   if (!isArray(channels)) {
     return cbk([400, 'ExpectedChannelsToVerifyInMultiBackup']);
+  }
+
+  if (!lnd || !lnd.default || !lnd.default.verifyChanBackup) {
+    return cbk([400, 'ExpectedAuthenticatedLndToVerifyChanBackup']);
   }
 
   const invalidChannel = channels.find(channel => {
@@ -33,7 +39,7 @@ module.exports = ({backup, channels, lnd}, cbk) => {
     return cbk([400, 'ExpectedChannelOutpointsToVerifyBackups']);
   }
 
-  return lnd.verifyChanBackup({
+  return lnd.default.verifyChanBackup({
     multi_chan_backup: {
       chan_points: channels.map(chan => ({
         funding_txid_bytes: Buffer.from(chan.transaction_id, 'hex').reverse(),

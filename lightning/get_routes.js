@@ -41,7 +41,7 @@ const pathNotFoundErrors = [
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
@@ -92,7 +92,7 @@ module.exports = (args, cbk) => {
         }
       }
 
-      if (!args.lnd || !args.lnd.queryRoutes) {
+      if (!args.lnd || !args.lnd.default || !args.lnd.default.queryRoutes) {
         return cbk([400, 'ExpectedLndForGetRoutesRequest']);
       }
 
@@ -127,7 +127,7 @@ module.exports = (args, cbk) => {
           return cbk(null, {extended, routes: []});
         }
 
-        return args.lnd.queryRoutes({
+        return args.lnd.default.queryRoutes({
           amt: args.tokens || defaultTokens,
           fee_limit: !args.fee ? undefined : {fee_limit: args.fee},
           final_cltv_delta: args.timeout || defaultFinalCltvDelta,
@@ -143,7 +143,7 @@ module.exports = (args, cbk) => {
           }
 
           if (!!err) {
-            return cbk([503, 'UnexpectedQueryRoutesError', err]);
+            return cbk([503, 'UnexpectedQueryRoutesError', {err}]);
           }
 
           try {
@@ -151,7 +151,7 @@ module.exports = (args, cbk) => {
 
             return cbk(null, {extended, routes});
           } catch (err) {
-            return cbk([503, 'InvalidGetRoutesResponse', err]);
+            return cbk([503, 'InvalidGetRoutesResponse', {err}]);
           }
         });
       },
@@ -293,7 +293,7 @@ module.exports = (args, cbk) => {
                 mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
               }));
             } catch (err) {
-              return cbk([500, 'UnexpectedHopsFromChannelsError', err]);
+              return cbk([500, 'UnexpectedHopsFromChannelsError', {err}]);
             }
           });
         },

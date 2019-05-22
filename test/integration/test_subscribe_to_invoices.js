@@ -13,6 +13,8 @@ const openChannel = require('./../../openChannel');
 const pay = require('./../../pay');
 const {routeFromHops} = require('./../../routing');
 const {subscribeToInvoices} = require('./../../');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -32,8 +34,6 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
   const destination = (await getWalletInfo({lnd})).public_key;
 
-  await delay(3000);
-
   // Create a channel from the control to the target node
   const controlToTargetChannel = await openChannel({
     lnd,
@@ -44,12 +44,19 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(3000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.control});
+  await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(3000);
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
   // Create a channel from the target back to the control
   const targetToControlChannel = await openChannel({
@@ -61,12 +68,19 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({
+    id: targetToControlChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
+  await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await delay(2000);
+  await waitForChannel({
+    id: targetToControlChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   let gotUnconfirmedInvoice = false;
   let invoice;
@@ -104,11 +118,14 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   sub.on('error', () => {});
 
   const height = (await getWalletInfo({lnd})).current_block_height;
-  const {channels} = await getChannels({lnd});
   invoice = await createInvoice({description, lnd, secret, tokens});
   const mtokens = `${tokens + overPay}${mtok}`;
 
-  const [inChanId, outChanId] = channels.map(({id}) => id).sort();
+  const inChanId = (await getChannels({lnd})).channels
+    .find(n => n.transaction_id === controlToTargetChannel.transaction_id).id;
+
+  const outChanId = (await getChannels({lnd: cluster.target.lnd})).channels
+    .find(n => n.transaction_id === targetToControlChannel.transaction_id).id;
 
   await delay(1000);
 

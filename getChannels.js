@@ -11,7 +11,7 @@ const {getChannels} = require('./');
     [is_offline]: <Limit Results To Only Offline Channels Bool> // false
     [is_private]: <Limit Results To Only Private Channels Bool> // false
     [is_public]: <Limit Results To Only Public Channels Bool> // false
-    lnd: {listChannels: <Function>}
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via Promise

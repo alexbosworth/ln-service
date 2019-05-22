@@ -4,11 +4,11 @@ const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
 const createChainAddress = require('./../../createChainAddress');
-const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const getChainBalance = require('./../../getChainBalance');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -63,8 +63,7 @@ test(`Get the chain balance`, async ({end, equal}) => {
 
   kill();
 
-  await delay(2000);
+  await waitForTermination({lnd});
 
   return end();
 });
-

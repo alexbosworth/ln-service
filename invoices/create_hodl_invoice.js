@@ -1,4 +1,5 @@
 const asyncAuto = require('async/auto');
+const isHex = require('is-hex');
 
 const {broadcastResponse} = require('./../async-util');
 const {createChainAddress} = require('./../lightning');
@@ -7,6 +8,7 @@ const {isArray} = Array;
 const msPerSec = 1e3;
 const noTokens = 0;
 const {parse} = Date;
+const {round} = Math;
 const rowType = 'invoice';
 
 /** Create hodl invoice. This invoice will not settle automatically when an
@@ -21,7 +23,7 @@ const rowType = 'invoice';
     [is_fallback_included]: <Is Fallback Address Included Bool>
     [is_fallback_nested]: <Is Fallback Address Nested Bool>
     [is_including_private_channels]: <Invoice Includes Private Channels Bool>
-    lnd: <Invoices RPC LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
     [tokens]: <Tokens Number>
     [wss]: [<Web Socket Server Object>]
@@ -43,11 +45,11 @@ module.exports = (args, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!args.id) {
-        return cbk([400, 'ExpectedInvoiceIdForHodlInvoice']);
+      if (!args.id || !isHex(args.id)) {
+        return cbk([400, 'ExpectedInvoiceIdForNewHodlInvoice']);
       }
 
-      if (!args.lnd || !args.lnd.addHoldInvoice) {
+      if (!args.lnd || !args.lnd.invoices) {
         return cbk([400, 'ExpectedInvoicesLndToCreateHodlInvoice']);
       }
 
@@ -71,10 +73,6 @@ module.exports = (args, cbk) => {
 
       const format = !!args.is_fallback_nested ? 'np2wpkh' : 'p2wpkh';
 
-      if (!args.include_address) {
-        return cbk();
-      }
-
       return createChainAddress({format, lnd: args.lnd}, cbk);
     }],
 
@@ -86,9 +84,9 @@ module.exports = (args, cbk) => {
 
       const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
-      return args.lnd.addHoldInvoice({
+      return args.lnd.invoices.addHoldInvoice({
         cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
-        expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
+        expiry: !expiryMs ? undefined : round(expiryMs / msPerSec),
         fallback_addr: fallbackAddress,
         hash: Buffer.from(args.id, 'hex'),
         memo: args.description,

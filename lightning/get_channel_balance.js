@@ -3,7 +3,7 @@ const decBase = 10;
 /** Get balance across channels.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -13,11 +13,11 @@ const decBase = 10;
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.channelBalance) {
+  if (!lnd || !lnd.default || !lnd.default.channelBalance) {
     return cbk([500, 'ExpectedLndApiForChannelBalanceQuery']);
   }
 
-  return lnd.channelBalance({}, (err, res) => {
+  return lnd.default.channelBalance({}, (err, res) => {
     if (!!err) {
       return cbk([503, 'UnexpectedGetChannelBalanceError', err]);
     }
@@ -27,11 +27,11 @@ module.exports = ({lnd}, cbk) => {
     }
 
     if (res.balance === undefined) {
-      return cbk([503, 'ExpectedChannelBalance', res]);
+      return cbk([503, 'ExpectedChannelBalance']);
     }
 
     if (res.pending_open_balance === undefined) {
-      return cbk([503, 'ExpectedPendingOpenBalance', res]);
+      return cbk([503, 'ExpectedPendingOpenBalance']);
     }
 
     return cbk(null, {
@@ -40,4 +40,3 @@ module.exports = ({lnd}, cbk) => {
     });
   });
 };
-

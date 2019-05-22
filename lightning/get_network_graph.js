@@ -5,13 +5,14 @@ const {returnResult} = require('./../async-util');
 
 const countGroupingFactor = 3;
 const decBase = 10;
+const {isArray} = Array;
 const msPerSec = 1e3
 const outpointSeparatorChar = ':';
 
 /** Get network graph
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -45,7 +46,7 @@ module.exports = ({lnd}, cbk) => {
   return asyncAuto({
     // Check arguments
     validate: cbk => {
-      if (!lnd || !lnd.describeGraph) {
+      if (!lnd || !lnd.default || !lnd.default.describeGraph) {
         return cbk([400, 'ExpectedLndForGetNetworkGraphRequest']);
       }
 
@@ -54,21 +55,21 @@ module.exports = ({lnd}, cbk) => {
 
     // Get network graph
     getGraph: ['validate', ({}, cbk) => {
-      return lnd.describeGraph({}, (err, networkGraph) => {
+      return lnd.default.describeGraph({}, (err, networkGraph) => {
         if (!!err) {
-          return cbk([503, 'GetNetworkGraphError', err]);
+          return cbk([503, 'GetNetworkGraphError', {err}]);
         }
 
         if (!networkGraph) {
           return cbk([503, 'ExpectedNetworkGraph']);
         }
 
-        if (!Array.isArray(networkGraph.edges)) {
-          return cbk([503, 'ExpectedNetworkGraphEdges', networkGraph]);
+        if (!isArray(networkGraph.edges)) {
+          return cbk([503, 'ExpectedNetworkGraphEdges']);
         }
 
-        if (!Array.isArray(networkGraph.nodes)) {
-          return cbk([503, 'ExpectedNetworkGraphNodes', networkGraph]);
+        if (!isArray(networkGraph.nodes)) {
+          return cbk([503, 'ExpectedNetworkGraphNodes']);
         }
 
         return cbk(null, networkGraph);
@@ -139,4 +140,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({of: 'graph'}, cbk));
 };
-

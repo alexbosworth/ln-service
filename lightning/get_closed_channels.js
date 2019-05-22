@@ -1,7 +1,8 @@
 const {chanFormat} = require('bolt07');
 
 const decBase = 10;
-const emptyTxId = '0000000000000000000000000000000000000000000000000000000000000000';
+const emptyTxId = Buffer.alloc(32).toString('hex');;
+const {isArray} = Array;
 const outpointSeparator = ':';
 
 /** Get closed out channels
@@ -14,7 +15,7 @@ const outpointSeparator = ':';
     [is_funding_cancel]: <Bool>
     [is_local_force_close]: <Bool>
     [is_remote_force_close]: <Bool>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -38,11 +39,11 @@ const outpointSeparator = ':';
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.closedChannels) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.closedChannels) {
     return cbk([400, 'ExpectedLndApiForGetClosedChannelsRequest'])
   }
 
-  args.lnd.closedChannels({
+  return args.lnd.default.closedChannels({
     breach: args.is_breach_close || undefined,
     cooperative: args.is_cooperative_close || undefined,
     funding_canceled: args.is_breach_close || undefined,
@@ -54,7 +55,7 @@ module.exports = (args, cbk) => {
       return cbk([503, 'FailedToRetrieveClosedChannels', err]);
     }
 
-    if (!Array.isArray(res.channels)) {
+    if (!isArray(res.channels)) {
       return cbk([503, 'ExpectedChannels']);
     }
 
@@ -92,11 +93,9 @@ module.exports = (args, cbk) => {
           throw new Error('ExpectedFinalTimeLockedBalanceForClosedChannel');
         }
 
-        const [txId, vout] = n.channel_point.split(outpointSeparator);
-
         const hasCloseTx = n.closing_tx_hash !== emptyTxId;
-
         const hasId = n.chan_id !== '0';
+        const [txId, vout] = n.channel_point.split(outpointSeparator);
 
         return {
           capacity: parseInt(n.capacity, decBase),
@@ -122,4 +121,3 @@ module.exports = (args, cbk) => {
     }
   });
 };
-

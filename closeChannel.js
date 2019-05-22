@@ -9,7 +9,11 @@ const {closeChannel} = require('./');
   {
     [id]: <Standard Format Channel Id String>
     [is_force_close]: <Is Force Close Bool>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
+    [public_key]: <Peer Public Key String>
+    [socket]: <Peer Socket String>
+    [target_confirmations]: <Confirmation Target Number>
+    [tokens_per_vbyte]: <Tokens Per Virtual Byte Number>
     [transaction_id]: <Transaction Id Hex String>
     [transaction_vout]: <Transaction Output Index Number>
   }

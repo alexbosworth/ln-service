@@ -9,7 +9,7 @@ const {returnResult} = require('./../async-util');
 /** Get history: a combination of chain transactions, invoices and payments.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -60,4 +60,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({of: 'history'}, cbk));
 };
-

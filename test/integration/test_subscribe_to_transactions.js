@@ -2,6 +2,7 @@ const {test} = require('tap');
 
 const createChainAddress = require('./../../createChainAddress');
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const sendToChainAddress = require('./../../sendToChainAddress');
 const {subscribeToTransactions} = require('./../../');
 
@@ -46,7 +47,7 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
     isConfirmed = true;
 
     equal(!!tx.block_id, true, 'Tx is confirmed in a block');
-    equal(tx.confirmation_count, 1, 'Tx has a confirmation');
+    equal(tx.confirmation_count, [tx].length, 'Tx has a confirmation');
 
     return end();
   });
@@ -56,6 +57,8 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
     address: (await createChainAddress({format, lnd})).address,
     lnd: cluster.control.lnd,
   });
+
+  await delay(1000);
 
   // Generate to confirm the tx
   await cluster.generate({count: confirmationCount, node: cluster.control});

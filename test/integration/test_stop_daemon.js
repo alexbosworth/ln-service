@@ -4,6 +4,7 @@ const {delay} = require('./../macros');
 const getWalletInfo = require('./../../getWalletInfo');
 const {spawnLnd} = require('./../macros');
 const stopDaemon = require('./../../stopDaemon');
+const {waitForTermination} = require('./../macros');
 
 // Stopping the daemon should gracefully shut down the daemon
 test(`Stop daemon`, async ({end, equal, fail}) => {
@@ -26,7 +27,7 @@ test(`Stop daemon`, async ({end, equal, fail}) => {
 
   kill();
 
-  await delay(3000);
+  await waitForTermination({lnd});
 
   return end();
 });

@@ -1,19 +1,26 @@
 const {createHash} = require('crypto');
 
-const asyncTryEach = require('async/tryEach');
+const asyncAuto = require('async/auto');
+const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
 const {chanNumber} = require('bolt07');
 const {encodeChanId} = require('bolt07');
 
 const {broadcastResponse} = require('./../async-util');
 const payPaymentRequest = require('./pay_payment_request');
+const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const chanIdMatch = /(\d+[x\:]\d+[\:x]\d+)/gim;
 const chanSplit = /[\:x\,]/;
 const decBase = 10;
+const defaultMaxFee = Number.MAX_SAFE_INTEGER;
 const flatten = arr => [].concat(...arr);
 const isArray = Array;
+const noRoutesProvidedError = 'unable to send, no routes provided';
+const {now} = Date;
+const preimageLength = 32;
+const sha256 = buffer => createHash('sha256').update(buffer).digest('hex');
 
 /** Make a payment.
 
@@ -23,10 +30,10 @@ const isArray = Array;
   hops is required to form the route.
 
   {
-    [fee]: <Maximum Additional Fee Tokens To Pay Number>
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required if wss is set
-    [out]: <Force Payment Through Outbound Standard Channel Id String>
+    [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
+    [outgoing_channel]: <Pay Through Outbound Standard Channel Id String>
     [path]: {
       id: <Payment Hash Hex String>
       routes: [{
@@ -47,8 +54,9 @@ const isArray = Array;
         tokens: <Total Tokens To Pay Number>
       }]
     }
+    [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     [request]: <BOLT 11 Payment Request String>
-    [timeout]: <Timeout Block Height Number>
+    [timeout_height]: <Max CLTV Timeout Number>
     [tokens]: <Total Tokens To Pay to Payment Request Number>
     [wss]: [<Web Socket Server Object>]
   }
@@ -74,49 +82,63 @@ const isArray = Array;
   }
 */
 module.exports = (args, cbk) => {
-  const {fee, lnd, log, out, path, request, timeout, tokens, wss} = args;
-
-  if (!path && !request) {
+  if (!args.path && !args.request) {
     return cbk([400, 'ExpectedPathOrRequestToPay']);
   }
 
-  if (!lnd || !lnd.sendPaymentSync || !lnd.sendToRouteSync) {
+  if (!args.lnd || !args.lnd.default || !args.lnd.default.sendPaymentSync) {
     return cbk([400, 'ExpectedLndForPaymentExecution']);
   }
 
-  if (!!path && !path.id) {
+  if (!!args.path && !args.path.id) {
     return cbk([400, 'ExpectedPaymentHashStringToExecutePayment']);
   }
 
-  if (!!path && (!isArray(path.routes) || !path.routes.length)) {
-    return cbk([400, 'ExpectedRoutesToExecutePaymentOver']);
+  if (!args.path && !!args.pathfinding_timeout) {
+    return cbk([400, 'PathfindingTimeoutNotSupportedWithRequestPay']);
   }
 
   // Exit early when the invoice is defined
-  if (!path) {
+  if (!args.path) {
     return payPaymentRequest({
-      fee,
-      lnd,
-      log,
-      out,
-      request,
-      timeout,
-      tokens,
-      wss,
+      lnd: args.lnd,
+      log: args.log,
+      max_fee: args.max_fee || defaultMaxFee,
+      outgoing_channel: args.outgoing_channel,
+      request: args.request,
+      timeout_height: args.timeout_height,
+      tokens: args.tokens,
+      wss: args.wss,
     },
     cbk);
   }
 
-  try {
-    path.routes.forEach(route => {
-      return route.hops.forEach(({channel}) => chanNumber({channel}));
-    });
-  } catch (err) {
-    return cbk([400, 'ExpectedValidRouteChannelIds', err]);
+  if (!!args.outgoing_channel) {
+    return cbk([400, 'OutgoingChannelRestrictionNotSupportedWithPathPay']);
   }
 
-  const routes = path.routes
-    .filter(route => fee === undefined || route.fee <= fee)
+  if (!isArray(args.path.routes) || !args.path.routes.length) {
+    return cbk([400, 'ExpectedRoutesToExecutePaymentOver']);
+  }
+
+  try {
+    args.path.routes.forEach(({hops}) => {
+      return hops.forEach(({channel}) => chanNumber({channel}));
+    });
+  } catch (err) {
+    return cbk([400, 'ExpectedValidRouteChannelIds', {err}]);
+  }
+
+  let isPayDone = false;
+  const maxFee = args.max_fee || defaultMaxFee;
+  const pathfindingTimeout = args.pathfinding_timeout;
+  let payFailed = null;
+  let payResult = null;
+  const start = now();
+  const timeout = args.timeout_height;
+
+  const routes = args.path.routes
+    .filter(route => maxFee === undefined || route.fee <= maxFee)
     .filter(route => timeout === undefined || route.timeout <= timeout)
     .map(route => {
       return {
@@ -140,220 +162,272 @@ module.exports = (args, cbk) => {
       };
     });
 
-  const routesToTry = routes.map(route => {
-    // Try both single route and multi route arguments due to lnd variations
-    return [{route}, {routes: [route]}].map(params => {
-      return cbk => {
-        return lnd.sendToRouteSync({
-          route: params.route,
-          routes: params.routes,
-          payment_hash: Buffer.from(path.id, 'hex'),
-          payment_hash_string: path.id,
+  return asyncMapSeries(routes, (route, cbk) => {
+    // Exit early without trying a payment when there is a definitive result
+    if (!!isPayDone) {
+      return cbk();
+    }
+
+    if (!!pathfindingTimeout && now() - start > pathfindingTimeout) {
+      return cbk([503, 'PathfindingTimeoutExceeded']);
+    }
+
+    return asyncAuto({
+      // Try paying using single route arg
+      routeAttempt: cbk => {
+        return args.lnd.default.sendToRouteSync({
+          route,
+          payment_hash: Buffer.from(args.path.id, 'hex'),
+          payment_hash_string: args.path.id,
         },
         (err, res) => {
-          if (!!err) {
-            return cbk([503, 'PaymentError', err]);
+          // Exit early when this result is garbage due to arg failure
+          if (!!err && err.details === noRoutesProvidedError) {
+            return cbk();
           }
 
-          if (!res) {
-            return cbk([503, 'ExpectedResponseWhenSendingPayment']);
+          if (!!err || !res) {
+            return cbk([503, 'UnexpectedPaymentErrorSendingToRoute', {err}]);
           }
 
-          if (res.payment_error === 'UnknownPaymentHash') {
-            return cbk(null, {type: 'unknown_payment_hash'});
+          return cbk(null, res);
+        });
+      },
+
+      // Try paying using multiple routes arg (from breaking lnd change)
+      routesAttempt: ['routeAttempt', ({routeAttempt}, cbk) => {
+        // Exit early when single route arg worked out
+        if (!!routeAttempt) {
+          return cbk();
+        }
+
+        return args.lnd.default.sendToRouteSync({
+          payment_hash: Buffer.from(args.path.id, 'hex'),
+          payment_hash_string: args.path.id,
+          routes: [route],
+        },
+        (err, res) => {
+          if (!!err || !res) {
+            return cbk([503, 'UnexpectedPaymentErrorSendingToRoutes', {err}]);
           }
 
-          if (res.payment_error === 'payment is in transition') {
-            return cbk(null, {type: 'payment_in_flight'});
-          }
+          return cbk(null, res);
+        });
+      }],
 
-          if (res.payment_error === 'unable to find a path to destination') {
-            return cbk([503, 'UnknownPathToDestination']);
-          }
+      // Attempt result
+      result: [
+        'routeAttempt',
+        'routesAttempt',
+        ({routeAttempt, routesAttempt}, cbk) =>
+      {
+        const attempt = routeAttempt || routesAttempt;
+        let channel;
 
-          const paymentError = res.payment_error || '';
+        const paymentError = attempt.payment_error || '';
 
-          const [chanFailure] = paymentError.match(chanIdMatch) || [];
-          let failChanId;
+        const [chanFailure] = paymentError.match(chanIdMatch) || [];
 
-          if (!!chanFailure) {
-            const chanId = chanFailure.split(chanSplit);
+        if (paymentError === 'payment is in transition') {
+          return cbk(null, {failed: [409, 'PaymentIsPendingResolution']});
+        }
 
-            try {
-              const [blockHeight, blockIndex, outputIndex] = chanId;
+        if (paymentError === 'unable to find a path to destination') {
+          return cbk(null, {failure: [503, 'UnknownPathToDestination']});
+        }
 
-              const encodedFailChanId = encodeChanId({
-                block_height: parseInt(blockHeight, decBase),
-                block_index: parseInt(blockIndex, decBase),
-                output_index: parseInt(outputIndex, decBase),
-              });
-
-              failChanId = encodedFailChanId.channel;
-            } catch (err) {
-              // Ignore errors when parsing of unstructured error message fails.
-            }
-          }
-
-          if (/UnknownPaymentHash/.test(res.payment_error)) {
-            return cbk(null, {type: 'unknown_payment_hash'});
-          }
-
-          if (/ChannelDisabled/.test(res.payment_error) && !!failChanId) {
-            return cbk([503, 'NextHopChannelDisabled', {channel: failChanId}]);
-          }
-
-          if (/ChannelDisabled/.test(res.payment_error)) {
-            return cbk([503, 'NextHopChannelDisabled', res.payment_route]);
-          }
-
-          if (/ExpiryTooFar/.test(res.payment_error) && !!failChanId) {
-            return cbk([503, 'ExpiryTooFar', {channel: failChanId}]);
-          }
-
-          if (/ExpiryTooFar/.test(res.payment_error)) {
-            return cbk([503, 'ExpiryTooFar', res.payment_error]);
-          }
-
-          if (/ExpiryTooSoon/.test(res.payment_error) && !!failChanId) {
-            return cbk([503, 'RejectedTooNearTimeout', {channel: failChanId}]);
-          }
-
-          if (/ExpiryTooSoon/.test(res.payment_error)) {
-            return cbk([503, 'RejectedTooNearTimeout', res.payment_error]);
-          }
-
-          if (/FeeInsufficient/.test(res.payment_error) && !!failChanId) {
-            return cbk([503, 'RejectedUnacceptableFee', {channel: failChanId}]);
-          }
-
-          if (/FeeInsufficient/.test(res.payment_error)) {
-            return cbk([503, 'RejectedUnacceptableFee', res.payment_error]);
-          }
-
-          if (/FinalIncorrectCltvExpiry/.test(res.payment_error)) {
-            return cbk([503, 'ExpiryTooFar', res.payment_error]);
-          }
-
-          if (/IncorrectCltvExpiry/.test(res.payment_error) && !!failChanId) {
-            return cbk([503, 'RejectedUnacceptableCltv', {channel: failChanId}]);
-          }
-
-          if (/IncorrectCltvExpiry/.test(res.payment_error)) {
-            return cbk([503, 'RejectedUnacceptableCltv', res.payment_error]);
-          }
-
-          if (/TemporaryChannelFailure/.test(res.payment_error) && !!failChanId) {
-            return cbk([503, 'TemporaryChannelFailure', {channel: failChanId}]);
-          }
-
-          if (/TemporaryChannelFailure/.test(res.payment_error)) {
-            return cbk([503, 'TemporaryChannelFailure', res.payment_error]);
-          }
-
-          if (/TemporaryNodeFailure/.test(res.payment_error)) {
-            return cbk([503, 'TemporaryNodeFailure', res.payment_error]);
-          }
-
-          if (/UnknownNextPeer/.test(res.payment_error) && !!failChanId) {
-            return cbk([503, 'UnknownNextHopChannel', {channel: failChanId}]);
-          }
-
-          if (/UnknownNextPeer/.test(res.payment_error)) {
-            return cbk([503, 'UnknownNextHopChannel', res.payment_error]);
-          }
-
-          if (!!res.payment_error) {
-            return cbk([503, 'UnableToCompletePayment', res.payment_error]);
-          }
-
-          if (!res.payment_route) {
-            return cbk([503, 'ExpectedPaymentRouteInformation', res]);
-          }
-
-          if (!isArray(res.payment_route.hops)) {
-            return cbk([503, 'ExpectedPaymentRouteHops']);
-          }
-
-          if (!Buffer.isBuffer(res.payment_preimage)) {
-            return cbk([503, 'ExpectedPaymentPreimageBuffer']);
-          }
-
-          if (!isArray(res.payment_route.hops)) {
-            return cbk([503, 'ExpectedPaymentRouteHops']);
-          }
-
-          if (res.payment_route.total_amt === undefined) {
-            return cbk([503, 'ExpectedPaymentTotalSentAmount']);
-          }
-
-          if (res.payment_route.total_amt_msat === undefined) {
-            return cbk([503, 'ExpectedPaymentTotalMillitokensSentAmount']);
-          }
-
-          if (res.payment_route.total_fees === undefined) {
-            return cbk([503, 'ExpectedRouteFeesPaidValue']);
-          }
-
-          if (res.payment_route.total_fees_msat === undefined) {
-            return cbk([503, 'ExpectedRouteFeesMillitokensPaidValue']);
-          }
-
-          const {hops} = res.payment_route;
+        if (!!chanFailure) {
+          const chanId = chanFailure.split(chanSplit);
 
           try {
-            hops.forEach(hop => chanFormat({number: hop.chan_id}));
+            const [blockHeight, blockIndex, outputIndex] = chanId;
+
+            const encodedFailChanId = encodeChanId({
+              block_height: parseInt(blockHeight, decBase),
+              block_index: parseInt(blockIndex, decBase),
+              output_index: parseInt(outputIndex, decBase),
+            });
+
+            channel = encodedFailChanId.channel;
           } catch (err) {
-            return cbk([503, 'ExpectedNumericChannelIdInPaymentResponse', err]);
+            // Ignore errors when parsing of unstructured error message fails.
           }
+        }
 
-          const row = {
-            fee: parseInt(res.payment_route.total_fees, decBase),
-            fee_mtokens: res.payment_route.total_fees_msat,
-            hops: res.payment_route.hops.map(hop => {
-              return {
-                channel_capacity: parseInt(hop.chan_capacity, decBase),
-                channel: chanFormat({number: hop.chan_id}).channel,
-                fee_mtokens: hop.fee_msat,
-                forward_mtokens: hop.amt_to_forward_msat,
-                timeout: hop.expiry,
-              };
-            }),
-            id: createHash('sha256').update(res.payment_preimage).digest('hex'),
-            is_confirmed: true,
-            is_outgoing: true,
-            mtokens: res.payment_route.total_amt_msat,
-            secret: res.payment_preimage.toString('hex'),
-            tokens: parseInt(res.payment_route.total_amt, decBase),
-            type: rowTypes.channel_transaction,
-          };
+        if (/ChannelDisabled/.test(paymentError)) {
+          return cbk(null, {
+            failure: [503, 'NextHopChannelDisabled', {channel}],
+          });
+        }
 
-          if (!!wss) {
-            broadcastResponse({log, row, wss});
-          }
+        if (/ExpiryTooFar/.test(paymentError)) {
+          return cbk(null, {failure: [503, 'ExpiryTooFar', {channel}]});
+        }
 
-          return cbk(null, {row, type: 'success'});
-        });
-      };
-    });
-  });
+        // Too close to the current height for safe handling by the final node.
+        if (/ExpiryTooSoon/.test(paymentError)) {
+          return cbk(null, {
+            failed: [503, 'RejectedTooNearTimeout', {channel}],
+          });
+        }
 
-  return asyncTryEach(flatten(routesToTry), (err, res) => {
+        if (/FeeInsufficient/.test(paymentError)) {
+          return cbk(null, {
+            failure: [503, 'RejectedUnacceptableFee', {channel}],
+          });
+        }
+
+        if (/FinalIncorrectCltvExpiry/.test(paymentError)) {
+          return cbk(null, {failed: [503, 'ExpiryTooFar', {channel}]});
+        }
+
+        if (/IncorrectCltvExpiry/.test(paymentError)) {
+          return cbk(null, {
+            failure: [503, 'RejectedUnacceptableCltv', {channel}],
+          });
+        }
+
+        if (/TemporaryChannelFailure/.test(paymentError)) {
+          return cbk(null, {
+            failure: [503, 'TemporaryChannelFailure', {channel}],
+          });
+        }
+
+        if (/TemporaryNodeFailure/.test(paymentError)) {
+          return cbk(null, {
+            failure: [503, 'TemporaryNodeFailure', {channel}],
+          });
+        }
+
+        if (/UnknownNextPeer/.test(paymentError)) {
+          return cbk(null, {
+            failure: [503, 'UnknownNextHopChannel', {channel}],
+          });
+        }
+
+        if (/UnknownPaymentHash/.test(paymentError)) {
+          return cbk(null, {failed: [404, 'UnknownPaymentHash']});
+        }
+
+        if (!!paymentError) {
+          return cbk(null, {
+            failure: [503, 'UnableToCompletePayment', paymentError],
+          });
+        }
+
+        if (!Buffer.isBuffer(attempt.payment_preimage)) {
+          return cbk([503, 'ExpectedPaymentPreimageBuffer']);
+        }
+
+        if (attempt.payment_preimage.length !== preimageLength) {
+          return cbk([503, 'UnexpectedLengthOfPreimageInPayResponse']);
+        }
+
+        if (!attempt.payment_route) {
+          return cbk([503, 'ExpectedPaymentRouteInformation']);
+        }
+
+        if (!isArray(attempt.payment_route.hops)) {
+          return cbk([503, 'ExpectedPaymentRouteHops']);
+        }
+
+        if (attempt.payment_route.total_amt === undefined) {
+          return cbk([503, 'ExpectedPaymentTotalSentAmount']);
+        }
+
+        if (attempt.payment_route.total_amt_msat === undefined) {
+          return cbk([503, 'ExpectedPaymentTotalMillitokensSentAmount']);
+        }
+
+        if (attempt.payment_route.total_fees === undefined) {
+          return cbk([503, 'ExpectedRouteFeesPaidValue']);
+        }
+
+        if (attempt.payment_route.total_fees_msat === undefined) {
+          return cbk([503, 'ExpectedRouteFeesMillitokensPaidValue']);
+        }
+
+        const {hops} = attempt.payment_route;
+
+        // Check to make sure that the payment hops are valid
+        try {
+          hops.forEach(hop => chanFormat({number: hop.chan_id}));
+        } catch (err) {
+          return cbk([503, 'ExpectedNumericChanIdInPaymentResponse', {err}]);
+        }
+
+        const row = {
+          fee: parseInt(attempt.payment_route.total_fees, decBase),
+          fee_mtokens: attempt.payment_route.total_fees_msat,
+          hops: attempt.payment_route.hops.map(hop => {
+            return {
+              channel_capacity: parseInt(hop.chan_capacity, decBase),
+              channel: chanFormat({number: hop.chan_id}).channel,
+              fee_mtokens: hop.fee_msat,
+              forward_mtokens: hop.amt_to_forward_msat,
+              timeout: hop.expiry,
+            };
+          }),
+          id: sha256(attempt.payment_preimage),
+          is_confirmed: true,
+          is_outgoing: true,
+          mtokens: attempt.payment_route.total_amt_msat,
+          secret: attempt.payment_preimage.toString('hex'),
+          tokens: parseInt(attempt.payment_route.total_amt, decBase),
+          type: rowTypes.channel_transaction,
+        };
+
+        return cbk(null, {row});
+      }],
+
+      // Set pay result and pay error
+      setResult: ['result', ({result}, cbk) => {
+        // A definitive failure has been received
+        if (!!result.failed) {
+          isPayDone = !!result.failed;
+          payFailed = result.failed;
+
+          return cbk();
+        }
+
+        // A failure instance has been received for this route
+        if (!!result.failure) {
+          payFailed = result.failure;
+
+          return cbk();
+        }
+
+        // Attempts should either result in a failure or a success
+        if (!result.row) {
+          return cbk([500, 'UnexpectedResultWhenPayingToRoutes']);
+        }
+
+        if (!!args.wss) {
+          broadcastResponse({log: args.log, row: result.row, wss: args.wss});
+        }
+
+        isPayDone = !!result.row;
+        payResult = result.row;
+
+        return cbk();
+      }],
+    },
+    returnResult({of: 'result'}, cbk));
+  },
+  err => {
     if (!!err) {
       return cbk(err);
     }
 
-    switch (res.type) {
-    case 'payment_in_flight':
-      return cbk([409, 'PaymentIsPendingResolution']);
-
-    case 'success':
-      return cbk(null, res.row);
-
-    case 'unknown_payment_hash':
-      return cbk([404, 'UnknownPaymentHash']);
-
-    default:
-      return cbk([500, 'UnrecognizedTypeOfRouteResponse']);
+    // There should always be either a pay failed or a pay result
+    if (!isArray(payFailed) && !payResult) {
+      return cbk([500, 'ExpectedPayFailureWhenRoutesPaymentFinished']);
     }
+
+    if (!!payFailed && !payResult) {
+      return cbk(payFailed);
+    }
+
+    return cbk(null, payResult);
   });
 };

@@ -7,6 +7,7 @@ const pay = require('./../lightning/pay');
 
 const defaultProbeTimeoutMs = 1000 * 10;
 const genericFailType = 'forward_failure';
+const {isArray} = Array;
 const paymentHashByteLength = 32;
 const stuckType = 'stuck_htlc';
 const successType = 'success';
@@ -17,7 +18,7 @@ const tempChanFailType = 'temporary_channel_failure';
 
   {
     [limit]: <Simultaneous Attempt Limit Number>
-    lnd: <LND GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     routes: [{
       fee: <Total Fee Tokens To Pay Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
@@ -74,7 +75,7 @@ module.exports = ({limit, lnd, routes, timeout}, cbk) => {
     return cbk([400, 'ExpectedLndForProbeAttempts']);
   }
 
-  if (!Array.isArray(routes)) {
+  if (!isArray(routes)) {
     return cbk([400, 'ExpectedArrayOfRoutesToProbe']);
   }
 
@@ -106,7 +107,7 @@ module.exports = ({limit, lnd, routes, timeout}, cbk) => {
     const routes = [route];
 
     return asyncTimeout(pay, payTimeoutMs)({lnd, path: {id, routes}}, err => {
-      const isStuck = !!err && !Array.isArray(err) && err.code === 'ETIMEDOUT';
+      const isStuck = !!err && !isArray(err) && err.code === 'ETIMEDOUT';
 
       if (isStuck) {
         // All hops in a stuck route are suspect
@@ -121,8 +122,8 @@ module.exports = ({limit, lnd, routes, timeout}, cbk) => {
         return cbk(null, false);
       }
 
-      if (!Array.isArray(err)) {
-        return cbk([503, 'UnexpectedErrorEncounteredWhenProbingARoute', err]);
+      if (!isArray(err)) {
+        return cbk([503, 'UnexpectedErrorEncounteredWhenProbingRoute', {err}]);
       }
 
       const [, code, msg] = err;
@@ -226,4 +227,3 @@ module.exports = ({limit, lnd, routes, timeout}, cbk) => {
     });
   });
 };
-

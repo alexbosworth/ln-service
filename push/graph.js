@@ -1,10 +1,12 @@
 const {broadcastResponse} = require('./../async-util');
 const {subscribeToGraph} = require('./../lightning');
 
+const {isArray} = Array;
+
 /** Subscribe to channel graph updates.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
     wss: [<Web Socket Server Object>]
   }
 
@@ -20,7 +22,7 @@ module.exports = ({lnd, log, wss}) => {
     throw new Error('ExpectedLogFunctionForChannelGraphUpdates');
   }
 
-  if (!Array.isArray(wss)) {
+  if (!isArray(wss)) {
     throw new Error('ExpectedWebSocketServersForChannelGraphSubscription');
   }
 
@@ -28,9 +30,8 @@ module.exports = ({lnd, log, wss}) => {
 
   subscription.on('data', row => broadcastResponse({log, row, wss}));
   subscription.on('end', () => {});
-  subscription.on('error', err => log([503, 'SubscribeToGraphError', err]));
+  subscription.on('error', err => log([503, 'SubscribeToGraphError', {err}]));
   subscription.on('status', ({}) => {});
 
   return;
 };
-

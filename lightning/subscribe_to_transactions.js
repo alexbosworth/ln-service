@@ -2,14 +2,18 @@ const EventEmitter = require('events');
 
 const rowTypes = require('./conf/row_types');
 
+const {abs} = Math;
 const decBase = 10;
 const msPerSec = 1e3;
 
 /** Subscribe to transactions
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
+
+  @throws
+  <Error>
 
   @returns
   <EventEmitter Object>
@@ -27,16 +31,24 @@ const msPerSec = 1e3;
   }
 */
 module.exports = ({lnd}) => {
+  if (!lnd || !lnd.default || !lnd.default.subscribeTransactions) {
+    throw new Error('ExpectedAuthenticatedLndToSubscribeToTransactions');
+  }
+
   const eventEmitter = new EventEmitter();
-  const subscription = lnd.subscribeTransactions({});
+  const subscription = lnd.default.subscribeTransactions({});
 
   subscription.on('data', tx => {
-    if (!tx || !tx.time_stamp) {
-      return eventEmitter.emit('error', new Error('ExpectedTxTimestamp'));
+    if (!tx) {
+      return eventEmitter.emit('error', new Error('ExpectedTxInDataEvent'));
+    }
+
+    if (!tx.time_stamp) {
+      return eventEmitter.emit('error', new Error('ExpectedTxTimeStamp'));
     }
 
     if (!tx.tx_hash) {
-      return eventEmitter.emit('error', new Error('ExpectedTransactionId'));
+      return eventEmitter.emit('error', new Error('ExpectedTxIdInTxEvent'));
     }
 
     const createdAt = parseInt(tx.time_stamp, decBase);
@@ -49,7 +61,7 @@ module.exports = ({lnd}) => {
       is_outgoing: parseInt(tx.amount, decBase) < 0,
       fee: parseInt(tx.total_fees, decBase),
       id: tx.tx_hash,
-      tokens: Math.abs(parseInt(tx.amount, decBase)),
+      tokens: abs(parseInt(tx.amount, decBase)),
       type: rowTypes.chain_transaction,
     });
   });
@@ -60,4 +72,3 @@ module.exports = ({lnd}) => {
 
   return eventEmitter;
 };
-

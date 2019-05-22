@@ -10,7 +10,7 @@ const {rowTypes} = require('./../lightning');
 /** Get both the chain and channel balance totals.
 
   {
-    lnd: <LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @returns via cbk
@@ -65,4 +65,3 @@ module.exports = ({lnd}, cbk) => {
   },
   returnResult({of: 'balances'}, cbk));
 };
-

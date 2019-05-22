@@ -9,6 +9,8 @@ const openChannel = require('./../../openChannel');
 const recoverFundsFromChannels = require('./../../recoverFundsFromChannels');
 const {spawnLnd} = require('./../macros');
 const stopDaemon = require('./../../stopDaemon');
+const {waitForPendingChannel} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -34,6 +36,11 @@ test(`Recover funds with backup`, async ({end, equal}) => {
     local_tokens: channelCapacityTokens,
     partner_public_key: (await getWalletInfo({lnd})).public_key,
     socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
+  });
+
+  await waitForPendingChannel({
+    id: channelOpen.transaction_id,
+    lnd: cluster.target.lnd,
   });
 
   const {backup} = await getBackups({lnd});
@@ -62,6 +69,8 @@ test(`Recover funds with backup`, async ({end, equal}) => {
   equal(chan.transaction_vout, channelOpen.transaction_vout, 'Chan tx vout');
 
   clone.kill();
+
+  await waitForTermination({lnd: clone.lnd});
 
   await cluster.kill({});
 

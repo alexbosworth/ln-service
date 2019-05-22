@@ -14,7 +14,7 @@ const {signTransaction} = require('./');
       vin: <Input Index To Sign Number>
       witness_script: <Witness Script Hex String>
     }]
-    lnd: <LND Signer GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     transaction: <Unsigned Transaction Hex String>
   }
 

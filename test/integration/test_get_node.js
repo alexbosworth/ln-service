@@ -7,6 +7,8 @@ const getChannels = require('./../../getChannels');
 const getNode = require('./../../getNode');
 const getWalletInfo = require('./../../getWalletInfo');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -18,10 +20,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {control} = cluster;
-
   const {lnd} = control;
-
-  await delay(2000);
 
   const controlToTargetChannel = await openChannel({
     lnd,
@@ -31,8 +30,6 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
-
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.target.lnd,
@@ -41,11 +38,28 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
 
+  await waitForPendingChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
+
+  await cluster.generate({count: confirmationCount, node: cluster.control});
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await delay(2000);
+  await waitForChannel({
+    lnd,
+    id: controlToTargetChannel.transaction_id,
+  });
+
+  await waitForChannel({
+    id: targetToRemoteChannel.transaction_id,
+    lnd: cluster.target.lnd,
+  });
 
   await addPeer({
     lnd,
@@ -53,7 +67,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  await delay(2000);
+  await delay(3000);
 
   const controlListenIp = cluster.control.listen_ip;
   const controlListenPort = cluster.control.listen_port;
@@ -75,4 +89,3 @@ test(`Get node`, async ({deepIs, end, equal}) => {
 
   return end();
 });
-

@@ -13,9 +13,10 @@ const {changePassword} = require('./../../');
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
-const {lightningDaemon} = require('./../../');
+const {authenticatedLndGrpc} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
 const {stopDaemon} = require('./../../');
+const {unauthenticatedLndGrpc} = require('./../../');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainPass = 'pass';
@@ -36,28 +37,14 @@ const retryCreateSeedCount = 5;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
 
-/** Spawn an lnd instance
+/** Run a change password test
 
   {}
 
   @returns via cbk
   {
-    autopilot_lnd: <Autopilot LND GRPC API Object>
-    chain_listen_port: <Chain Listen Port Number>
-    chain_notifier_lnd: <Chain Notifier LND GRPC API Object>
-    chain_rpc_cert: <RPC Cert Path String>
-    chain_rpc_pass: <Chain RPC Password String>
-    chain_rpc_port: <RPC Port Number>
-    chain_rpc_user: <Chain RPC Username String>
     kill: <Stop Function> ({}, err => {})
-    listen_ip: <Listen Ip String>
-    listen_port: <Listen Port Number>
-    lnd: <LND GRPC API Object>
-    lnd_cert: <LND Base64 Encoded TLS Certificate String>
-    lnd_macaroon: <LND Base64 Encoded Authentication Macaroon String>
-    lnd_socket: <LND RPC Socket String>
-    mining_key: <Mining Rewards Private Key WIF Encoded String>
-    wallet_lnd: <Wallet LND GRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 */
 module.exports = ({network}, cbk) => {
@@ -163,7 +150,7 @@ module.exports = ({network}, cbk) => {
         if (!isReady && /gRPC.proxy.started/.test(data+'')) {
           isReady = true;
 
-          return setTimeout(() => cbk(null, {daemon}), 2000);
+          return cbk();
         };
 
         return;
@@ -184,13 +171,12 @@ module.exports = ({network}, cbk) => {
       const cert = readFileSync(join(dir, lightningTlsCertFileName));
 
       try {
-        return cbk(null, lightningDaemon({
+        return cbk(null, unauthenticatedLndGrpc({
           cert: cert.toString('base64'),
-          service: lndWalletUnlockerService,
           socket: `${localhost}:${getPorts.rpc}`,
-        }));
+        }).lnd);
       } catch (err) {
-        return cbk([503, 'FailedToLaunchLightningDaemon', err]);
+        return cbk([503, 'FailedToInstantiateNonAuthenticatedLnd', {err}]);
       }
     }],
 
@@ -206,9 +192,8 @@ module.exports = ({network}, cbk) => {
 
         const cert = readFileSync(join(dir, lightningTlsCertFileName));
 
-        const lnd = lightningDaemon({
+        const {lnd} = unauthenticatedLndGrpc({
           cert: cert.toString('base64'),
-          service: lndWalletUnlockerService,
           socket: `${localhost}:${getPorts.rpc}`,
         });
 
@@ -234,7 +219,7 @@ module.exports = ({network}, cbk) => {
           return cbk(err);
         }
 
-        return setTimeout(() => cbk(), startWalletTimeoutMs);
+        return cbk();
       });
     }],
 
@@ -280,11 +265,11 @@ module.exports = ({network}, cbk) => {
     // Wallet LND GRPC API
     lnd: ['wallet', ({wallet}, cbk) => {
       try {
-        return cbk(null, lightningDaemon({
+        return cbk(null, authenticatedLndGrpc({
           cert: wallet.cert,
           macaroon: wallet.macaroon,
           socket: wallet.host,
-        }));
+        }).lnd);
       } catch (err) {
         return cbk([503, 'FailedToInstantiateWalletLnd', err]);
       }
@@ -343,7 +328,7 @@ module.exports = ({network}, cbk) => {
         if (!isReady && /gRPC.proxy.started/.test(data+'')) {
           isReady = true;
 
-          return setTimeout(() => cbk(null, {daemon}), 2000);
+          return cbk(null, {daemon});
         };
 
         return;
@@ -377,11 +362,10 @@ module.exports = ({network}, cbk) => {
     // Get locked restarted lnd
     restartedLnd: ['cert', 'getPorts', ({cert, getPorts}, cbk) => {
       try {
-        return cbk(null, lightningDaemon({
+        return cbk(null, unauthenticatedLndGrpc({
           cert,
-          service: lndWalletUnlockerService,
           socket: `${localhost}:${getPorts.rpc}`,
-        }));
+        }).lnd);
       } catch (err) {
         return cbk([503, 'FailedToLaunchLightningDaemon', err]);
       }
@@ -417,6 +401,6 @@ module.exports = ({network}, cbk) => {
       setTimeout(() => process.exit(1), 5000);
     });
 
-    return cbk(null, {kill});
+    return cbk(null, {lnd, kill});
   });
 };

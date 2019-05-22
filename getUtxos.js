@@ -5,7 +5,7 @@ const {getUtxos} = require('./');
 /** Get unspent transaction outputs
 
   {
-    lnd: <LND GRPC Object>
+    lnd: <Authenticated LND gRPC API Object>
     [max_confirmations]: <Maximum Confirmations Number>
     [min_confirmations]: <Minimum Confirmations Number>
   }
