@@ -1,7 +1,7 @@
 const {closeChannel} = require('./../lightning');
 const {getChannels} = require('./../lightning');
 const {openChannel} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 /** Get a channels router
@@ -40,4 +40,3 @@ module.exports = ({lnd, log}) => {
 
   return router;
 };
-

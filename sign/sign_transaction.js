@@ -1,6 +1,5 @@
 const asyncAuto = require('async/auto');
-
-const {returnResult} = require('./../async-util');
+const {returnResult} = require('asyncjs-util');
 
 const {isArray} = Array;
 const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';

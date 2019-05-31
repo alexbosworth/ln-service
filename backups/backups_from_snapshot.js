@@ -1,8 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncEach = require('async/each');
 const asyncMap = require('async/map');
-
-const {returnResult} = require('./../async-util');
+const {returnResult} = require('asyncjs-util');
 
 const {isArray} = Array;
 

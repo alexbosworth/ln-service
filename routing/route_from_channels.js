@@ -42,6 +42,9 @@ const {isArray} = Array;
         [public_key]: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
       }]
+      mtokens: <Total Fee-Inclusive Millitokens String>
+      timeout: <Timeout Block Height Number>
+      tokens: <Total Fee-Inclusive Tokens Number>
     }
   }
 */

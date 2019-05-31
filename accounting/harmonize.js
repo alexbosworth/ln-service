@@ -2,6 +2,8 @@ const {Parser} = require('json2csv');
 
 const {fields} = require('./harmony');
 
+const {isArray} = Array;
+
 /** Convert accounting records into Harmony CSV format
 
   {
@@ -27,7 +29,7 @@ const {fields} = require('./harmony');
   }
 */
 module.exports = ({records}) => {
-  if (!Array.isArray(records)) {
+  if (!isArray(records)) {
     throw new Error('ExpectedRecordsToConvertToHarmonyFormat');
   }
 

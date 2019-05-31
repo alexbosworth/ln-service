@@ -1,5 +1,5 @@
 const {pay} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 /** Get a payments router.

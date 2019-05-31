@@ -1,11 +1,11 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {flattenDeep} = require('lodash');
+const {returnResult} = require('asyncjs-util');
 
 const {externalType} = require('./constants');
 const {maxScore} = require('./constants');
 const {prefAttachType} = require('./constants');
-const {returnResult} = require('./../async-util');
 const {weightedType} = require('./constants');
 const {wrongLnd} = require('./constants');
 

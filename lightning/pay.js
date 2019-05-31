@@ -5,10 +5,10 @@ const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
 const {chanNumber} = require('bolt07');
 const {encodeChanId} = require('bolt07');
+const {returnResult} = require('asyncjs-util');
 
-const {broadcastResponse} = require('./../async-util');
+const {broadcastResponse} = require('./../push');
 const payPaymentRequest = require('./pay_payment_request');
-const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const chanIdMatch = /(\d+[x\:]\d+[\:x]\d+)/gim;

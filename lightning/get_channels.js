@@ -1,8 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {chanFormat} = require('bolt07');
-
-const {returnResult} = require('./../async-util');
+const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 const {isArray} = Array;

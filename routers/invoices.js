@@ -1,7 +1,7 @@
 const {createInvoice} = require('./../lightning');
 const {getInvoiceDetails} = require('./../service');
 const {getInvoices} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 /** Get an invoices router.
@@ -41,4 +41,3 @@ module.exports = ({lnd, log, wss}) => {
 
   return router;
 };
-

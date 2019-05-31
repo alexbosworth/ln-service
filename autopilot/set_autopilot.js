@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
 
 const {externalType} = require('./constants');
 const getAutopilot = require('./get_autopilot');
 const {maxScore} = require('./constants');
-const {returnResult} = require('./../async-util');
 const {unknownHeuristicErrorMessage} = require('./constants');
 const {wrongLnd} = require('./constants');
 

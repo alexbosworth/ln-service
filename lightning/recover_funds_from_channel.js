@@ -1,6 +1,6 @@
 const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
 
-const {returnResult} = require('./../async-util');
 const verifyBackup = require('./verify_backup');
 
 const existsErr = 'unable to unpack single backups: channel already exists';

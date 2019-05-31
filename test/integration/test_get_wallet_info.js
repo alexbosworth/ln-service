@@ -6,16 +6,18 @@ const {waitForTermination} = require('./../macros');
 
 const initHeight = 1;
 const pubKeyHexLength = Buffer.alloc(33).toString('hex').length;
+const regtestChainId = '06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f';
 const walletInfoType = 'wallet';
 
 // Getting the wallet info should return info about the wallet
-test(`Get wallet info`, async ({end, equal}) => {
+test(`Get wallet info`, async ({deepEqual, end, equal}) => {
   const {kill, lnd} = await spawnLnd({});
 
   const result = await getWalletInfo({lnd});
 
   equal(result.active_channels_count, 0, 'Expected channels count');
   equal(!!result.alias, true, 'Expected alias');
+  deepEqual(result.chains, [regtestChainId], 'Got chains');
   equal(!!result.current_block_hash, true, 'Expected best block hash');
   equal(result.current_block_height, initHeight, 'Expected best block height');
   equal(result.is_synced_to_chain, true, 'Expected synced to chain status');

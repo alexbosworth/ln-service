@@ -1,5 +1,5 @@
 const {createChainAddress} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 const defaultFormat = 'np2wpkh';
@@ -25,4 +25,3 @@ module.exports = ({lnd, log}) => {
 
   return router;
 };
-

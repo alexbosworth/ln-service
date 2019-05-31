@@ -5,13 +5,14 @@ const {dummyTxId} = require('./constants');
 
 /** Subscribe to confirmation details about transactions sent to an address
 
-  One and only one chain address is required
+  One and only one chain address or output script is required
 
   {
     [bech32_address]: <Address String>
     lnd: <Chain RPC LND gRPC API Object>
     [min_confirmations]: <Minimum Confirmations Number>
     [min_height]: <Minimum Transaction Inclusion Blockchain Height Number>
+    [output_script]: <Output Script Hex String>
     [p2pkh_address]: <Address String>
     [p2sh_address]: <Address String>
     [transaction_id]: <Blockchain Transaction Id String>
@@ -35,22 +36,28 @@ const {dummyTxId} = require('./constants');
   }
 */
 module.exports = args => {
-  if (!args.bech32_address && !args.p2sh_address && !args.p2pkh_address) {
-    throw new Error('ExpectedChainAddressToSubscribeForConfirmationEvents');
+  let outputScript = args.output_script;
+
+  if (!args.output_script) {
+    if (!args.bech32_address && !args.p2sh_address && !args.p2pkh_address) {
+      throw new Error('ExpectedChainAddressToSubscribeForConfirmationEvents');
+    }
+
+    const {script} = scriptFromChainAddress({
+      bech32_address: args.bech32_address,
+      p2pkh_address: args.p2pkh_address,
+      p2sh_address: args.p2sh_address,
+    });
+
+    if (!script) {
+      throw new Error('ExpectedRecognizedAddressFormatToWatchForScript');
+    }
+
+    outputScript = script;
   }
 
   if (!args.lnd || !args.lnd.chain) {
     throw new Error('ExpectedLndGrpcApiToSubscribeToChainTransaction');
-  }
-
-  const {script} = scriptFromChainAddress({
-    bech32_address: args.bech32_address,
-    p2pkh_address: args.p2pkh_address,
-    p2sh_address: args.p2sh_address,
-  });
-
-  if (!script) {
-    throw new Error('ExpectedRecognizedAddressFormatToWatchForScript');
   }
 
   const eventEmitter = new EventEmitter();
@@ -58,7 +65,7 @@ module.exports = args => {
   const sub = args.lnd.chain.registerConfirmationsNtfn({
     height_hint: args.min_height || 0,
     num_confs: args.min_confirmations || 1,
-    script: Buffer.from(script, 'hex'),
+    script: Buffer.from(outputScript, 'hex'),
     txid: Buffer.from(args.transaction_id || dummyTxId, 'hex'),
   });
 

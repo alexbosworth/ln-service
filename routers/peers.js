@@ -1,7 +1,7 @@
 const {addPeer} = require('./../lightning');
 const {getPeers} = require('./../lightning');
 const {removePeer} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 const defaultLightningPort = 9735;

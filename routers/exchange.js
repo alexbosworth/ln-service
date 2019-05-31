@@ -1,5 +1,5 @@
 const {getCurrentRate} = require('./../service');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 /** Get an exchange router
@@ -23,4 +23,3 @@ module.exports = ({log}) => {
 
   return router;
 };
-

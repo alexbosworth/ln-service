@@ -1,10 +1,10 @@
 const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
 
 const getInvoices = require('./../getInvoices');
 const getPayments = require('./../getPayments');
 const getChainTransactions = require('./../getChainTransactions');
-const {returnResult} = require('./../async-util');
 
 /** Get history: a combination of chain transactions, invoices and payments.
 

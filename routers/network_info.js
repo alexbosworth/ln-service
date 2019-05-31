@@ -1,6 +1,6 @@
 const {getNetworkGraph} = require('./../lightning');
 const {getNetworkInfo} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 /** Get a network info router.
@@ -24,4 +24,3 @@ module.exports = ({lnd, log}) => {
 
   return router;
 };
-

@@ -1,7 +1,7 @@
 const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
 
-const {broadcastResponse} = require('./../async-util');
+const {broadcastResponse} = require('./../push');
 const createChainAddress = require('./create_chain_address');
 const getInvoice = require('./get_invoice');
 const rowTypes = require('./conf/row_types');

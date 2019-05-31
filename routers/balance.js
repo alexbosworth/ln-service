@@ -1,5 +1,5 @@
 const {getBalance} = require('./../service');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 /** Get a balance router
@@ -19,4 +19,3 @@ module.exports = ({lnd, log}) => {
 
   return router;
 };
-

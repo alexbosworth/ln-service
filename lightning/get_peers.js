@@ -1,8 +1,8 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const {returnResult} = require('asyncjs-util');
 
 const peerType = require('./conf/row_types').peer;
-const {returnResult} = require('./../async-util');
 
 const decBase = 10;
 const {ceil} = Math;

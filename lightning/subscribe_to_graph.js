@@ -220,6 +220,18 @@ module.exports = ({lnd}) => {
         return eventEmitter.emit('error', new Error('ExpectedIdentityKey'));
       }
 
+      // Exit early when the node color is emitted
+      if (!!node.color) {
+        return eventEmitter.emit('data', {
+          alias: node.alias,
+          color: node.color,
+          public_key: node.identity_key,
+          sockets: !node.addresses.length ? undefined : node.addresses,
+          type: rowTypes.node_update,
+          updated_at: updatedAt,
+        });
+      }
+
       return getNode({lnd, public_key: node.identity_key}, (err, res) => {
         if (!!err) {
           return eventEmitter.emit('error', new Error('FailedToFetchNode'));

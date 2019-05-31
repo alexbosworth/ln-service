@@ -1,10 +1,10 @@
 const asyncAuto = require('async/auto');
 const {chanNumber} = require('bolt07');
 const {isFinite} = require('lodash');
+const {returnResult} = require('asyncjs-util');
 
 const addPeer = require('./add_peer');
 const getChannel = require('./get_channel');
-const {returnResult} = require('./../async-util');
 
 /** Close a channel.
 

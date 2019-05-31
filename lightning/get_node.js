@@ -1,3 +1,5 @@
+const {channelEdgeAsChannel} = require('./../graph');
+
 const colorTemplate = '#000000';
 const decBase = 10;
 const {isArray} = Array;
@@ -15,6 +17,22 @@ const msPerSec = 1e3;
     alias: <Node Alias String>
     capacity: <Node Total Capacity Tokens Number>
     channel_count: <Known Node Channels Number>
+    [channels]: [{
+      capacity: <Maximum Tokens Number>
+      id: <Standard Format Channel Id String>
+      policies: [{
+        [base_fee_mtokens]: <Base Fee Millitokens String>
+        [cltv_delta]: <Locktime Delta Number>
+        [fee_rate]: <Fees Charged Per Million Tokens Number>
+        [is_disabled]: <Channel Is Disabled Bool>
+        [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
+        [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
+        public_key: <Node Public Key String>
+      }]
+      transaction_id: <Transaction Id Hex String>
+      transaction_vout: <Transaction Output Index Number>
+      [updated_at]: <Channel Last Updated At ISO 8601 Date String>
+    }]
     color: <RGB Hex Color String>
     sockets: [{
       socket: <Host and Port String>
@@ -67,6 +85,14 @@ module.exports = (args, cbk) => {
       return cbk([503, 'ExpectedNodeAliasFromNodeDetails']);
     }
 
+    if (!!res.channels) {
+      try {
+        res.channels.forEach(channel => channelEdgeAsChannel(channel));
+      } catch (err) {
+        return cbk([503, err.message]);
+      }
+    }
+
     if (!res.node.color || res.node.color.length !== colorTemplate.length) {
       return cbk([503, 'ExpectedNodeColor']);
     }
@@ -93,6 +119,7 @@ module.exports = (args, cbk) => {
       alias: res.node.alias,
       capacity: parseInt(res.total_capacity, decBase),
       channel_count: res.num_channels,
+      channels: (res.channels || []).map(chan => channelEdgeAsChannel(chan)),
       color: res.node.color,
       sockets: res.node.addresses.map(({addr, network}) => ({
         socket: addr,

@@ -1,8 +1,8 @@
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
+const {returnResult} = require('asyncjs-util');
 
 const getChainBalance = require('./get_chain_balance');
-const {returnResult} = require('./../async-util');
 
 const defaultMinConfs = 1;
 const interval = retryCount => 10 * Math.pow(2, retryCount);

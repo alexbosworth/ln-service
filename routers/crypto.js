@@ -1,4 +1,4 @@
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const {signMessage} = require('./../lightning');
 const {verifyMessage} = require('./../lightning');
 const Router = require('./router');
@@ -28,4 +28,3 @@ module.exports = ({lnd, log}) => {
 
   return router;
 };
-

@@ -1,7 +1,7 @@
 const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
 
-const {broadcastResponse} = require('./../async-util');
+const {broadcastResponse} = require('./../push');
 const {createChainAddress} = require('./../lightning');
 
 const {isArray} = Array;

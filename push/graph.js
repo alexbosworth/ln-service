@@ -1,4 +1,4 @@
-const {broadcastResponse} = require('./../async-util');
+const {broadcastResponse} = require('./../push');
 const {subscribeToGraph} = require('./../lightning');
 
 const {isArray} = Array;

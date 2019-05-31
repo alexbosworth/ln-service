@@ -2,7 +2,7 @@ const {promisify} = require('util');
 
 const {pay} = require('./');
 
-/** Make a payment using defined routes
+/** Make a payment
 
   Either a payment path or a BOLT 11 payment request is required
 

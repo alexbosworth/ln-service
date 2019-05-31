@@ -2,6 +2,7 @@ const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
 const asyncUntil = require('async/until');
 const {includes} = require('lodash');
+const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
 
 const {getChainTransactions} = require('./../lightning');
@@ -13,7 +14,6 @@ const {getInvoices} = require('./../lightning');
 const {getPayments} = require('./../lightning');
 const {getPendingChannels} = require('./../lightning');
 const harmonize = require('./harmonize');
-const {returnResult} = require('./../async-util');
 
 const earlyStartDate = '2017-08-24T08:57:37.000Z';
 const largeLimit = 1e8;

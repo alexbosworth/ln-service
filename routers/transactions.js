@@ -1,7 +1,7 @@
 const {getChainTransactions} = require('./../lightning');
-const {returnJson} = require('./../async-util');
-const {sendToChainAddress} = require('./../lightning');
+const returnJson = require('./return_json');
 const Router = require('./router');
+const {sendToChainAddress} = require('./../lightning');
 
 /** Get a transactions router.
 
@@ -34,4 +34,3 @@ module.exports = ({lnd, log, wss}) => {
 
   return router;
 };
-

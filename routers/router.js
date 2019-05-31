@@ -10,4 +10,3 @@ const {Router} = require('express');
 module.exports = ({}) => {
   return Router({caseSensitive: true, strict: true});
 };
-

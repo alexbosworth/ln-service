@@ -3,13 +3,13 @@ const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
 const {flatten} = require('lodash');
 const {isFinite} = require('lodash');
+const {returnResult} = require('asyncjs-util');
 
 const getChannel = require('./get_channel');
 const getWalletInfo = require('./get_wallet_info');
 const {hopsFromChannels} = require('./../routing');
 const {ignoreAsIgnoredEdges} = require('./../routing');
 const {ignoreAsIgnoredNodes} = require('./../routing');
-const {returnResult} = require('./../async-util');
 const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
 

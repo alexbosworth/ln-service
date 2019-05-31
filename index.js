@@ -45,6 +45,7 @@ const localLnd = require('./service/local_lnd');
 const {openChannel} = require('./lightning');
 const {parsePaymentRequest} = require('./bolt11');
 const {pay} = require('./lightning');
+const {payViaRoutes} = require('./router');
 const {probe} = require('./routing');
 const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
@@ -123,6 +124,7 @@ module.exports = {
   openChannel,
   parsePaymentRequest,
   pay,
+  payViaRoutes,
   probe,
   recoverFundsFromChannel,
   recoverFundsFromChannels,

@@ -1,5 +1,12 @@
 # Versions
 
+## 38.1.0
+
+- Add support for paying via routes in the routerrpc API.
+- Add support for node color in getWalletInfo
+- Add support for watching arbitrary output scripts when subscribing to address
+- Add support for returning chain ids in getWalletInfo
+
 ## 38.0.0
 
 ### Breaking Changes

@@ -4,6 +4,7 @@ const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const getNetworkGraph = require('./../../getNetworkGraph');
+const getNode = require('./../../getNode');
 const getWalletInfo = require('./../../getWalletInfo');
 const openChannel = require('./../../openChannel');
 const {waitForChannel} = require('./../macros');
@@ -47,6 +48,14 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
 
   const [node] = graph.nodes;
   const [channel] = graph.channels;
+
+  const nodeDetails = await getNode({lnd, public_key: node.public_key});
+
+  if (!!nodeDetails && !!nodeDetails.channels.length) {
+    const [chan] = nodeDetails.channels;
+
+    deepIs(chan, channel, 'Graph channel matches node details channel');
+  }
 
   equal(node.alias, expectedNode.public_key.slice(0, 20), 'Node alias is own');
   equal(node.color, '#3399ff', 'Node color is default');

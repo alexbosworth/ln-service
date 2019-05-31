@@ -1,7 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const {returnResult} = require('asyncjs-util');
 
-const {returnResult} = require('./../async-util');
 const transactionType = require('./conf/row_types').channel_transaction;
 
 const decBase = 10;

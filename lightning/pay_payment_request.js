@@ -1,8 +1,9 @@
 const {createHash} = require('crypto');
 
 const {chanFormat} = require('bolt07');
+const {chanNumber} = require('bolt07');
 
-const {broadcastResponse} = require('./../async-util');
+const {broadcastResponse} = require('./../push');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
@@ -68,7 +69,7 @@ module.exports = (args, cbk) => {
     try {
       const channel = args.outgoing_channel;
 
-      params.outgoing_chan_id = chanFormat({channel}).number;
+      params.outgoing_chan_id = chanNumber({channel}).number;
     } catch (err) {
       return cbk([400, 'UnexpectedFormatForOutgoingChannelId', {err}]);
     }

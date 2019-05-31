@@ -7,9 +7,9 @@ const {chanFormat} = require('bolt07');
 const {isBoolean} = require('lodash');
 const {isFinite} = require('lodash');
 const {isString} = require('lodash');
+const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
 
-const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const acceptedState = 'ACCEPTED';

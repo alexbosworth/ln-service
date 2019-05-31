@@ -1,7 +1,7 @@
 const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
 
 const {backupsFromSnapshot} = require('./../backups');
-const {returnResult} = require('./../async-util');
 
 /** Get all channel backups
 

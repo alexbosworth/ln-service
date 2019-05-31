@@ -1,7 +1,6 @@
 const asyncAuto = require('async/auto');
 const {chanFormat} = require('bolt07');
-
-const {returnResult} = require('./../async-util');
+const {returnResult} = require('asyncjs-util');
 
 const countGroupingFactor = 3;
 const decBase = 10;

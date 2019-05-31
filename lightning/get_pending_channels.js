@@ -1,8 +1,8 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {includes} = require('lodash');
+const {returnResult} = require('asyncjs-util');
 
-const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;

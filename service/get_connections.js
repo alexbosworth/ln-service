@@ -1,11 +1,11 @@
 const asyncAuto = require('async/auto');
 const {groupBy} = require('lodash');
+const {returnResult} = require('asyncjs-util');
 const {uniq} = require('lodash');
 
 const getChannels = require('./../getChannels');
 const getPeers = require('./../getPeers');
 const getPendingChannels = require('./../getPendingChannels');
-const {returnResult} = require('./../async-util');
 const {rowTypes} = require('./../lightning');
 
 /** Get all connections, offline and online.

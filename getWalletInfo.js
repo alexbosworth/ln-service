@@ -12,10 +12,11 @@ const {getWalletInfo} = require('./');
   {
     active_channels_count: <Active Channels Count Number>
     alias: <Node Alias String>
+    [chains]: [<Chain Id Hex String>]
+    [color]: <Node Color String>
     current_block_hash: <Best Chain Hash Hex String>
     current_block_height: <Best Chain Height Number>
     is_synced_to_chain: <Is Synced To Chain Bool>
-    is_testnet: <Using Testnet Bool>
     latest_block_at: <Latest Known Block At Date String>
     peers_count: <Peer Count Number>
     pending_channels_count: <Pending Channels Count Number>

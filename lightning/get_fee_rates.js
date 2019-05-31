@@ -1,7 +1,6 @@
 const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
-
-const {returnResult} = require('./../async-util');
+const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 const notFound = -1;

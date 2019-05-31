@@ -1,10 +1,10 @@
 const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
 
 const getChainBalance = require('./../getChainBalance');
 const getChannelBalance = require('./../getChannelBalance');
 const getPendingChainBalance = require('./../getPendingChainBalance');
 const getPendingChannels = require('./../getPendingChannels');
-const {returnResult} = require('./../async-util');
 const {rowTypes} = require('./../lightning');
 
 /** Get both the chain and channel balance totals.

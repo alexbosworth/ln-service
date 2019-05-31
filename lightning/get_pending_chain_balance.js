@@ -1,6 +1,5 @@
 const asyncAuto = require('async/auto');
-
-const {returnResult} = require('./../async-util');
+const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 

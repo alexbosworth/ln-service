@@ -2,9 +2,9 @@ const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const BN = require('bn.js');
 const {chanFormat} = require('bolt07');
+const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
 
-const {returnResult} = require('./../async-util');
 const rowTypes = require('./conf/row_types');
 
 const decBase = 10;

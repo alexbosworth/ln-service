@@ -1,5 +1,5 @@
 const {getInvoice} = require('./../lightning');
-const {returnJson} = require('./../async-util');
+const returnJson = require('./return_json');
 const Router = require('./router');
 
 /** Get a purchase router
@@ -22,4 +22,3 @@ module.exports = ({lnd, log}) => {
 
   return router;
 };
-
