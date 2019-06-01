@@ -57,6 +57,10 @@ test('Get payments', async ({end, equal}) => {
   equal(payment.tokens, tokens, 'Paid tokens');
   equal(payment.type, 'channel_transaction', 'Channel transaction');
 
+  if (!!payment.request) {
+    equal(payment.request, invoice.request, 'Returns original pay request');
+  }
+
   await cluster.kill({});
 
   return end();

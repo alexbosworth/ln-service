@@ -4,6 +4,8 @@ const closeChannel = require('./../../closeChannel');
 const {createCluster} = require('./../macros');
 const getChannels = require('./../../getChannels');
 const openChannel = require('./../../openChannel');
+const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
@@ -22,7 +24,17 @@ test(`Close channel`, async ({end, equal}) => {
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
+  await waitForPendingChannel({
+    id: channelOpen.transaction_id,
+    lnd: cluster.control.lnd,
+  });
+
   await cluster.generate({count: confirmationCount});
+
+  await waitForChannel({
+    id: channelOpen.transaction_id,
+    lnd: cluster.control.lnd,
+  });
 
   const channelClose = await closeChannel({
     is_force_close: true,

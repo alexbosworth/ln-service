@@ -25,6 +25,7 @@ const msPerSecond = 1e3;
       is_confirmed: <Bool>
       is_outgoing: <Is Outgoing Bool>
       mtokens: <Millitokens Paid String>
+      [request]: <BOLT 11 Payment Request String>
       secret: <Payment Preimage Hex String>
       tokens: <Sent Tokens Number>
       type: <Type String>
@@ -112,6 +113,7 @@ module.exports = ({lnd}, cbk) => {
           is_confirmed: true,
           is_outgoing: true,
           mtokens: payment.value_msat,
+          request: payment.payment_request || undefined,
           secret: payment.payment_preimage,
           tokens: parseInt(payment.value_sat, decBase),
           type: transactionType,

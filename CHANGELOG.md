@@ -1,5 +1,9 @@
 # Versions
 
+## 38.2.0
+
+- Add support for returning original payment request in getPayments
+
 ## 38.1.0
 
 - Add support for paying via routes in the routerrpc API.

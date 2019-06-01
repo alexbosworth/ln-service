@@ -19,6 +19,7 @@ const {getPayments} = require('./');
       is_confirmed: <Bool>
       is_outgoing: <Is Outgoing Bool>
       mtokens: <Millitokens Paid String>
+      [request]: <BOLT 11 Payment Request String>
       tokens: <Sent Tokens Number>
       type: <Type String>
     }]

@@ -22,6 +22,7 @@ const confirmationCount = 20;
 const currency = 'BTC';
 const defaultFee = 1e3;
 const defaultVout = 0;
+const description = 'payment description';
 const fiat = 'USD';
 const rate = ({}, cbk) => cbk(null, {cents: 1});
 const tokens = 1000;
@@ -127,7 +128,7 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
     socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
   });
 
-  const {request} = await createInvoice({lnd: cluster.remote.lnd, tokens});
+  const {request} = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
   const decoded = await parsePaymentRequest({request});
 
@@ -187,6 +188,44 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
   equal(forwardRecord.notes, tokens, 'Expected forwarded tokens');
   equal(forwardRecord.to_id, targetToRemote.id, 'To chan id for forward');
   equal(forwardRecord.type, 'income', 'Expected forward fee type');
+
+  const toPay = await createInvoice({
+    description,
+    tokens,
+    lnd: cluster.remote.lnd,
+  });
+
+  await pay({request: toPay.request, lnd: cluster.target.lnd});
+
+  await getAccountingReport({
+    currency,
+    fiat,
+    lnd,
+    rate,
+    category: 'payments',
+  });
+
+  const paymentsReport = await getAccountingReport({
+    currency,
+    fiat,
+    rate,
+    category: 'payments',
+    lnd: cluster.target.lnd,
+  });
+
+  const [sentPayment] = paymentsReport.payments
+
+  equal(sentPayment.amount, -toPay.tokens, 'Paid amount');
+  equal(sentPayment.asset, currency, 'Paid currency');
+  equal(sentPayment.category, 'payments', 'Record category');
+  equal(!!sentPayment.created_at, true, 'Payment created at');
+  equal(sentPayment.external_id, '', 'Payment has no external id');
+  equal(!!sentPayment.fiat_amount, true, 'Payment fiat amount');
+  equal(sentPayment.from_id, '', 'No from id');
+  equal(sentPayment.id, toPay.id, 'Sent payment id');
+  equal(sentPayment.notes.indexOf(toPay.secret) !== -1, true, 'Paid preimage');
+  equal(sentPayment.to_id, cluster.remote_node_public_key, 'Paid to');
+  equal(sentPayment.type, 'spend', 'Record type');
 
   await cluster.kill({});
 

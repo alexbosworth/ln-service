@@ -14,6 +14,7 @@ const {getInvoices} = require('./../lightning');
 const {getPayments} = require('./../lightning');
 const {getPendingChannels} = require('./../lightning');
 const harmonize = require('./harmonize');
+const {parsePaymentRequest} = require('./../bolt11');
 
 const earlyStartDate = '2017-08-24T08:57:37.000Z';
 const largeLimit = 1e8;
@@ -251,17 +252,17 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
       }
 
       // Only look at payments where funds were sent
-      const payRecords = getPayments.payments
-        .filter(n => !!n.tokens)
-        .map(n => ({
-          amount: n.tokens * -1,
-          category: 'payments',
-          created_at: n.created_at,
-          id: n.id,
-          notes: `Payment proof: ${n.secret}`,
-          to_id: n.destination,
-          type: 'spend',
-        }));
+      const payRecords = getPayments.payments.map(n => ({
+        amount: n.tokens * -1,
+        category: 'payments',
+        created_at: n.created_at,
+        id: n.id,
+        notes: !n.request ? n.secret : parsePaymentRequest({
+          request: n.request,
+        }).description + ` - ${n.secret}`,
+        to_id: n.destination,
+        type: 'spend',
+      }));
 
       const feeRecords = getPayments.payments
         .filter(({fee}) => !!fee)
