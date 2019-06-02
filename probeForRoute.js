@@ -7,6 +7,7 @@ const {probeForRoute} = require('./');
   Requires router RPC lnd
 
   {
+    [cltv_delta]: <Final CLTV Delta Number>
     destination: <Destination Public Key Hex String>
     [ignore]: [{
       [channel]: <Channel Id String>
@@ -16,7 +17,14 @@ const {probeForRoute} = require('./');
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
-    [timeout_height]: <Final CLTV Delta Number>
+    [routes]: [[{
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
+      [channel_capacity]: <Channel Capacity Tokens Number>
+      [channel]: <Standard Format Channel Id String>
+      [cltv_delta]: <CLTV Blocks Delta Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
+    }]]
     tokens: <Tokens Number>
   }
 

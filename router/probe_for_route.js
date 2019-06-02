@@ -9,6 +9,7 @@ const {isArray} = Array;
   Requires router RPC lnd
 
   {
+    [cltv_delta]: <Final CLTV Delta Number>
     destination: <Destination Public Key Hex String>
     [ignore]: [{
       [channel]: <Channel Id String>
@@ -72,12 +73,12 @@ module.exports = (args, cbk) => {
   let timeout;
 
   const sub = subscribeToProbe({
+    cltv_delta: args.cltv_delta,
     destination: args.destination,
     ignore: args.ignore,
     lnd: args.lnd,
     max_fee: args.max_fee,
     routes: args.routes,
-    timeout_height: args.timeout_height,
     tokens: args.tokens,
   });
 

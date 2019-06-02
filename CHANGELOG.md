@@ -1,5 +1,9 @@
 # Versions
 
+## 38.3.1
+
+- Fix issue with passing a custom final CLTV delta
+
 ## 38.3.0
 
 - Add helper method for probing to find a route
