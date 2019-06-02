@@ -30,7 +30,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
   @returns
   {
     code: <Error Code Number>
-    details: {
+    [details]: {
       channel: <Standard Format Channel Id String>
       [mtokens]: <Millitokens String>
       [policy]: {
@@ -151,6 +151,6 @@ module.exports = ({failure, keys}) => {
     return {details, code: 503, message: 'PermanentChannelFailure'};
 
   default:
-    return {code: 500, details: failure, message: 'PayViaRoutesFail'};
+    return {code: 500, message: 'UnexpectedPayViaRoutesFailure'};
   }
 };

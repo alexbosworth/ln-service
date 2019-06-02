@@ -1,23 +1,28 @@
+const {once} = require('events');
+
 const {test} = require('tap');
 
 const addPeer = require('./../../addPeer');
 const {createCluster} = require('./../macros');
 const createInvoice = require('./../../createInvoice');
 const {delay} = require('./../macros');
+const getChannel = require('./../../getChannel');
 const getChannels = require('./../../getChannels');
 const getRoutes = require('./../../getRoutes');
 const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
-const probe = require('./../../probe');
+const payViaRoutes = require('./../../payViaRoutes');
+const probeForRoute = require('./../../probeForRoute');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
+const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
+const tokens = 1e6 / 2;
 
 // Probing for a route should return a route
-test('Probe', async ({end, equal}) => {
+test('Probe for route', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -39,7 +44,7 @@ test('Probe', async ({end, equal}) => {
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await waitForChannel({
+  const controlToTargetChan = await waitForChannel({
     lnd,
     id: controlToTargetChannel.transaction_id,
   });
@@ -63,7 +68,7 @@ test('Probe', async ({end, equal}) => {
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await waitForChannel({
+  const targetToRemoteChan = await waitForChannel({
     id: targetToRemoteChannel.transaction_id,
     lnd: cluster.target.lnd,
   });
@@ -76,31 +81,26 @@ test('Probe', async ({end, equal}) => {
 
   const {channels} = await getChannels({lnd: cluster.remote.lnd});
 
-  const invoice = await createInvoice({
-    lnd: cluster.remote.lnd,
-    tokens: Math.round(channelCapacityTokens / 2),
-  });
+  const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
   await delay(1000);
 
-  const {routes} = await getRoutes({
-    lnd,
-    destination: cluster.remote_node_public_key,
-    tokens: invoice.tokens,
-  });
+  try {
+    await probeForRoute({
+      lnd,
+      destination: cluster.remote_node_public_key,
+      tokens: invoice.tokens,
+    });
+  } catch (err) {
+    const [code, message, {failure}] = err;
 
-  const probeResults = await probe({lnd, routes, tokens: invoice.tokens});
-
-  equal(probeResults.temporary_failures.length, 1, 'Fails due to imbalance');
-
-  const [fail] = probeResults.temporary_failures;
-  const [remoteChannel] = channels;
-
-  equal(fail.public_key, cluster.remote_node_public_key, 'Fails to remote');
-  equal(fail.channel, remoteChannel.id, 'Fails in target <> remote channel');
+    equal(code, 503, 'Failed to find route');
+    equal(message, 'RoutingFailure', 'Hit a routing failure');
+    equal(failure.failed, controlToTargetChan.id, 'Failed to forward out');
+    equal(failure.reason, 'TemporaryChannelFailure', 'Temporary failure');
+  }
 
   // Create a new channel to increase total edge liquidity
-
   const newChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.target.lnd,
@@ -117,23 +117,27 @@ test('Probe', async ({end, equal}) => {
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await waitForChannel({
+  const bigChannel = await waitForChannel({
     id: newChannel.transaction_id,
     lnd: cluster.target.lnd,
   });
 
-  const success = await probe({lnd, routes, tokens: invoice.tokens});
+  const {route} = await probeForRoute({
+    lnd,
+    destination: cluster.remote_node_public_key,
+    tokens: invoice.tokens,
+  });
 
-  const [hop1, hop2] = success.successes;
+  equal(route.fee, 1, 'Found route fee');
+  equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
+  deepIs(route.hops.length, 2, 'Found route hops returned');
+  equal(route.mtokens, '500001500', 'Found route mtokens');
+  equal(route.timeout, 582, 'Found route timeout');
+  equal(route.tokens, 500001, 'Found route tokens');
 
-  equal(!!success.route, true, 'A route is found');
-  equal(success.generic_failures.length, [].length, 'No generic failures');
-  equal(success.stuck.length, [].length, 'No stuck htlcs');
-  equal(hop1.channel, controlChannel.id, 'First success through control');
-  equal(hop1.public_key, cluster.target_node_public_key, 'First to target');
-  equal(hop2.channel, remoteChannel.id, 'Second success through target');
-  equal(hop2.public_key, cluster.remote_node_public_key, 'Then to remote');
-  equal(success.temporary_failures.length, [].length, 'No temp failures');
+  const {secret} = await payViaRoutes({lnd, id: invoice.id, routes: [route]});
+
+  equal(secret, invoice.secret, 'Route works');
 
   await cluster.kill({});
 

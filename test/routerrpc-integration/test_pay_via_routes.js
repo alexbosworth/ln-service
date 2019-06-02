@@ -29,8 +29,8 @@ const reserveRatio = 0.99;
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
-// Paying via routes should successfully pay
-test(`Pay private invoice`, async ({deepIs, end, equal}) => {
+// Paying via routes should successfully pay via routes
+test(`Pay via routes`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

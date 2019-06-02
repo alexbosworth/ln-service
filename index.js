@@ -47,6 +47,7 @@ const {parsePaymentRequest} = require('./bolt11');
 const {pay} = require('./lightning');
 const {payViaRoutes} = require('./router');
 const {probe} = require('./routing');
+const {probeForRoute} = require('./router');
 const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
 const {removePeer} = require('./lightning');
@@ -68,6 +69,8 @@ const {subscribeToChannels} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoice} = require('./invoices');
 const {subscribeToInvoices} = require('./lightning');
+const {subscribeToPayViaRoutes} = require('./router');
+const {subscribeToProbe} = require('./router');
 const {subscribeToTransactions} = require('./lightning');
 const {unauthenticatedLndGrpc} = require('./grpc');
 const {unlockWallet} = require('./unlocker');
@@ -126,6 +129,7 @@ module.exports = {
   pay,
   payViaRoutes,
   probe,
+  probeForRoute,
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,
@@ -147,6 +151,8 @@ module.exports = {
   subscribeToGraph,
   subscribeToInvoice,
   subscribeToInvoices,
+  subscribeToPayViaRoutes,
+  subscribeToProbe,
   subscribeToTransactions,
   unauthenticatedLndGrpc,
   unlockWallet,

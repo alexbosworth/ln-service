@@ -41,7 +41,7 @@ const payHashLength = Buffer.alloc(32).length;
       mtokens: <Total Millitokens To Pay String>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
-    }
+    }]
   }
 
   @throws
@@ -52,7 +52,91 @@ const payHashLength = Buffer.alloc(32).length;
 
   @event 'failure'
   {
-    failure: [<Code Number>, <Failure Message String>, <Details Object>]
+    failure: [
+      <Code Number>
+      <Failure Message String>
+      {
+        channel: <Standard Format Channel Id String>
+        [mtokens]: <Millitokens String>
+        [policy]: {
+          base_fee_mtokens: <Base Fee Millitokens String>
+          cltv_delta: <Locktime Delta Number>
+          fee_rate: <Fees Charged Per Million Tokens Number>
+          [is_disabled]: <Channel is Disabled Bool>
+          max_htlc_mtokens: <Maximum HLTC Millitokens value String>
+          min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+        }
+        public_key: <Public Key Hex String>
+        [update]: {
+          chain: <Chain Id Hex String>
+          channel_flags: <Channel Flags Number>
+          extra_opaque_data: <Extra Opaque Data Hex String>
+          message_flags: <Message Flags Number>
+          signature: <Channel Update Signature Hex String>
+        }
+      }
+    ]
+  }
+
+  @event 'paying'
+  {
+    route: {
+      fee: <Total Fee Tokens To Pay Number>
+      fee_mtokens: <Total Fee Millitokens To Pay String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Fee Number>
+        fee_mtokens: <Fee Millitokens String>
+        forward: <Forward Tokens Number>
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Public Key Hex String>
+        timeout: <Timeout Block Height Number>
+      }]
+      mtokens: <Total Millitokens To Pay String>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens To Pay Number>
+    }
+  }
+
+  @event 'routing_failure'
+  {
+    channel: <Standard Format Channel Id String>
+    [mtokens]: <Millitokens String>
+    [policy]: {
+      base_fee_mtokens: <Base Fee Millitokens String>
+      cltv_delta: <Locktime Delta Number>
+      fee_rate: <Fees Charged Per Million Tokens Number>
+      [is_disabled]: <Channel is Disabled Bool>
+      max_htlc_mtokens: <Maximum HLTC Millitokens value String>
+      min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+    }
+    public_key: <Public Key Hex String>
+    reason: <Failure Reason String>
+    route: {
+      fee: <Total Fee Tokens To Pay Number>
+      fee_mtokens: <Total Fee Millitokens To Pay String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Fee Number>
+        fee_mtokens: <Fee Millitokens String>
+        forward: <Forward Tokens Number>
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Public Key Hex String>
+        timeout: <Timeout Block Height Number>
+      }]
+      mtokens: <Total Millitokens To Pay String>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens To Pay Number>
+    }
+    [update]: {
+      chain: <Chain Id Hex String>
+      channel_flags: <Channel Flags Number>
+      extra_opaque_data: <Extra Opaque Data Hex String>
+      message_flags: <Message Flags Number>
+      signature: <Channel Update Signature Hex String>
+    }
   }
 
   @event 'success'
@@ -70,6 +154,23 @@ const payHashLength = Buffer.alloc(32).length;
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
     mtokens: <Total Millitokens Sent String>
+    route: {
+      fee: <Total Fee Tokens To Pay Number>
+      fee_mtokens: <Total Fee Millitokens To Pay String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Fee Number>
+        fee_mtokens: <Fee Millitokens String>
+        forward: <Forward Tokens Number>
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Public Key Hex String>
+        timeout: <Timeout Block Height Number>
+      }]
+      mtokens: <Total Millitokens To Pay String>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens To Pay Number>
+    }
     secret: <Payment Secret Preimage Hex String>
     tokens: <Total Tokens Sent Number>
     type: <Type String>
@@ -125,6 +226,8 @@ module.exports = args => {
 
       // Try paying
       attempt: ['waitForSubscribers', ({}, cbk) => {
+        emitter.emit('paying', {route});
+
         return args.lnd.router.sendToRoute({
           payment_hash: Buffer.from(id, 'hex'),
           route: rpcRouteFromRoute(route),
@@ -209,6 +312,19 @@ module.exports = args => {
           isPayDone = !!failure;
         }
 
+        // A routing failure was encountered
+        if (!!failure && !!failure.details) {
+          emitter.emit('routing_failure', {
+            route,
+            channel: failure.details.channel,
+            mtokens: route.mtokens,
+            policy: failure.details.policy,
+            public_key: failure.details.public_key,
+            reason: failure.message,
+            update: failure.details.update,
+          });
+        }
+
         // A failure instance has been received for this route
         if (!!failure) {
           payFailed = failure;
@@ -230,6 +346,7 @@ module.exports = args => {
 
         emitter.emit('success', {
           id,
+          route,
           fee: success.fee,
           fee_mtokens: success.fee_mtokens,
           hops: success.hops,

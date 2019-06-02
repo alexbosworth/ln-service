@@ -71,7 +71,7 @@ const pathNotFoundErrors = [
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
-      timeout: <Timeout Block Height Number>
+      timeout: <Final CLTV Delta Number>
       tokens: <Total Fee-Inclusive Tokens Number>
     }]
   }
@@ -109,9 +109,10 @@ module.exports = (args, cbk) => {
 
     // Derive routes
     getRoutes: ['validate', ({}, cbk) => {
-      const routes = args.routes || [[{public_key: args.destination}]];
+      const destination = [[{public_key: args.destination}]];
+      const hasRoutes = !!args.routes && !!args.routes.length;
 
-      return asyncMap(routes, (route, cbk) => {
+      return asyncMap(!hasRoutes ? destination : args.routes, (route, cbk) => {
         const extended = route.slice([args.destination].length);
         const [firstHop] = route;
 
@@ -170,7 +171,7 @@ module.exports = (args, cbk) => {
     // Assemble the final routes
     assemble: ['getRoutes', 'getWallet', ({getRoutes, getWallet}, cbk) => {
       // Exit early when no extended routes are specified
-      if (!args.routes) {
+      if (!args.routes || !args.routes.length) {
         const [standardRoute] = getRoutes;
 
         return cbk(null, standardRoute.routes);

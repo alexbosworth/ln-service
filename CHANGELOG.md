@@ -1,5 +1,10 @@
 # Versions
 
+## 38.3.0
+
+- Add helper method for probing to find a route
+- Emit a payment in flight event for pay via routes subscription
+
 ## 38.2.0
 
 - Add support for returning original payment request in getPayments

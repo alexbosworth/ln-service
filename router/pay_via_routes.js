@@ -74,6 +74,13 @@ const payHashLength = Buffer.alloc(32).length;
   [
     <Error Classification Code Number>
     <Error Type String>
+    {
+      failures: [[
+        <Failure Code Number>
+        <Failure Code Message String>
+        <Failure Code Details Object>
+      ]]
+    }
   ]
 */
 module.exports = (args, cbk) => {
