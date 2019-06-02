@@ -83,7 +83,13 @@ module.exports = (args, cbk) => {
   });
 
   sub.on('error', err => result.err = err);
-  sub.on('probe_success', ({route}) => result.route = route);
+
+  sub.on('probe_success', ({route}) => {
+    result.err = null;
+    result.route = route;
+
+    return;
+  });
 
   sub.on('routing_failure', failure => {
     return result.err = [503, 'RoutingFailure', {failure}];

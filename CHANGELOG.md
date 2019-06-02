@@ -1,10 +1,6 @@
 # Versions
 
-## 38.3.1
-
-- Fix issue with passing a custom final CLTV delta
-
-## 38.3.0
+## 38.3.3
 
 - Add helper method for probing to find a route
 - Emit a payment in flight event for pay via routes subscription
