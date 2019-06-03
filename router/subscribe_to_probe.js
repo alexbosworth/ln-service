@@ -96,6 +96,23 @@ const {isArray} = Array;
     }
     public_key: <Public Key Hex String>
     reason: <Failure Reason String>
+    route: {
+      fee: <Total Fee Tokens To Pay Number>
+      fee_mtokens: <Total Fee Millitokens To Pay String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Fee Number>
+        fee_mtokens: <Fee Millitokens String>
+        forward: <Forward Tokens Number>
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Public Key Hex String>
+        timeout: <Timeout Block Height Number>
+      }]
+      mtokens: <Total Millitokens To Pay String>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens To Pay Number>
+    }
     [update]: {
       chain: <Chain Id Hex String>
       channel_flags: <Channel Flags Number>
@@ -185,6 +202,13 @@ module.exports = args => {
 
               return nextHop.channel === failure.channel;
             });
+
+            if (!failEdge && !!failure.public_key) {
+              ignore.push({
+                channel: failure.channel,
+                from_public_key: failure.public_key,
+              });
+            }
 
             emitter.emit(isFinalNode ? 'probe_success' : 'routing_failure', {
               channel: failure.channel,

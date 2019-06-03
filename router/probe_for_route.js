@@ -27,7 +27,6 @@ const {isArray} = Array;
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
-    [timeout_height]: <Final CLTV Delta Number>
     tokens: <Tokens Number>
   }
 
