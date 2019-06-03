@@ -306,14 +306,15 @@ module.exports = args => {
       // Set pay result and pay error
       result: ['failure', 'success', ({failure, success}, cbk) => {
         const [finalHop] = route.hops.slice().reverse();
+        const hasDetails = !!failure && !!failure.details;
 
         // Failures from the final hop are definitive
-        if (!!failure && failure.details.public_key === finalHop.public_key) {
+        if (hasDetails && failure.details.public_key === finalHop.public_key) {
           isPayDone = !!failure;
         }
 
         // A routing failure was encountered
-        if (!!failure && !!failure.details) {
+        if (hasDetails) {
           emitter.emit('routing_failure', {
             route,
             channel: failure.details.channel,
