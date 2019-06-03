@@ -108,9 +108,12 @@ module.exports = (args, cbk) => {
   });
 
   if (!!args.pathfinding_timeout) {
-    const err = [503, 'ProbeForRouteTimedOut'];
+    timeout = setTimeout(() => {
+      sub.removeAllListeners();
 
-    timeout = setTimeout(() => result.err = err, args.pathfinding_timeout);
+      return cbk([503, 'ProbeForRouteTimedOut']);
+    },
+    args.pathfinding_timeout);
   }
 
   return;
