@@ -69,6 +69,7 @@ module.exports = (args, cbk) => {
   }
 
   const result = {};
+  let isFinished = false;
   let timeout;
 
   const sub = subscribeToProbe({
@@ -103,12 +104,24 @@ module.exports = (args, cbk) => {
       clearTimeout(timeout);
     }
 
+    if (!!isFinished) {
+      return;
+    }
+
+    isFinished = true;
+
     return cbk(null, {route: result.route || undefined});
   });
 
   if (!!args.pathfinding_timeout) {
     timeout = setTimeout(() => {
       sub.removeAllListeners();
+
+      if (!!isFinished) {
+        return;
+      }
+
+      isFinished = true;
 
       return cbk([503, 'ProbeForRouteTimedOut']);
     },

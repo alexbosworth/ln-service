@@ -1,6 +1,6 @@
 # Versions
 
-## 38.3.6
+## 38.3.7
 
 - Add helper method for probing to find a route
 - Emit a payment in flight event for pay via routes subscription
