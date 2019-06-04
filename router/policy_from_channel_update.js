@@ -40,7 +40,7 @@ module.exports = ({key, keys, update}) => {
     throw new Error('ExpectedChannelUpdateToDerivePolicy');
   }
 
-  if (!update.base_fee || !update.base_fee.toString) {
+  if (update.base_fee === undefined) {
     throw new Error('ExpectedBaseFeeInChannelUpdate');
   }
 
