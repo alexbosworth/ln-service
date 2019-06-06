@@ -130,8 +130,6 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   const failChannel = await getChannel({lnd, id: tempChanFail.channel});
 
   equal(tempChanFail.channel, targetToRemoteChan.id, 'Fail at remote chan');
-  equal(tempChanFail.failed, controlToTargetChan.id, 'Fail out of channel');
-  equal(tempChanFail.mtokens, route.mtokens, 'Fail sending mtokens');
 
   const failPolicy = failChannel.policies
     .find(n => n.public_key === cluster.target_node_public_key);
@@ -186,7 +184,6 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
 
   equal(success.channel, undefined, 'No channel failed');
   equal(success.failed, undefined, 'No failed channel');
-  equal(success.mtokens, route.mtokens, 'Route mtokens returned');
   equal(success.policy, undefined, 'No policy returned');
   equal(success.public_key, cluster.remote_node_public_key, 'Got final key');
   equal(success.reason, 'UnknownPaymentHash', 'Failure is an unknown hash');

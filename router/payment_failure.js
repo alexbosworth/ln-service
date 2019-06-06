@@ -31,8 +31,8 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
   {
     code: <Error Code Number>
     [details]: {
-      channel: <Standard Format Channel Id String>
-      [mtokens]: <Millitokens String>
+      [channel]: <Standard Format Channel Id String>
+      [mtokens]: <Error Millitokens String>
       [policy]: {
         base_fee_mtokens: <Base Fee Millitokens String>
         cltv_delta: <Locktime Delta Number>
@@ -42,6 +42,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
         min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
       }
       public_key: <Public Key Hex String>
+      [timeout_height]: <Error CLTV Timeout Height Number>
       [update]: {
         chain: <Chain Id Hex String>
         channel_flags: <Channel Flags Number>
@@ -77,6 +78,7 @@ module.exports = ({failure, keys}) => {
     mtokens: !hasMtokens ? undefined : failure.htlc_msat,
     policy: !update ? null : policyFromChannelUpdate({key, keys, update}),
     public_key: !key ? undefined : key.toString('hex'),
+    timeout_height: failure.cltv_expiry || undefined,
     update: !update ? undefined : {
       chain: update.chain_hash.reverse().toString('hex'),
       channel_flags : update.channel_flags,
@@ -151,6 +153,6 @@ module.exports = ({failure, keys}) => {
     return {details, code: 503, message: 'PermanentChannelFailure'};
 
   default:
-    return {code: 500, message: 'UnexpectedPayViaRoutesFailure'};
+    return {details, code: 500, message: 'UnexpectedPayViaRoutesFailure'};
   }
 };

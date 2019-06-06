@@ -127,6 +127,7 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
       mtokens: undefined,
       policy: null,
       public_key: destination,
+      timeout_height: undefined,
       update: undefined,
     }]);
   }

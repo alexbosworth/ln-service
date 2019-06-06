@@ -36,6 +36,7 @@ module.exports = ({ignore}) => {
   const nodes = []
     .concat(ignoreNodes.map(n => n.from_public_key))
     .concat(ignoreNodes.map(n => n.to_public_key))
+    .filter(n => !!n);
 
-  return {ignored: nodes.filter(n => !!n).map(n => Buffer.from(n, 'hex'))};
+  return {ignored: uniq(nodes).map(n => Buffer.from(n, 'hex'))};
 };

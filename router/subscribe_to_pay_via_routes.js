@@ -18,6 +18,8 @@ const {isArray} = Array;
 const {nextTick} = process;
 const {now} = Date;
 const payHashLength = Buffer.alloc(32).length;
+const timeoutError = 'payment attempt not completed before timeout';
+const unknownWireError = 'unknown wire error';
 
 /** Subscribe to the attempts of paying via routes
 
@@ -101,8 +103,8 @@ const payHashLength = Buffer.alloc(32).length;
 
   @event 'routing_failure'
   {
-    channel: <Standard Format Channel Id String>
-    [mtokens]: <Millitokens String>
+    [channel]: <Standard Format Channel Id String>
+    [mtokens]: <Failure Related Millitokens String>
     [policy]: {
       base_fee_mtokens: <Base Fee Millitokens String>
       cltv_delta: <Locktime Delta Number>
@@ -130,6 +132,7 @@ const payHashLength = Buffer.alloc(32).length;
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
     }
+    [timeout_height]: <Failure Related CLTV Timeout Height Number>
     [update]: {
       chain: <Chain Id Hex String>
       channel_flags: <Channel Flags Number>
@@ -233,6 +236,14 @@ module.exports = args => {
           route: rpcRouteFromRoute(route),
         },
         (err, res) => {
+          if (!!err && err.details === unknownWireError) {
+            return cbk(null, {});
+          }
+
+          if (!!err && err.details === timeoutError) {
+            return cbk(null, {});
+          }
+
           if (!!err) {
             return cbk([503, 'UnexpectedErrorWhenPayingViaRoute', {err}]);
           }
@@ -268,7 +279,7 @@ module.exports = args => {
 
           const hops = [route.hops[hopIndex], route.hops[hopIndex - 1]];
 
-          return cbk(null, hops.map(hop => hop.public_key));
+          return cbk(null, hops.filter(n => !!n).map(hop => hop.public_key));
         } catch (err) {
           return cbk([500, 'UnexpectedErrorParsingFailedChannel', {err}]);
         }
@@ -285,7 +296,7 @@ module.exports = args => {
 
       // Attempt success
       success: ['attempt', ({attempt}, cbk) => {
-        if (!!attempt.failure) {
+        if (!!attempt.failure || !attempt.preimage) {
           return cbk();
         }
 
@@ -305,6 +316,11 @@ module.exports = args => {
 
       // Set pay result and pay error
       result: ['failure', 'success', ({failure, success}, cbk) => {
+        // Exit early when there was no result of the pay attempt
+        if (!failure && !success) {
+          return cbk();
+        }
+
         const [finalHop] = route.hops.slice().reverse();
         const hasDetails = !!failure && !!failure.details;
 
@@ -318,10 +334,11 @@ module.exports = args => {
           emitter.emit('routing_failure', {
             route,
             channel: failure.details.channel,
-            mtokens: route.mtokens,
+            mtokens: failure.details.mtokens,
             policy: failure.details.policy,
             public_key: failure.details.public_key,
             reason: failure.message,
+            timeout_height: failure.details.timeout_height,
             update: failure.details.update,
           });
         }
@@ -335,11 +352,6 @@ module.exports = args => {
           });
 
           return cbk();
-        }
-
-        // Attempts should either result in a failure or a success
-        if (!success) {
-          return cbk([500, 'UnexpectedResultWhenPayingViaRoutes']);
         }
 
         isPayDone = !!success;

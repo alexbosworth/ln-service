@@ -96,7 +96,6 @@ test('Probe for route', async ({deepIs, end, equal}) => {
 
     equal(code, 503, 'Failed to find route');
     equal(message, 'RoutingFailure', 'Hit a routing failure');
-    equal(failure.failed, controlToTargetChan.id, 'Failed to forward out');
     equal(failure.reason, 'TemporaryChannelFailure', 'Temporary failure');
   }
 

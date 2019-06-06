@@ -5,6 +5,7 @@ const asyncWhilst = require('async/whilst');
 const isHex = require('is-hex');
 
 const {getRoutes} = require('./../lightning');
+const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
 
 const {isArray} = Array;
@@ -84,7 +85,7 @@ const {isArray} = Array;
 
   @event 'routing_failure'
   {
-    channel: <Standard Format Channel Id String>
+    [channel]: <Standard Format Channel Id String>
     [mtokens]: <Millitokens String>
     [policy]: {
       base_fee_mtokens: <Base Fee Millitokens String>
@@ -184,35 +185,29 @@ module.exports = args => {
           sub.on('paying', ({route}) => emitter.emit('probing', {route}));
 
           sub.on('routing_failure', failure => {
+            const [finalHop] = failure.route.hops.slice().reverse();
+
             failures.push(failure);
 
-            const isFinalNode = failure.public_key === args.destination;
+            const isFinalNode = failure.public_key === finalHop.public_key;
 
-            // Determine the failing edge
-            const failEdge = failure.route.hops.find((hop, i) => {
-              if (isFinalNode || hop.public_key !== failure.public_key) {
-                return false;
-              }
-
-              const nextHop = failure.route.hops[i + [hop].length];
-
-              if (!nextHop) {
-                return false;
-              }
-
-              return nextHop.channel === failure.channel;
+            const toIgnore = ignoreFromRoutingFailure({
+              channel: failure.channel,
+              hops: failure.route.hops,
+              public_key: failure.public_key,
+              reason: failure.reason,
             });
 
-            if (!failEdge && !!failure.public_key) {
-              ignore.push({
-                channel: failure.channel,
-                from_public_key: failure.public_key,
+            toIgnore.ignore.forEach(edge => {
+              return ignore.push({
+                channel: edge.channel,
+                from_public_key: edge.from_public_key,
+                to_public_key: edge.to_public_key,
               });
-            }
+            });
 
             emitter.emit(isFinalNode ? 'probe_success' : 'routing_failure', {
               channel: failure.channel,
-              failed: !failEdge ? undefined : failEdge.channel,
               mtokens: failure.mtokens,
               policy: failure.policy || undefined,
               public_key: failure.public_key,
