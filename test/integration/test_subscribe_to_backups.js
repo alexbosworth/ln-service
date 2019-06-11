@@ -2,12 +2,12 @@ const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const getWalletInfo = require('./../../getWalletInfo');
-const openChannel = require('./../../openChannel');
+const {getWalletInfo} = require('./../../');
+const {openChannel} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {subscribeToBackups} = require('./../../');
-const verifyBackup = require('./../../verifyBackup');
-const verifyBackups = require('./../../verifyBackups');
+const {verifyBackup} = require('./../../');
+const {verifyBackups} = require('./../../');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -25,7 +25,7 @@ test(`Subscribe to backups`, async ({end, equal}) => {
 
   sub.on('error', () => {});
 
-  sub.on('data', async ({backup, channels}) => {
+  sub.on('backup', async ({backup, channels}) => {
     const [channel] = channels;
 
     const multiVerification = await verifyBackups({

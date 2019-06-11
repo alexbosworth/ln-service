@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const getNetworkInfo = require('./../../getNetworkInfo');
+const {getNetworkInfo} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
@@ -16,7 +16,6 @@ test(`Get network info`, async ({end, equal}) => {
   equal(result.min_channel_size, 0, 'Minimum channel size');
   equal(result.node_count, 1, 'Node count');
   equal(result.total_capacity, 0, 'Total capacity');
-  equal(result.type, 'network_info');
 
   kill();
 

@@ -2,16 +2,16 @@ const {readFileSync} = require('fs');
 
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
-const createChainAddress = require('./../../createChainAddress');
+const {addPeer} = require('./../../');
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const getNetworkGraph = require('./../../getNetworkGraph');
-const getWalletInfo = require('./../../getWalletInfo');
-const getAutopilot = require('./../../getAutopilot');
-const openChannel = require('./../../openChannel');
-const setAutopilot = require('./../../setAutopilot');
+const {getNetworkGraph} = require('./../../');
+const {getWalletInfo} = require('./../../');
+const {getAutopilot} = require('./../../');
+const {openChannel} = require('./../../');
+const {setAutopilot} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
@@ -78,7 +78,7 @@ test(`Autopilot`, async ({end, equal}) => {
 
   equal((await getAutopilot({lnd})).is_enabled, false, 'Autopilot turned off');
 
-  const pubKey = (await getWalletInfo({lnd: cluster.control.lnd})).public_key;
+  const pubKey = cluster.control.public_key;
 
   await setAutopilot({
     lnd,

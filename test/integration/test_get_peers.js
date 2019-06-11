@@ -1,8 +1,8 @@
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
-const getPeers = require('./../../getPeers');
+const {getPeers} = require('./../../');
 
 // Getting peers should return the list of peers
 test('Get peers', async ({end, equal}) => {
@@ -28,7 +28,6 @@ test('Get peers', async ({end, equal}) => {
   equal(!!peer.socket, true, 'Socket');
   equal(peer.tokens_received, 0, 'Tokens received');
   equal(peer.tokens_sent, 0, 'Tokens sent');
-  equal(peer.type, 'peer', 'Row type');
 
   await cluster.kill({});
 

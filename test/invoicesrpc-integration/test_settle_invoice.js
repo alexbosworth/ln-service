@@ -1,16 +1,16 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const createHodlInvoice = require('./../../createHodlInvoice');
-const createInvoice = require('./../../createInvoice');
+const {createHodlInvoice} = require('./../../');
+const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const getChannels = require('./../../getChannels');
-const getInvoice = require('./../../getInvoice');
-const getInvoices = require('./../../getInvoices');
-const getWalletInfo = require('./../../getWalletInfo');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
-const settleHodlInvoice = require('./../../settleHodlInvoice');
+const {getChannels} = require('./../../');
+const {getInvoice} = require('./../../');
+const {getInvoices} = require('./../../');
+const {getWalletInfo} = require('./../../');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
+const {settleHodlInvoice} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 

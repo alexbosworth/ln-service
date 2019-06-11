@@ -31,7 +31,6 @@ const pay = require('./pay');
 const recoverFundsFromChannel = require('./recover_funds_from_channel');
 const recoverFundsFromChannels = require('./recover_funds_from_channels');
 const removePeer = require('./remove_peer');
-const rowTypes = require('./conf/row_types');
 const sendToChainAddress = require('./send_to_chain_address');
 const sendToChainAddresses = require('./send_to_chain_addresses');
 const signMessage = require('./sign_message');
@@ -80,7 +79,6 @@ module.exports = {
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,
-  rowTypes,
   sendToChainAddress,
   sendToChainAddresses,
   signMessage,

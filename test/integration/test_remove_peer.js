@@ -2,13 +2,13 @@ const {readFileSync} = require('fs');
 
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {connectChainNode} = require('./../macros');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const getPeers = require('./../../getPeers');
-const getWalletInfo = require('./../../getWalletInfo');
-const removePeer = require('./../../removePeer');
+const {getPeers} = require('./../../');
+const {getWalletInfo} = require('./../../');
+const {removePeer} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 

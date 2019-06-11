@@ -31,7 +31,6 @@ const {networkInfoRouter} = require('./routers');
 const {paymentsRouter} = require('./routers');
 const {peersRouter} = require('./routers');
 const {purchasedRouter} = require('./routers');
-const {rowTypes} = require('./lightning');
 const {subscribeToGraph} = require('./push');
 const {subscribeToInvoices} = require('./push');
 const {subscribeToTransactions} = require('./push');

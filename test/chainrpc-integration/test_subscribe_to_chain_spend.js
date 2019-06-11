@@ -1,11 +1,11 @@
 const {test} = require('tap');
 
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const getChainBalance = require('./../../getChainBalance');
-const getUtxos = require('./../../getUtxos');
-const sendToChainAddress = require('./../../sendToChainAddress');
+const {getChainBalance} = require('./../../');
+const {getUtxos} = require('./../../');
+const {sendToChainAddress} = require('./../../');
 const {subscribeToChainSpend} = require('./../../');
 
 const confirmationCount = 20;

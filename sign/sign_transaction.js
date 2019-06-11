@@ -6,6 +6,8 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
 /** Sign transaction
 
+  Requires lnd built with signerrpc build tag
+
   {
     inputs: [{
       key_family: <Key Family Number>
@@ -20,76 +22,78 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
     transaction: <Unsigned Transaction Hex String>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     signatures: [<Signature Hex String>]
   }
 */
 module.exports = ({inputs, lnd, transaction}, cbk) => {
-  return asyncAuto({
-    // Check arguments
-    validate: cbk => {
-      if (!isArray(inputs) || !inputs.length) {
-        return cbk([400, 'ExpectedInputsToSignTransaction']);
-      }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!isArray(inputs) || !inputs.length) {
+          return cbk([400, 'ExpectedInputsToSignTransaction']);
+        }
 
-      if (!lnd || !lnd.signer || !lnd.signer.signOutputRaw) {
-        return cbk([400, 'ExpectedAuthenticatedLndToSignTransaction']);
-      }
+        if (!lnd || !lnd.signer || !lnd.signer.signOutputRaw) {
+          return cbk([400, 'ExpectedAuthenticatedLndToSignTransaction']);
+        }
 
-      if (!transaction) {
-        return cbk([400, 'ExpectedUnsignedTransactionToSign']);
-      }
+        if (!transaction) {
+          return cbk([400, 'ExpectedUnsignedTransactionToSign']);
+        }
 
-      return cbk();
-    },
-
-    // Get signatures
-    signTransaction: ['validate', ({}, cbk) => {
-      return lnd.signer.signOutputRaw({
-        raw_tx_bytes: Buffer.from(transaction, 'hex'),
-        sign_descs: inputs.map(input => ({
-          input_index: input.vin,
-          key_desc: {
-            key_loc: {
-              key_family: input.key_family,
-              key_index: input.key_index,
-            },
-          },
-          output: {
-            pk_script: Buffer.from(input.output_script, 'hex'),
-            value: input.output_tokens,
-          },
-          sighash: input.sighash,
-          witness_script: Buffer.from(input.witness_script, 'hex'),
-        })),
+        return cbk();
       },
-      (err, res) => {
-        if (!!err && err.message === unimplementedError) {
-          return cbk([400, 'ExpectedLndBuiltWithSignerRpcBuildTag']);
-        }
 
-        if (!!err) {
-          return cbk([503, 'UnexpectedErrorWhenSigning', {err}]);
-        }
+      // Get signatures
+      signTransaction: ['validate', ({}, cbk) => {
+        return lnd.signer.signOutputRaw({
+          raw_tx_bytes: Buffer.from(transaction, 'hex'),
+          sign_descs: inputs.map(input => ({
+            input_index: input.vin,
+            key_desc: {
+              key_loc: {
+                key_family: input.key_family,
+                key_index: input.key_index,
+              },
+            },
+            output: {
+              pk_script: Buffer.from(input.output_script, 'hex'),
+              value: input.output_tokens,
+            },
+            sighash: input.sighash,
+            witness_script: Buffer.from(input.witness_script, 'hex'),
+          })),
+        },
+        (err, res) => {
+          if (!!err && err.message === unimplementedError) {
+            return cbk([400, 'ExpectedLndBuiltWithSignerRpcBuildTag']);
+          }
 
-        if (!res) {
-          return cbk([503, 'UnexpectedEmptyResponseWhenSigning']);
-        }
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrorWhenSigning', {err}]);
+          }
 
-        if (!isArray(res.raw_sigs) || !res.raw_sigs.length) {
-          return cbk([503, 'ExpectedSignaturesInSignatureResponse']);
-        }
+          if (!res) {
+            return cbk([503, 'UnexpectedEmptyResponseWhenSigning']);
+          }
 
-        if (res.raw_sigs.find(n => !Buffer.isBuffer(n))) {
-          return cbk([503, 'ExpectedSignatureBuffersInSignResponse']);
-        }
+          if (!isArray(res.raw_sigs) || !res.raw_sigs.length) {
+            return cbk([503, 'ExpectedSignaturesInSignatureResponse']);
+          }
 
-        return cbk(null, {
-          signatures: res.raw_sigs.map(n => n.toString('hex'))
+          if (res.raw_sigs.find(n => !Buffer.isBuffer(n))) {
+            return cbk([503, 'ExpectedSignatureBuffersInSignResponse']);
+          }
+
+          return cbk(null, {
+            signatures: res.raw_sigs.map(n => n.toString('hex'))
+          });
         });
-      });
-    }],
-  },
-  returnResult({of: 'signTransaction'}, cbk));
+      }],
+    },
+    returnResult({reject, resolve, of: 'signTransaction'}, cbk));
+  });
 };

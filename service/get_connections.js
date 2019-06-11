@@ -3,10 +3,9 @@ const {groupBy} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 const {uniq} = require('lodash');
 
-const getChannels = require('./../getChannels');
-const getPeers = require('./../getPeers');
-const getPendingChannels = require('./../getPendingChannels');
-const {rowTypes} = require('./../lightning');
+const {getChannels} = require('./../');
+const {getPeers} = require('./../');
+const {getPendingChannels} = require('./../');
 
 /** Get all connections, offline and online.
 
@@ -40,7 +39,6 @@ const {rowTypes} = require('./../lightning');
         tokens_sent: <Amount Sent Tokens Number>
       }]
       public_key: <Public Key String>
-      type: <Type String>
     }]
   }
 */
@@ -76,7 +74,6 @@ module.exports = ({lnd}, cbk) => {
           channels: openChannels.concat(pendingChannels),
           peers: peers[publicKey] || [],
           public_key: publicKey,
-          type: rowTypes.connection,
         };
       });
 

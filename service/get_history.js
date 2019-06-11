@@ -2,9 +2,9 @@ const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
 
-const getInvoices = require('./../getInvoices');
-const getPayments = require('./../getPayments');
-const getChainTransactions = require('./../getChainTransactions');
+const {getInvoices} = require('./../');
+const {getPayments} = require('./../');
+const {getChainTransactions} = require('./../');
 
 /** Get history: a combination of chain transactions, invoices and payments.
 
@@ -31,7 +31,6 @@ const getChainTransactions = require('./../getChainTransactions');
       [is_outgoing]: <Invoice is Outgoing Bool>
       request: <BOLT 11 Payment Request String>
       tokens: <Tokens Number>
-      type: <Type String>
     }]
 }
 */

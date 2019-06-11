@@ -1,0 +1,8 @@
+{
+  "states": {
+    "confirmed": "SUCCEEDED",
+    "pathfinding_routes_failed": "FAILED_NO_ROUTE",
+    "pathfinding_timeout_failed": "FAILED_TIMEOUT",
+    "paying": "IN_FLIGHT"
+  }
+}

@@ -1,13 +1,13 @@
 const {test} = require('tap');
 const {times} = require('lodash');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
-const createInvoice = require('./../../createInvoice');
+const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const getForwards = require('./../../getForwards');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
+const {getForwards} = require('./../../');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -93,7 +93,6 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     equal(!!forward.incoming_channel, true, 'Forward incoming channel');
     equal(forward.tokens, 100, 'Forwarded tokens count');
     equal(!!forward.outgoing_channel, true, 'Forward outgoing channel');
-    equal(forward.type, 'forward', 'Forward outgoing channel');
   }
 
   const page2 = await getForwards({lnd, token: page1.next});

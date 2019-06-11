@@ -3,11 +3,11 @@ const {readFileSync} = require('fs');
 const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const getChainBalance = require('./../../getChainBalance');
-const getChainTransactions = require('./../../getChainTransactions');
+const {getChainBalance} = require('./../../');
+const {getChainTransactions} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
@@ -61,7 +61,6 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
   equal(tx.is_outgoing, false, 'Transaction is incoming');
   deepIs(tx.output_addresses, [address], 'Address is returned');
   equal(tx.tokens, tokens - defaultFee, 'Chain tokens are returned');
-  equal(tx.type, 'chain_transaction', 'Chain transaction type');
 
   kill();
 

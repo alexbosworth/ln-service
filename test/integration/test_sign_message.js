@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const signMessage = require('./../../signMessage');
+const {signMessage} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 

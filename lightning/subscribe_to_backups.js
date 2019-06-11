@@ -14,7 +14,7 @@ const {backupsFromSnapshot} = require('./../backups');
   @returns
   <EventEmitter Object>
 
-  @on('data')
+  @event 'backup'
   {
     backup: <Backup Hex String>
     channels: [{
@@ -40,7 +40,7 @@ module.exports = ({lnd}) => {
         return eventEmitter('error', new Error(message));
       }
 
-      return eventEmitter.emit('data', res);
+      return eventEmitter.emit('backup', res);
     });
   });
 

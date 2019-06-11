@@ -1,17 +1,15 @@
 const {test} = require('tap');
 
-const {delay} = require('./../macros');
 const {authenticatedLndGrpc} = require('./../../');
-const getWalletInfo = require('./../../getWalletInfo');
+const {getWalletInfo} = require('./../../');
 const {spawnLnd} = require('./../macros');
+const {waitForTermination} = require('./../macros');
 
 const pubKeyHexLength = 66;
 
 // Initiating the lightning daemon connection should give access to LND
 test(`Lightning daemon`, async ({end, equal}) => {
   const spawned = await spawnLnd({});
-
-  await delay(3000);
 
   const cert = Buffer.from(spawned.lnd_cert, 'base64');
   const macaroon = Buffer.from(spawned.lnd_macaroon, 'base64');
@@ -36,7 +34,7 @@ test(`Lightning daemon`, async ({end, equal}) => {
 
   spawned.kill();
 
-  await delay(3000);
+  await waitForTermination({lnd: spawned.lnd});
 
   return end();
 });

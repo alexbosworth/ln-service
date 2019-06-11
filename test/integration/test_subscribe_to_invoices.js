@@ -2,15 +2,15 @@ const {decodeChanId} = require('bolt07');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const createInvoice = require('./../../createInvoice');
+const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const getChannel = require('./../../getChannel');
-const getChannels = require('./../../getChannels');
-const getPendingChannels = require('./../../getPendingChannels');
-const getWalletInfo = require('./../../getWalletInfo');
+const {getChannel} = require('./../../');
+const {getChannels} = require('./../../');
+const {getPendingChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
 const {routeFromHops} = require('./../../routing');
 const {subscribeToInvoices} = require('./../../');
 const {waitForChannel} = require('./../macros');
@@ -86,7 +86,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   let invoice;
   const sub = subscribeToInvoices({lnd});
 
-  sub.on('data', invoice => {
+  sub.on('invoice_updated', invoice => {
     equal(!!invoice.created_at, true, 'Invoice created at');
     equal(invoice.description, description, 'Invoice description');
     equal(!!invoice.expires_at, true, 'Invoice has expiration date');
@@ -94,7 +94,6 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     equal(invoice.is_outgoing, false, 'Invoice is incoming');
     equal(invoice.secret, secret, 'Invoice secret');
     equal(invoice.tokens, tokens, 'Invoice tokens');
-    equal(invoice.type, 'channel_transaction', 'Invoice is chan tx');
 
     if (invoice.is_confirmed && !gotUnconfirmedInvoice) {
       fail('Expected unconfirmed invoice before confirmed invoice');

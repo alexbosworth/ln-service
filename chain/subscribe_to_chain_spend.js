@@ -5,6 +5,8 @@ const scriptFromChainAddress = require('./script_from_chain_address');
 
 /** Subscribe to confirmations of a spend
 
+  An lnd built with the chainrpc build tag is required
+
   A chain address is required
 
   {
@@ -24,16 +26,14 @@ const scriptFromChainAddress = require('./script_from_chain_address');
   @returns
   <EventEmitter Object>
 
-  @on('confirmation')
+  @event 'confirmation'
   {
     height: <Confirmation Block Height Number>
     transaction: <Raw Transaction Hex String>
     vin: <Spend Outpoint Index Number>
   }
 
-  @on('reorg')
-  {
-  }
+  @event 'reorg'
 */
 module.exports = args => {
   if (!args.lnd || !args.lnd.chain || !args.lnd.chain.registerSpendNtfn) {
@@ -82,7 +82,7 @@ module.exports = args => {
         break;
       }
 
-      eventEmitter.emit('reorg', {});
+      eventEmitter.emit('reorg');
       break;
 
     case true:

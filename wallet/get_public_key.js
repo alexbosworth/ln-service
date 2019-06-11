@@ -1,4 +1,9 @@
+const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
+
 /** Get a public key in the seed
+
+  Requires walletrpc tag compiled lnd
 
   {
     family: <Key Family Number>
@@ -6,41 +11,54 @@
     lnd: <Authenticated gRPC API LND Object>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     public_key: <Public Key Hex String>
   }
 */
 module.exports = ({family, index, lnd}, cbk) => {
-  if (family === undefined) {
-    return cbk([400, 'ExpectedKeyFamilyToGetPublicKey']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (family === undefined) {
+          return cbk([400, 'ExpectedKeyFamilyToGetPublicKey']);
+        }
 
-  if (index === undefined) {
-    return cbk([400, 'ExpectedKeyIndexToGetPublicKey']);
-  }
+        if (index === undefined) {
+          return cbk([400, 'ExpectedKeyIndexToGetPublicKey']);
+        }
 
-  if (!lnd || !lnd.wallet || !lnd.wallet.deriveKey) {
-    return cbk([400, 'ExpectedWalletRpcLndToGetPublicKey']);
-  }
+        if (!lnd || !lnd.wallet || !lnd.wallet.deriveKey) {
+          return cbk([400, 'ExpectedWalletRpcLndToGetPublicKey']);
+        }
 
-  return lnd.wallet.deriveKey({
-    key_family: family,
-    key_index: index,
-  },
-  (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorGettingPublicKeyFromSeed', {err}]);
-    }
+        return cbk();
+      },
 
-    if (!res) {
-      return cbk([503, 'UnexpectedResultInDerivePublicKeyResponse']);
-    }
+      // Get public key
+      getPublicKey: ['validate', ({}, cbk) => {
+        return lnd.wallet.deriveKey({
+          key_family: family,
+          key_index: index,
+        },
+        (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrGettingPublicKeyFromSeed', {err}]);
+          }
 
-    if (!Buffer.isBuffer(res.raw_key_bytes)) {
-      return cbk([503, 'ExpectedRawPublicKeyBytesInDerivePublicKeyResponse']);
-    }
+          if (!res) {
+            return cbk([503, 'UnexpectedResultInDerivePublicKeyResponse']);
+          }
 
-    return cbk(null, {public_key: res.raw_key_bytes.toString('hex')});
+          if (!Buffer.isBuffer(res.raw_key_bytes)) {
+            return cbk([503, 'ExpectedRawPubKeyBytesInDerivePubKeyResponse']);
+          }
+
+          return cbk(null, {public_key: res.raw_key_bytes.toString('hex')});
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'getPublicKey'}, cbk));
   });
 };

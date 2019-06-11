@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const payViaRoutes = require('./../../payViaRoutes');
+const {payViaRoutes} = require('./../../');
 
 const preimage = Buffer.alloc(32);
 
@@ -181,7 +181,6 @@ const tests = [
       mtokens: '1000',
       secret: preimage.toString('hex'),
       tokens: 1,
-      type: 'channel_transaction',
     },
   },
 ];
@@ -216,7 +215,6 @@ tests.forEach(({args, description, error, expected}) => {
     equal(paid.mtokens, expected.mtokens, 'Mtokens are returned');
     equal(paid.secret, expected.secret, 'Payment results in secret delivery');
     equal(paid.tokens, expected.tokens, 'Tokens are returned');
-    equal(paid.type, expected.type, 'Type is returned');
 
     return end();
   });

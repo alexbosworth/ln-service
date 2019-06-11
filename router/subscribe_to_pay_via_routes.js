@@ -11,7 +11,6 @@ const {returnResult} = require('asyncjs-util');
 const {broadcastResponse} = require('./../push');
 const {getChannel} = require('./../lightning');
 const paymentFailure = require('./payment_failure');
-const rowTypes = require('./../lightning/conf/row_types');
 const rpcRouteFromRoute = require('./rpc_route_from_route');
 
 const {isArray} = Array;
@@ -21,7 +20,9 @@ const payHashLength = Buffer.alloc(32).length;
 const timeoutError = 'payment attempt not completed before timeout';
 const unknownWireError = 'unknown wire error';
 
-/** Subscribe to the attempts of paying via routes
+/** Subscribe to the attempts of paying via specified routes
+
+  Requires lnd built with routerrpc build tag
 
   {
     [id]: <Payment Hash Hex String>
@@ -176,7 +177,6 @@ const unknownWireError = 'unknown wire error';
     }
     secret: <Payment Secret Preimage Hex String>
     tokens: <Total Tokens Sent Number>
-    type: <Type String>
   }
 */
 module.exports = args => {
@@ -216,7 +216,7 @@ module.exports = args => {
   asyncMapSeries(args.routes, (route, cbk) => {
     // Exit early without trying a payment when there is a definitive result
     if (!!isPayDone) {
-      return cbk();
+      return nextTick(cbk);
     }
 
     if (!!pathfindingTimeout && now() - start > pathfindingTimeout) {
@@ -363,12 +363,9 @@ module.exports = args => {
           fee: success.fee,
           fee_mtokens: success.fee_mtokens,
           hops: success.hops,
-          is_confirmed: true,
-          is_outgoing: true,
           mtokens: success.mtokens,
           secret: success.secret,
           tokens: success.tokens,
-          type: rowTypes.channel_transaction,
         });
 
         return cbk();
@@ -381,7 +378,7 @@ module.exports = args => {
       emitter.emit('error', err);
     }
 
-    return emitter.emit('end', {});
+    return emitter.emit('end');
   });
 
   return emitter;

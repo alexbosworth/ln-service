@@ -1,4 +1,6 @@
+const asyncAuto = require('async/auto');
 const {chanNumber} = require('bolt07');
+const {returnResult} = require('asyncjs-util');
 
 const {channelEdgeAsChannel} = require('./../graph');
 
@@ -12,7 +14,7 @@ const edgeNotFoundErrorMessage = 'edge not found';
     lnd: <Authenticated LND gRPC API Object>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     capacity: <Maximum Tokens Number>
     id: <Standard Format Channel Id String>
@@ -31,44 +33,57 @@ const edgeNotFoundErrorMessage = 'edge not found';
   }
 */
 module.exports = ({id, lnd}, cbk) => {
-  if (!id) {
-    return cbk([400, 'ExpectedChannelIdToGet']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!id) {
+          return cbk([400, 'ExpectedChannelIdToGet']);
+        }
 
-  try {
-    chanNumber({channel: id}).number
-  } catch (err) {
-    return cbk([400, 'ExpectedValidChannelIdToGetChannel', err]);
-  }
+        try {
+          chanNumber({channel: id}).number
+        } catch (err) {
+          return cbk([400, 'ExpectedValidChannelIdToGetChannel', {err}]);
+        }
 
-  if (!lnd || !lnd.default || !lnd.default.getChanInfo) {
-    return cbk([400, 'ExpectedLndToGetChannelDetails']);
-  }
+        if (!lnd || !lnd.default || !lnd.default.getChanInfo) {
+          return cbk([400, 'ExpectedLndToGetChannelDetails']);
+        }
 
-  // LND expects the numeric format channel id
-  const channelNumber = chanNumber({channel: id}).number;
+        return cbk();
+      },
 
-  return lnd.default.getChanInfo({chan_id: channelNumber}, (err, response) => {
-    if (!!err && err.details === edgeIsZombieErrorMessage) {
-      return cbk([404, 'FullChannelDetailsNotFound']);
-    }
+      // Get channel
+      getChannel: ['validate', ({}, cbk) => {
+        return lnd.default.getChanInfo({
+          chan_id: chanNumber({channel: id}).number,
+        },
+        (err, response) => {
+          if (!!err && err.details === edgeIsZombieErrorMessage) {
+            return cbk([404, 'FullChannelDetailsNotFound']);
+          }
 
-    if (!!err && err.details === edgeNotFoundErrorMessage) {
-      return cbk([404, 'FullChannelDetailsNotFound']);
-    }
+          if (!!err && err.details === edgeNotFoundErrorMessage) {
+            return cbk([404, 'FullChannelDetailsNotFound']);
+          }
 
-    if (!!err) {
-      return cbk([503, 'UnexpectedGetChannelInfoError', err]);
-    }
+          if (!!err) {
+            return cbk([503, 'UnexpectedGetChannelInfoError', err]);
+          }
 
-    if (!response) {
-      return cbk([503, 'ExpectedGetChannelResponse']);
-    }
+          if (!response) {
+            return cbk([503, 'ExpectedGetChannelResponse']);
+          }
 
-    try {
-      return cbk(null, channelEdgeAsChannel(response));
-    } catch (err) {
-      return cbk([503, err.message]);
-    }
+          try {
+            return cbk(null, channelEdgeAsChannel(response));
+          } catch (err) {
+            return cbk([503, err.message]);
+          }
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'getChannel'}, cbk));
   });
 };

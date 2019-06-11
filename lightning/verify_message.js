@@ -1,3 +1,6 @@
+const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
+
 /** Verify a message was signed by a known pubkey
 
   {
@@ -6,39 +9,52 @@
     signature: <Signature String>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     [signed_by]: <Public Key String>
   }
 */
 module.exports = ({lnd, message, signature}, cbk) => {
-  if (!lnd || !lnd.default || !lnd.default.verifyMessage) {
-    return cbk([400, 'ExpectedLndForVerifyMessage']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!lnd || !lnd.default || !lnd.default.verifyMessage) {
+          return cbk([400, 'ExpectedLndForVerifyMessage']);
+        }
 
-  if (!message) {
-    return cbk([400, 'ExpectedMessageToVerify']);
-  }
+        if (!message) {
+          return cbk([400, 'ExpectedMessageToVerify']);
+        }
 
-  if (!signature) {
-    return cbk([400, 'ExpectedSignatureToVerifyAgainst']);
-  }
+        if (!signature) {
+          return cbk([400, 'ExpectedSignatureToVerifyAgainst']);
+        }
 
-  const msg = Buffer.from(message, 'utf8');
+        return cbk();
+      },
 
-  return lnd.default.verifyMessage({msg, signature}, (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedVerifyMessageError', {err}]);
-    }
+      // Check message
+      verify: ['validate', ({}, cbk) => {
+        const msg = Buffer.from(message, 'utf8');
 
-    if (!res.pubkey) {
-      return cbk([503, 'ExpectedPublicKeyInVerifyMessageResponse']);
-    }
+        return lnd.default.verifyMessage({msg, signature}, (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedVerifyMessageError', {err}]);
+          }
 
-    if (!res.valid) {
-      return cbk(null, {});
-    }
+          if (!res.pubkey) {
+            return cbk([503, 'ExpectedPublicKeyInVerifyMessageResponse']);
+          }
 
-    return cbk(null, {signed_by: res.pubkey});
+          if (!res.valid) {
+            return cbk(null, {});
+          }
+
+          return cbk(null, {signed_by: res.pubkey});
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'verify'}, cbk));
   });
 };

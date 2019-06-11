@@ -2,16 +2,16 @@ const {decodeChanId} = require('bolt07');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const createInvoice = require('./../../createInvoice');
+const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const getChannel = require('./../../getChannel');
-const getChannelBalance = require('./../../getChannelBalance');
-const getChannels = require('./../../getChannels');
-const getPendingChannels = require('./../../getPendingChannels');
-const getWalletInfo = require('./../../getWalletInfo');
+const {getChannel} = require('./../../');
+const {getChannelBalance} = require('./../../');
+const {getChannels} = require('./../../');
+const {getPendingChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
 const {routeFromChannels} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
@@ -21,7 +21,7 @@ const confirmationCount = 20;
 const defaultFee = 1e3;
 const {floor} = Math;
 const mtokPerTok = 1e3;
-const reserveRatio = 0.01;
+const reserveRatio = 0.02;
 const tokens = 1e3;
 
 // Pushing funds via a fee bump should result in the destination getting funds

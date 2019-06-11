@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const getWalletInfo = require('./../../getWalletInfo');
+const {getWalletInfo} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
@@ -25,7 +25,6 @@ test(`Get wallet info`, async ({deepEqual, end, equal}) => {
   equal(result.peers_count, 0, 'Expected wallet peers count');
   equal(result.pending_channels_count, 0, 'Expected pending channels count');
   equal(result.public_key.length, pubKeyHexLength, 'Expected public key');
-  equal(result.type, walletInfoType, 'Expected wallet info type');
   equal(!!result.version, true, 'Expected version');
 
   kill();

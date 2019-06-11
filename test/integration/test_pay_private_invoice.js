@@ -2,19 +2,19 @@ const {randomBytes} = require('crypto');
 
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
-const createInvoice = require('./../../createInvoice');
-const decodePaymentRequest = require('./../../decodePaymentRequest');
+const {createInvoice} = require('./../../');
+const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
-const getChannel = require('./../../getChannel');
-const getChannels = require('./../../getChannels');
-const getInvoice = require('./../../getInvoice');
-const getRoutes = require('./../../getRoutes');
-const getWalletInfo = require('./../../getWalletInfo');
+const {getChannel} = require('./../../');
+const {getChannels} = require('./../../');
+const {getInvoice} = require('./../../');
+const {getRoutes} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 

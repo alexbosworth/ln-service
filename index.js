@@ -14,6 +14,7 @@ const {createSignedRequest} = require('./bolt11');
 const {createUnsignedRequest} = require('./bolt11');
 const {createWallet} = require('./unlocker');
 const {decodePaymentRequest} = require('./lightning');
+const {deleteForwardingReputations} = require('./router');
 const {getAccountingReport} = require('./accounting');
 const {getAutopilot} = require('./autopilot');
 const {getBackup} = require('./lightning');
@@ -27,12 +28,14 @@ const {getChannelBalance} = require('./lightning');
 const {getChannels} = require('./lightning');
 const {getClosedChannels} = require('./lightning');
 const {getFeeRates} = require('./lightning');
+const {getForwardingReputations} = require('./router');
 const {getForwards} = require('./lightning');
 const {getInvoice} = require('./lightning');
 const {getInvoices} = require('./lightning');
 const {getNetworkGraph} = require('./lightning');
 const {getNetworkInfo} = require('./lightning');
 const {getNode} = require('./lightning');
+const {getPayment} = require('./router');
 const {getPayments} = require('./lightning');
 const {getPeers} = require('./lightning');
 const {getPendingChainBalance} = require('./lightning');
@@ -45,6 +48,8 @@ const localLnd = require('./service/local_lnd');
 const {openChannel} = require('./lightning');
 const {parsePaymentRequest} = require('./bolt11');
 const {pay} = require('./lightning');
+const {payViaPaymentDetails} = require('./router');
+const {payViaPaymentRequest} = require('./router');
 const {payViaRoutes} = require('./router');
 const {probe} = require('./routing');
 const {probeForRoute} = require('./router');
@@ -53,7 +58,6 @@ const {recoverFundsFromChannels} = require('./lightning');
 const {removePeer} = require('./lightning');
 const {routeFromChannels} = require('./routing');
 const {routeFromHops} = require('./routing');
-const {rowTypes} = require('./lightning');
 const {sendToChainAddress} = require('./lightning');
 const {sendToChainAddresses} = require('./lightning');
 const {setAutopilot} = require('./autopilot');
@@ -69,6 +73,9 @@ const {subscribeToChannels} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoice} = require('./invoices');
 const {subscribeToInvoices} = require('./lightning');
+const {subscribeToPastPayment} = require('./router');
+const {subscribeToPayViaDetails} = require('./router');
+const {subscribeToPayViaRequest} = require('./router');
 const {subscribeToPayViaRoutes} = require('./router');
 const {subscribeToProbe} = require('./router');
 const {subscribeToTransactions} = require('./lightning');
@@ -96,6 +103,7 @@ module.exports = {
   createUnsignedRequest,
   createWallet,
   decodePaymentRequest,
+  deleteForwardingReputations,
   getAccountingReport,
   getAutopilot,
   getBackup,
@@ -109,12 +117,14 @@ module.exports = {
   getChannels,
   getClosedChannels,
   getFeeRates,
+  getForwardingReputations,
   getForwards,
   getInvoice,
   getInvoices,
   getNetworkGraph,
   getNetworkInfo,
   getNode,
+  getPayment,
   getPayments,
   getPeers,
   getPendingChainBalance,
@@ -127,6 +137,8 @@ module.exports = {
   openChannel,
   parsePaymentRequest,
   pay,
+  payViaPaymentDetails,
+  payViaPaymentRequest,
   payViaRoutes,
   probe,
   probeForRoute,
@@ -135,7 +147,6 @@ module.exports = {
   removePeer,
   routeFromChannels,
   routeFromHops,
-  rowTypes,
   sendToChainAddress,
   sendToChainAddresses,
   setAutopilot,
@@ -151,6 +162,9 @@ module.exports = {
   subscribeToGraph,
   subscribeToInvoice,
   subscribeToInvoices,
+  subscribeToPastPayment,
+  subscribeToPayViaDetails,
+  subscribeToPayViaRequest,
   subscribeToPayViaRoutes,
   subscribeToProbe,
   subscribeToTransactions,

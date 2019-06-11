@@ -1,29 +1,51 @@
+const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
+const {returnResult} = require('asyncjs-util');
 
 const bufferFromHex = hex => Buffer.from(hex, 'hex');
-const expectedSecretHexLength = 64;
+const expectedSecretLen = 64;
 
 /** Settle hodl invoice
+
+  requires lnd built with invoicesrpc build tag
 
   {
     lnd: <Authenticated LND gRPC API Object>
     secret: <Payment Preimage Hex String>
   }
+
+  @returns via cbk or Promise
 */
 module.exports = ({lnd, secret}, cbk) => {
-  if (!lnd || !lnd.invoices || !lnd.invoices.settleInvoice) {
-    return cbk([400, 'ExpectedInvoicesLndToSettleHodlInvoice']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!lnd || !lnd.invoices || !lnd.invoices.settleInvoice) {
+          return cbk([400, 'ExpectedInvoicesLndToSettleHodlInvoice']);
+        }
 
-  if (!secret || !isHex(secret) || secret.length !== expectedSecretHexLength) {
-    return cbk([400, 'ExpectedPaymentSecretPreimageToSettleHodlInvoice']);
-  }
+        if (!secret || !isHex(secret) || secret.length !== expectedSecretLen) {
+          return cbk([400, 'ExpectedPaymentPreimageToSettleHodlInvoice']);
+        }
 
-  return lnd.invoices.settleInvoice({preimage: bufferFromHex(secret)}, err => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorWhenSettlingHodlInvoice', {err}]);
-    }
+        return cbk();
+      },
 
-    return cbk();
+      // Settle invoice
+      settle: ['validate', ({}, cbk) => {
+        return lnd.invoices.settleInvoice({
+          preimage: bufferFromHex(secret),
+        },
+        err => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrorWhenSettlingHodlInvoice', {err}]);
+          }
+
+          return cbk();
+        });
+      }],
+    },
+    returnResult({reject, resolve}, cbk));
   });
 };

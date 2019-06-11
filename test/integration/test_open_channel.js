@@ -1,7 +1,7 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const openChannel = require('./../../openChannel');
+const {openChannel} = require('./../../');
 
 const channelCapacityTokens = 1e6;
 const defaultFee = 1e3;
@@ -24,7 +24,6 @@ test(`Open channel`, async ({end, equal}) => {
 
   equal(channelOpen.transaction_id.length, txIdHexLength, 'Channel tx id');
   equal(channelOpen.transaction_vout, defaultVout, 'Channel tx output index');
-  equal(channelOpen.type, 'open_channel_pending');
 
   await cluster.kill({});
 

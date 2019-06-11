@@ -1,7 +1,5 @@
 const EventEmitter = require('events');
 
-const rowTypes = require('./conf/row_types');
-
 const {abs} = Math;
 const decBase = 10;
 const msPerSec = 1e3;
@@ -18,7 +16,7 @@ const msPerSec = 1e3;
   @returns
   <EventEmitter Object>
 
-  @on(data)
+  @event 'chain_transaction'
   {
     [block_id]: <Block Hash String>
     confirmation_count: <Confirmation Count Number>
@@ -27,7 +25,6 @@ const msPerSec = 1e3;
     fee: <Fees Paid Tokens Number>
     id: <Transaction Id String>
     tokens: <Tokens Number>
-    type: <Type String>
   }
 */
 module.exports = ({lnd}) => {
@@ -53,7 +50,7 @@ module.exports = ({lnd}) => {
 
     const createdAt = parseInt(tx.time_stamp, decBase);
 
-    return eventEmitter.emit('data', {
+    return eventEmitter.emit('chain_transaction', {
       block_id: tx.block_hash || null,
       confirmation_count: tx.num_confirmations,
       created_at: new Date(createdAt * msPerSec).toISOString(),
@@ -62,7 +59,6 @@ module.exports = ({lnd}) => {
       fee: parseInt(tx.total_fees, decBase),
       id: tx.tx_hash,
       tokens: abs(parseInt(tx.amount, decBase)),
-      type: rowTypes.chain_transaction,
     });
   });
 

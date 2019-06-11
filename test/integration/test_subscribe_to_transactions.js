@@ -1,9 +1,9 @@
 const {test} = require('tap');
 
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const sendToChainAddress = require('./../../sendToChainAddress');
+const {sendToChainAddress} = require('./../../');
 const {subscribeToTransactions} = require('./../../');
 
 const confirmationCount = 6;
@@ -21,7 +21,7 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
 
   sub.on('error', () => {});
 
-  sub.on('data', tx => {
+  sub.on('chain_transaction', tx => {
     if (!!isConfirmed) {
       return;
     }
@@ -31,7 +31,6 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
     equal(tx.fee, 8200, 'Transaction has a chain fee');
     equal(!!tx.id, true, 'Tx has an id');
     equal(tx.tokens, 1008200, 'Tx tokens is fee + tokens sent');
-    equal(tx.type, 'chain_transaction', 'Row type is chain transaction');
 
     if (tx.is_confirmed !== false && tx.is_confirmed !== true) {
       fail('Transaction must have confirmation status');

@@ -1,28 +1,49 @@
+const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
+const {returnResult} = require('asyncjs-util');
 
 const bufferFromHex = hex => Buffer.from(hex, 'hex');
 
-/** Cancel back an invoice
+/** Cancel an invoice
+
+  Requires lnd built with invoicesrpc
 
   {
     id: <Payment Hash Hex String>
     lnd: <Authenticated RPC LND gRPC API Object>
   }
+
+  @returns via cbk or Promise
 */
 module.exports = ({id, lnd}, cbk) => {
-  if (!id || !isHex(id)) {
-    return cbk([400, 'ExpectedIdOfHodlInvoiceToCancel']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!id || !isHex(id)) {
+          return cbk([400, 'ExpectedIdOfHodlInvoiceToCancel']);
+        }
 
-  if (!lnd || !lnd.invoices || !lnd.invoices.cancelInvoice) {
-    return cbk([400, 'ExpectedInvoicesLndGrpcApiToCancelHodlInvoice']);
-  }
+        if (!lnd || !lnd.invoices || !lnd.invoices.cancelInvoice) {
+          return cbk([400, 'ExpectedInvoicesLndGrpcApiToCancelHodlInvoice']);
+        }
 
-  return lnd.invoices.cancelInvoice({payment_hash: bufferFromHex(id)}, err => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorCancelingHodlInvoice', {err}]);
-    }
+        return cbk();
+      },
 
-    return cbk();
+      // Cancel invoice
+      cancel: ['validate', ({}, cbk) => {
+        const paymentHash = bufferFromHex(id);
+
+        return lnd.invoices.cancelInvoice({payment_hash: paymentHash}, err => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrorCancelingHodlInvoice', {err}]);
+          }
+
+          return cbk();
+        });
+      }],
+    },
+    returnResult({reject, resolve}, cbk));
   });
 };

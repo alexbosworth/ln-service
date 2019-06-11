@@ -35,7 +35,7 @@ const queueStart = 1;
   @throws
   <Error>
 
-  @returns via cbk
+  @returns
   {
     [hops]: [{
       base_fee_mtokens: <Base Fee Millitokens String>

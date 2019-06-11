@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const getChannelBalance = require('./../../getChannelBalance');
+const {getChannelBalance} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 

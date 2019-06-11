@@ -1,7 +1,5 @@
 const EventEmitter = require('events');
 
-const rowTypes = require('./conf/row_types');
-
 const decBase = 10;
 const msPerSec = 1e3;
 
@@ -17,7 +15,7 @@ const msPerSec = 1e3;
   @returns
   <EventEmitter Object>
 
-  @on(data)
+  @event 'invoice_updated'
   {
     [confirmed_at]: <Confirmed At ISO 8601 Date String>
     created_at: <Created At ISO 8601 Date String>
@@ -28,7 +26,6 @@ const msPerSec = 1e3;
     is_outgoing: <Invoice is Outgoing Bool>
     secret: <Payment Secret Hex String>
     tokens: <Tokens Number>
-    type: <Row Type String>
   }
 */
 module.exports = ({lnd}) => {
@@ -92,7 +89,7 @@ module.exports = ({lnd}) => {
     const confirmed = new Date(confirmedAt).toISOString();
     const expiresAt = createdAt + parseInt(invoice.expiry);
 
-    return eventEmitter.emit('data', {
+    return eventEmitter.emit('invoice_updated', {
       confirmed_at: !invoice.settled ? undefined : confirmed,
       created_at: new Date(createdAt * msPerSec).toISOString(),
       description: invoice.memo || '',
@@ -104,7 +101,6 @@ module.exports = ({lnd}) => {
       tokens: parseInt(invoice.value, decBase),
       received: parseInt(invoice.amt_paid_sat, decBase),
       received_mtokens: invoice.amt_paid_msat,
-      type: rowTypes.channel_transaction,
     });
   });
 

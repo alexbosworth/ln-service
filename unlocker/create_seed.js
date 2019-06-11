@@ -1,46 +1,65 @@
+const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
+
 const connectionFailure = '14 UNAVAILABLE: Connect Failed';
 const expectedMnemonicLength = 24;
+const {isArray} = Array;
 
 /** Create a wallet seed
+
+  Requires unlocked lnd and unauthenticated LND gRPC API Object
 
   {
     lnd: <Unauthenticed LND gRPC API Object>
     [passphrase]: <Seed Passphrase String>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     seed: <Cipher Seed Mnemonic String>
   }
 */
 module.exports = ({lnd, passphrase}, cbk) => {
-  if (!lnd || !lnd.unlocker || !lnd.unlocker.genSeed) {
-    return cbk([400, 'ExpectedNonAuthenticatedLndForSeedCreation']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!lnd || !lnd.unlocker || !lnd.unlocker.genSeed) {
+          return cbk([400, 'ExpectedNonAuthenticatedLndForSeedCreation']);
+        }
 
-  const pass = !passphrase ? undefined : Buffer.from(passphrase, 'utf8');
+        return cbk();
+      },
 
-  return lnd.unlocker.genSeed({aezeed_passphrase: pass}, (err, res) => {
-    if (!!err && err.message === connectionFailure) {
-      return cbk([503, 'UnexpectedConnectionFailure']);
-    }
+      // Create seed
+      createSeed: ['validate', ({}, cbk) => {
+        const pass = !passphrase ? undefined : Buffer.from(passphrase, 'utf8');
 
-    if (!!err) {
-      return cbk([503, 'UnexpectedCreateSeedError', err]);
-    }
+        return lnd.unlocker.genSeed({aezeed_passphrase: pass}, (err, res) => {
+          if (!!err && err.message === connectionFailure) {
+            return cbk([503, 'UnexpectedConnectionFailure']);
+          }
 
-    if (!res) {
-      return cbk([503, 'ExpectedResponseForSeedCreation']);
-    }
+          if (!!err) {
+            return cbk([503, 'UnexpectedCreateSeedError', err]);
+          }
 
-    if (!Array.isArray(res.cipher_seed_mnemonic)) {
-      return cbk([503, 'ExpectedCipherSeedMnemonic', res]);
-    }
+          if (!res) {
+            return cbk([503, 'ExpectedResponseForSeedCreation']);
+          }
 
-    if (res.cipher_seed_mnemonic.length !== expectedMnemonicLength) {
-      return cbk([503, 'UnexpectedCipherSeedMnemonicLength', res]);
-    }
+          if (!isArray(res.cipher_seed_mnemonic)) {
+            return cbk([503, 'ExpectedCipherSeedMnemonic', res]);
+          }
 
-    return cbk(null, {seed: res.cipher_seed_mnemonic.join(' ')});
+          if (res.cipher_seed_mnemonic.length !== expectedMnemonicLength) {
+            return cbk([503, 'UnexpectedCipherSeedMnemonicLength', res]);
+          }
+
+          return cbk(null, {seed: res.cipher_seed_mnemonic.join(' ')});
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'createSeed'}, cbk));
   });
 };

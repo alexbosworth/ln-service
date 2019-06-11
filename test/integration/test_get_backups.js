@@ -1,8 +1,8 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const getBackups = require('./../../getBackups');
-const openChannel = require('./../../openChannel');
+const {getBackups} = require('./../../');
+const {openChannel} = require('./../../');
 const {waitForPendingChannel} = require('./../macros');
 
 // Getting a set of channel backups should return channel backups
@@ -13,6 +13,7 @@ test(`Get channel backup`, async ({end, equal}) => {
 
   const channel = await openChannel({
     lnd,
+    local_tokens: 1e6,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });

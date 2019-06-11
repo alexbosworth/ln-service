@@ -3,14 +3,14 @@ const {randomBytes} = require('crypto');
 
 const {test} = require('tap');
 
-const cancelHodlInvoice = require('./../../cancelHodlInvoice');
+const {cancelHodlInvoice} = require('./../../');
 const {createCluster} = require('./../macros');
-const createHodlInvoice = require('./../../createHodlInvoice');
+const {createHodlInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const getInvoice = require('./../../getInvoice');
-const getInvoices = require('./../../getInvoices');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
+const {getInvoice} = require('./../../');
+const {getInvoices} = require('./../../');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
@@ -55,7 +55,7 @@ test(`Subscribe to canceled invoice`, async ({deepIs, end, equal}) => {
     lnd: cluster.target.lnd,
   });
 
-  sub.on('data', data => currentInvoice = data);
+  sub.on('invoice_updated', data => currentInvoice = data);
 
   const invoice = await createHodlInvoice({
     tokens,

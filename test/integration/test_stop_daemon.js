@@ -1,9 +1,9 @@
 const {test} = require('tap');
 
 const {delay} = require('./../macros');
-const getWalletInfo = require('./../../getWalletInfo');
+const {getWalletInfo} = require('./../../');
 const {spawnLnd} = require('./../macros');
-const stopDaemon = require('./../../stopDaemon');
+const {stopDaemon} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 // Stopping the daemon should gracefully shut down the daemon

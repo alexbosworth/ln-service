@@ -2,10 +2,11 @@ const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const getChannels = require('./../../getChannels');
-const getPendingChannels = require('./../../getPendingChannels');
-const openChannel = require('./../../openChannel');
+const {getChannels} = require('./../../');
+const {getPendingChannels} = require('./../../');
+const {openChannel} = require('./../../');
 const {waitForChannel} = require('./../macros');
+const {waitForPendingChannel} = require('./../macros');
 
 const confirmationCount = 20;
 const maxChannelCapacity = 16776215;
@@ -18,11 +19,12 @@ test(`Get channels`, async ({end, equal}) => {
 
   const chanOpen = await openChannel({
     lnd,
+    local_tokens: maxChannelCapacity,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });
 
-  await delay(2000);
+  await waitForPendingChannel({lnd, id: chanOpen.transaction_id});
 
   await cluster.generate({count: confirmationCount});
 
@@ -36,8 +38,10 @@ test(`Get channels`, async ({end, equal}) => {
 
   const target = await getChannels({lnd: cluster.target.lnd});
 
-  if (target.channels[0].is_partner_initiated !== undefined) {
-    equal(target.channels[0].is_partner_initiated, false, 'Self-init channel');
+  const [targetChan] = target.channels;
+
+  if (targetChan.is_partner_initiated !== undefined) {
+    equal(targetChan.is_partner_initiated, false, 'Self-init channel');
   }
 
   equal(channel.capacity, maxChannelCapacity, 'Channel capacity');

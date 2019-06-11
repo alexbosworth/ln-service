@@ -23,7 +23,7 @@ const grpcOptions = {
   oneofs: true,
 };
 
-/** Authenticated gRPC methods for lnd
+/** Initiate an gRPC API Methods Object for authenticated methods
 
   {
     [cert]: <Base64 or Hex Serialized LND TLS Cert>

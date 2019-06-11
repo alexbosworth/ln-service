@@ -1,3 +1,6 @@
+const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
+
 const decBase = 10;
 
 /** Get balance on the chain.
@@ -6,31 +9,44 @@ const decBase = 10;
     lnd: <Authenticated LND gRPC API Object>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     chain_balance: <Confirmed Chain Balance Tokens Number>
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.default || !lnd.default.walletBalance) {
-    return cbk([400, 'ExpectedLndToRetrieveChainBalance']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!lnd || !lnd.default || !lnd.default.walletBalance) {
+          return cbk([400, 'ExpectedAuthenticatedLndToRetrieveChainBalance']);
+        }
 
-  return lnd.default.walletBalance({}, (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorWhenGettingChainBalance', {err}]);
-    }
+        return cbk();
+      },
 
-    if (!res) {
-      return cbk([503, 'ExpectedResponseForChainBalanceRequest']);
-    }
+      // Get wallet chain balance
+      getBalance: ['validate', ({}, cbk) => {
+        return lnd.default.walletBalance({}, (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrorWhenGettingChainBalance', {err}]);
+          }
 
-    if (res.confirmed_balance === undefined) {
-      return cbk([503, 'ExpectedConfirmedBalanceInChainBalanceResponse']);
-    }
+          if (!res) {
+            return cbk([503, 'ExpectedResponseForChainBalanceRequest']);
+          }
 
-    return cbk(null, {
-      chain_balance: parseInt(res.confirmed_balance, decBase),
-    });
+          if (res.confirmed_balance === undefined) {
+            return cbk([503, 'ExpectedConfirmedBalanceInBalanceResponse']);
+          }
+
+          return cbk(null, {
+            chain_balance: parseInt(res.confirmed_balance, decBase),
+          });
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'getBalance'}, cbk));
   });
 };

@@ -3,7 +3,6 @@ const EventEmitter = require('events');
 const {chanFormat} = require('bolt07');
 
 const getNode = require('./get_node');
-const rowTypes = require('./conf/row_types');
 
 const decBase = 10;
 const {isArray} = Array;
@@ -21,7 +20,7 @@ const msPerSec = 1e3;
   @returns
   <EventEmitter Object>
 
-  @on(data) // channel_update
+  @event 'channel_update'
   {
     base_fee_mtokens: <Channel Base Fee Millitokens String>
     capacity: <Channel Capacity Tokens Number>
@@ -34,28 +33,25 @@ const msPerSec = 1e3;
     public_keys: [<Announcing Public Key>, <Target Public Key String>]
     transaction_id: <Channel Transaction Id String>
     transaction_vout: <Channel Transaction Output Index Number>
-    type: <Row Type String>
     updated_at: <Update Received At ISO 8601 Date String>
   }
 
-  @on(data) // closed_channel
+  @event 'closed_channel'
   {
     capacity: <Channel Capacity Tokens Number>
     id: <Standard Format Channel Id String>
     close_height: <Channel Close Confirmed Block Height Number>
     transaction_id: <Channel Transaction Id String>
     transaction_vout: <Channel Transaction Output Index Number>
-    type: <Row Type String>
     updated_at: <Update Received At ISO 8601 Date String>
   }
 
-  @on(data) // node_update
+  @event 'node_update'
   {
     alias: <Node Alias String>
     color: <Node Color String>
     public_key: <Node Public Key String>
     [sockets]: [<Network Host And Port String>]
-    type: <Row Type String>
     updated_at: <Update Received At ISO 8601 Date String>
   }
 */
@@ -144,7 +140,7 @@ module.exports = ({lnd}) => {
         return eventEmitter.emit('error', new Error('ExpectedValidChannelId'));
       }
 
-      return eventEmitter.emit('data', {
+      return eventEmitter.emit('channel_updated', {
         base_fee_mtokens: update.routing_policy.fee_base_msat,
         capacity: parseInt(update.capacity, decBase),
         cltv_delta: update.routing_policy.time_lock_delta,
@@ -156,7 +152,6 @@ module.exports = ({lnd}) => {
         public_keys: [update.advertising_node, update.connecting_node],
         transaction_id: transactionId.toString('hex'),
         transaction_vout: update.chan_point.output_index,
-        type: rowTypes.channel_update,
         updated_at: updatedAt,
       });
     });
@@ -195,13 +190,12 @@ module.exports = ({lnd}) => {
         return eventEmitter.emit('error', new Error('ExpectedValidChannelId'));
       }
 
-      return eventEmitter.emit('data', {
+      return eventEmitter.emit('channel_closed', {
         capacity: parseInt(update.capacity, decBase),
         close_height: update.closed_height,
         id: chanFormat({number: update.chan_id}).channel,
         transaction_id: transactionId.toString('hex'),
         transaction_vout: update.chan_point.output_index,
-        type: rowTypes.closed_channel,
         updated_at: updatedAt,
       });
     });
@@ -222,12 +216,11 @@ module.exports = ({lnd}) => {
 
       // Exit early when the node color is emitted
       if (!!node.color) {
-        return eventEmitter.emit('data', {
+        return eventEmitter.emit('node_updated', {
           alias: node.alias,
           color: node.color,
           public_key: node.identity_key,
           sockets: !node.addresses.length ? undefined : node.addresses,
-          type: rowTypes.node_update,
           updated_at: updatedAt,
         });
       }
@@ -239,12 +232,11 @@ module.exports = ({lnd}) => {
 
         const {color} = res;
 
-        return eventEmitter.emit('data', {
+        return eventEmitter.emit('node_updated', {
           color,
           alias: node.alias,
           public_key: node.identity_key,
           sockets: !node.addresses.length ? undefined : node.addresses,
-          type: rowTypes.node_update,
           updated_at: updatedAt,
         });
       });

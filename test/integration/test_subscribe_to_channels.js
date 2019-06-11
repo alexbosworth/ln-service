@@ -1,11 +1,11 @@
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
-const closeChannel = require('./../../closeChannel');
+const {addPeer} = require('./../../');
+const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const openChannel = require('./../../openChannel');
-const removePeer = require('./../../removePeer');
+const {openChannel} = require('./../../');
+const {removePeer} = require('./../../');
 const {subscribeToChannels} = require('./../../');
 
 const channelCapacityTokens = 1e6;
@@ -23,7 +23,9 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
 
   const sub = subscribeToChannels({lnd});
 
-  sub.on('data', update => deepIs(update, expected.shift()));
+  sub.on('channel_active_changed', update => deepIs(update, expected.shift()));
+  sub.on('channel_closed', update => deepIs(update, expected.shift()));
+  sub.on('channel_opened', update => deepIs(update, expected.shift()));
   sub.on('end', () => {});
   sub.on('error', err => {});
   sub.on('status', () => {});
@@ -39,7 +41,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   });
 
   expected.push({
-    capacity: channelCapacityTokens - defaultFee,
+    capacity: channelCapacityTokens,
     commit_transaction_fee: 9050,
     commit_transaction_weight: 724,
     is_active: true,
@@ -47,7 +49,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     is_opening: false,
     is_partner_initiated: false,
     is_private: false,
-    local_balance: 889950,
+    local_balance: 890950,
     partner_public_key: cluster.target_node_public_key,
     pending_payments: [],
     received: 0,
@@ -55,7 +57,6 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     sent: 0,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
-    type: 'channel',
     unsettled_balance: 0,
   });
 
@@ -63,7 +64,6 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     is_active: true,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
-    type: 'channel_status',
   });
 
   // Generate to confirm the channel
@@ -73,7 +73,6 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     is_active: false,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
-    type: 'channel_status',
   });
 
   // Disconnect, reconnect the channel
@@ -85,7 +84,6 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     is_active: true,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
-    type: 'channel_status',
   });
 
   await addPeer({lnd, socket, public_key: cluster.target_node_public_key});
@@ -98,7 +96,6 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     is_active: false,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
-    type: 'channel_status',
   });
 
   // Close the channel
@@ -110,10 +107,10 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   });
 
   expected.push({
-    capacity: channelCapacityTokens - defaultFee,
+    capacity: channelCapacityTokens,
     close_confirm_height: 503,
     close_transaction_id: channelClose.transaction_id,
-    final_local_balance: 889950,
+    final_local_balance: 890950,
     final_time_locked_balance: 0,
     id: '443x1x0',
     is_breach_close: false,
@@ -124,7 +121,6 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     partner_public_key: cluster.target_node_public_key,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
-    type: 'closed_channel' 
   });
 
   // Generate to confirm the channel

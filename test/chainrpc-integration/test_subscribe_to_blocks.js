@@ -24,7 +24,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
   sub.on('error', err => {});
   sub.on('status', () => {});
 
-  sub.on('data', async data => {
+  sub.on('block', async data => {
     equal(data.id.length, 64, 'Block id emitted');
     equal(!!data.height, true, 'Block height emitted');
 

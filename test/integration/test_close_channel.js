@@ -1,9 +1,9 @@
 const {test} = require('tap');
 
-const closeChannel = require('./../../closeChannel');
+const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
-const getChannels = require('./../../getChannels');
-const openChannel = require('./../../openChannel');
+const {getChannels} = require('./../../');
+const {openChannel} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -46,7 +46,6 @@ test(`Close channel`, async ({end, equal}) => {
 
   equal(!!channelClose.transaction_id, true, 'Closing id is returned');
   equal(channelClose.transaction_vout, defaultVout, 'Closing vout returned');
-  equal(channelClose.type, 'pending_close_channel', 'Row type returned');
 
   await cluster.kill({});
 

@@ -1,5 +1,31 @@
 # Versions
 
+## 39.0.0
+
+All previously cbk type functions can now also be used as Promises
+
+- Add deleteForwardingReputations to clear mission control reputations
+- Add getForwardingReputations to get mission control reputations
+- Add getPayment method to lookup a payment
+- Add payViaPaymentDetails method to make a payment using deconstructed details
+- Add payViaPaymentRequest method to make a payment using BOLT 11 pay request
+- Add subscribeToPastPayment to subscribe to a payment's status
+- Add subscribeToPayViaDetails to make a payment using details and sub to it
+- Add subscribeToPayVIaRequest to make a payment using a request and sub to it
+
+### Breaking Changes
+
+- All promisified methods are removed
+- Response type strings are being phased out
+- Open channel static fee amount is no longer subtracted
+- Open channel requires an explicit local amount
+- `subscribeToBackup` emits named events
+- `subscribeToBlocks` emits named events
+- `subscribeToChannels` emits named events
+- `subscribeToGraph` emits named events
+- `subscribeToInvoice` emits named events
+- `subscribeToInvoices` emits named events
+
 ## 38.3.9
 
 - Add helper method for probing to find a route

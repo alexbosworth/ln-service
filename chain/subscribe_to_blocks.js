@@ -4,6 +4,8 @@ const blockHashByteLen = 32;
 
 /** Subscribe to blocks
 
+  Requires lnd built with chainrpc build tag
+
   {
     lnd: <Authenticated LND gRPC Object>
   }
@@ -14,7 +16,7 @@ const blockHashByteLen = 32;
   @returns
   <EventEmitter Object>
 
-  @on(data)
+  @event 'block'
   {
     height: <Block Height Number>
     id: <Block Hash String>
@@ -50,7 +52,7 @@ module.exports = ({lnd}) => {
       eventEmitter.emit('error', new Error('ExpectedHeightInBlockEvent'));
     }
 
-    eventEmitter.emit('data', {
+    eventEmitter.emit('block', {
       height: data.height,
       id: data.hash.toString('hex'),
     });

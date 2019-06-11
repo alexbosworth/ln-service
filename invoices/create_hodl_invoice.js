@@ -1,5 +1,6 @@
 const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
+const {returnResult} = require('asyncjs-util');
 
 const {broadcastResponse} = require('./../push');
 const {createChainAddress} = require('./../lightning');
@@ -9,10 +10,11 @@ const msPerSec = 1e3;
 const noTokens = 0;
 const {parse} = Date;
 const {round} = Math;
-const rowType = 'invoice';
 
 /** Create hodl invoice. This invoice will not settle automatically when an
     HTLC arrives. It must be settled separately with a preimage.
+
+  Requires lnd built with invoicesrpc tag
 
   {
     [cltv_delta]: <CLTV Delta Number>
@@ -29,7 +31,7 @@ const rowType = 'invoice';
     [wss]: [<Web Socket Server Object>]
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     [chain_address]: <Backup Address String>
     created_at: <ISO 8601 Date String>
@@ -38,103 +40,107 @@ const rowType = 'invoice';
     request: <BOLT 11 Encoded Payment Request String>
     secret: <Hex Encoded Payment Secret String>
     tokens: <Tokens Number>
-    type: <Type String>
   }
 */
 module.exports = (args, cbk) => {
-  return asyncAuto({
-    // Check arguments
-    validate: cbk => {
-      if (!args.id || !isHex(args.id)) {
-        return cbk([400, 'ExpectedInvoiceIdForNewHodlInvoice']);
-      }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!args.id || !isHex(args.id)) {
+          return cbk([400, 'ExpectedInvoiceIdForNewHodlInvoice']);
+        }
 
-      if (!args.lnd || !args.lnd.invoices) {
-        return cbk([400, 'ExpectedInvoicesLndToCreateHodlInvoice']);
-      }
+        if (!args.lnd || !args.lnd.invoices) {
+          return cbk([400, 'ExpectedInvoicesLndToCreateHodlInvoice']);
+        }
 
-      if (!!args.wss && !isArray(args.wss)) {
-        return cbk([400, 'ExpectedWssArrayForCreateHodlInvoice']);
-      }
+        if (!!args.wss && !isArray(args.wss)) {
+          return cbk([400, 'ExpectedWssArrayForCreateHodlInvoice']);
+        }
 
-      if (!!args.wss && !args.log) {
-        return cbk([400, 'ExpectedLogFunctionForCreateHodlInvoice']);
-      }
+        if (!!args.wss && !args.log) {
+          return cbk([400, 'ExpectedLogFunctionForCreateHodlInvoice']);
+        }
 
-      return cbk();
-    },
-
-    // Add address for the fallback address
-    addAddress: ['validate', ({}, cbk) => {
-      // Exit early when no fallback address is needed
-      if (!args.is_fallback_included) {
         return cbk();
-      }
-
-      const format = !!args.is_fallback_nested ? 'np2wpkh' : 'p2wpkh';
-
-      return createChainAddress({format, lnd: args.lnd}, cbk);
-    }],
-
-    // Add invoice
-    addInvoice: ['addAddress', ({addAddress}, cbk) => {
-      const fallbackAddress = !addAddress ? undefined : addAddress.address;
-      const createdAt = new Date();
-      const expireAt = !args.expires_at ? null : parse(args.expires_at);
-
-      const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
-
-      return args.lnd.invoices.addHoldInvoice({
-        cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
-        expiry: !expiryMs ? undefined : round(expiryMs / msPerSec),
-        fallback_addr: fallbackAddress,
-        hash: Buffer.from(args.id, 'hex'),
-        memo: args.description,
-        private: !!args.is_including_private_channels,
-        value: args.tokens || undefined,
       },
-      (err, response) => {
-        if (!!err) {
-          return cbk([503, 'AddHodlInvoiceError', err]);
+
+      // Add address for the fallback address
+      addAddress: ['validate', ({}, cbk) => {
+        // Exit early when no fallback address is needed
+        if (!args.is_fallback_included) {
+          return cbk();
         }
 
-        if (!response.payment_request) {
-          return cbk([503, 'ExpectedPaymentRequestForCreatedInvoice']);
-        }
+        const format = !!args.is_fallback_nested ? 'np2wpkh' : 'p2wpkh';
 
-        return cbk(null, {
-          created_at: createdAt.toISOString(),
-          description: args.description || undefined,
-          id: args.id,
-          request: response.payment_request,
-          tokens: args.tokens || noTokens,
-          type: rowType,
+        return createChainAddress({format, lnd: args.lnd}, cbk);
+      }],
+
+      // Add invoice
+      addInvoice: ['addAddress', ({addAddress}, cbk) => {
+        const fallbackAddress = !addAddress ? undefined : addAddress.address;
+        const createdAt = new Date();
+        const expireAt = !args.expires_at ? null : parse(args.expires_at);
+
+        const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
+
+        return args.lnd.invoices.addHoldInvoice({
+          cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
+          expiry: !expiryMs ? undefined : round(expiryMs / msPerSec),
+          fallback_addr: fallbackAddress,
+          hash: Buffer.from(args.id, 'hex'),
+          memo: args.description,
+          private: !!args.is_including_private_channels,
+          value: args.tokens || undefined,
+        },
+        (err, response) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedAddHodlInvoiceError', {err}]);
+          }
+
+          if (!response) {
+            return cbk([503, 'ExpectedResponseWhenAddingHodlInvoice']);
+          }
+
+          if (!response.payment_request) {
+            return cbk([503, 'ExpectedPaymentRequestForCreatedInvoice']);
+          }
+
+          return cbk(null, {
+            created_at: createdAt.toISOString(),
+            description: args.description || undefined,
+            id: args.id,
+            request: response.payment_request,
+            tokens: args.tokens || noTokens,
+          });
         });
-      });
-    }],
+      }],
 
-    // Final invoice
-    invoice: ['addAddress', 'addInvoice', (res, cbk) => {
-      return cbk(null, {
-        chain_address: !res.addAddress ? undefined : res.addAddress.address,
-        created_at: res.addInvoice.created_at,
-        description: res.addInvoice.description,
-        id: res.addInvoice.id,
-        request: res.addInvoice.request,
-        tokens: res.addInvoice.tokens,
-        type: rowType,
-      });
-    }],
-  },
-  (err, res) => {
-    if (!!err) {
-      return cbk(err);
-    }
+      // Final invoice
+      invoice: ['addAddress', 'addInvoice', (res, cbk) => {
+        return cbk(null, {
+          chain_address: !res.addAddress ? undefined : res.addAddress.address,
+          created_at: res.addInvoice.created_at,
+          description: res.addInvoice.description,
+          id: res.addInvoice.id,
+          request: res.addInvoice.request,
+          tokens: res.addInvoice.tokens,
+        });
+      }],
 
-    if (!!args.wss) {
-      broadcastResponse({log: args.log, row: res.invoice, wss: args.wss});
-    }
+      // Broadcast
+      broadcast: ['invoice', ({invoice}, cbk) => {
+        if (!args.wss) {
+          return cbk();
+        }
 
-    return cbk(null, res.invoice);
+        broadcastResponse({log: args.log, row: res.invoice, wss: args.wss});
+
+        return cbk();
+      }],
+    },
+    returnResult({reject, resolve, of: 'invoice'}, cbk));
   });
 };

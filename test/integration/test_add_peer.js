@@ -1,8 +1,8 @@
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
-const getPeers = require('./../../getPeers');
+const {getPeers} = require('./../../');
 
 // Adding peers should result in a connected peer
 test(`Add a peer`, async ({end, equal}) => {

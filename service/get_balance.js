@@ -1,11 +1,10 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
-const getChainBalance = require('./../getChainBalance');
-const getChannelBalance = require('./../getChannelBalance');
-const getPendingChainBalance = require('./../getPendingChainBalance');
-const getPendingChannels = require('./../getPendingChannels');
-const {rowTypes} = require('./../lightning');
+const {getChainBalance} = require('./../');
+const {getChannelBalance} = require('./../');
+const {getPendingChainBalance} = require('./../');
+const {getPendingChannels} = require('./../');
 
 /** Get both the chain and channel balance totals.
 
@@ -19,7 +18,6 @@ const {rowTypes} = require('./../lightning');
     channel_balance: <Tokens Number>
     pending_chain_balance: <Tokens Number>
     pending_channel_balance: <Tokens Number>
-    type: <Type String>
   }
 */
 module.exports = ({lnd}, cbk) => {
@@ -59,7 +57,6 @@ module.exports = ({lnd}, cbk) => {
         channel_balance: res.getChannelBalance.channel_balance,
         pending_chain_balance: res.getPendingChain.pending_chain_balance,
         pending_channel_balance: res.pendingChanBalance,
-        type: rowTypes.balances,
       });
     }],
   },

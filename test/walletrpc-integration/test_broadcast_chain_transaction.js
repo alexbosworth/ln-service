@@ -2,12 +2,12 @@ const {readFileSync} = require('fs');
 
 const {test} = require('tap');
 
-const broadcastChainTransaction = require('./../../broadcastChainTransaction');
+const {broadcastChainTransaction} = require('./../../');
 const {chainSendTransaction} = require('./../macros');
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const getChainTransactions = require('./../../getChainTransactions');
+const {getChainTransactions} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 

@@ -1,11 +1,11 @@
 const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
-const getChainBalance = require('./../../getChainBalance');
-const getWalletInfo = require('./../../getWalletInfo');
-const sendToChainAddress = require('./../../sendToChainAddress');
+const {getChainBalance} = require('./../../');
+const {getWalletInfo} = require('./../../');
+const {sendToChainAddress} = require('./../../');
 
 const chainAddressRowType = 'chain_address';
 const confirmationCount = 6;
@@ -34,7 +34,6 @@ test(`Send to chain address`, async ({end, equal}) => {
   equal(sent.is_confirmed, false, 'Transaction is not yet confirmed');
   equal(sent.is_outgoing, true, 'Transaction is outgoing');
   equal(sent.tokens, tokens, 'Tokens amount matches tokens sent');
-  equal(sent.type, 'chain_transaction', 'Send is a chain transaction');
 
   // Generate to confirm the tx
   await cluster.generate({count: confirmationCount, node: cluster.control});

@@ -12,7 +12,7 @@ const {isArray} = Array;
 
 /** Subscribe to a probe attempt
 
-  Requires routerrpc lnd
+  Requires lnd built with routerrpc build tag
 
   {
     [cltv_delta]: <Final CLTV Delta Number>

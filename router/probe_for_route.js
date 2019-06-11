@@ -1,4 +1,7 @@
+const asyncAuto = require('async/auto');
+const asyncTimeout = require('async/timeout');
 const isHex = require('is-hex');
+const {returnResult} = require('asyncjs-util');
 
 const subscribeToProbe = require('./subscribe_to_probe');
 
@@ -6,7 +9,7 @@ const {isArray} = Array;
 
 /** Probe to find a successful route
 
-  Requires router RPC lnd
+  Requires lnd built with routerrpc build tag
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -30,7 +33,7 @@ const {isArray} = Array;
     tokens: <Tokens Number>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     [route]: {
       fee: <Route Fee Tokens Number>
@@ -52,81 +55,92 @@ const {isArray} = Array;
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.destination || !isHex(args.destination)) {
-    return cbk([400, 'ExpectedDestinationPublicKeyHexStringForRouteProbe']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!args.destination || !isHex(args.destination)) {
+          return cbk([400, 'ExpectedDestinationKeyHexStringForRouteProbe']);
+        }
 
-  if (!!args.ignore && !isArray(args.ignore)) {
-    return cbk([400, 'ExpectedIgnoreAsArrayWhenProbingForRoute'])
-  }
+        if (!!args.ignore && !isArray(args.ignore)) {
+          return cbk([400, 'ExpectedIgnoreAsArrayWhenProbingForRoute'])
+        }
 
-  if (!args.lnd || !args.lnd.router) {
-    return cbk([400, 'ExpectedAuthenticatedLndToProbeForRoute']);
-  }
+        if (!args.lnd || !args.lnd.router) {
+          return cbk([400, 'ExpectedAuthenticatedLndToProbeForRoute']);
+        }
 
-  if (!args.tokens) {
-    return cbk([400, 'ExpectedTokensValueToProbeForRoute']);
-  }
+        if (!args.tokens) {
+          return cbk([400, 'ExpectedTokensValueToProbeForRoute']);
+        }
 
-  const result = {};
-  let isFinished = false;
-  let timeout;
+        return cbk();
+      },
 
-  const sub = subscribeToProbe({
-    cltv_delta: args.cltv_delta,
-    destination: args.destination,
-    ignore: args.ignore,
-    lnd: args.lnd,
-    max_fee: args.max_fee,
-    routes: args.routes,
-    tokens: args.tokens,
-  });
+      // Probe
+      probe: ['validate', ({}, cbk) => {
+        const result = {};
+        let isFinished = false;
+        let timeout;
 
-  sub.on('error', err => result.err = err);
+        const sub = subscribeToProbe({
+          cltv_delta: args.cltv_delta,
+          destination: args.destination,
+          ignore: args.ignore,
+          lnd: args.lnd,
+          max_fee: args.max_fee,
+          routes: args.routes,
+          tokens: args.tokens,
+        });
 
-  sub.on('probe_success', ({route}) => {
-    result.err = null;
-    result.route = route;
+        sub.on('error', err => result.err = err);
 
-    return;
-  });
+        sub.on('probe_success', ({route}) => {
+          result.err = null;
+          result.route = route;
 
-  sub.on('routing_failure', failure => {
-    return result.err = [503, 'RoutingFailure', {failure}];
-  });
+          return;
+        });
 
-  sub.on('end', () => {
-    if (!!result.err) {
-      return cbk(result.err);
-    }
+        sub.on('routing_failure', failure => {
+          return result.err = [503, 'RoutingFailure', {failure}];
+        });
 
-    if (!!timeout) {
-      clearTimeout(timeout);
-    }
+        sub.once('end', () => {
+          if (!!result.err) {
+            return cbk(result.err);
+          }
 
-    if (!!isFinished) {
-      return;
-    }
+          if (!!timeout) {
+            clearTimeout(timeout);
+          }
 
-    isFinished = true;
+          if (!!isFinished) {
+            return;
+          }
 
-    return cbk(null, {route: result.route || undefined});
-  });
+          isFinished = true;
 
-  if (!!args.pathfinding_timeout) {
-    timeout = setTimeout(() => {
-      sub.removeAllListeners();
+          return cbk(null, {route: result.route || undefined});
+        });
 
-      if (!!isFinished) {
-        return;
-      }
+        if (!!args.pathfinding_timeout) {
+          timeout = setTimeout(() => {
+            sub.removeAllListeners();
 
-      isFinished = true;
+            if (!!isFinished) {
+              return;
+            }
 
-      return cbk([503, 'ProbeForRouteTimedOut']);
+            isFinished = true;
+
+            return cbk([503, 'ProbeForRouteTimedOut']);
+          },
+          args.pathfinding_timeout);
+        }
+      }],
     },
-    args.pathfinding_timeout);
-  }
-
-  return;
+    returnResult({reject, resolve, of: 'probe'}, cbk));
+  });
 };

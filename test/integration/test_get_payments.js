@@ -1,12 +1,12 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const createInvoice = require('./../../createInvoice');
+const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const getPayments = require('./../../getPayments');
-const getWalletInfo = require('./../../getWalletInfo');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
+const {getPayments} = require('./../../');
+const {getWalletInfo} = require('./../../');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -55,7 +55,6 @@ test('Get payments', async ({end, equal}) => {
   equal(payment.mtokens, `${tokens}${mtokPadding}`, 'Millitokens');
   equal(payment.secret, invoice.secret, 'Payment secret');
   equal(payment.tokens, tokens, 'Paid tokens');
-  equal(payment.type, 'channel_transaction', 'Channel transaction');
 
   if (!!payment.request) {
     equal(payment.request, invoice.request, 'Returns original pay request');

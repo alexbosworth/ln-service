@@ -1,10 +1,10 @@
 const {test} = require('tap');
 
-const closeChannel = require('./../../closeChannel');
+const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
-const getChannels = require('./../../getChannels');
-const getPendingChannels = require('./../../getPendingChannels');
-const openChannel = require('./../../openChannel');
+const {getChannels} = require('./../../');
+const {getPendingChannels} = require('./../../');
+const {openChannel} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -55,9 +55,9 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(coopClose.is_active, false, 'Ended');
   equal(coopClose.is_closing, true, 'Closing');
   equal(coopClose.is_opening, false, 'Not Opening');
-  equal(coopClose.local_balance, 979950, 'Original balance');
+  equal(coopClose.local_balance, 980950, 'Original balance');
   equal(coopClose.partner_public_key, cluster.target_node_public_key, 'pubk');
-  equal(coopClose.pending_balance, 979950, 'Waiting on balance');
+  equal(coopClose.pending_balance, 980950, 'Waiting on balance');
   equal(coopClose.received, 0, 'Never received');
   equal(coopClose.recovered_tokens, undefined, 'Nothing to recover in sweep');
   equal(coopClose.remote_balance, 0, 'Opposing channel balance nil');
@@ -65,7 +65,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(coopClose.timelock_expiration, undefined, 'No timelock in coop mode');
   equal(coopClose.transaction_id, coopChan.transaction_id, 'funding tx id');
   equal(coopClose.transaction_vout, coopChan.transaction_vout, 'funding vout');
-  equal(coopClose.type, 'channel', 'Cooperative closing channel is a channel');
 
   await cluster.kill({});
 

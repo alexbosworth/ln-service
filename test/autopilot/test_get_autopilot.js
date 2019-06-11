@@ -59,7 +59,7 @@ const tests = [
 
 tests.forEach(({args, description, expected}) => {
   return test(description, ({end, equal}) => {
-    return getAutopilot(args, (err, res) => {
+    getAutopilot(args, (err, res) => {
       const [errCode, errMessage] = err || [];
 
       if (!!expected.error_code || !!errCode) {

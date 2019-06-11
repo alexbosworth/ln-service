@@ -1,4 +1,7 @@
+const asyncAuto = require('async/auto');
+const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
+const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 const emptyTxId = Buffer.alloc(32).toString('hex');;
@@ -18,7 +21,7 @@ const outpointSeparator = ':';
     lnd: <Authenticated LND gRPC API Object>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     channels: [{
       capacity: <Closed Channel Capacity Tokens Number>
@@ -39,85 +42,108 @@ const outpointSeparator = ':';
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.default || !args.lnd.default.closedChannels) {
-    return cbk([400, 'ExpectedLndApiForGetClosedChannelsRequest'])
-  }
-
-  return args.lnd.default.closedChannels({
-    breach: args.is_breach_close || undefined,
-    cooperative: args.is_cooperative_close || undefined,
-    funding_canceled: args.is_breach_close || undefined,
-    local_force: args.is_local_force_close || undefined,
-    remote_force: args.is_remote_force_close || undefined,
-  },
-  (err, res) => {
-    if (!!err) {
-      return cbk([503, 'FailedToRetrieveClosedChannels', err]);
-    }
-
-    if (!isArray(res.channels)) {
-      return cbk([503, 'ExpectedChannels']);
-    }
-
-    try {
-      const channels = res.channels.map(n => {
-        if (!n.capacity) {
-          throw new Error('ExpectedCloseChannelCapacity');
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!args.lnd || !args.lnd.default) {
+          return cbk([400, 'ExpectedLndApiForGetClosedChannelsRequest'])
         }
 
-        if (!n.chan_id) {
-          throw new Error('ExpectedChannelIdOfClosedChannel');
-        }
+        return cbk();
+      },
 
-        if (!n.channel_point) {
-          throw new Error('ExpectedCloseChannelOutpoint');
-        }
+      // Get closed channels
+      getClosedChannels: ['validate', ({}, cbk) => {
+        return args.lnd.default.closedChannels({
+          breach: args.is_breach_close || undefined,
+          cooperative: args.is_cooperative_close || undefined,
+          funding_canceled: args.is_breach_close || undefined,
+          local_force: args.is_local_force_close || undefined,
+          remote_force: args.is_remote_force_close || undefined,
+        },
+        (err, res) => {
+          if (!!err) {
+            return cbk([503, 'FailedToRetrieveClosedChannels', {err}]);
+          }
 
-        if (n.close_height === undefined) {
-          throw new Error('ExpectedChannelCloseHeight');
-        }
+          if (!isArray(res.channels)) {
+            return cbk([503, 'ExpectedChannels']);
+          }
 
-        if (!n.closing_tx_hash) {
-          throw new Error('ExpectedClosingTransactionId');
-        }
+          return cbk(null, res.channels);
+        });
+      }],
 
-        if (!n.remote_pubkey) {
-          throw new Error('ExpectedCloseRemotePublicKey');
-        }
+      // Map channels
+      mapChannels: ['getClosedChannels', ({getClosedChannels}, cbk) => {
+        return asyncMapSeries(getClosedChannels, (chan, cbk) => {
+          if (!chan.capacity) {
+            return cbk([503, 'ExpectedCloseChannelCapacity']);
+          }
 
-        if (!n.settled_balance) {
-          throw new Error('ExpectedFinalSettledBalance');
-        }
+          if (!chan.chan_id) {
+            return cbk([503, 'ExpectedChannelIdOfClosedChannel']);
+          }
 
-        if (!n.time_locked_balance) {
-          throw new Error('ExpectedFinalTimeLockedBalanceForClosedChannel');
-        }
+          if (!chan.channel_point) {
+            return cbk([503, 'ExpectedCloseChannelOutpoint']);
+          }
 
-        const hasCloseTx = n.closing_tx_hash !== emptyTxId;
-        const hasId = n.chan_id !== '0';
-        const [txId, vout] = n.channel_point.split(outpointSeparator);
+          if (chan.close_height === undefined) {
+            return cbk([503, 'ExpectedChannelCloseHeight']);
+          }
 
-        return {
-          capacity: parseInt(n.capacity, decBase),
-          close_confirm_height: !!n.close_height ? n.close_height : undefined,
-          close_transaction_id: hasCloseTx ? n.closing_tx_hash : undefined,
-          final_local_balance: parseInt(n.settled_balance, decBase),
-          final_time_locked_balance: parseInt(n.time_locked_balance, decBase),
-          id: hasId ? chanFormat({number: n.chan_id}).channel : undefined,
-          is_breach_close: n.close_type === 'BREACH_CLOSE',
-          is_cooperative_close: n.close_type === 'COOPERATIVE_CLOSE',
-          is_funding_cancel: n.close_type === 'FUNDING_CANCELED',
-          is_local_force_close: n.close_type === 'LOCAL_FORCE_CLOSE',
-          is_remote_force_close: n.close_type === 'REMOTE_FORCE_CLOSE',
-          partner_public_key: n.remote_pubkey,
-          transaction_id: txId,
-          transaction_vout: parseInt(vout, decBase),
-        };
-      });
+          if (!chan.closing_tx_hash) {
+            return cbk([503, 'ExpectedClosingTransactionId']);
+          }
 
-      return cbk(null, {channels});
-    } catch (err) {
-      return cbk([503, 'UnexpectedClosedChannelResponse', err]);
-    }
+          if (!chan.remote_pubkey) {
+            return cbk([503, 'ExpectedCloseRemotePublicKey']);
+          }
+
+          if (!chan.settled_balance) {
+            return cbk([503, 'ExpectedFinalSettledBalance']);
+          }
+
+          if (!chan.time_locked_balance) {
+            return cbk([503, 'ExpectedFinalTimeLockedBalanceForClosedChan']);
+          }
+
+          const finalTimeLock = parseInt(chan.time_locked_balance, decBase);
+          const hasCloseTx = chan.closing_tx_hash !== emptyTxId;
+          const hasId = chan.chan_id !== '0';
+          const height = !chan.close_height ? undefined : chan.close_height;
+          const [txId, vout] = chan.channel_point.split(outpointSeparator);
+
+          const chanId = !hasId ? null : chanFormat({number: chan.chan_id});
+          const closeTxId = !hasCloseTx ? undefined : chan.closing_tx_hash;
+
+          return cbk(null, {
+            capacity: parseInt(chan.capacity, decBase),
+            close_confirm_height: height,
+            close_transaction_id: closeTxId,
+            final_local_balance: parseInt(chan.settled_balance, decBase),
+            final_time_locked_balance: finalTimeLock,
+            id: !chanId ? undefined : chanId.channel,
+            is_breach_close: chan.close_type === 'BREACH_CLOSE',
+            is_cooperative_close: chan.close_type === 'COOPERATIVE_CLOSE',
+            is_funding_cancel: chan.close_type === 'FUNDING_CANCELED',
+            is_local_force_close: chan.close_type === 'LOCAL_FORCE_CLOSE',
+            is_remote_force_close: chan.close_type === 'REMOTE_FORCE_CLOSE',
+            partner_public_key: chan.remote_pubkey,
+            transaction_id: txId,
+            transaction_vout: parseInt(vout, decBase),
+          });
+        },
+        cbk);
+      }],
+
+      // Closed channels
+      closedChannels: ['mapChannels', ({mapChannels}, cbk) => {
+        return cbk(null, {channels: mapChannels});
+      }],
+    },
+    returnResult({reject, resolve, of: 'closedChannels'}, cbk));
   });
 };

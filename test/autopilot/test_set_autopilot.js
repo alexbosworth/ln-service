@@ -44,7 +44,7 @@ const tests = [
 
 tests.forEach(({args, description, expected}) => {
   return test(description, ({end, equal}) => {
-    return setAutopilot(args, (err, res) => {
+    setAutopilot(args, (err, res) => {
       const [errCode, errMessage] = err || [];
 
       if (!!expected.error_code || !!errCode) {
@@ -61,5 +61,7 @@ tests.forEach(({args, description, expected}) => {
 
       return end();
     });
+
+    return;
   });
 });

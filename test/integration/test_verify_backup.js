@@ -1,11 +1,9 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const getBackup = require('./../../getBackup');
-const getWalletInfo = require('./../../getWalletInfo');
-const openChannel = require('./../../openChannel');
-const {spawnLnd} = require('./../macros');
-const verifyBackup = require('./../../verifyBackup');
+const {getBackup} = require('./../../');
+const {openChannel} = require('./../../');
+const {verifyBackup} = require('./../../');
 const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
@@ -23,8 +21,8 @@ test(`Test verify backup`, async ({end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     give_tokens: giftTokens,
     local_tokens: channelCapacityTokens,
-    partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
+    partner_public_key: cluster.control.public_key,
+    socket: cluster.control.socket,
   });
 
   await waitForPendingChannel({

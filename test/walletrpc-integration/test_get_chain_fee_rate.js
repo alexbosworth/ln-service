@@ -1,6 +1,6 @@
 const {test} = require('tap');
 
-const getChainFeeRate = require('./../../getChainFeeRate');
+const {getChainFeeRate} = require('./../../');
 const {delay} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');

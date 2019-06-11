@@ -2,13 +2,13 @@ const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const getBackups = require('./../../getBackups');
-const getPendingChannels = require('./../../getPendingChannels');
-const getWalletInfo = require('./../../getWalletInfo');
-const openChannel = require('./../../openChannel');
-const recoverFundsFromChannels = require('./../../recoverFundsFromChannels');
+const {getBackups} = require('./../../');
+const {getPendingChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
+const {openChannel} = require('./../../');
+const {recoverFundsFromChannels} = require('./../../');
 const {spawnLnd} = require('./../macros');
-const stopDaemon = require('./../../stopDaemon');
+const {stopDaemon} = require('./../../');
 const {waitForPendingChannel} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 

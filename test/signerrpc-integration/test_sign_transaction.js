@@ -1,7 +1,7 @@
 const {test} = require('tap');
 const {Transaction} = require('bitcoinjs-lib');
 
-const signTransaction = require('./../../signTransaction');
+const {signTransaction} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 

@@ -1,10 +1,10 @@
 const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const getChainFeeEstimate = require('./../../getChainFeeEstimate');
+const {getChainFeeEstimate} = require('./../../');
 
 const expectedFee = 9750;
 const expectedFeeRate = 50;

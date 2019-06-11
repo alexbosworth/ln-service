@@ -1,11 +1,11 @@
 const {test} = require('tap');
 
-const closeChannel = require('./../../closeChannel');
+const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
-const getChannels = require('./../../getChannels');
-const getPeers = require('./../../getPeers');
-const getPendingChannels = require('./../../getPendingChannels');
-const openChannel = require('./../../openChannel');
+const {getChannels} = require('./../../');
+const {getPeers} = require('./../../');
+const {getPendingChannels} = require('./../../');
+const {openChannel} = require('./../../');
 const {waitChannel} = require('./../macros');
 const {waitPendingChannel} = require('./../macros');
 
@@ -39,7 +39,7 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(pendingOpen.is_active, false, 'Not active yet');
   equal(pendingOpen.is_closing, false, 'Not closing yet');
   equal(pendingOpen.is_opening, true, 'Channel is opening');
-  equal(pendingOpen.local_balance, 979950, 'Local balance minus gift, fee');
+  equal(pendingOpen.local_balance, 980950, 'Local balance minus gift, fee');
   equal(pendingOpen.partner_public_key, cluster.target_node_public_key, 'Key');
   equal(pendingOpen.pending_balance, undefined, 'No pending chain balance');
   equal(pendingOpen.received, 0, 'Nothing received');
@@ -49,7 +49,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(pendingOpen.timelock_expiration, undefined, 'Not timelocked');
   equal(pendingOpen.transaction_id, channelOpen.transaction_id, 'Open tx id');
   equal(pendingOpen.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
-  equal(pendingOpen.type, 'channel', 'Pending channel is a channel');
 
   await cluster.generate({count: confirmationCount});
 
@@ -71,9 +70,9 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(waitClose.is_active, false, 'Not active yet');
   equal(waitClose.is_closing, true, 'Channel is closing');
   equal(waitClose.is_opening, false, 'Not opening channel');
-  equal(waitClose.local_balance, 979950, 'Local balance of channel');
+  equal(waitClose.local_balance, 980950, 'Local balance of channel');
   equal(waitClose.partner_public_key, cluster.target_node_public_key, 'Pkey');
-  equal(waitClose.pending_balance, 979950, 'Tokens return to local wallet');
+  equal(waitClose.pending_balance, 980950, 'Tokens return to local wallet');
   equal(waitClose.received, 0, 'Nothing received');
   equal(waitClose.recovered_tokens, undefined, 'Funds not recovered yet');
   equal(waitClose.remote_balance, 0, 'Remote tokens not in channel');
@@ -81,7 +80,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(waitClose.timelock_expiration, undefined, 'Not timelocked yet');
   equal(waitClose.transaction_id, channelOpen.transaction_id, 'Chan txid');
   equal(waitClose.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
-  equal(waitClose.type, 'channel', 'Waiting close channel is a channel');
 
   await cluster.generate({count: confirmationCount});
 
@@ -91,9 +89,9 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(forceClose.is_active, false, 'Not active anymore');
   equal(forceClose.is_closing, true, 'Channel is force closing');
   equal(forceClose.is_opening, false, 'Channel is not opening');
-  equal(forceClose.local_balance, 979950, 'Local balance of channel');
+  equal(forceClose.local_balance, 980950, 'Local balance of channel');
   equal(forceClose.partner_public_key, cluster.target_node_public_key, 'pk');
-  equal(forceClose.pending_balance, 979950, 'Tokens returning');
+  equal(forceClose.pending_balance, 980950, 'Tokens returning');
   equal(forceClose.received, 0, 'No receive amount');
   equal(forceClose.recovered_tokens, undefined, 'No recovered amount');
   equal(forceClose.remote_balance, 0, 'No remote balance');
@@ -101,7 +99,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(forceClose.timelock_expiration, 607, 'Funds are timelocked');
   equal(forceClose.transaction_id, channelOpen.transaction_id, 'Chan-Txid');
   equal(forceClose.transaction_vout, channelOpen.transaction_vout, 'ChanVout');
-  equal(forceClose.type, 'channel', 'Force closing channel is a channel');
 
   await cluster.kill({});
 

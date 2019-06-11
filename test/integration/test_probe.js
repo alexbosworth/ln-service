@@ -1,14 +1,14 @@
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
-const createInvoice = require('./../../createInvoice');
+const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const getChannels = require('./../../getChannels');
-const getRoutes = require('./../../getRoutes');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
-const probe = require('./../../probe');
+const {getChannels} = require('./../../');
+const {getRoutes} = require('./../../');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
+const {probe} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 

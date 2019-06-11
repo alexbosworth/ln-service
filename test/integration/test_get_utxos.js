@@ -3,10 +3,10 @@ const {readFileSync} = require('fs');
 const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const getUtxos = require('./../../getUtxos');
+const {getUtxos} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');

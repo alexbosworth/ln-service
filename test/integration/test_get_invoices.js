@@ -1,7 +1,7 @@
 const {test} = require('tap');
 
-const createInvoice = require('./../../createInvoice');
-const getInvoices = require('./../../getInvoices');
+const {createInvoice} = require('./../../');
+const {getInvoices} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 

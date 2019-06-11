@@ -1,4 +1,6 @@
+const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
+const {returnResult} = require('asyncjs-util');
 
 /** Get the static channel backup for a channel
 
@@ -8,39 +10,58 @@ const isHex = require('is-hex');
     transaction_vout: <Funding Transaction Output Index Number>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     backup: <Channel Backup Hex String>
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.default) {
-    return cbk([400, 'ExpectedGrpcApiConnectionToGetChannelBackup']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!args.lnd || !args.lnd.default) {
+          return cbk([400, 'ExpectedGrpcApiConnectionToGetChannelBackup']);
+        }
 
-  if (!args.transaction_id || !isHex(args.transaction_id)) {
-    return cbk([400, 'ExpectedTransactionIdOfChannelToGetChannelBackup']);
-  }
+        if (!args.transaction_id || !isHex(args.transaction_id)) {
+          return cbk([400, 'ExpectedTxIdOfChannelToGetChannelBackup']);
+        }
 
-  if (args.transaction_vout === undefined) {
-    return cbk([400, 'ExpectedTransactionOutputIndexToGetChannelBackup']);
-  }
+        if (args.transaction_vout === undefined) {
+          return cbk([400, 'ExpectedTxOutputIndexToGetChannelBackup']);
+        }
 
-  return args.lnd.default.exportChannelBackup({
-    chan_point: {
-      funding_txid_bytes: Buffer.from(args.transaction_id, 'hex').reverse(),
-      output_index: args.transaction_vout,
+        return cbk();
+      },
+
+      // Get backup
+      getBackup: ['validate', ({}, cbk) => {
+        const txId = Buffer.from(args.transaction_id, 'hex').reverse();
+
+        return args.lnd.default.exportChannelBackup({
+          chan_point: {
+            funding_txid_bytes: txId,
+            output_index: args.transaction_vout,
+          },
+        },
+        (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrExportingBackupForChannel', {err}]);
+          }
+
+          if (!res) {
+            return cbk([503, 'ExpectedResultOfGetChannelBackupRequest']);
+          }
+
+          if (!Buffer.isBuffer(res.chan_backup) || !res.chan_backup.length) {
+            return cbk([503, 'UnexpectedResponseForChannelBackupRequest']);
+          }
+
+          return cbk(null, {backup: res.chan_backup.toString('hex')});
+        });
+      }],
     },
-  },
-  (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorExportingBackupForChannel', {err}]);
-    }
-
-    if (!res || !Buffer.isBuffer(res.chan_backup) || !res.chan_backup.length) {
-      return cbk([503, 'UnexpectedResponseForChannelBackupRequest']);
-    }
-
-    return cbk(null, {backup: res.chan_backup.toString('hex')});
+    returnResult({reject, resolve, of: 'getBackup'}, cbk));
   });
 };

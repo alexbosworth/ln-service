@@ -7,6 +7,8 @@ const msPerSec = 1e3;
 
 /** Subscribe to an invoice
 
+  Lnd built with invoicesrpc tag is required
+
   {
     id: <Invoice Payment Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
@@ -18,7 +20,7 @@ const msPerSec = 1e3;
   @returns
   <EventEmitter Object>
 
-  @on(data)
+  @event `invoice_updated`
   {
     chain_address: <Fallback Chain Address String>
     [confirmed_at]: <Settled at ISO 8601 Date String>
@@ -44,7 +46,6 @@ const msPerSec = 1e3;
     }]]
     secret: <Secret Preimage Hex String>
     tokens: <Tokens Number>
-    type: <Type String>
   }
 */
 module.exports = ({id, lnd}) => {
@@ -115,7 +116,7 @@ module.exports = ({id, lnd}) => {
     const confirmed = new Date(confirmedAt).toISOString();
     const expiresAt = createdAt + parseInt(invoice.expiry);
 
-    return eventEmitter.emit('data', {
+    return eventEmitter.emit('invoice_updated', {
       cltv_delta: parseInt(invoice.cltv_expiry, decBase),
       confirmed_at: !invoice.settled ? undefined : confirmed,
       created_at: new Date(createdAt * msPerSec).toISOString(),
@@ -131,7 +132,6 @@ module.exports = ({id, lnd}) => {
       tokens: parseInt(invoice.value, decBase),
       received: parseInt(invoice.amt_paid_sat, decBase),
       received_mtokens: invoice.amt_paid_msat,
-      type: 'invoice',
     });
   });
 

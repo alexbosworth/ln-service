@@ -1,11 +1,10 @@
-const BN = require('bn.js');
+const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
-
-const rowTypes = require('./conf/row_types');
+const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 const msPerSec = 1e3;
-const mtokensPerToken = new BN(1e3, 10);
+const mtokensPerToken = 1000n;
 
 /** Lookup a channel invoice.
 
@@ -17,7 +16,7 @@ const mtokensPerToken = new BN(1e3, 10);
     lnd: <Authenticated LND gRPC API Object>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     chain_address: <Fallback Chain Address String>
     [confirmed_at]: <Settled at ISO 8601 Date String>
@@ -36,63 +35,77 @@ const mtokensPerToken = new BN(1e3, 10);
     request: <Bolt 11 Invoice String>
     secret: <Secret Preimage Hex String>
     tokens: <Tokens Number>
-    type: <Type String>
   }
 */
 module.exports = ({id, lnd}, cbk) => {
-  if (!id || !isHex(id)) {
-    return cbk([400, 'ExpectedIdToGetInvoiceDetails']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!id || !isHex(id)) {
+          return cbk([400, 'ExpectedIdToGetInvoiceDetails']);
+        }
 
-  if (!lnd || !lnd.default || !lnd.default.lookupInvoice) {
-    return cbk([400, 'ExpectedLndToGetInvoiceDetails']);
-  }
+        if (!lnd || !lnd.default || !lnd.default.lookupInvoice) {
+          return cbk([400, 'ExpectedLndToGetInvoiceDetails']);
+        }
 
-  return lnd.default.lookupInvoice({r_hash_str: id}, (err, response) => {
-    if (!!err) {
-      return cbk([503, 'LookupInvoiceErr', err]);
-    }
+        return cbk();
+      },
 
-    if (response.memo === undefined) {
-      return cbk([503, 'ExpectedMemo', response]);
-    }
+      // Get the invoice
+      getInvoice: ['validate', ({}, cbk) => {
+        return lnd.default.lookupInvoice({r_hash_str: id}, (err, response) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedLookupInvoiceErr', {err}]);
+          }
 
-    if (!response.payment_request) {
-      return cbk([503, 'ExpectedPaymentRequestForInvoice']);
-    }
+          if (!response) {
+            return cbk([503, 'ExpectedResponseWhenLookingUpInvoice']);
+          }
 
-    if (response.settled !== false && response.settled !== true) {
-      return cbk([503, 'MissingSettled', response]);
-    }
+          if (response.memo === undefined) {
+            return cbk([503, 'ExpectedMemoInLookupInvoiceResponse']);
+          }
 
-    if (!Buffer.isBuffer(response.r_preimage)) {
-      return cbk([503, 'ExpectedInvoicePreimage']);
-    }
+          if (!response.payment_request) {
+            return cbk([503, 'ExpectedPaymentRequestForInvoice']);
+          }
 
-    const createdAt = parseInt(response.creation_date, decBase) * msPerSec;
-    const expiresInMs = parseInt(response.expiry, decBase) * msPerSec;
-    const tokens = new BN(response.value, decBase);
+          if (response.settled !== false && response.settled !== true) {
+            return cbk([503, 'ExpectedSettledStateInLookupInvoiceResponse']);
+          }
 
-    const expiryDateMs = createdAt + expiresInMs;
+          if (!Buffer.isBuffer(response.r_preimage)) {
+            return cbk([503, 'ExpectedPreimageInLookupInvoiceResponse']);
+          }
 
-    return cbk(null, {
-      id,
-      chain_address: response.fallback_addr || undefined,
-      cltv_delta: parseInt(response.cltv_expiry, decBase),
-      description: response.memo,
-      expires_at: new Date(expiryDateMs).toISOString(),
-      is_canceled: response.state === 'CANCELED' || undefined,
-      is_confirmed: response.settled,
-      is_held: response.state === 'ACCEPTED' || undefined,
-      is_outgoing: false,
-      is_private: response.private,
-      mtokens: tokens.mul(mtokensPerToken).toString(decBase),
-      received: parseInt(response.amt_paid_sat, decBase),
-      received_mtokens: response.amt_paid_msat,
-      request: response.payment_request,
-      secret: response.r_preimage.toString('hex'),
-      tokens: !response.value ? null : parseInt(response.value, decBase),
-      type: rowTypes.channel_transaction,
-    });
+          const createdAtEpochTime = parseInt(response.creation_date, decBase);
+          const expiresInMs = parseInt(response.expiry, decBase) * msPerSec;
+
+          const createdAtMs = createdAtEpochTime * msPerSec;
+
+          return cbk(null, {
+            id,
+            chain_address: response.fallback_addr || undefined,
+            cltv_delta: parseInt(response.cltv_expiry, decBase),
+            created_at: new Date(createdAtMs).toISOString(),
+            description: response.memo,
+            expires_at: new Date(createdAtMs + expiresInMs).toISOString(),
+            is_canceled: response.state === 'CANCELED' || undefined,
+            is_confirmed: response.settled,
+            is_held: response.state === 'ACCEPTED' || undefined,
+            is_private: response.private,
+            mtokens: (BigInt(response.value) * mtokensPerToken).toString(),
+            received: parseInt(response.amt_paid_sat, decBase),
+            received_mtokens: response.amt_paid_msat,
+            request: response.payment_request,
+            secret: response.r_preimage.toString('hex'),
+            tokens: !response.value ? null : parseInt(response.value, decBase),
+          });
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'getInvoice'}, cbk));
   });
 };

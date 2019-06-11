@@ -1,10 +1,11 @@
-const transactionRowType = require('./conf/row_types').chain_transaction;
+const asyncAuto = require('async/auto');
+const asyncMapSeries = require('async/mapSeries');
+const {returnResult} = require('asyncjs-util');
 
 const {abs} = Math;
 const decBase = 10;
 const {isArray} = Array;
 const msPerSec = 1e3;
-const noFee = '0';
 
 /** Get chain transactions.
 
@@ -12,104 +13,115 @@ const noFee = '0';
     lnd: <Authenticated LND gRPC Object>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     transactions: [{
       [block_id]: <Block Hash String>
       [confirmation_count]: <Confirmation Count Number>
       [confirmation_height]: <Confirmation Block Height Number>
       created_at: <Created ISO 8601 Date String>
-      is_confirmed: <Is Confirmed Bool>
-      is_outgoing: <Transaction Outbound Bool>
       [fee]: <Fees Paid Tokens Number>
       id: <Transaction Id String>
+      is_confirmed: <Is Confirmed Bool>
+      is_outgoing: <Transaction Outbound Bool>
       output_addresses: [<Address String>]
       tokens: <Tokens Including Fee Number>
-      type: <Type String>
     }]
   }
 */
 module.exports = ({lnd}, cbk) => {
-  if (!lnd || !lnd.default || !lnd.default.getTransactions) {
-    return cbk([400, 'ExpectedLndToGetChainTransactions']);
-  }
-
-  return lnd.default.getTransactions({}, (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedGetChainTransactionsError', {err}]);
-    }
-
-    if (!res) {
-      return cbk([503, 'ExpectedGetChainTransactionsResponse']);
-    }
-
-    if (!isArray(res.transactions)) {
-      return cbk([503, 'ExpectedTransactionsList', res]);
-    }
-
-    try {
-      const transactions = res.transactions.map(transaction => {
-        if (!transaction.amount) {
-          throw new Error('ExpectedTransactionAmount');
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!lnd || !lnd.default || !lnd.default.getTransactions) {
+          return cbk([400, 'ExpectedLndToGetChainTransactions']);
         }
 
-        if (typeof transaction.block_hash !== 'string') {
-          throw new Error('ExpectedTransactionBlockHash');
-        }
+        return cbk();
+      },
 
-        if (transaction.block_height === undefined) {
-          throw new Error('ExpectedTransactionBlockHeightNumber');
-        }
-
-        if (!isArray(transaction.dest_addresses)) {
-          throw new Error('ExpectedTransactionDestinationAddresses');
-        }
-
-        if (transaction.num_confirmations === undefined) {
-          throw new Error('ExpectedTransactionConfirmationsCount');
-        }
-
-        if (!transaction.time_stamp) {
-          throw new Error('ExpectedTransactionTimestamp');
-        }
-
-        if (!transaction.total_fees) {
-          throw new Error('ExpectedTransactionTotalFees');
-        }
-
-        if (!transaction.tx_hash) {
-          throw new Error('ExpectedChainTransactionId');
-        }
-
-        const dateTime = parseInt(transaction.time_stamp, decBase) * msPerSec;
-        const totalFees = transaction.total_fees;
-
-        const outputAddresses = transaction.dest_addresses.map(address => {
-          if (!address) {
-            throw new Error('ExpectedDestinationAddress');
+      // Get transactions
+      getTransactions: ['validate', ({}, cbk) => {
+        return lnd.default.getTransactions({}, (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedGetChainTransactionsError', {err}]);
           }
 
-          return address;
+          if (!res) {
+            return cbk([503, 'ExpectedGetChainTransactionsResponse']);
+          }
+
+          if (!isArray(res.transactions)) {
+            return cbk([503, 'ExpectedTransactionsList', res]);
+          }
+
+          return cbk(null, res.transactions);
         });
+      }],
 
-        return {
-          block_id: transaction.block_hash || undefined,
-          confirmation_count: transaction.num_confirmations || undefined,
-          confirmation_height: transaction.block_height || undefined,
-          created_at: new Date(dateTime).toISOString(),
-          fee: totalFees === noFee ? undefined : parseInt(totalFees, decBase),
-          id: transaction.tx_hash,
-          is_confirmed: !!transaction.num_confirmations,
-          is_outgoing: (parseInt(transaction.amount, decBase) < 0),
-          output_addresses: outputAddresses,
-          tokens: abs(parseInt(transaction.amount, decBase)),
-          type: transactionRowType,
-        };
-      });
+      // Format transactions
+      formatted: ['getTransactions', ({getTransactions}, cbk) => {
+        return asyncMapSeries(getTransactions, (transaction, cbk) => {
+          if (!transaction.amount) {
+            return cbk([503, 'ExpectedTransactionAmountInChainTransaction']);
+          }
 
-      return cbk(null, {transactions});
-    } catch (err) {
-      return cbk([503, err.message, res]);
-    }
+          if (typeof transaction.block_hash !== 'string') {
+            return cbk([503, 'ExpectedTransactionBlockHashInChainTx']);
+          }
+
+          if (transaction.block_height === undefined) {
+            return cbk([503, 'ExpectedChainTransactionBlockHeightNumber']);
+          }
+
+          if (!isArray(transaction.dest_addresses)) {
+            return cbk([503, 'ExpectedChainTransactionDestinationAddresses']);
+          }
+
+          if (!!transaction.dest_addresses.find(n => !n)) {
+            return cbk([503, 'ExpectedDestinationAddressesInChainTx']);
+          }
+
+          if (transaction.num_confirmations === undefined) {
+            return cbk([503, 'ExpectedChainTransactionConfirmationsCount']);
+          }
+
+          if (!transaction.time_stamp) {
+            return cbk([503, 'ExpectedChainTransactionTimestamp']);
+          }
+
+          if (!transaction.total_fees) {
+            return cbk([503, 'ExpectedChainTransactionTotalFees']);
+          }
+
+          if (!transaction.tx_hash) {
+            return cbk([503, 'ExpectedChainTransactionId']);
+          }
+
+          const epochTime = parseInt(transaction.time_stamp, decBase);
+
+          return cbk(null, {
+            block_id: transaction.block_hash || undefined,
+            confirmation_count: transaction.num_confirmations || undefined,
+            confirmation_height: transaction.block_height || undefined,
+            created_at: new Date(epochTime * msPerSec).toISOString(),
+            fee: parseInt(transaction.total_fees, decBase) || undefined,
+            id: transaction.tx_hash,
+            is_confirmed: !!transaction.num_confirmations,
+            is_outgoing: (parseInt(transaction.amount, decBase) < 0),
+            output_addresses: transaction.dest_addresses,
+            tokens: abs(parseInt(transaction.amount, decBase)),
+          });
+        },
+        cbk);
+      }],
+
+      // Final transactions list
+      transactions: ['formatted', ({formatted}, cbk) => {
+        return cbk(null, {transactions: formatted});
+      }],
+    },
+    returnResult({reject, resolve, of: 'transactions'}, cbk));
   });
 };

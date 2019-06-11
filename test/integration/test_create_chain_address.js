@@ -1,11 +1,10 @@
 const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
-const chainAddressRowType = 'chain_address';
 const formats = ['np2wpkh', 'p2wpkh'];
 const p2shAddressVersion = 196;
 const pkHashByteLength = 20;
@@ -26,8 +25,6 @@ test(`Create address results in address creation`, async ({end, equal}) => {
   equal(nativeAddress.data.length, pkHashByteLength, 'Native address pkHash');
   equal(nativeAddress.prefix, regtestBech32AddressHrp, 'Native addr prefix');
   equal(nestedAddress.version, p2shAddressVersion, 'Nested address version');
-  equal(np2wpkh.type, chainAddressRowType, 'Nested row type');
-  equal(p2wpkh.type, chainAddressRowType, 'Native row type');
 
   const getUnused = formats.map(async format => {
     return await createChainAddress({lnd, format, is_unused: true});

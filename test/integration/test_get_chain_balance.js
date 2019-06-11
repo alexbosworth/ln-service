@@ -3,9 +3,9 @@ const {readFileSync} = require('fs');
 const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
-const createChainAddress = require('./../../createChainAddress');
+const {createChainAddress} = require('./../../');
 const {generateBlocks} = require('./../macros');
-const getChainBalance = require('./../../getChainBalance');
+const {getChainBalance} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');

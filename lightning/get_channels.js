@@ -18,7 +18,7 @@ const {isArray} = Array;
     lnd: <Authenticated LND gRPC API Object>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     channels: [{
       capacity: <Channel Token Capacity Number>
@@ -48,152 +48,155 @@ const {isArray} = Array;
   }
 */
 module.exports = (args, cbk) => {
-  return asyncAuto({
-    // Check arguments
-    validate: cbk => {
-      if (!args.lnd || !args.lnd.default || !args.lnd.default.listChannels) {
-        return cbk([400, 'ExpectedLndToGetChannels']);
-      }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!args.lnd || !args.lnd.default || !args.lnd.default.listChannels) {
+          return cbk([400, 'ExpectedLndToGetChannels']);
+        }
 
-      return cbk();
-    },
-
-    // Get channels
-    getChannels: ['validate', ({}, cbk) => {
-      return args.lnd.default.listChannels({
-        active_only: !!args.is_active ? true : undefined,
-        inactive_only: !!args.is_offline ? true : undefined,
-        private_only: !!args.is_private ? true : undefined,
-        public_only: !!args.is_public ? true : undefined,
+        return cbk();
       },
-      (err, res) => {
-        if (!!err) {
-          return cbk([503, 'UnexpectedGetChannelsError', err]);
-        }
 
-        if (!res || !isArray(res.channels)) {
-          return cbk([503, 'ExpectedChannelsArray', res]);
-        }
+      // Get channels
+      getChannels: ['validate', ({}, cbk) => {
+        return args.lnd.default.listChannels({
+          active_only: !!args.is_active ? true : undefined,
+          inactive_only: !!args.is_offline ? true : undefined,
+          private_only: !!args.is_private ? true : undefined,
+          public_only: !!args.is_public ? true : undefined,
+        },
+        (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedGetChannelsError', {err}]);
+          }
 
-        return cbk(null, res.channels);
-      });
-    }],
+          if (!res || !isArray(res.channels)) {
+            return cbk([503, 'ExpectedChannelsArray']);
+          }
 
-    // Map channel response to channels list
-    mappedChannels: ['getChannels', ({getChannels}, cbk) => {
-      return asyncMap(getChannels, (channel, cbk) => {
-        if (!isArray(channel.pending_htlcs)) {
-          return cbk([503, 'ExpectedPendingHtlcs', channel]);
-        }
-
-        if (channel.active === undefined) {
-          return cbk([503, 'ExpectedChannelActiveState', channel]);
-        }
-
-        if (channel.capacity === undefined) {
-          return cbk([503, 'ExpectedChannelCapacity', channel]);
-        }
-
-        if (!channel.chan_id) {
-          return cbk([503, 'ExpectedChanId', channel]);
-        }
-
-        try {
-          const _ = chanFormat({number: channel.chan_id});
-        } catch (err) {
-          return cbk([503, 'ExpectedChannelIdNumberInChannelsList', err]);
-        }
-
-        if (!channel.channel_point) {
-          return cbk([503, 'ExpectedChannelPoint', channel]);
-        }
-
-        if (channel.commit_fee === undefined) {
-          return cbk([503, 'ExpectedCommitFee', channel]);
-        }
-
-        if (channel.commit_weight === undefined) {
-          return cbk([503, 'ExpectedCommitWeight', channel]);
-        }
-
-        if (channel.fee_per_kw === undefined) {
-          return cbk([503, 'ExpectedFeePerKw', channel]);
-        }
-
-        if (channel.local_balance === undefined) {
-          return cbk([503, 'ExpectedLocalBalance', channel]);
-        }
-
-        if (channel.num_updates === undefined) {
-          return cbk([503, 'ExpectedNumUpdates', channel]);
-        }
-
-        if (!isArray(channel.pending_htlcs)) {
-          return cbk([503, 'ExpectedChannelPendingHtlcs']);
-        }
-
-        if (channel.private !== true && channel.private !== false) {
-          return cbk([503, 'ExpectedChannelPrivateStatus']);
-        }
-
-        if (channel.remote_balance === undefined) {
-          return cbk([503, 'ExpectedRemoteBalance', channel]);
-        }
-
-        if (!channel.remote_pubkey) {
-          return cbk([503, 'ExpectedRemotePubkey', channel]);
-        }
-
-        if (channel.total_satoshis_received === undefined) {
-          return cbk([503, 'ExpectedTotalSatoshisReceived', channel]);
-        }
-
-        if (channel.total_satoshis_sent === undefined) {
-          return cbk([503, 'ExpectedTotalSatoshisSent', channel]);
-        }
-
-        if (channel.unsettled_balance === undefined) {
-          return cbk([503, 'ExpectedUnsettledBalance', channel]);
-        }
-
-        const {initiator} = channel;
-        const [transactionId, vout] = channel.channel_point.split(':');
-
-        const notInitiator = initiator === false ? undefined : !initiator;
-
-        return cbk(null, {
-          capacity: parseInt(channel.capacity, decBase),
-          commit_transaction_fee: parseInt(channel.commit_fee, decBase),
-          commit_transaction_weight: parseInt(channel.commit_weight, decBase),
-          id: chanFormat({number: channel.chan_id}).channel,
-          is_active: channel.active,
-          is_closing: false,
-          is_opening: false,
-          is_partner_initiated: notInitiator,
-          is_private: channel.private,
-          local_balance: parseInt(channel.local_balance, decBase),
-          partner_public_key: channel.remote_pubkey,
-          pending_payments: channel.pending_htlcs.map(n => ({
-            id: n.hash_lock.toString('hex'),
-            is_outgoing: !n.incoming,
-            timeout: n.expiration_height,
-            tokens: parseInt(n.amount, decBase),
-          })),
-          received: parseInt(channel.total_satoshis_received, decBase),
-          remote_balance: parseInt(channel.remote_balance, decBase),
-          sent: parseInt(channel.total_satoshis_sent, decBase),
-          transaction_id: transactionId,
-          transaction_vout: parseInt(vout, decBase),
-          unsettled_balance: parseInt(channel.unsettled_balance, decBase),
+          return cbk(null, res.channels);
         });
-      },
-      cbk);
-    }],
+      }],
 
-    // Final channels result
-    channels: ['mappedChannels', ({mappedChannels}, cbk) => {
-      return cbk(null, {channels: mappedChannels});
-    }],
-  },
-  returnResult({of: 'channels'}, cbk));
+      // Map channel response to channels list
+      mappedChannels: ['getChannels', ({getChannels}, cbk) => {
+        return asyncMap(getChannels, (channel, cbk) => {
+          if (!isArray(channel.pending_htlcs)) {
+            return cbk([503, 'ExpectedPendingHtlcs']);
+          }
+
+          if (channel.active === undefined) {
+            return cbk([503, 'ExpectedChannelActiveState']);
+          }
+
+          if (channel.capacity === undefined) {
+            return cbk([503, 'ExpectedChannelCapacity']);
+          }
+
+          if (!channel.chan_id) {
+            return cbk([503, 'ExpectedChanId']);
+          }
+
+          try {
+            const _ = chanFormat({number: channel.chan_id});
+          } catch (err) {
+            return cbk([503, 'ExpectedChannelIdNumberInChannelsList', {err}]);
+          }
+
+          if (!channel.channel_point) {
+            return cbk([503, 'ExpectedChannelPoint']);
+          }
+
+          if (channel.commit_fee === undefined) {
+            return cbk([503, 'ExpectedCommitFee']);
+          }
+
+          if (channel.commit_weight === undefined) {
+            return cbk([503, 'ExpectedCommitWeight']);
+          }
+
+          if (channel.fee_per_kw === undefined) {
+            return cbk([503, 'ExpectedFeePerKw']);
+          }
+
+          if (channel.local_balance === undefined) {
+            return cbk([503, 'ExpectedLocalBalance']);
+          }
+
+          if (channel.num_updates === undefined) {
+            return cbk([503, 'ExpectedNumUpdates']);
+          }
+
+          if (!isArray(channel.pending_htlcs)) {
+            return cbk([503, 'ExpectedChannelPendingHtlcs']);
+          }
+
+          if (channel.private !== true && channel.private !== false) {
+            return cbk([503, 'ExpectedChannelPrivateStatus']);
+          }
+
+          if (channel.remote_balance === undefined) {
+            return cbk([503, 'ExpectedRemoteBalance']);
+          }
+
+          if (!channel.remote_pubkey) {
+            return cbk([503, 'ExpectedRemotePubkey']);
+          }
+
+          if (channel.total_satoshis_received === undefined) {
+            return cbk([503, 'ExpectedTotalSatoshisReceived']);
+          }
+
+          if (channel.total_satoshis_sent === undefined) {
+            return cbk([503, 'ExpectedTotalSatoshisSent']);
+          }
+
+          if (channel.unsettled_balance === undefined) {
+            return cbk([503, 'ExpectedUnsettledBalance']);
+          }
+
+          const commitWeight = parseInt(channel.commit_weight, decBase);
+          const {initiator} = channel;
+          const [transactionId, vout] = channel.channel_point.split(':');
+
+          const notInitiator = initiator === false ? undefined : !initiator;
+
+          return cbk(null, {
+            capacity: parseInt(channel.capacity, decBase),
+            commit_transaction_fee: parseInt(channel.commit_fee, decBase),
+            commit_transaction_weight: commitWeight,
+            id: chanFormat({number: channel.chan_id}).channel,
+            is_active: channel.active,
+            is_closing: false,
+            is_opening: false,
+            is_partner_initiated: notInitiator,
+            is_private: channel.private,
+            local_balance: parseInt(channel.local_balance, decBase),
+            partner_public_key: channel.remote_pubkey,
+            pending_payments: channel.pending_htlcs.map(n => ({
+              id: n.hash_lock.toString('hex'),
+              is_outgoing: !n.incoming,
+              timeout: n.expiration_height,
+              tokens: parseInt(n.amount, decBase),
+            })),
+            received: parseInt(channel.total_satoshis_received, decBase),
+            remote_balance: parseInt(channel.remote_balance, decBase),
+            sent: parseInt(channel.total_satoshis_sent, decBase),
+            transaction_id: transactionId,
+            transaction_vout: parseInt(vout, decBase),
+            unsettled_balance: parseInt(channel.unsettled_balance, decBase),
+          });
+        },
+        cbk);
+      }],
+
+      // Final channels result
+      channels: ['mappedChannels', ({mappedChannels}, cbk) => {
+        return cbk(null, {channels: mappedChannels});
+      }],
+    },
+    returnResult({reject, resolve, of: 'channels'}, cbk));
+  });
 };

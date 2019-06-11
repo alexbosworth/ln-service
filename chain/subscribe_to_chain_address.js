@@ -5,6 +5,8 @@ const {dummyTxId} = require('./constants');
 
 /** Subscribe to confirmation details about transactions sent to an address
 
+  Requires lnd built with chainrpc build tag
+
   One and only one chain address or output script is required
 
   {
@@ -24,16 +26,14 @@ const {dummyTxId} = require('./constants');
   @returns
   <EventEmitter Object>
 
-  @on('confirmation')
+  @event 'confirmation'
   {
     block: <Block Hash Hex String>
     height: <Block Best Chain Height Number>
     transaction: <Raw Transaction Hex String>
   }
 
-  @on('reorg')
-  {
-  }
+  @event 'reorg'
 */
 module.exports = args => {
   let outputScript = args.output_script;
@@ -90,7 +90,7 @@ module.exports = args => {
         break;
       }
 
-      eventEmitter.emit('reorg', {});
+      eventEmitter.emit('reorg');
       break;
 
     case true:

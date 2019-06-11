@@ -65,6 +65,7 @@ const times = 20;
     lnd_macaroon: <LND Base64 Encoded Authentication Macaroon String>
     lnd_socket: <LND RPC Socket String>
     mining_key: <Mining Rewards Private Key WIF Encoded String>
+    public_key: <Node Public Key Hex String>
     seed: <Node Seed Phrase String>
   }
 */
@@ -340,7 +341,9 @@ module.exports = ({seed}, cbk) => {
       lnd_macaroon: res.wallet.macaroon,
       lnd_socket: res.wallet.socket,
       mining_key: res.miningKey.private_key,
+      public_key: res.delay.public_key,
       seed: res.createSeed.seed,
+      socket: `${localhost}:${res.getPorts.listen}`,
     });
   });
 };

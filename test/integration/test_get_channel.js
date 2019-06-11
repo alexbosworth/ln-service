@@ -1,10 +1,9 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
-const getChannel = require('./../../getChannel');
-const getChannels = require('./../../getChannels');
-const openChannel = require('./../../openChannel');
+const {getChannel} = require('./../../');
+const {getChannels} = require('./../../');
+const {openChannel} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -19,6 +18,7 @@ test(`Get channel`, async ({end, equal}) => {
 
   const controlToTarget = await openChannel({
     lnd,
+    local_tokens: 1e6,
     partner_public_key: cluster.target_node_public_key,
     socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
   });

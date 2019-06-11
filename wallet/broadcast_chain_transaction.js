@@ -1,49 +1,66 @@
+const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
+const {returnResult} = require('asyncjs-util');
 const {Transaction} = require('bitcoinjs-lib');
 
 /** Publish a raw blockchain transaction to Blockchain network peers
+
+  Requires lnd built with `walletrpc` tag
 
   {
     lnd: <Authenticated LND gRPC API Object>
     transaction: <Transaction Hex String>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     id: <Transaction Id Hex String>
   }
 */
 module.exports = ({lnd, transaction}, cbk) => {
-  if (!lnd || !lnd.wallet || !lnd.wallet.publishTransaction) {
-    return cbk([400, 'ExpectedWalletRpcLndToSendRawTransaction']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!lnd || !lnd.wallet || !lnd.wallet.publishTransaction) {
+          return cbk([400, 'ExpectedWalletRpcLndToSendRawTransaction']);
+        }
 
-  if (!transaction || !isHex(transaction)) {
-    return cbk([400, 'ExpectedRawTransactionToBroadcastToPeers']);
-  }
+        if (!transaction || !isHex(transaction)) {
+          return cbk([400, 'ExpectedRawTransactionToBroadcastToPeers']);
+        }
 
-  try {
-    Transaction.fromHex(transaction);
-  } catch (err) {
-    return cbk([400, 'ExpectedValidTransactionToBroadcastToPeers']);
-  }
+        try {
+          Transaction.fromHex(transaction);
+        } catch (err) {
+          return cbk([400, 'ExpectedValidTransactionToBroadcastToPeers']);
+        }
 
-  return lnd.wallet.publishTransaction({
-    tx_hex: Buffer.from(transaction, 'hex'),
-  },
-  (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedErrorBroadcastingRawTransaction', {err}]);
-    }
+        return cbk();
+      },
 
-    if (!res) {
-      return cbk([503, 'ExpectedResultOfBroadcastRawTransaction']);
-    }
+      // Publish transaction
+      broadcast: ['validate', ({}, cbk) => {
+        return lnd.wallet.publishTransaction({
+          tx_hex: Buffer.from(transaction, 'hex'),
+        },
+        (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrBroadcastingRawTx', {err}]);
+          }
 
-    if (!!res.publish_error) {
-      return cbk([503, 'FailedToBroadcastRawTransaction', res.publish_error]);
-    }
+          if (!res) {
+            return cbk([503, 'ExpectedResultOfBroadcastRawTransaction']);
+          }
 
-    return cbk(null, {id: Transaction.fromHex(transaction).getId()});
+          if (!!res.publish_error) {
+            return cbk([503, 'FailedToBroadcastRawTransaction', {res}]);
+          }
+
+          return cbk(null, {id: Transaction.fromHex(transaction).getId()});
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'broadcast'}, cbk));
   });
 };

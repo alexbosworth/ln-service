@@ -1,5 +1,6 @@
+const asyncAuto = require('async/auto');
 const {broadcastResponse} = require('./../push');
-const rowTypes = require('./conf/row_types');
+const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 const initialConfirmationCount = 0;
@@ -17,74 +18,85 @@ const initialConfirmationCount = 0;
     [wss]: [<Web Socket Server Object>]
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     confirmation_count: <Total Confirmations Number>
     id: <Transaction Id Hex String>
     is_confirmed: <Transaction Is Confirmed Bool>
     is_outgoing: <Transaction Is Outgoing Bool>
     tokens: <Transaction Tokens Number>
-    type: <Row Type String>
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.address) {
-    return cbk([400, 'ExpectedChainAddressToSendTo']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!args.address) {
+          return cbk([400, 'ExpectedChainAddressToSendTo']);
+        }
 
-  if (!args.lnd || !args.lnd.default || !args.lnd.default.sendCoins) {
-    return cbk([400, 'ExpectedLndForChainSendRequest']);
-  }
+        if (!args.lnd || !args.lnd.default || !args.lnd.default.sendCoins) {
+          return cbk([400, 'ExpectedLndForChainSendRequest']);
+        }
 
-  if (!args.tokens && !args.is_send_all) {
-    return cbk([400, 'MissingTokensToSendOnChain']);
-  }
+        if (!args.tokens && !args.is_send_all) {
+          return cbk([400, 'MissingTokensToSendOnChain']);
+        }
 
-  if (!!args.tokens && !!args.is_send_all) {
-    return cbk([400, 'ExpectedNoTokensSpecifiedWhenSendingAllFunds']);
-  }
+        if (!!args.tokens && !!args.is_send_all) {
+          return cbk([400, 'ExpectedNoTokensSpecifiedWhenSendingAllFunds']);
+        }
 
-  if (!!args.wss && !Array.isArray(args.wss)) {
-    return cbk([400, 'ExpectedWssArrayForChainSend']);
-  }
+        if (!!args.wss && !Array.isArray(args.wss)) {
+          return cbk([400, 'ExpectedWssArrayForChainSend']);
+        }
 
-  if (!!args.wss && !args.log) {
-    return cbk([400, 'ExpectedLogFunctionForChainSendWebSocketAnnouncement']);
-  }
+        if (!!args.wss && !args.log) {
+          return cbk([400, 'ExpectedLogFunctionForChainSendSocketAnnounce']);
+        }
 
-  return args.lnd.default.sendCoins({
-    addr: args.address,
-    amount: args.tokens || undefined,
-    sat_per_byte: args.fee_tokens_per_vbyte || undefined,
-    send_all: args.is_send_all || undefined,
-    target_conf: args.target_confirmations || undefined,
-  },
-  (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedSendCoinsError', {err}]);
-    }
+        return cbk();
+      },
 
-    if (!res) {
-      return cbk([503, 'ExpectedResponseFromSendCoinsRequest']);
-    }
+      // Send coins
+      send: ['validate', ({}, cbk) => {
+        return args.lnd.default.sendCoins({
+          addr: args.address,
+          amount: args.tokens || undefined,
+          sat_per_byte: args.fee_tokens_per_vbyte || undefined,
+          send_all: args.is_send_all || undefined,
+          target_conf: args.target_confirmations || undefined,
+        },
+        (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedSendCoinsError', {err}]);
+          }
 
-    if (!res.txid) {
-      return cbk([503, 'ExpectedTransactionIdForSendCoinsTransaction']);
-    }
+          if (!res) {
+            return cbk([503, 'ExpectedResponseFromSendCoinsRequest']);
+          }
 
-    const row = {
-      confirmation_count: initialConfirmationCount,
-      id: res.txid,
-      is_confirmed: false,
-      is_outgoing: true,
-      tokens: parseInt(args.tokens, decBase),
-      type: rowTypes.chain_transaction,
-    };
+          if (!res.txid) {
+            return cbk([503, 'ExpectedTransactionIdForSendCoinsTransaction']);
+          }
 
-    if (!!args.wss) {
-      broadcastResponse({row, log: args.log, wss: args.wss});
-    }
+          const row = {
+            confirmation_count: initialConfirmationCount,
+            id: res.txid,
+            is_confirmed: false,
+            is_outgoing: true,
+            tokens: parseInt(args.tokens, decBase),
+          };
 
-    return cbk(null, row);
+          if (!!args.wss) {
+            broadcastResponse({row, log: args.log, wss: args.wss});
+          }
+
+          return cbk(null, row);
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'send'}, cbk));
   });
 };

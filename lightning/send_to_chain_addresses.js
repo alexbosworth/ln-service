@@ -1,6 +1,6 @@
+const asyncAuto = require('async/auto');
 const {broadcastResponse} = require('./../push');
-
-const rowTypes = require('./conf/row_types');
+const {returnResult} = require('asyncjs-util');
 
 const initialConfirmationCount = 0;
 const {isArray} = Array;
@@ -19,74 +19,84 @@ const {isArray} = Array;
     [wss]: [<Web Socket Server Object>]
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   {
     confirmation_count: <Total Confirmations Number>
     id: <Transaction Id Hex String>
     is_confirmed: <Transaction Is Confirmed Bool>
     is_outgoing: <Transaction Is Outgoing Bool>
     tokens: <Transaction Tokens Number>
-    type: <Row Type String>
   }
 */
 module.exports = (args, cbk) => {
-  if (!args.lnd || !args.lnd.default) {
-    return cbk([400, 'ExpectedLndToSendToChainAddresses']);
-  }
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        if (!args.lnd || !args.lnd.default) {
+          return cbk([400, 'ExpectedLndToSendToChainAddresses']);
+        }
 
-  if (!isArray(args.send_to) || !args.send_to.length) {
-    return cbk([400, 'ExpectedSendToAddressesAndTokens']);
-  }
+        if (!isArray(args.send_to) || !args.send_to.length) {
+          return cbk([400, 'ExpectedSendToAddressesAndTokens']);
+        }
 
-  if (args.send_to.find(({address, tokens}) => !address || !tokens)) {
-    return cbk([400, 'ExpectedDestinationsAndTokensWhenSendingToAddresses']);
-  }
+        if (args.send_to.find(({address, tokens}) => !address || !tokens)) {
+          return cbk([400, 'ExpectedAddrsAndTokensWhenSendingToAddresses']);
+        }
 
+        if (!!args.wss && !isArray(args.wss)) {
+          return cbk([400, 'ExpectedWssArrayForSendToChainAddresses']);
+        }
 
-  if (!!args.wss && !isArray(args.wss)) {
-    return cbk([400, 'ExpectedWssArrayForSendToChainAddresses']);
-  }
+        if (!!args.wss && !args.log) {
+          return cbk([400, 'ExpectedLogForChainSendWebSocketAnnouncement']);
+        }
 
-  if (!!args.wss && !args.log) {
-    return cbk([400, 'ExpectedLogFunctionForChainSendWebSocketAnnouncement']);
-  }
+        return cbk();
+      },
 
-  const AddrToAmount = {};
+      send: ['validate', ({}, cbk) => {
+        const AddrToAmount = {};
 
-  args.send_to.forEach(({address, tokens}) => AddrToAmount[address] = tokens);
+        args.send_to
+          .forEach(({address, tokens}) => AddrToAmount[address] = tokens);
 
-  const send = {
-    AddrToAmount,
-    sat_per_byte: args.fee_tokens_per_vbyte || undefined,
-    target_conf: args.target_confirmations || undefined,
-  };
+        const send = {
+          AddrToAmount,
+          sat_per_byte: args.fee_tokens_per_vbyte || undefined,
+          target_conf: args.target_confirmations || undefined,
+        };
 
-  return args.lnd.default.sendMany(send, (err, res) => {
-    if (!!err) {
-      return cbk([503, 'UnexpectedSendManyError', {err}]);
-    }
+        return args.lnd.default.sendMany(send, (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedSendManyError', {err}]);
+          }
 
-    if (!res) {
-      return cbk([503, 'ExpectedResponseFromSendManyRequest']);
-    }
+          if (!res) {
+            return cbk([503, 'ExpectedResponseFromSendManyRequest']);
+          }
 
-    if (!res.txid) {
-      return cbk([503, 'ExpectedTransactionIdForSendManyTransaction', res]);
-    }
+          if (!res.txid) {
+            return cbk([503, 'ExpectedTxIdForSendManyTransaction', res]);
+          }
 
-    const row = {
-      confirmation_count: initialConfirmationCount,
-      id: res.txid,
-      is_confirmed: false,
-      is_outgoing: true,
-      tokens: args.send_to.reduce((sum, n) => sum + n.tokens, 0),
-      type: rowTypes.chain_transaction,
-    };
+          const row = {
+            confirmation_count: initialConfirmationCount,
+            id: res.txid,
+            is_confirmed: false,
+            is_outgoing: true,
+            tokens: args.send_to.reduce((sum, n) => sum + n.tokens, 0),
+          };
 
-    if (!!args.wss) {
-      broadcastResponse({row, log: args.log, wss: args.wss});
-    }
+          if (!!args.wss) {
+            broadcastResponse({row, log: args.log, wss: args.wss});
+          }
 
-    return cbk(null, row);
+          return cbk(null, row);
+        });
+      }],
+    },
+    returnResult({reject, resolve, of: 'send'}, cbk));
   });
 };

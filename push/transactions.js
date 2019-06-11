@@ -1,5 +1,5 @@
 const {broadcastResponse} = require('./../push');
-const {subscribeToTransactions} = require('./../lightning');
+const {subscribeToTransactions} = require('./../');
 
 const {isArray} = Array;
 

@@ -1,12 +1,12 @@
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const getChannels = require('./../../getChannels');
-const getNode = require('./../../getNode');
-const getWalletInfo = require('./../../getWalletInfo');
-const openChannel = require('./../../openChannel');
+const {getChannels} = require('./../../');
+const {getNode} = require('./../../');
+const {getWalletInfo} = require('./../../');
+const {openChannel} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 

@@ -1,4 +1,4 @@
-const {getWalletInfo} = require('./../lightning');
+const {getWalletInfo} = require('./../');
 const localLnd = require('./local_lnd');
 
 const lndLockedErrorCode = 'LndLocked';
@@ -13,7 +13,7 @@ const lndLockedErrorCode = 'LndLocked';
   }
 */
 module.exports = ({}, cbk) => {
-  return getWalletInfo({lnd: localLnd({})}, err => {
+  return getWalletInfo({lnd: localLnd({}).lnd}, err => {
     // Exit early when there is no error which indicates the wallet is unlocked
     if (!err) {
       return cbk(null, false);

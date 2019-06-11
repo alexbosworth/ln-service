@@ -1,7 +1,7 @@
 const {test} = require('tap');
 
-const getPublicKey = require('./../../getPublicKey');
-const getWalletInfo = require('./../../getWalletInfo');
+const {getPublicKey} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {delay} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');

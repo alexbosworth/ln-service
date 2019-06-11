@@ -1,18 +1,18 @@
 const {test} = require('tap');
 
-const addPeer = require('./../../addPeer');
+const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
-const createInvoice = require('./../../createInvoice');
+const {createInvoice} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
-const getAccountingReport = require('./../../getAccountingReport');
-const getChannel = require('./../../getChannel');
-const getChannels = require('./../../getChannels');
-const getUtxos = require('./../../getUtxos');
-const getWalletInfo = require('./../../getWalletInfo');
+const {getAccountingReport} = require('./../../');
+const {getChannel} = require('./../../');
+const {getChannels} = require('./../../');
+const {getUtxos} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
-const openChannel = require('./../../openChannel');
-const pay = require('./../../pay');
+const {openChannel} = require('./../../');
+const {pay} = require('./../../');
 const {routeFromHops} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
@@ -98,7 +98,6 @@ test(`Get accounting report`, async ({deepEqual, end, equal}) => {
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
   await cluster.generate({count: confirmationCount, node: cluster.control});
-
 
   await waitForChannel({id: chan.transaction_id, lnd: cluster.control.lnd});
 
