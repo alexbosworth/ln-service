@@ -1,6 +1,6 @@
 # Versions
 
-## 39.1.0
+## 39.1.1
 
 - Add getPaymentOdds method to calculate the odds of a successful payment
 

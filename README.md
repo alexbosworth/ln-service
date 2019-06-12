@@ -93,6 +93,92 @@ for `unlocker` methods.
 
 ## All Methods
 
+- [addPeer](#addPeer) - Connect to a peer
+- [authenticatedLndGrpc](#authenticatedLndGrpc) - LND API Object
+- [broadcastChainTransaction](#broadcastChainTransaction) - Push a chain tx
+- [calculateHops](#calculateHops) - Pathfind to get payment hops from channels
+- [calculatePaths](#calculatePaths) - Pathfind to find multiple routes to pay
+- [cancelHodlInvoice](#cancelHodlInvoice) - Cancel a held or open invoice
+- [changePassword](#changePassword) - Change the wallet unlock password
+- [closeChannel](#closeChannel) - Terminate an open channel
+- [createChainAddress](#createChainAddress) - Get a chain address to receive at
+- [createHodlInvoice](#createHodlInvoice) - Make a HODL HTLC invoice
+- [createInvoice](#createInvoice) - Make a regular invoice
+- [createSeed](#createSeed) - Generate a wallet seed for a new wallet
+- [createWallet](#createWallet) - Make a new wallet
+- [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
+- [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
+- [getAccountingReport](#getAccountingReport) - Get Harmony accounting records
+- [getAutopilot](#getAutopilot) - Get autopilot status or node scores
+- [getBackup](#getBackup) - Get a backup of a channel
+- [getBackups](#getBackups) - Get a backup for all channels
+- [getChainBalance](#getChainBalance) - Get the confirmed chain balance
+- [getChainFeeEstimate](#getChainFeeEstimate) - Get a chain fee estimate
+- [getChainFeeRate](#getChainFeeRate) - Get the fee rate for a conf target
+- [getChainTransactions](#getChainTransactions) - Get all chain transactions
+- [getChannel](#getChannel) - Get graph information about a channel
+- [getChannelBalance](#getChannelBalance) - Get the balance of channel funds
+- [getChannels](#getChannels) - Get all open channels
+- [getClosedChannels](#getClosedChannels) - Get previously open channels
+- [getFeeRates](#getFeeRates) - Get current routing fee rates
+- [getForwardingReputations](#getForwardingReputations) - Get graph reputations
+- [getForwards](#getForwards) - Get forwarded routed payments
+- [getInvoice](#getInvoice) - Get a previously created invoice
+- [getInvoices](#getInvoices) - Get all previously created invoice
+- [getNetworkGraph](#getNetworkGraph) - Get the channels and nodes of the graph
+- [getNetworkInfo](#getNetworkInfo) - Get high-level graph info
+- [getNode](#getNode) - Get graph info about a single node and its channels
+- [getPayment](#getPayment) - Get a past payment
+- [getPaymentOdds](#getPaymentOdds) - Estimate odds a payment will succeed
+- [getPayments](#getPayments) - Get all past payments
+- [getPeers](#getPeers) - Get all connected peers
+- [getPendingChainBalance](#getPendingChainBalance) - Get pending chain balance
+- [getPendingChannels](#getPendingChannels) - Get channels in pending states
+- [getPublicKey](#getPublicKey) - Get a public key out of the seed
+- [getRoutes](#getRoutes) - Find payable routes to a target destination
+- [getUtxos](#getUtxos) - Get on-chain unspent outputs
+- [getWalletInfo](#getWalletInfo) - Get general wallet info
+- [openChannel](#openChannel) - Open a new channel
+- [parsePaymentRequest](#parsePaymentRequest) - Parse a BOLT11 Payment Request
+- [pay](#pay) - Send a payment
+- [payViaPaymentDetails](#payViaPaymentDetails) - Pay using decomposed details
+- [payViaPaymentRequest](#payViaPaymentRequest) - Pay using a payment request
+- [payViaRoutes](#payViaRoutes) - Make a payment over specified routes
+- [probe](#probe) - Find a payable route by attempting a fake payment
+- [probeForRoute](#probeForRoute) - Actively probe to find a payable route
+- [recoverFundsFromChannel](#recoverFundsFromChannel) - Restore a channel
+- [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
+- [removePeer](#removePeer) - Disconnect from a connected peer
+- [routeFromChannels](#routeFromChannels) - Convert channel series to a route
+- [routeFromHops](#routeFromHops) - Convert hops to a payable route
+- [sendToChainAddress](#sendToChainAddress) - Send on-chain to an address
+- [sendToChainAddresses](#sendToChainAddresses) - Send on-chain to addresses
+- [setAutopilot](#setAutopilot) - Turn autopilot on and set autopilot scores
+- [settleHodlInvoice](#settleHodlInvoice) - Accept a HODL HTLC invoice
+- [signMessage](#signMessage) - Sign a message with the node identity key
+- [signTransaction](#signTransaction) - Sign an on-chain transaction
+- [stopDaemon](#stopDaemon) - Stop lnd
+- [subscribeToBackups](#subscribeToBackups) - Subscribe to channel backups
+- [subscribeToBlocks](#subscribeToBlocks) - Subscribe to on-chain blocks
+- [subscribeToChainAddress](#subscribeToChainAddress) - Subscribe to receives
+- [subscribeToChainSpend](#subscribeToChainSpend) - Subscribe to chain spends
+- [subscribeToChannels](#subscribeToChannels) - Subscribe to channel statuses
+- [subscribeToGraph](#subscribeToGraph) - Subscribe to network graph updates
+- [subscribeToInvoice](#subscribeToInvoice) - Subscribe to invoice updates
+- [subscribeToInvoices](#subscribeToInvoices) - Subscribe to all invoices
+- [subscribeToPastPayment](#subscribeToPastPayment) - Subscribe to a payment
+- [subscribeToPayViaDetails](#subscribeToPayViaDetails) - Pay using details
+- [subscribeToPayViaRequest](#subscribeToPayViaRequest) - Pay using a request
+- [subscribeToPayViaRoutes](#subscribeToPayViaRoutes) - Pay using routes
+- [subscribeToProbe](#subscribeToProbe) - Subscribe to a probe for a route
+- [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
+- [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
+- [unlockWallet](#unlockWallet) - Unlock a locked lnd
+- [updateRoutingFees](#updateRoutingFees) - Change routing fees
+- [verifyBackup](#verifyBackup) - Verify a channel backup
+- [verifyBackups](#verifyBackups) - Verify a set of channel backups
+- [verifyMessage](#verifyMessage) - Verify a message signed by a node identity
+
 ### addPeer
 
 Add a peer if possible (not self, or already connected)
@@ -273,7 +359,7 @@ Example:
 const {calculatePaths, getNetworkGraph, getWalletInfo} = require('ln-service');
 const {channels} = await getNetworkGraph;
 const end = 'destinationPublicKeyHexString';
-const start = (await getWalletInfo({lnd})).public_key;_
+const start = (await getWalletInfo({lnd})).public_key;
 const const {paths} = calculatePaths({channels, end, start, mtokens: '1000'});
 ```
 
@@ -412,8 +498,8 @@ Example:
 
 ```node
 const {createHodlInvoice} = require('ln-service');
-const id = 'preimageSha256HashString'
-const invoice = await createHodlInvoice({id, lnd})
+const id = 'preimageSha256HashString';
+const invoice = await createHodlInvoice({id, lnd});
 ```
 
 ### createInvoice
@@ -716,7 +802,7 @@ Get all channel backups
 Example:
 
 ```node
-const {getBackups} = require('ln-service);
+const {getBackups} = require('ln-service');
 const {backup} = await getBackups({lnd});
 ```
 
@@ -2084,7 +2170,7 @@ Example:
 
 ```node
 const {getChannel, getChannels, routeFromChannels} = require('ln-service');
-const {getWalletInfo} = require('ln-service);
+const {getWalletInfo} = require('ln-service');
 const [{id}] = await getChannels({lnd});
 const channels = [(await getChannel({lnd, id}))];
 const cltv = 40;
