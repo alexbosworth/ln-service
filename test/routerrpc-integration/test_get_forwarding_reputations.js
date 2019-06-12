@@ -106,7 +106,7 @@ test('Probe for route', async ({deepIs, end, equal}) => {
     equal(channel.id, targetToRemoteChan.id, 'Fail channel id returned');
     equal(!!channel.last_failed_forward_at, true, 'Last fail time returned');
     equal(channel.min_relevant_tokens, tokens, 'Min relevant tokens set');
-    equal(channel.success_odds, 4, 'Success odds returned');
+    equal(channel.success_odds < 1000, true, 'Success odds returned');
   }
 
   await cluster.kill({});

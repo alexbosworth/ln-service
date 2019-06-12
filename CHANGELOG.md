@@ -1,5 +1,13 @@
 # Versions
 
+## 39.1.0
+
+- Add getPaymentOdds method to calculate the odds of a successful payment
+
+Fixes:
+
+- Add missing subscribeToPayViaRequest
+
 ## 39.0.0
 
 All previously cbk type functions can now also be used as Promises
@@ -11,7 +19,7 @@ All previously cbk type functions can now also be used as Promises
 - Add payViaPaymentRequest method to make a payment using BOLT 11 pay request
 - Add subscribeToPastPayment to subscribe to a payment's status
 - Add subscribeToPayViaDetails to make a payment using details and sub to it
-- Add subscribeToPayVIaRequest to make a payment using a request and sub to it
+- Add subscribeToPayViaRequest to make a payment using a request and sub to it
 
 ### Breaking Changes
 

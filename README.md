@@ -88,7 +88,8 @@ lnService.getWalletInfo({lnd}, (err, result) => {
 console.log((await lnService.getWalletInfo({lnd})).public_key);
 ```
 
-An `unauthenticatedLndGrpc` function is also available for `unlocker` methods.
+An [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) function is also available
+for `unlocker` methods.
 
 ## All Methods
 
@@ -1274,6 +1275,35 @@ Example:
 const {getPayment} = require('ln-service');
 const id = 'paymentHashHexString';
 const payment = await getPayment({id, lnd});
+```
+
+### getPaymentOdds
+
+/** Get routing odds of successfully routing a payment to a destination
+
+  Requires lnd built with routerrpc build tag
+
+    {
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Forward Edge Public Key Hex String>
+      }]
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      success_odds: <Odds of Success Out Of 1 Million Number>
+    }
+
+Example:
+
+```node
+const {getPaymentOdds, getRoutes} = require('ln-service');
+const destination = 'destinationPublicKeyHexString';
+const [{hops}] = await getRoutes({destination, lnd, tokens: 80085});
+const oddsOfSuccess = (await getPaymentOdds({hops, lnd})).success_odds / 1e6;
 ```
 
 ### getPayments
