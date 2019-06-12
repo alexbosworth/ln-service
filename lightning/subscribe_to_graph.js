@@ -20,7 +20,7 @@ const msPerSec = 1e3;
   @returns
   <EventEmitter Object>
 
-  @event 'channel_update'
+  @event 'channel_updated'
   {
     base_fee_mtokens: <Channel Base Fee Millitokens String>
     capacity: <Channel Capacity Tokens Number>
@@ -36,7 +36,7 @@ const msPerSec = 1e3;
     updated_at: <Update Received At ISO 8601 Date String>
   }
 
-  @event 'closed_channel'
+  @event 'channel_closed'
   {
     capacity: <Channel Capacity Tokens Number>
     id: <Standard Format Channel Id String>
@@ -46,7 +46,7 @@ const msPerSec = 1e3;
     updated_at: <Update Received At ISO 8601 Date String>
   }
 
-  @event 'node_update'
+  @event 'node_updated'
   {
     alias: <Node Alias String>
     color: <Node Color String>
