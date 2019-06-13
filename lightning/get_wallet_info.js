@@ -132,7 +132,7 @@ module.exports = ({lnd}, cbk) => {
             pending_channels_count: res.num_pending_channels,
             public_key: res.identity_pubkey,
             version: res.version,
-            uris: res.uris,
+            uris: res.uris || null,
           });
         });
       }],
