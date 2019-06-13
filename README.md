@@ -257,7 +257,7 @@ Requires lnd built with `walletrpc` tag
 Example:
 
 ```node
-const {broadcastChainTransaction} = require('ln-service);
+const {broadcastChainTransaction} = require('ln-service');
 const transaction = hexEncodedTransactionString;
 const {id} = await broadcastChainTransaction({lnd, transaction});
 ```
@@ -434,7 +434,7 @@ If cooperatively closing, pass a public key and socket to connect
 Example:
 
 ```node
-const {closeChannel} = require('ln-service);
+const {closeChannel} = require('ln-service');
 const closing = await closeChannel({id, lnd});
 ```
 
@@ -615,7 +615,7 @@ Get decoded payment request
 Example:
 
 ```node
-const {decodePaymentRequest} = require('ln-service);
+const {decodePaymentRequest} = require('ln-service');
 const request = 'bolt11EncodedPaymentRequestString';
 const details = await decodePaymentRequest({lnd, request});
 ```
@@ -2803,7 +2803,6 @@ Requires lnd built with routerrpc build tag
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
-      [request]: <BOLT 11 Payment Request String>
       [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       tokens: <Tokens To Pay Number>
     }

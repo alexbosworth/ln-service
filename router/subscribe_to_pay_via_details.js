@@ -17,7 +17,6 @@ const randomId = () => randomBytes(32).toString('hex');
     [max_fee]: <Maximum Fee Tokens To Pay Number>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
-    [request]: <BOLT 11 Payment Request String>
     [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     tokens: <Tokens To Pay Number>
   }
