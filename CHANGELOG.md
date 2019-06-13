@@ -1,5 +1,9 @@
 # Versions
 
+## 39.2.0
+
+- Add uris to getWalletInfo method
+
 ## 39.1.1
 
 - Add getPaymentOdds method to calculate the odds of a successful payment
