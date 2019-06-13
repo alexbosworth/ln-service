@@ -11,9 +11,14 @@ const walletInfoType = 'wallet';
 
 // Getting the wallet info should return info about the wallet
 test(`Get wallet info`, async ({deepEqual, end, equal}) => {
-  const {kill, lnd} = await spawnLnd({});
+  const spawned = await spawnLnd({});
+
+  const {lnd} = spawned;
+  const pubKey = spawned.public_key;
 
   const result = await getWalletInfo({lnd});
+
+  const expectedUri = `${pubKey}@${spawned.listen_ip}:${spawned.listen_port}`;
 
   equal(result.active_channels_count, 0, 'Expected channels count');
   equal(!!result.alias, true, 'Expected alias');
@@ -25,9 +30,10 @@ test(`Get wallet info`, async ({deepEqual, end, equal}) => {
   equal(result.peers_count, 0, 'Expected wallet peers count');
   equal(result.pending_channels_count, 0, 'Expected pending channels count');
   equal(result.public_key.length, pubKeyHexLength, 'Expected public key');
+  deepEqual(result.uris, [expectedUri], 'Expected node URI');
   equal(!!result.version, true, 'Expected version');
 
-  kill();
+  spawned.kill();
 
   await waitForTermination({lnd});
 

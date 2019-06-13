@@ -30,8 +30,8 @@ const msPerSec = 1e3;
     peers_count: <Peer Count Number>
     pending_channels_count: <Pending Channels Count Number>
     public_key: <Public Key String>
-    version: <LND version String>
-    [uris]: [<The URIs of the node String>]
+    [uris]: [<The URIs of the Node String>]
+    version: <LND Version String>
   }
 */
 module.exports = ({lnd}, cbk) => {
@@ -131,8 +131,8 @@ module.exports = ({lnd}, cbk) => {
             peers_count: res.num_peers,
             pending_channels_count: res.num_pending_channels,
             public_key: res.identity_pubkey,
+            uris: res.uris || undefined,
             version: res.version,
-            uris: res.uris || null,
           });
         });
       }],
