@@ -5,6 +5,7 @@ const {chanFormat} = require('bolt07');
 const getNode = require('./get_node');
 
 const decBase = 10;
+const emptyTxId = Buffer.alloc(32);
 const {isArray} = Array;
 const msPerSec = 1e3;
 
@@ -20,22 +21,6 @@ const msPerSec = 1e3;
   @returns
   <EventEmitter Object>
 
-  @event 'channel_updated'
-  {
-    base_fee_mtokens: <Channel Base Fee Millitokens String>
-    capacity: <Channel Capacity Tokens Number>
-    cltv_delta: <Channel CLTV Delta Number>
-    fee_rate: <Channel Feel Rate In Millitokens Per Million Number>
-    id: <Standard Format Channel Id String>
-    is_disabled: <Channel Is Disabled Bool>
-    [max_htlc_mtokens]: <Channel Maximum HTLC Millitokens String>
-    min_htlc_mtokens: <Channel Minimum HTLC Millitokens String>
-    public_keys: [<Announcing Public Key>, <Target Public Key String>]
-    transaction_id: <Channel Transaction Id String>
-    transaction_vout: <Channel Transaction Output Index Number>
-    updated_at: <Update Received At ISO 8601 Date String>
-  }
-
   @event 'channel_closed'
   {
     capacity: <Channel Capacity Tokens Number>
@@ -43,6 +28,22 @@ const msPerSec = 1e3;
     close_height: <Channel Close Confirmed Block Height Number>
     transaction_id: <Channel Transaction Id String>
     transaction_vout: <Channel Transaction Output Index Number>
+    updated_at: <Update Received At ISO 8601 Date String>
+  }
+
+  @event 'channel_updated'
+  {
+    base_fee_mtokens: <Channel Base Fee Millitokens String>
+    [capacity]: <Channel Capacity Tokens Number>
+    cltv_delta: <Channel CLTV Delta Number>
+    fee_rate: <Channel Feel Rate In Millitokens Per Million Number>
+    id: <Standard Format Channel Id String>
+    is_disabled: <Channel Is Disabled Bool>
+    [max_htlc_mtokens]: <Channel Maximum HTLC Millitokens String>
+    min_htlc_mtokens: <Channel Minimum HTLC Millitokens String>
+    public_keys: [<Announcing Public Key>, <Target Public Key String>]
+    [transaction_id]: <Channel Transaction Id String>
+    [transaction_vout]: <Channel Transaction Output Index Number>
     updated_at: <Update Received At ISO 8601 Date String>
   }
 
@@ -140,9 +141,11 @@ module.exports = ({lnd}) => {
         return eventEmitter.emit('error', new Error('ExpectedValidChannelId'));
       }
 
+      const txId = !!transactionId.equals(emptyTxId) ? null : transactionId;
+
       return eventEmitter.emit('channel_updated', {
         base_fee_mtokens: update.routing_policy.fee_base_msat,
-        capacity: parseInt(update.capacity, decBase),
+        capacity: parseInt(update.capacity, decBase) || undefined,
         cltv_delta: update.routing_policy.time_lock_delta,
         fee_rate: parseInt(update.routing_policy.fee_rate_milli_msat, decBase),
         id: chanFormat({number: update.chan_id}).channel,
@@ -150,8 +153,8 @@ module.exports = ({lnd}) => {
         max_htlc_mtokens: update.routing_policy.max_htlc_msat,
         min_htlc_mtokens: update.routing_policy.min_htlc,
         public_keys: [update.advertising_node, update.connecting_node],
-        transaction_id: transactionId.toString('hex'),
-        transaction_vout: update.chan_point.output_index,
+        transaction_id: !txId ? undefined : txId.toString('hex'),
+        transaction_vout: !txId ? undefined : update.chan_point.output_index,
         updated_at: updatedAt,
       });
     });
