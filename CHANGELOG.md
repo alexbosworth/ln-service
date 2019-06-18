@@ -1,5 +1,9 @@
 # Versions
 
+## 40.0.0
+
+- Avoid returning null transaction ids in graph updates
+
 ## 39.2.2
 
 - Add uris to getWalletInfo method
