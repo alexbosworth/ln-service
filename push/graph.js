@@ -1,5 +1,5 @@
 const {broadcastResponse} = require('./../push');
-const {subscribeToGraph} = require('./../lightning');
+const subscribeToGraph = require('./../lightning/subscribe_to_graph');
 
 const {isArray} = Array;
 

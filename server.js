@@ -35,7 +35,7 @@ const {subscribeToGraph} = require('./push');
 const {subscribeToInvoices} = require('./push');
 const {subscribeToTransactions} = require('./push');
 const {transactionsRouter} = require('./routers');
-const {unlockWallet} = require('./lightning');
+const {unlockWallet} = require('./unlocker');
 const {verifyClient} = require('./push');
 const {walletInfoRouter} = require('./routers');
 const {walletPasswordPrompt} = require('./service');
@@ -69,7 +69,11 @@ return asyncAuto({
       return cbk();
     }
 
-    return unlockWallet({lnd: unlockerLnd, password: walletPassword}, err => {
+    return unlockWallet({
+      lnd: unlockerLnd.lnd,
+      password: walletPassword,
+    },
+    err => {
       if (!!err) {
         return cbk(err);
       }
@@ -95,7 +99,7 @@ return asyncAuto({
       new WebSocketServer({server: httpsServer, verifyClient}),
     ];
 
-    const lnd = localLnd({});
+    const {lnd} = localLnd({});
 
     httpsServer.listen(httpsPort);
 

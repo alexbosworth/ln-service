@@ -1,5 +1,5 @@
 const {broadcastResponse} = require('./../push');
-const {subscribeToTransactions} = require('./../');
+const subscribeToTx = require('./../lightning/subscribe_to_transactions');
 
 const {isArray} = Array;
 
@@ -26,7 +26,7 @@ module.exports = ({lnd, log, wss}) => {
     throw new Error('ExpectedWebSocketServersToPushTransactions');
   }
 
-  const subscription = subscribeToTransactions({lnd});
+  const subscription = subscribeToTx({lnd});
 
   subscription.on('data', row => broadcastResponse({log, row, wss}));
   subscription.on('end', () => {});

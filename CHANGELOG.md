@@ -1,6 +1,6 @@
 # Versions
 
-## 39.2.0
+## 39.2.2
 
 - Add uris to getWalletInfo method
 
