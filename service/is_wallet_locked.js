@@ -1,4 +1,4 @@
-const {getWalletInfo} = require('./../');
+const {getWalletInfo} = require('./../lightning');
 const localLnd = require('./local_lnd');
 
 const lndLockedErrorCode = 'LndLocked';

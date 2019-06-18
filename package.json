@@ -13,7 +13,7 @@
     "bitcoinjs-lib": "5.0.5",
     "bn.js": "4.11.8",
     "body-parser": "1.19.0",
-    "bolt07": "1.4.0",
+    "bolt07": "1.4.1",
     "compression": "1.7.4",
     "cors": "2.8.5",
     "dotenv": "8.0.0",
@@ -28,13 +28,13 @@
     "request": "2.88.0",
     "safe-compare": "1.1.4",
     "secp256k1": "3.7.1",
-    "ws": "7.0.0"
+    "ws": "7.0.1"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
     "portfinder": "1.0.20",
     "rimraf": "2.6.3",
-    "tap": "14.2.2",
+    "tap": "14.2.3",
     "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
   },
@@ -63,5 +63,5 @@
     "test": "tap test/autopilot/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/graph/*.js test/router/*.js test/routing/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "39.2.0"
+  "version": "39.2.1"
 }
