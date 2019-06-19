@@ -63,5 +63,5 @@
     "test": "tap test/autopilot/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/graph/*.js test/router/*.js test/routing/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "40.0.1"
+  "version": "40.1.0"
 }

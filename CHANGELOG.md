@@ -1,5 +1,9 @@
 # Versions
 
+## 40.1.0
+
+- Add support for deleting all payments
+
 ## 40.0.1
 
 - Avoid returning null transaction ids in graph updates

@@ -3,6 +3,7 @@ const closeChannel = require('./close_channel');
 const createChainAddress = require('./create_chain_address');
 const createInvoice = require('./create_invoice');
 const decodePaymentRequest = require('./decode_payment_request');
+const deletePayments = require('./delete_payments');
 const getBackup = require('./get_backup');
 const getBackups = require('./get_backups');
 const getChainBalance = require('./get_chain_balance');
@@ -51,6 +52,7 @@ module.exports = {
   createChainAddress,
   createInvoice,
   decodePaymentRequest,
+  deletePayments,
   getBackup,
   getBackups,
   getChainBalance,

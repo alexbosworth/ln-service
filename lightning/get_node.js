@@ -62,6 +62,7 @@ module.exports = (args, cbk) => {
       // Get node
       getNode: ['validate', ({}, cbk) => {
         args.lnd.default.getNodeInfo({
+          include_channels: true,
           pub_key: args.public_key,
         },
         (err, res) => {

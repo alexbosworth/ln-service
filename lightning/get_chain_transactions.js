@@ -26,6 +26,7 @@ const msPerSec = 1e3;
       is_outgoing: <Transaction Outbound Bool>
       output_addresses: [<Address String>]
       tokens: <Tokens Including Fee Number>
+      [transaction]: <Raw Transaction Hex String>
     }]
   }
 */
@@ -112,6 +113,7 @@ module.exports = ({lnd}, cbk) => {
             is_outgoing: (parseInt(transaction.amount, decBase) < 0),
             output_addresses: transaction.dest_addresses,
             tokens: abs(parseInt(transaction.amount, decBase)),
+            transaction: transaction.raw_tx_hex || undefined,
           });
         },
         cbk);
