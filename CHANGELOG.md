@@ -1,6 +1,6 @@
 # Versions
 
-## 40.0.0
+## 40.0.1
 
 - Avoid returning null transaction ids in graph updates
 

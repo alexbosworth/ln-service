@@ -88,7 +88,7 @@ module.exports = args => {
   const channel = !!args.outgoing_channel ? args.outgoing_channel : null;
   const timeoutSeconds = round(args.pathfinding_timeout || 0);
 
-  const sub = args.lnd.router.sendPayment({
+  let sub = args.lnd.router.sendPayment({
     amt: !args.tokens ? undefined : args.tokens,
     cltv_limit: !args.timeout_height ? maxCltv : args.timeout_height,
     dest: !args.destination ? undefined : hexToBuf(args.destination),
