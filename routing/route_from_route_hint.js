@@ -55,7 +55,7 @@ module.exports = args => {
       throw new Error('ExpectedRouteHopCltvExpiryDeltaInRouteHint');
     }
 
-    if (!hop.fee_base_msat) {
+    if (hop.fee_base_msat === undefined) {
       throw new Error('ExpectedRouteHopBaseFeeInRouteHint');
     }
 
@@ -68,7 +68,7 @@ module.exports = args => {
     }
 
     return {
-      base_fee_mtokens: hop.fee_base_msat,
+      base_fee_mtokens: hop.fee_base_msat.toString(),
       channel: chanFormat({number: hop.chan_id}).channel,
       cltv_delta: hop.cltv_expiry_delta,
       fee_rate: hop.fee_proportional_millionths,

@@ -1,6 +1,6 @@
 # Versions
 
-## 40.1.0
+## 40.1.1
 
 - Add support for deleting all payments
 
