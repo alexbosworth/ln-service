@@ -61,7 +61,7 @@ module.exports = ({cltv, height, hops, mtokens}) => {
 
   // Check hops for validity
   hops.forEach(hop => {
-    if (!hop.base_fee_mtokens) {
+    if (hop.base_fee_mtokens === undefined) {
       throw new Error('ExpectedHopBaseFeeMillitokensForRouteConstruction');
     }
 

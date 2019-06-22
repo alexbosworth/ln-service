@@ -100,7 +100,7 @@ module.exports = ({lnd, request}, cbk) => {
 
           return cbk(null, {
             chain_address: res.fallback_addr || undefined,
-            cltv_delta: parseInt(res.cltv_delta || 0, decBase) || undefined,
+            cltv_delta: parseInt(res.cltv_expiry || 0, decBase) || undefined,
             created_at: new Date(createdAtMs).toISOString(),
             description: res.description,
             description_hash: res.description_hash || undefined,
