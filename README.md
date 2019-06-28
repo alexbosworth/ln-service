@@ -2892,6 +2892,9 @@ Requires lnd built with routerrpc build tag
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
     }
 
+    @event 'paying
+    {}
+
 Example:
 
 ```node

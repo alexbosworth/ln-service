@@ -41,6 +41,9 @@ const subscribeToPay = require('./subscribe_to_pay');
   {
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
   }
+
+  @event 'paying
+  {}
 */
 module.exports = args => {
   if (!args.request) {

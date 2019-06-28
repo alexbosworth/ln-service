@@ -8,6 +8,7 @@ const {getRoutes} = require('./../lightning');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
 
+const defaultPathTimeoutMs = 1000 * 60;
 const {isArray} = Array;
 
 /** Subscribe to a probe attempt
@@ -24,6 +25,7 @@ const {isArray} = Array;
     }]
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
+    [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
@@ -159,9 +161,9 @@ module.exports = args => {
         // Get the next route
         getNextRoute: cbk => {
           return getRoutes({
-            ignore,
             destination: args.destination,
             fee: args.max_fee,
+            ignore: ignore.slice(),
             lnd: args.lnd,
             routes: args.routes,
             timeout: args.cltv_delta,
@@ -182,7 +184,33 @@ module.exports = args => {
           // Start probing towards destination
           const sub = subscribeToPayViaRoutes({routes, lnd: args.lnd});
 
-          sub.on('paying', ({route}) => emitter.emit('probing', {route}));
+          let currentRoute;
+
+          sub.on('paying', ({route}) => {
+            currentRoute = route;
+
+            return emitter.emit('probing', {route})
+          });
+
+          const next = () => {
+            sub.removeAllListeners();
+
+            return cbk(null, {failures});
+          };
+
+          const routeTimeout = setTimeout(() => {
+            const [lastHop] = currentRoute.hops.slice().reverse();
+
+            currentRoute.hops.forEach(hop => {
+              ignore.push({
+                channel: hop.channel,
+                to_public_key: hop.public_key,
+              });
+            });
+
+            return next();
+          },
+          args.path_timeout_ms || defaultPathTimeoutMs);
 
           sub.on('routing_failure', failure => {
             const [finalHop] = failure.route.hops.slice().reverse();
@@ -220,7 +248,11 @@ module.exports = args => {
           });
 
           // Probing finished
-          sub.on('end', () => cbk(null, {failures}));
+          sub.on('end', () => {
+            clearTimeout(routeTimeout);
+
+            return next();
+          });
 
           sub.on('error', err => emitter.emit('error', err));
 

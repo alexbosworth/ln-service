@@ -5,6 +5,7 @@ const {returnResult} = require('asyncjs-util');
 
 const subscribeToProbe = require('./subscribe_to_probe');
 
+const defaultProbeTimeoutMs = 1000 * 60;
 const {isArray} = Array;
 
 /** Probe to find a successful route
@@ -94,51 +95,30 @@ module.exports = (args, cbk) => {
           tokens: args.tokens,
         });
 
-        sub.on('error', err => result.err = err);
+        const finished = (err, res) => {
+          sub.removeAllListeners();
 
-        sub.on('probe_success', ({route}) => {
-          result.err = null;
-          result.route = route;
+          clearTimeout(timeout);
 
-          return;
-        });
+          return cbk(err, res);
+        };
+
+        timeout = setTimeout(
+          () => finished([503, 'ProbeForRouteTimedOut']),
+          args.pathfinding_timeout || defaultProbeTimeoutMs
+        );
+
+        sub.on('error', err => finished(err));
+
+        sub.on('probe_success', ({route}) => finished(null, {route}));
 
         sub.on('routing_failure', failure => {
-          return result.err = [503, 'RoutingFailure', {failure}];
+          return finished([503, 'RoutingFailure', {failure}]);
         });
 
-        sub.once('end', () => {
-          if (!!result.err) {
-            return cbk(result.err);
-          }
+        sub.once('end', () => finished(null, {}));
 
-          if (!!timeout) {
-            clearTimeout(timeout);
-          }
-
-          if (!!isFinished) {
-            return;
-          }
-
-          isFinished = true;
-
-          return cbk(null, {route: result.route || undefined});
-        });
-
-        if (!!args.pathfinding_timeout) {
-          timeout = setTimeout(() => {
-            sub.removeAllListeners();
-
-            if (!!isFinished) {
-              return;
-            }
-
-            isFinished = true;
-
-            return cbk([503, 'ProbeForRouteTimedOut']);
-          },
-          args.pathfinding_timeout);
-        }
+        return;
       }],
     },
     returnResult({reject, resolve, of: 'probe'}, cbk));
