@@ -57,7 +57,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   const channelClose = await closeChannel({
     lnd,
     is_force_close: true,
-    tokens_per_vbyte: defaultFee,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
   });

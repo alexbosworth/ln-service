@@ -57,6 +57,10 @@ module.exports = (args, cbk) => {
           return cbk([400, 'UnexpectedTokensPerVbyteForChannelClose']);
         }
 
+        if (!!args.is_force_close && args.tokens_per_vbyte !== undefined) {
+          return cbk([400, 'UnexpectedFeeSettingForForceCloseChannel']);
+        }
+
         return cbk();
       },
 

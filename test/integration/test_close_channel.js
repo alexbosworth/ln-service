@@ -39,7 +39,6 @@ test(`Close channel`, async ({end, equal}) => {
   const channelClose = await closeChannel({
     is_force_close: true,
     lnd: cluster.control.lnd,
-    tokens_per_vbyte: defaultFee,
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
   });

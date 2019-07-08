@@ -1,5 +1,9 @@
 # Versions
 
+## 40.2.0
+
+- Add support for getting chain receives in accounting report
+
 ## 40.1.3
 
 - Add support for deleting all payments

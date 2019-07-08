@@ -16,6 +16,7 @@ const {getPendingChannels} = require('./../lightning');
 const harmonize = require('./harmonize');
 const {parsePaymentRequest} = require('./../bolt11');
 
+const chainCategories = ['chain_fees', 'chain_receives', 'chain_sends'];
 const earlyStartDate = '2017-08-24T08:57:37.000Z';
 const largeLimit = 1e8;
 
@@ -118,7 +119,7 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
 
       // Get transactions on the blockchain
       getChainTx: ['validate', ({}, cbk) => {
-        if (!!category && !includes(['chain_fees', 'chain_sends'], category)) {
+        if (!!category && !includes(chainCategories, category)) {
           return cbk();
         }
 
@@ -127,7 +128,7 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
 
       // Get channels
       getChannels: ['validate', ({}, cbk) => {
-        if (!!category && category !== 'chain_sends') {
+        if (!!category && !includes(chainCategories, category)) {
           return cbk();
         }
 
@@ -136,7 +137,7 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
 
       // Get closed channels
       getClosedChans: ['validate', ({}, cbk) => {
-        if (!!category && category !== 'chain_sends') {
+        if (!!category && !includes(chainCategories, category)) {
           return cbk();
         }
 
@@ -198,7 +199,7 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
 
       // Get pending channels
       getPending: ['validate', ({}, cbk) => {
-        if (!!category && category !== 'chain_sends') {
+        if (!!category && !includes(chainCategories, category)) {
           return cbk();
         }
 
@@ -299,6 +300,48 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
         return cbk(null, records);
       }],
 
+      // Chain receive records
+      chainReceives: [
+        'getChainTx',
+        'getChannels',
+        'getClosedChans',
+        'getPending',
+        ({getChainTx, getChannels, getClosedChans, getPending}, cbk) =>
+      {
+        if (!getChainTx || !getChannels || !getClosedChans || !getPending) {
+          return cbk(null, []);
+        }
+
+        const records = getChainTx.transactions
+          .filter(tx => !!tx.is_confirmed && !!tx.tokens && !tx.is_outgoing)
+          .filter(({id}) => {
+            const channels = []
+              .concat(getClosedChans.channels)
+              .concat(getPending.pending_channels)
+              .concat(getChannels.channels);
+
+            if (channels.find(n => n.transaction_id === id)) {
+              return false;
+            }
+
+            if (channels.find(n => n.close_transaction_id === id)) {
+              return false;
+            }
+
+            return true;
+          })
+          .map(tx => ({
+            amount: tx.tokens,
+            category: 'chain_receives',
+            created_at: tx.created_at,
+            id: tx.id,
+            notes: `Outputs to ${tx.output_addresses.join(' ')}`,
+            type: 'transfer:deposit',
+          }));
+
+        return cbk(null, records);
+      }],
+
       // Chain send records
       chainSends: [
         'getChainTx',
@@ -344,14 +387,23 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
       // Records with fiat amounts
       recordsWithFiat: [
         'chainFees',
+        'chainReceives',
         'chainSends',
         'forwards',
         'invoices',
         'payments',
-        ({chainFees, chainSends, forwards, invoices, payments}, cbk) =>
+        ({
+          chainFees,
+          chainReceives,
+          chainSends,
+          forwards,
+          invoices,
+          payments,
+        }, cbk) =>
       {
         const records = []
           .concat(chainFees || [])
+          .concat(chainReceives || [])
           .concat(chainSends || [])
           .concat(forwards || [])
           .concat(invoices || [])
@@ -410,6 +462,7 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
 
         try {
           const chainFees = records.filter(n => n.category === 'chain_fees');
+          const chainR = records.filter(n => n.category === 'chain_receives');
           const chainSends = records.filter(n => n.category === 'chain_sends');
           const forwards = records.filter(n => n.category === 'forwards');
           const invoices = records.filter(n => n.category === 'invoices');
@@ -418,6 +471,8 @@ module.exports = ({category, currency, fiat, ignore, lnd, rate}, cbk) => {
           return cbk(null, {
             chain_fees: chainFees,
             chain_fees_csv: harmonize({records: chainFees}).csv,
+            chain_receives: chainR,
+            chain_receives_csv: harmonize({records: chainR}).csv,
             chain_sends: chainSends,
             chain_sends_csv: harmonize({records: chainSends}).csv,
             forwards: forwards,
