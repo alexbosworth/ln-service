@@ -3,6 +3,8 @@ const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
+const {getChannel} = require('./../lightning');
+
 const decBase = 10;
 const {isArray} = Array;
 const msPerSec = 1e3;
@@ -15,6 +17,8 @@ const {round} = Math;
 
   {
     lnd: <Authenticated LND gRPC API Object>
+    [probability] <Ignore Reputations Higher than N out of 1 Million Number>
+    [tokens]: <Reputation Against Forwarding Tokens Number>
   }
 
   @returns via cbk or Promise
@@ -25,6 +29,7 @@ const {round} = Math;
         last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
         min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
         success_odds: <Odds of Success Out of 1 Million Number>
+        [to_public_key]: <To Public Key Hex String>
       }]
       general_success_odds: <Non-Channel-Specific Odds Out of 1 Million Number>
       [last_failed_forward_at]: <Last Failed Forward Time ISO-8601 Date String>
@@ -32,7 +37,7 @@ const {round} = Math;
     }]
   }
 */
-module.exports = ({lnd}, cbk) => {
+module.exports = ({lnd, probability, tokens}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Check arguments
@@ -87,6 +92,7 @@ module.exports = ({lnd}, cbk) => {
           }
 
           const generalOdds = parseFloat(node.other_chan_success_prob);
+          const publicKey = node.pubkey.toString('hex');
 
           const lastFailedAt = parseInt(node.last_fail_time, decBase);
 
@@ -123,15 +129,35 @@ module.exports = ({lnd}, cbk) => {
               return cbk([503, 'ExpectedChannelSuccessProbability']);
             }
 
+            const channelId = chanFormat({number: channel.channel_id}).channel;
             const channelOdds = parseFloat(channel.success_prob);
             const fail = parseInt(channel.last_fail_time, decBase) * msPerSec;
             const minTokens = parseInt(channel.min_penalize_amt_sat, decBase);
 
-            return cbk(null, {
-              id: chanFormat({number: channel.channel_id}).channel,
-              last_failed_forward_at: new Date(fail).toISOString(),
-              min_relevant_tokens: minTokens,
-              success_odds: round(channelOdds * oddsDenominator),
+            const successOdds = round(channelOdds * oddsDenominator);
+
+            // Exit early when the channel history isn't relevant
+            if (!!minTokens && !!tokens && tokens < minTokens) {
+              return cbk();
+            }
+
+            // Exit early when the odds of this channel are too good
+            if (!!probability && successOdds > probability) {
+              return cbk();
+            }
+
+            return getChannel({lnd, id: channelId}, (err, res) => {
+              const policies = !!err || !res ? [] : res.policies;
+
+              const peer = policies.find(n => n.public_key !== publicKey);
+
+              return cbk(null, {
+                id: channelId,
+                last_failed_forward_at: new Date(fail).toISOString(),
+                min_relevant_tokens: minTokens,
+                success_odds: successOdds,
+                to_public_key: (peer || {}).public_key,
+              });
             });
           },
           (err, channels) => {
@@ -140,10 +166,10 @@ module.exports = ({lnd}, cbk) => {
             }
 
             return cbk(null, {
-              channels,
+              channels: channels.filter(n => !!n),
               general_success_odds: round(generalOdds * oddsDenominator),
               last_failed_forward_at: lastFail || undefined,
-              public_key: node.pubkey.toString('hex'),
+              public_key: publicKey,
             });
           });
         },

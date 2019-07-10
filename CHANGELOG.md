@@ -1,5 +1,9 @@
 # Versions
 
+## 40.3.0
+
+- Allow using mission control probabilities in probing
+
 ## 40.2.0
 
 - Add support for getting chain receives in accounting report

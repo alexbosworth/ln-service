@@ -1063,6 +1063,8 @@ Requires LND built with routerrpc build tag
 
     {
       lnd: <Authenticated LND gRPC API Object>
+      [probability] <Ignore Reputations Higher than N out of 1 Million Number>
+      [tokens]: <Reputation Against Forwarding Tokens Number>
     }
 
     @returns via cbk or Promise
@@ -1073,6 +1075,7 @@ Requires LND built with routerrpc build tag
           last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
           min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
           success_odds: <Odds of Success Out of 1 Million Number>
+          [to_public_key]: <To Public Key Hex String>
         }]
         general_success_odds: <Non-Channel-Specific Odds Out of 1 Million Number>
         last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
@@ -2016,6 +2019,7 @@ Requires lnd built with routerrpc build tag
         from_public_key: <Public Key Hex String>
         [to_public_key]: <To Public Key Hex String>
       }]
+      [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
@@ -3090,6 +3094,7 @@ Requires lnd built with routerrpc build tag
         from_public_key: <Public Key Hex String>
         [to_public_key]: <To Public Key Hex String>
       }]
+      [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [routes]: [[{

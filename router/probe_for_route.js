@@ -20,6 +20,7 @@ const {isArray} = Array;
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
+    [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
@@ -89,6 +90,7 @@ module.exports = (args, cbk) => {
           cltv_delta: args.cltv_delta,
           destination: args.destination,
           ignore: args.ignore,
+          ignore_probability_below: args.ignore_probability_below,
           lnd: args.lnd,
           max_fee: args.max_fee,
           routes: args.routes,

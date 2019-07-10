@@ -1,9 +1,13 @@
 const EventEmitter = require('events');
 
 const asyncAuto = require('async/auto');
+const asyncEach = require('async/each');
 const asyncWhilst = require('async/whilst');
+const {flatten} = require('lodash');
 const isHex = require('is-hex');
 
+const getForwardingReputations = require('./get_forwarding_reputations');
+const {getChannel} = require('./../lightning');
 const {getRoutes} = require('./../lightning');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
@@ -23,6 +27,7 @@ const {isArray} = Array;
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
+    [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
@@ -158,19 +163,46 @@ module.exports = args => {
     cbk => cbk(null, !isFinal),
     cbk => {
       return asyncAuto({
+        // Get mission control likely-failure edges
+        getReputations: cbk => {
+          // Exit early when mission control is not to be consulted
+          if (!args.ignore_probability_below) {
+            return cbk(null, {nodes: []});
+          }
+
+          return getForwardingReputations({
+            lnd: args.lnd,
+            probability: args.ignore_probability_below,
+            tokens: args.tokens,
+          },
+          cbk);
+        },
+
         // Get the next route
-        getNextRoute: cbk => {
+        getNextRoute: ['getReputations', ({getReputations}, cbk) => {
+          const likelyFailures = getReputations.nodes.map(node => {
+            return node.channels.map(n => ({
+              channel: n.id,
+              from_public_key: node.public_key,
+              to_public_key: n.to_public_key,
+            }));
+          });
+
+          const allIgnores = []
+            .concat(flatten(likelyFailures))
+            .concat(ignore.slice());
+
           return getRoutes({
             destination: args.destination,
             fee: args.max_fee,
-            ignore: ignore.slice(),
+            ignore: allIgnores,
             lnd: args.lnd,
             routes: args.routes,
             timeout: args.cltv_delta,
             tokens: args.tokens,
           },
           cbk);
-        },
+        }],
 
         // Attempt paying the route
         attemptRoute: ['getNextRoute', ({getNextRoute}, cbk) => {

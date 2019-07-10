@@ -107,10 +107,58 @@ module.exports = (args, cbk) => {
         return cbk();
       },
 
+      // Get ignored edges
+      getIgnoredEdges: ['validate', ({}, cbk) => {
+        return asyncMap(args.ignore || [], (ignore, cbk) => {
+          // Exit early when there is no channel specified
+          if (!ignore.channel) {
+            return cbk(null, ignore);
+          }
+
+          // Exit early when this is a node ignore
+          if (!ignore.to_public_key && !ignore.from_public_key) {
+            return cbk(null, ignore);
+          }
+
+          // Exit early when this is a full edge ignore
+          if (!!ignore.to_public_key && !!ignore.to_public_key) {
+            return cbk(null, ignore);
+          }
+
+          return getChannel({
+            id: ignore.channel,
+            lnd: args.lnd,
+          },
+          (err, res) => {
+            // Exit early when this channel is unknown
+            if (!!err || !res || res.policies.length !== 2) {
+              return cbk();
+            }
+
+            const fromKey = ignore.from_public_key;
+            const toKey = ignore.to_public_key;
+
+            const from = res.policies
+              .find(n => n.public_key === fromKey || n.public_key !== toKey);
+
+            const to = res.policies
+              .find(n => n.public_key === toKey || n.public_key !== fromKey);
+
+            return cbk(null, {
+              channel: ignore.channel,
+              from_public_key: from.public_key,
+              to_public_key: to.public_key,
+            });
+          });
+        },
+        cbk);
+      }],
+
       // Derive routes
-      getRoutes: ['validate', ({}, cbk) => {
+      getRoutes: ['getIgnoredEdges', ({getIgnoredEdges}, cbk) => {
         const destination = [[{public_key: args.destination}]];
         const hasRoutes = !!args.routes && !!args.routes.length;
+        const ignore = getIgnoredEdges.filter(n => !!n);
 
         const routesToDestination = !hasRoutes ? destination : args.routes;
 
@@ -134,7 +182,7 @@ module.exports = (args, cbk) => {
             amt: args.tokens || defaultTokens,
             fee_limit: !args.fee ? undefined : {fee_limit: args.fee},
             final_cltv_delta: args.timeout || defaultFinalCltvDelta,
-            ignored_edges: ignoreAsIgnoredEdges({ignore: args.ignore}).ignored,
+            ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,
             ignored_nodes: ignoreAsIgnoredNodes({ignore: args.ignore}).ignored,
             pub_key: firstHop.public_key,
             source_pub_key: args.start || undefined,

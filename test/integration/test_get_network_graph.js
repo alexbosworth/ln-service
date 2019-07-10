@@ -42,11 +42,13 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     id: controlToTargetChannel.transaction_id,
   });
 
+  await delay(2000);
+
   const [expectedChannel] = (await getChannels({lnd})).channels;
   const expectedNode = await getWalletInfo({lnd});
   const graph = await getNetworkGraph({lnd});
 
-  const [node] = graph.nodes;
+  const node = graph.nodes.find(n => n.public_key === control.public_key);
   const [channel] = graph.channels;
 
   const nodeDetails = await getNode({lnd, public_key: node.public_key});
