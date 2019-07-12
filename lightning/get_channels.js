@@ -31,6 +31,7 @@ const {isArray} = Array;
       is_partner_initiated: <Channel Partner Opened Channel>
       is_private: <Channel Is Private Bool>
       local_balance: <Local Balance Tokens Number>
+      [local_reserve]: <Local Reserved Tokens Number>
       partner_public_key: <Channel Partner Public Key String>
       pending_payments: [{
         id: <Payment Preimage Hash Hex String>
@@ -40,6 +41,7 @@ const {isArray} = Array;
       }]
       received: <Received Tokens Number>
       remote_balance: <Remote Balance Tokens Number>
+      [remote_reserve]: <Remote Reserved Tokens Number>
       sent: <Sent Tokens Number>
       transaction_id: <Blockchain Transaction Id String>
       transaction_vout: <Blockchain Transaction Vout Number>
@@ -159,9 +161,13 @@ module.exports = (args, cbk) => {
 
           const commitWeight = parseInt(channel.commit_weight, decBase);
           const {initiator} = channel;
+          const localReserve = channel.local_chan_reserve_sat || '0';
+          const remoteReserve = channel.remote_chan_reserve_sat || '0';
           const [transactionId, vout] = channel.channel_point.split(':');
 
+          const localReserveTokens = parseInt(localReserve, decBase);
           const notInitiator = initiator === false ? undefined : !initiator;
+          const remoteReserveTokens = parseInt(remoteReserve, decBase);
 
           return cbk(null, {
             capacity: parseInt(channel.capacity, decBase),
@@ -174,6 +180,7 @@ module.exports = (args, cbk) => {
             is_partner_initiated: notInitiator,
             is_private: channel.private,
             local_balance: parseInt(channel.local_balance, decBase),
+            local_reserve: localReserveTokens || undefined,
             partner_public_key: channel.remote_pubkey,
             pending_payments: channel.pending_htlcs.map(n => ({
               id: n.hash_lock.toString('hex'),
@@ -183,6 +190,7 @@ module.exports = (args, cbk) => {
             })),
             received: parseInt(channel.total_satoshis_received, decBase),
             remote_balance: parseInt(channel.remote_balance, decBase),
+            remote_reserve: remoteReserveTokens || undefined,
             sent: parseInt(channel.total_satoshis_sent, decBase),
             transaction_id: transactionId,
             transaction_vout: parseInt(vout, decBase),

@@ -105,7 +105,8 @@ module.exports = ({lnd}, cbk) => {
           return cbk(null, {
             destination,
             created_at: new Date(creationDate * msPerSecond).toISOString(),
-            fee: parseInt(payment.fee, decBase),
+            fee: parseInt(payment.fee || payment.fee_sat, decBase),
+            fee_mtokens: !payment.fee_msat ? undefined : payment.fee_msat,
             hops: hops.reverse(),
             id: payment.payment_hash,
             is_confirmed: payment.value_msat !== '0',

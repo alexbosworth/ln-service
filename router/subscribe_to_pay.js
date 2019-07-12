@@ -4,11 +4,13 @@ const EventEmitter = require('events');
 const {chanFormat} = require('bolt07');
 const {chanNumber} = require('bolt07');
 
+const {routeHintFromRoute} = require('./../routing');
 const {states} = require('./payment_states');
 
 const decBase = 10;
 const defaultTimeoutSeconds = 20;
 const hexToBuf = hex => Buffer.from(hex, 'hex');
+const {isArray} = Array;
 const maxCltv = Number.MAX_SAFE_INTEGER;
 const maxTokens = '4294967296';
 const {round} = Math;
@@ -27,6 +29,13 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     [request]: <BOLT 11 Payment Request String>
+    [routes]: [[{
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+      [channel]: <Standard Format Channel Id String>
+      [cltv_delta]: <CLTV Blocks Delta Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
+    }]]
     [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     [tokens]: <Tokens To Pay Number>
   }
@@ -83,10 +92,26 @@ module.exports = args => {
     throw new Error('ExpectedTokenAmountToPayWhenPaymentRequestNotSpecified');
   }
 
+  if (!!args.routes && !isArray(args.routes)) {
+    throw new Error('UnexpectedFormatForRoutesWhenSubscribingToPayment');
+  }
+
+  if (!!args.routes) {
+    try {
+      args.routes.forEach(route => routeHintFromRoute({route}));
+    } catch (err) {
+      throw new Error('ExpectedValidRoutesWhenSubscribingToPayment');
+    }
+  }
+
   const emitter = new EventEmitter();
   const maxFee = args.max_fee !== undefined ? args.max_fee : maxTokens;
   const channel = !!args.outgoing_channel ? args.outgoing_channel : null;
+  const routes = (args.routes || []);
   const timeoutSeconds = round(args.pathfinding_timeout || 0);
+
+  const hints = routes
+    .map(route => ({hop_hints: routeHintFromRoute({route}).hops}));
 
   const sub = args.lnd.router.sendPayment({
     amt: !args.tokens ? undefined : args.tokens,
@@ -97,6 +122,7 @@ module.exports = args => {
     outgoing_chan_id: !channel ? undefined : chanNumber({channel}).number,
     payment_hash: !args.id ? undefined : hexToBuf(args.id),
     payment_request: !args.request ? undefined : args.request,
+    route_hints: !hints.length ? undefined : hints,
     timeout_seconds: timeoutSeconds || defaultTimeoutSeconds,
   });
 
@@ -117,9 +143,12 @@ module.exports = args => {
         secret: data.preimage.toString('hex'),
       });
 
+    case states.errored:
+    case states.invalid_payment:
     case states.pathfinding_routes_failed:
     case states.pathfinding_timeout_failed:
       return emitter.emit('failed', ({
+        is_invalid_payment: data.state === states.invalid_payment,
         is_pathfinding_timeout: data.state === states.pathfinding_timeout,
       }));
 

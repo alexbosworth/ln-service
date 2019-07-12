@@ -80,9 +80,12 @@ module.exports = args => {
         secret: data.preimage.toString('hex'),
       });
 
+    case states.errored:
+    case states.invalid_payment:
     case states.pathfinding_routes_failed:
     case states.pathfinding_timeout_failed:
       return emitter.emit('failed', ({
+        is_invalid_payment: data.state === states.invalid_payment,
         is_pathfinding_timeout: data.state === states.pathfinding_timeout,
       }));
 

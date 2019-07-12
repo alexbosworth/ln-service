@@ -252,7 +252,24 @@ module.exports = args => {
             return cbk([503, 'ExpectedResponseFromLndWhenPayingViaRoute']);
           }
 
-          return cbk(null, res);
+          if (!!res.failure && !res.failure.failure_source_pubkey) {
+            return cbk([503, 'ExpectedFailureSourcePublicKeyInFailDetails']);
+          }
+
+          const failure = res.failure;
+
+          const failAt = !failure ? undefined : failure.failure_source_index;
+
+          if (!!failAt) {
+            const failHopKey = route.hops[failAt - 1].public_key;
+
+            res.failure.failure_source_pubkey = Buffer.from(failHopKey, 'hex');
+          }
+
+          return cbk(null, {
+            failure: res.failure,
+            preimage: res.preimage,
+          });
         });
       }],
 

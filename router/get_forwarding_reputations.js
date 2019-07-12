@@ -17,7 +17,7 @@ const {round} = Math;
 
   {
     lnd: <Authenticated LND gRPC API Object>
-    [probability] <Ignore Reputations Higher than N out of 1 Million Number>
+    [probability]: <Ignore Reputations Higher than N out of 1 Million Number>
     [tokens]: <Reputation Against Forwarding Tokens Number>
   }
 

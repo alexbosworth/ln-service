@@ -7,6 +7,7 @@ const probe = require('./probe');
 const routeFromChannels = require('./route_from_channels');
 const routeFromHops = require('./route_from_hops');
 const routeFromRouteHint = require('./route_from_route_hint');
+const routeHintFromRoute = require('./route_hint_from_route');
 const routesFromQueryRoutes = require('./routes_from_query_routes');
 
 module.exports = {
@@ -19,5 +20,6 @@ module.exports = {
   routeFromChannels,
   routeFromHops,
   routeFromRouteHint,
+  routeHintFromRoute,
   routesFromQueryRoutes,
 };

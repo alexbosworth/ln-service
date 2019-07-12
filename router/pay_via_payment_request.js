@@ -3,6 +3,8 @@ const {returnResult} = require('asyncjs-util');
 
 const subscribeToPayViaRequest = require('./subscribe_to_pay_via_request');
 
+const {isArray} = Array;
+
 /** Pay via payment request
 
   Requires lnd built with routerrpc build tag
@@ -46,6 +48,10 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedPaymentRequestToPayViaPaymentRequest']);
         }
 
+        if (!!args.routes && !isArray(args.routes)) {
+          return cbk([400, 'UnexpectedFormatForRoutesWhenPayingViaRequest']);
+        }
+
         return cbk();
       },
 
@@ -68,7 +74,11 @@ module.exports = (args, cbk) => {
             return cbk([503, 'UnexpectedErrorPayingViaPaymentDetails', {err}]);
           }
 
-          if (!!res.failed && !!res.is_pathfinding_timeout) {
+          if (!!res.failed && !!res.failed.is_invalid_payment) {
+            return cbk([503, 'PaymentRejectedByDestination']);
+          }
+
+          if (!!res.failed && !!res.failed.is_pathfinding_timeout) {
             return cbk([503, 'PaymentAttemptsTimedOut']);
           }
 

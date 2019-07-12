@@ -58,6 +58,11 @@ message SendPaymentRequest {
     maximum enforced.
     */
     int32 cltv_limit = 9;
+
+    /**
+    Optional route hints to reach the destination through private channels.
+    */
+    repeated lnrpc.RouteHint route_hints = 10 [json_name = "route_hints"];
 }
 
 message TrackPaymentRequest {
@@ -86,6 +91,17 @@ enum PaymentState {
     routes to the destination at all.
     */
     FAILED_NO_ROUTE = 3;
+
+    /**
+    A non-recoverable error has occured.
+    */
+    FAILED_ERROR = 4;
+
+    /**
+    Payment details incorrect (unknown hash, invalid amt or
+    invalid final cltv delta)
+    */
+    FAILED_INCORRECT_PAYMENT_DETAILS = 5;
 }
 
 
@@ -178,15 +194,22 @@ message Failure {
         TEMPORARY_NODE_FAILURE = 19;
         PERMANENT_NODE_FAILURE = 20;
         PERMANENT_CHANNEL_FAILURE = 21;
+
+        /**
+        The error source is known, but the failure itself couldn't be decoded.
+        */
+        UNKNOWN_FAILURE = 998;
+
+        /**
+        An unreadable failure result is returned if the received failure message
+        cannot be decrypted. In that case the error source is unknown.
+        */
+        UNREADABLE_FAILURE = 999;
     }
 
     /// Failure code as defined in the Lightning spec
     FailureCode code = 1;
 
-    /**
-    The node pubkey of the intermediate or final node that generated the failure
-    message.
-    **/
     bytes failure_source_pubkey = 2;
 
     /// An optional channel update message.
@@ -203,6 +226,12 @@ message Failure {
 
     /// A failure type-dependent flags value.
     uint32 flags = 7;
+
+    /**
+    The position in the path of the intermediate or final node that generated
+    the failure message. Position zero is the sender node.
+    **/
+    uint32 failure_source_index = 8;
 }
 
 

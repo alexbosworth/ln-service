@@ -1,5 +1,11 @@
 # Versions
 
+## 40.4.0
+
+- Add support for route hints in payment details
+- Add support for failure reasons in router rpc payments
+- Add support for reserve tokens in get channels
+
 ## 40.3.0
 
 - Allow using mission control probabilities in probing

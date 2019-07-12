@@ -965,6 +965,7 @@ Note: `is_partner_initiated` will be undefined if it is unknown or true.
         is_partner_initiated: <Channel Partner Opened Channel>
         is_private: <Channel Is Private Bool>
         local_balance: <Local Balance Tokens Number>
+        [local_reserve]: <Local Reserved Tokens Number>
         partner_public_key: <Channel Partner Public Key String>
         pending_payments: [{
           id: <Payment Preimage Hash Hex String>
@@ -974,6 +975,7 @@ Note: `is_partner_initiated` will be undefined if it is unknown or true.
         }]
         received: <Received Tokens Number>
         remote_balance: <Remote Balance Tokens Number>
+        [remote_reserve]: <Remote Reserved Tokens Number>
         sent: <Sent Tokens Number>
         transaction_id: <Blockchain Transaction Id String>
         transaction_vout: <Blockchain Transaction Vout Number>
@@ -1063,7 +1065,7 @@ Requires LND built with routerrpc build tag
 
     {
       lnd: <Authenticated LND gRPC API Object>
-      [probability] <Ignore Reputations Higher than N out of 1 Million Number>
+      [probability]: <Ignore Reputations Higher than N out of 1 Million Number>
       [tokens]: <Reputation Against Forwarding Tokens Number>
     }
 

@@ -110,13 +110,9 @@ module.exports = (args, cbk) => {
           args.pathfinding_timeout || defaultProbeTimeoutMs
         );
 
-        sub.on('error', err => finished(err));
+        sub.once('error', err => finished(err));
 
-        sub.on('probe_success', ({route}) => finished(null, {route}));
-
-        sub.on('routing_failure', failure => {
-          return finished([503, 'RoutingFailure', {failure}]);
-        });
+        sub.once('probe_success', ({route}) => finished(null, {route}));
 
         sub.once('end', () => finished(null, {}));
 

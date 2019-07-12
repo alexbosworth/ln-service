@@ -17,6 +17,13 @@ const randomId = () => randomBytes(32).toString('hex');
     [max_fee]: <Maximum Fee Tokens To Pay Number>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
+    [routes]: [[{
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+      [channel]: <Standard Format Channel Id String>
+      [cltv_delta]: <CLTV Blocks Delta Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
+    }]]
     [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     tokens: <Tokens To Pay Number>
   }
@@ -72,6 +79,7 @@ module.exports = args => {
     max_fee: args.max_fee,
     outgoing_channel: args.outgoing_channel,
     pathfinding_timeout: args.pathfinding_timeout,
+    routes: args.routes,
     timeout_height: args.timeout_height,
     tokens: args.tokens,
   });

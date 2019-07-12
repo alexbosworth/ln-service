@@ -175,7 +175,7 @@ message UnlockWalletRequest {
     /**
     recovery_window is an optional argument specifying the address lookahead
     when restoring a wallet seed. The recovery window applies to each
-    invdividual branch of the BIP44 derivation paths. Supplying a recovery
+    individual branch of the BIP44 derivation paths. Supplying a recovery
     window of zero indicates that no addresses should be recovered, such after
     the first initialization of the wallet.
     */
@@ -212,7 +212,7 @@ service Lightning {
     /** lncli: `walletbalance`
     WalletBalance returns total unspent outputs(confirmed and unconfirmed), all
     confirmed unspent outputs and all unconfirmed unspent outputs under control
-    of the wallet. 
+    of the wallet.
     */
     rpc WalletBalance (WalletBalanceRequest) returns (WalletBalanceResponse) {
         option (google.api.http) = {
@@ -398,7 +398,7 @@ service Lightning {
     rpc SubscribeChannelEvents (ChannelEventSubscription) returns (stream ChannelEventUpdate);
 
     /** lncli: `closedchannels`
-    ClosedChannels returns a description of all the closed channels that 
+    ClosedChannels returns a description of all the closed channels that
     this node was a participant in.
     */
     rpc ClosedChannels (ClosedChannelsRequest) returns (ClosedChannelsResponse) {
@@ -621,7 +621,7 @@ service Lightning {
     /** lncli: `queryroutes`
     QueryRoutes attempts to query the daemon's Channel Router for a possible
     route to a target destination capable of carrying a specific amount of
-    satoshis. The retuned route contains the full details required to craft and
+    satoshis. The returned route contains the full details required to craft and
     send an HTLC, also including the necessary information that should be
     present within the Sphinx packet encapsulated within the HTLC.
     */
@@ -1165,8 +1165,16 @@ message Channel {
     /// True if we were the ones that created the channel.
     bool initiator = 18 [json_name = "initiator"];
 
-    /// A set of flags showing the current state of the cahnnel.
+    /// A set of flags showing the current state of the channel.
     string chan_status_flags = 19 [json_name = "chan_status_flags"];
+
+    /// The minimum satoshis this node is required to reserve in its balance.
+    int64 local_chan_reserve_sat = 20 [json_name = "local_chan_reserve_sat"];
+
+    /**
+    The minimum satoshis the other node is required to reserve in its balance.
+    */
+    int64 remote_chan_reserve_sat = 21 [json_name = "remote_chan_reserve_sat"];
 }
 
 
@@ -1474,6 +1482,15 @@ message PendingChannelsResponse {
 
         int64 local_balance = 4 [ json_name = "local_balance" ];
         int64 remote_balance = 5 [ json_name = "remote_balance" ];
+       
+        /// The minimum satoshis this node is required to reserve in its balance.
+        int64 local_chan_reserve_sat = 6 [json_name = "local_chan_reserve_sat"];
+
+        /**
+        The minimum satoshis the other node is required to reserve in its
+        balance.
+        */
+        int64 remote_chan_reserve_sat = 7 [json_name = "remote_chan_reserve_sat"];
     }
 
     message PendingOpenChannel {
@@ -1529,7 +1546,7 @@ message PendingChannelsResponse {
         /// The balance in satoshis encumbered in this pending channel
         int64 limbo_balance = 3 [ json_name = "limbo_balance" ];
 
-        /// The height at which funds can be sweeped into the wallet
+        /// The height at which funds can be swept into the wallet
         uint32 maturity_height = 4 [ json_name = "maturity_height" ];
 
         /*
@@ -1700,7 +1717,7 @@ message Route {
     /**
     The sum of the fees paid at each hop within the final route.  In the case
     of a one-hop payment, this value will be zero as we don't need to pay a fee
-    it ourself.
+    to ourselves.
     */
     int64 total_fees = 2 [json_name = "total_fees", deprecated = true];
 
@@ -2153,8 +2170,8 @@ message Payment {
     /// The path this payment took
     repeated string path = 4 [ json_name = "path" ];
 
-    /// The fee paid for this payment in satoshis
-    int64 fee = 5 [json_name = "fee"];
+    /// Deprecated, use fee_sat or fee_msat.
+    int64 fee = 5 [json_name = "fee", deprecated = true];
 
     /// The payment preimage
     string payment_preimage = 6 [json_name = "payment_preimage"];
@@ -2167,9 +2184,31 @@ message Payment {
 
     /// The optional payment request being fulfilled.
     string payment_request = 9 [json_name = "payment_request"];
+
+    enum PaymentStatus {
+        UNKNOWN = 0;
+        IN_FLIGHT = 1;
+        SUCCEEDED = 2;
+        FAILED = 3;
+    }
+
+    // The status of the payment.
+    PaymentStatus status = 10 [json_name = "status"];
+
+    ///  The fee paid for this payment in satoshis
+    int64 fee_sat = 11 [json_name = "fee_sat"];
+
+    ///  The fee paid for this payment in milli-satoshis
+    int64 fee_msat = 12 [json_name = "fee_msat"];
 }
 
 message ListPaymentsRequest {
+    /**
+    If true, then return payments that have not yet fully completed. This means
+    that pending payments, as well as failed payments will show up if this
+    field is set to True.
+    */
+    bool include_incomplete = 1;
 }
 
 message ListPaymentsResponse {
@@ -2313,7 +2352,7 @@ message ForwardingHistoryResponse {
 }
 
 message ExportChannelBackupRequest {
-    /// The target chanenl point to obtain a back up for.
+    /// The target channel point to obtain a back up for.
     ChannelPoint chan_point = 1;
 }
 
@@ -2325,7 +2364,7 @@ message ChannelBackup {
 
     /**
     Is an encrypted single-chan backup. this can be passed to
-    RestoreChannelBackups, or the WalletUnlocker Innit and Unlock methods in
+    RestoreChannelBackups, or the WalletUnlocker Init and Unlock methods in
     order to trigger the recovery protocol.
     */
     bytes chan_backup = 2 [ json_name = "chan_backup" ];

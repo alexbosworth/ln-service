@@ -24,6 +24,7 @@ const outpointSeparator = ':';
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
       local_balance: <Channel Local Tokens Balance Number>
+      [local_reserve]: <Channel Local Reserved Tokens Number>
       partner_public_key: <Channel Peer Public Key String>
       [pending_balance]: <Tokens Pending Recovery Number>
       [pending_payments]: [{
@@ -36,6 +37,7 @@ const outpointSeparator = ':';
       received: <Tokens Received Number>
       [recovered_tokens]: <Tokens Recovered From Close Number>
       remote_balance: <Remote Tokens Balance Number>
+      [remote_reserve]: <Channel Remote Reserved Tokens Number>
       sent: <Send Tokens Number>
       [timelock_expiration]: <Pending Tokens Block Height Timelock Number>
       [transaction_fee]: <Funding Transaction Fee Tokens Number>
