@@ -13,6 +13,7 @@ const hexToBuf = hex => Buffer.from(hex, 'hex');
 const {isArray} = Array;
 const maxCltv = Number.MAX_SAFE_INTEGER;
 const maxTokens = '4294967296';
+const msPerSec = 1000;
 const {round} = Math;
 const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
@@ -108,7 +109,7 @@ module.exports = args => {
   const maxFee = args.max_fee !== undefined ? args.max_fee : maxTokens;
   const channel = !!args.outgoing_channel ? args.outgoing_channel : null;
   const routes = (args.routes || []);
-  const timeoutSeconds = round(args.pathfinding_timeout || 0);
+  const timeoutSeconds = round((args.pathfinding_timeout || 0) / msPerSec);
 
   const hints = routes
     .map(route => ({hop_hints: routeHintFromRoute({route}).hops}));
