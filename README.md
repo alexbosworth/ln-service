@@ -2795,6 +2795,60 @@ const sub = subscribeToInvoices({lnd});
 const [lastUpdatedInvoice] = await once(sub, 'invoice_updated');
 ```
 
+### subscribeToPastPayment
+
+Subscribe to the status of a past payment
+
+Requires lnd built with routerrpc build tag
+
+Either a request or a destination, id, and tokens amount is required
+
+    {
+      [id]: <Payment Request Hash Hex String>
+      lnd: <Authenticated Lnd gRPC API Object>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    <Subscription EventEmitter Object>
+
+    @event 'confirmed'
+    {
+      fee_mtokens: <Total Fee Millitokens To Pay String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee_mtokens: <Fee Millitokens String>
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Public Key Hex String>
+        timeout: <Timeout Block Height Number>
+      }]
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens To Pay String>
+      secret: <Payment Preimage Hex String>
+      timeout: <Expiration Block Height Number>
+    }
+
+    @event 'failed'
+    {
+      is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+    }
+
+    @event 'paying'
+    {}
+
+Exmple:
+
+```node
+const {once} = require('events');
+const {subscribeToPastPayment} = require('ln-service');
+const id = 'paymentRequestHashHexString';
+const sub = subscribeToPastPayment({id, lnd});
+const {secret} = await once(sub, 'confirmed');
+```
+
 ### subscribeToPayViaDetails
 
 Subscribe to the flight of a payment

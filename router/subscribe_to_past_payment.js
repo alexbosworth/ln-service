@@ -18,6 +18,7 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   {
     [id]: <Payment Request Hash Hex String>
+    lnd: <Authenticated Lnd gRPC API Object>
   }
 
   @throws
