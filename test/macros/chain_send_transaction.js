@@ -8,13 +8,13 @@ const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
 const scriptBufAsScript = require('./script_buffers_as_script');
 const {Transaction} = require('bitcoinjs-lib');
-const {TransactionBuilder} = require('bitcoinjs-lib');
 
 const defaultNetwork = 'testnet';
 const encodeSignature = script.signature.encode;
 const hexBase = 16;
 const {p2pkh} = payments;
 const {SIGHASH_ALL} = Transaction;
+const {toOutputScript} = address;
 
 /** Create a transaction that sends coins to a destination chain address
 
@@ -56,22 +56,20 @@ module.exports = (args, cbk) => {
   const network = networks[defaultNetwork];
 
   const keyPair = ECPair.fromWIF(args.private_key, network);
-  const txBuilder = new TransactionBuilder(network);
+  const outputScript = toOutputScript(args.destination, network);
+  const tx = new Transaction();
 
-  txBuilder.addInput(args.spend_transaction_id, args.spend_vout);
+  const outpointHash = Buffer.from(args.spend_transaction_id, 'hex').reverse();
+
+  tx.addInput(outpointHash, args.spend_vout);
 
   try {
-    txBuilder.addOutput(args.destination, (args.tokens - (args.fee || 0)));
+    tx.addOutput(outputScript, (args.tokens - (args.fee || 0)));
   } catch (err) {
     throw new Error('ErrorAddingOutputToSendOnChainTransaction');
   }
 
-  [keyPair].forEach((k, i) => txBuilder.sign(i, k));
-
-  const transaction = txBuilder.build().toHex();
   const sigHashAll = parseInt(SIGHASH_ALL, hexBase);
-
-  const tx = Transaction.fromHex(transaction);
 
   [keyPair].forEach((signingKey, vin) => {
     const flag = sigHashAll;

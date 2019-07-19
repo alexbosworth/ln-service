@@ -1,6 +1,6 @@
 # Versions
 
-## 40.4.3
+## 40.4.4
 
 - Add support for route hints in payment details
 - Add support for failure reasons in router rpc payments
