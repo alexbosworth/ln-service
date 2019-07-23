@@ -108,7 +108,6 @@ for `unlocker` methods.
 - [createWallet](#createWallet) - Make a new wallet
 - [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
-- [getAccountingReport](#getAccountingReport) - Get Harmony accounting records
 - [getAutopilot](#getAutopilot) - Get autopilot status or node scores
 - [getBackup](#getBackup) - Get a backup of a channel
 - [getBackups](#getBackups) - Get a backup for all channels
@@ -178,6 +177,12 @@ for `unlocker` methods.
 - [verifyBackup](#verifyBackup) - Verify a channel backup
 - [verifyBackups](#verifyBackups) - Verify a set of channel backups
 - [verifyMessage](#verifyMessage) - Verify a message signed by a node identity
+
+## Additional Libraries
+
+- [bolt03](https://npmjs.com/package/bolt03) - bolt03 tx utilities
+- [bolt07](https://npmjs.com/package/bolt07) - bolt07 channel id utilities
+- [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
 
 ### addPeer
 
@@ -635,90 +640,6 @@ Requires LND built with routerrpc build tag
 ```node
 const {deleteForwardingReputations} = require('ln-service');
 await deleteForwardingReputations({});
-```
-
-### getAccountingReport
-
-Get an accounting summary of wallet
-
-Note: Chain fees does not include chain fees paid to close channels
-
-    {
-      [category]: <Category Filter String>
-      currency: <Base Currency Type String>
-      fiat: <Fiat Currency Type String>
-      [ignore]: <Ignore Function> (record) -> <Should Ignore Record Bool>
-      lnd: <LND gRPC Object>
-      [rate]: <Exchange Function> ({currency, date, fiat}, cbk) => (err, {cents})
-    }
-
-    @returns via cbk or Promise
-    {
-      [chain_fees]: [{
-        [amount]: <Amount Number>
-        [asset]: <Asset Type String>
-        [created_at]: <ISO 8601 Date String>
-        [external_id]: <External Reference Id String>
-        [from_id]: <Source Id String>
-        [id]: <Record Id String>
-        [notes]: <Notes String>
-        [to_id]: <Destination Id String>
-        [type]: <Record Type String>
-      }]
-      [chain_fees_csv]: <CSV String>
-      [chain_sends]: [{
-        [amount]: <Amount Number>
-        [asset]: <Asset Type String>
-        [created_at]: <ISO 8601 Date String>
-        [external_id]: <External Reference Id String>
-        [from_id]: <Source Id String>
-        [id]: <Record Id String>
-        [notes]: <Notes String>
-        [to_id]: <Destination Id String>
-        [type]: <Record Type String>
-      }]
-      [chain_sends_csv]: <CSV String>
-      [forwards]: [{
-        [amount]: <Amount Number>
-        [asset]: <Asset Type String>
-        [created_at]: <ISO 8601 Date String>
-        [external_id]: <External Reference Id String>
-        [from_id]: <Source Id String>
-        [id]: <Record Id String>
-        [notes]: <Notes String>
-        [to_id]: <Destination Id String>
-        [type]: <Record Type String>
-      }]
-      [forwards_csv]: <CSV String>
-      [invoices]: [{
-        [amount]: <Amount Number>
-        [asset]: <Asset Type String>
-        [created_at]: <ISO 8601 Date String>
-        [external_id]: <External Reference Id String>
-        [from_id]: <Source Id String>
-        [id]: <Record Id String>
-        [notes]: <Notes String>
-        [to_id]: <Destination Id String>
-        [type]: <Record Type String>
-      }]
-      [invoices_csv]: <CSV String>
-      [payments]: [{
-        [amount]: <Amount Number>
-        [asset]: <Asset Type String>
-        [created_at]: <ISO 8601 Date String>
-        [external_id]: <External Reference Id String>
-        [from_id]: <Source Id String>
-        [id]: <Record Id String>
-        [notes]: <Notes String>
-        [to_id]: <Destination Id String>
-        [type]: <Record Type String>
-      }]
-      [payments_csv]: <CSV String>
-    }
-
-```node
-const {getAccountingReport} = require('ln-service');
-const report = await getAccountingReport({lnd, currency: 'BTC', fiat: 'USD'});
 ```
 
 ### getAutopilot
@@ -3435,7 +3356,7 @@ Verify a message was signed by a known pubkey
 
     @returns via cbk or Promise
     {
-      [signed_by]: <Public Key String>
+      signed_by: <Public Key String>
     }
 
 Example:

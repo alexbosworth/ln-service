@@ -1,5 +1,10 @@
 # Versions
 
+## 41.0.0
+
+- Abstract out accounting methods to [ln-accounting](https://github.com/alexbosworth/ln-accounting)
+- Standardize the output of `verify_message` to match expectations
+
 ## 40.4.4
 
 - Add support for route hints in payment details

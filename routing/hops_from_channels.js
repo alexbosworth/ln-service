@@ -58,10 +58,6 @@ module.exports = ({channels, destination}) => {
     .reverse();
 
   const hops = channels.map((channel, i, chans) => {
-    if (!channel.capacity) {
-      throw new Error('ExpectedChannelCapacityForChannelHop');
-    }
-
     if (!destination && !channel.destination) {
       throw new Error('ExpectedNextHopPublicKey');
     }

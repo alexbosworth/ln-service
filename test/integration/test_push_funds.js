@@ -75,6 +75,8 @@ test('Push funds', async ({end, equal}) => {
 
   await pay({lnd, path: {id: invoice.id, routes: [route]}});
 
+  await delay(3000);
+
   const finalBalance = (await getChannelBalance({lnd})).channel_balance;
 
   equal(initialBalance - finalBalance, tokens, 'Funds pushed to peer');

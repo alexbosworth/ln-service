@@ -11,7 +11,7 @@ const {returnResult} = require('asyncjs-util');
 
   @returns via cbk or Promise
   {
-    [signed_by]: <Public Key String>
+    signed_by: <Public Key String>
   }
 */
 module.exports = ({lnd, message, signature}, cbk) => {
@@ -47,11 +47,7 @@ module.exports = ({lnd, message, signature}, cbk) => {
             return cbk([503, 'ExpectedPublicKeyInVerifyMessageResponse']);
           }
 
-          if (!res.valid) {
-            return cbk(null, {signed_by: res.pubkey, valid:res.valid});
-          }
-
-          return cbk(null, {signed_by: res.pubkey, valid:res.valid});
+          return cbk(null, {signed_by: res.pubkey});
         });
       }],
     },

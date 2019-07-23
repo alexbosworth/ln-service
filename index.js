@@ -16,7 +16,6 @@ const {createWallet} = require('./unlocker');
 const {decodePaymentRequest} = require('./lightning');
 const {deleteForwardingReputations} = require('./router');
 const {deletePayments} = require('./lightning');
-const {getAccountingReport} = require('./accounting');
 const {getAutopilot} = require('./autopilot');
 const {getBackup} = require('./lightning');
 const {getBackups} = require('./lightning');
@@ -107,7 +106,6 @@ module.exports = {
   decodePaymentRequest,
   deleteForwardingReputations,
   deletePayments,
-  getAccountingReport,
   getAutopilot,
   getBackup,
   getBackups,
