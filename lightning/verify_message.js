@@ -48,10 +48,10 @@ module.exports = ({lnd, message, signature}, cbk) => {
           }
 
           if (!res.valid) {
-            return cbk(null, {});
+            return cbk(null, {signed_by: res.pubkey, valid:res.valid});
           }
 
-          return cbk(null, {signed_by: res.pubkey});
+          return cbk(null, {signed_by: res.pubkey, valid:res.valid});
         });
       }],
     },
