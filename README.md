@@ -1291,9 +1291,9 @@ const payment = await getPayment({id, lnd});
 
 ### getPaymentOdds
 
-/** Get routing odds of successfully routing a payment to a destination
+Get routing odds of successfully routing a payment to a destination
 
-  Requires lnd built with routerrpc build tag
+Requires lnd built with routerrpc build tag
 
     {
       hops: [{

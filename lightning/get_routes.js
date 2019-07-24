@@ -156,11 +156,15 @@ module.exports = (args, cbk) => {
 
       // Derive routes
       getRoutes: ['getIgnoredEdges', ({getIgnoredEdges}, cbk) => {
-        const destination = [[{public_key: args.destination}]];
+        const stubDestination = [[{public_key: args.destination}]];
         const hasRoutes = !!args.routes && !!args.routes.length;
         const ignore = getIgnoredEdges.filter(n => !!n);
 
-        const routesToDestination = !hasRoutes ? destination : args.routes;
+        const destination = !args.destination ? [] : stubDestination;
+
+        const collectivePaths = [].concat(args.routes).concat(destination);
+
+        const routesToDestination = !hasRoutes ? destination : collectivePaths;
 
         return asyncMap(routesToDestination, (route, cbk) => {
           const extended = route.slice([args.destination].length);
@@ -338,16 +342,23 @@ module.exports = (args, cbk) => {
 
               const destination = args.destination;
 
-              try {
-                return cbk(null, routeFromHops({
-                  cltv: args.timeout || defaultFinalCltvDelta,
-                  height: getWallet.current_block_height,
-                  hops: hopsFromChannels({channels, destination}).hops,
-                  mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
-                }));
-              } catch (err) {
-                return cbk([500, 'UnexpectedHopsFromChannelsError', {err}]);
-              }
+              return getWalletInfo({lnd: args.lnd}, (err, res) => {
+                if (!!err) {
+                  return cbk(err);
+                }
+
+                try {
+                  return cbk(null, routeFromHops({
+                    cltv: args.timeout || defaultFinalCltvDelta,
+                    height: res.current_block_height,
+                    hints: args.routes,
+                    hops: hopsFromChannels({channels, destination}).hops,
+                    mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
+                  }));
+                } catch (err) {
+                  return cbk([500, 'UnexpectedHopsFromChannelsError', {err}]);
+                }
+              });
             });
           },
           cbk);
@@ -364,6 +375,8 @@ module.exports = (args, cbk) => {
 
           return true;
         });
+
+        routes.sort((a, b) => a.fee < b.fee ? -1 : 1);
 
         return cbk(null, {routes});
       }],

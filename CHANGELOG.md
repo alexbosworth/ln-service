@@ -1,6 +1,6 @@
 # Versions
 
-## 41.0.0
+## 41.0.1
 
 - Abstract out accounting methods to [ln-accounting](https://github.com/alexbosworth/ln-accounting)
 - Standardize the output of `verify_message` to match expectations

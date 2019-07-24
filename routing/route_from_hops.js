@@ -11,6 +11,14 @@ const minFee = 0;
   {
     [cltv]: <Final Cltv Delta Number>
     height: <Current Block Height Number>
+    [hints]: [[{
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
+      [channel_capacity]: <Channel Capacity Tokens Number>
+      [channel]: <Standard Format Channel Id String>
+      [cltv_delta]: <CLTV Blocks Delta Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
+    }]]
     hops: [{
       base_fee_mtokens: <Base Fee Millitokens String>
       channel: <Standard Format Channel Id String>
@@ -44,7 +52,7 @@ const minFee = 0;
     tokens: <Total Fee-Inclusive Tokens Number>
   }
 */
-module.exports = ({cltv, height, hops, mtokens}) => {
+module.exports = ({cltv, height, hints, hops, mtokens}) => {
   const finalCltvDelta = cltv || defaultCltvBuffer;
 
   if (height === undefined) {
@@ -59,8 +67,20 @@ module.exports = ({cltv, height, hops, mtokens}) => {
     throw new Error('ExpectedMillitokensToSendAcrossHops');
   }
 
+  const edges = {};
+
+  (hints || []).forEach(path => {
+    path.forEach((hint, i) => {
+      if (!hint.channel) {
+        return;
+      }
+
+      edges[`${hint.public_key}:${hint.channel}`] = hint;
+    });
+  });
+
   // Check hops for validity
-  hops.forEach(hop => {
+  hops.forEach((hop, i) => {
     if (hop.base_fee_mtokens === undefined) {
       throw new Error('ExpectedHopBaseFeeMillitokensForRouteConstruction');
     }
@@ -71,6 +91,16 @@ module.exports = ({cltv, height, hops, mtokens}) => {
 
     if (hop.cltv_delta === undefined) {
       throw new Error('ExpectedHopCltvForRouteConstruction');
+    }
+
+    const nextHop = hops[i + 1];
+
+    if (!!nextHop && edges[`${nextHop.public_key}:${nextHop.channel}`]) {
+      const key = `${nextHop.public_key}:${nextHop.channel}`;
+
+      hop.base_fee_mtokens = edges[key].base_fee_mtokens;
+      hop.cltv_delta = edges[key].cltv_delta;
+      hop.fee_rate = edges[key].fee_rate;
     }
 
     if (hop.fee_rate === undefined) {
