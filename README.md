@@ -2369,7 +2369,7 @@ LND 0.8.2 and below do not support `cooperative_close_address`
 Example:
 
 ```node
-const {openChannel} = require('ln-service');  
+const {openChannel} = require('ln-service');
 const publicKey = 'publicKeyHexString';
 const tokens = 1000000;
 await openChannel({lnd, local_tokens: tokens, partner_public_key: publicKey});
@@ -4689,13 +4689,13 @@ Environment variables:
     export LNSERVICE_SECRET_KEY="REPLACE!WITH!SECRET!KEY!"
 
 .env file:
-    
+
     GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
     LNSERVICE_CHAIN='bitcoin'
     LNSERVICE_LND_DIR='/PATH/TO/.lnd/'
     LNSERVICE_NETWORK='testnet'
     LNSERVICE_SECRET_KEY='REPLACE!WITH!SECRET!KEY!'
-    
+
 Setting environment variables in Linux:
 
 - Edit `.bashrc` or `~/.profile`

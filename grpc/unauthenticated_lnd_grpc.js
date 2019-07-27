@@ -1,7 +1,7 @@
 const {join} = require('path');
 
 const grpc = require('grpc');
-const {loadSync} = require('@grpc/proto-loader');
+const {loadSync} = require('@ln-zap/proto-loader');
 
 const grpcSsl = require('./grpc_ssl');
 const {grpcSslCipherSuites} = require('./conf/grpc_services');
