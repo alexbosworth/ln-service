@@ -16,7 +16,7 @@ const defaultLimit = 100;
 const {isArray} = Array;
 const lastPageFirstIndexOffset = 1;
 const msPerSec = 1e3;
-const mtokensPerToken = 1000n;
+const mtokensPerToken = BigInt('1000');
 const {parse} = JSON;
 const {stringify} = JSON;
 

@@ -94,9 +94,9 @@ module.exports = ({hops, lnd}, cbk) => {
         });
 
         const totalDenominator = odds.slice(1)
-          .reduce((sum, n) => sum * oddsDenominator, 1n);
+          .reduce((sum, n) => sum * oddsDenominator, BigInt('1'));
 
-        const totalOdds = odds.reduce((sum, n) => sum * BigInt(n), 1n);
+        const totalOdds = odds.reduce((sum, n) => sum * BigInt(n), BigInt('1'));
 
         const successOdds = (totalOdds / totalDenominator).toString();
 
