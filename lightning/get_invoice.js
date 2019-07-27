@@ -4,7 +4,7 @@ const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 const msPerSec = 1e3;
-const mtokensPerToken = 1000n;
+const mtokensPerToken = BigInt('1000');
 
 /** Lookup a channel invoice.
 
