@@ -1,5 +1,8 @@
+const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
+const {returnResult} = require('asyncjs-util');
 
+const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 
 const interval = retryCount => 10 * Math.pow(2, retryCount);
@@ -49,19 +52,37 @@ module.exports = ({id, lnd}, cbk) => {
   }
 
   return asyncRetry({interval, times}, cbk => {
-    return getChannels({lnd}, (err, res) => {
-      if (!!err) {
-        return cbk(err);
-      }
+    return asyncAuto({
+      // Get channels
+      getChannels: cbk => getChannels({lnd}, cbk),
 
-      const channel = res.channels.find(n => n.transaction_id === id);
+      // Channel
+      channel: ['getChannels', ({getChannels}, cbk) => {
+        const chan = getChannels.channels.find(n => n.transaction_id === id);
 
-      if (!channel) {
-        return cbk([503, 'FailedToFindChannelWithTransactionId']);
-      }
+        if (!chan) {
+          return cbk([503, 'FailedToFindChannelWithTransactionId']);
+        }
 
-      return cbk(null, channel);
-    });
+        return cbk(null, chan);
+      }],
+
+      // Get channel
+      getChannel: ['channel', ({channel}, cbk) => {
+        return getChannel({lnd, id: channel.id}, cbk);
+      }],
+
+      gotChannel: ['getChannel', ({getChannel}, cbk) => {
+        const {policies} = getChannel;
+
+        if (!!policies.find(n => !n.cltv_delta)) {
+          return cbk([503, 'FailedToFindChannelWithFullPolicyDetails']);
+        }
+
+        return cbk();
+      }]
+    },
+    returnResult({of: 'channel'}, cbk));
   },
   cbk);
 };

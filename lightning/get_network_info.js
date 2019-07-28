@@ -19,6 +19,7 @@ const decBase = 10;
     [median_channel_size]: <Median Channel Tokens Number>
     min_channel_size: <Tokens Number>
     node_count: <Node Count Number>
+    [not_recently_updated_policy_count]: <Channel Edge Count Number>
     total_capacity: <Total Capacity Number>
   }
 */
@@ -77,6 +78,7 @@ module.exports = ({lnd}, cbk) => {
             median_channel_size: median,
             min_channel_size: parseInt(networkInfo.min_channel_size, decBase),
             node_count: networkInfo.num_nodes,
+            not_recently_updated_policy_count: networkInfo.num_zombie_chans,
             total_capacity: total,
           });
         });

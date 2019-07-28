@@ -15,8 +15,8 @@ const defaultFee = 1e3;
 const tokens = 100;
 
 // Deleting payments should delete all payments
-test('Delete payments', async ({end, equal}) => {
-  const cluster = await createCluster({});
+test('Delete payments', async ({afterEach, fail, end, equal}) => {
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
@@ -39,7 +39,17 @@ test('Delete payments', async ({end, equal}) => {
 
   const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
 
-  const paid = await pay({lnd, request: invoice.request});
+  let paid;
+
+  try {
+    paid = await pay({lnd, request: invoice.request});
+  } catch (err) {
+    fail('Payment should be made to destination');
+
+    await cluster.kill({});
+
+    return end();
+  }
 
   const priorLength = (await getPayments({lnd})).payments.length;
 

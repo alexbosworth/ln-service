@@ -4,12 +4,12 @@ const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getUtxos} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
+const {waitForUtxo} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -48,6 +48,8 @@ test(`Get utxos`, async ({deepIs, end, equal, fail}) => {
   });
 
   await mineTransaction({cert, host, pass, port, transaction, user});
+
+  await waitForUtxo({confirmations: 6, lnd, transaction});
 
   const {utxos} = await getUtxos({lnd});
 

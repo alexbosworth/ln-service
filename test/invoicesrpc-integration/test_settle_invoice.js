@@ -89,7 +89,9 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     const gotCltvDelay = pending.timeout - wallet.current_block_height;
     const timeout = pending.timeout - sweepBlockCount;
 
-    equal(gotCltvDelay, cltvDelta, 'invoice cltv delay as expected');
+    const delay = gotCltvDelay === cltvDelta || gotCltvDelay === cltvDelta + 3;
+
+    equal(delay, true, 'invoice cltv delay as expected');
     equal(created.is_confirmed, false, 'invoices shows not yet been settled');
     equal(created.is_held, true, 'invoices shows HTLC locked in place');
     equal(invoice.is_confirmed, false, 'HTLC has not yet been settled');

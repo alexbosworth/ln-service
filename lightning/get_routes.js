@@ -40,6 +40,7 @@ const pathNotFoundErrors = [
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
+    [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
     lnd: <Authenticated LND gRPC API Object>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
@@ -190,6 +191,7 @@ module.exports = (args, cbk) => {
             ignored_nodes: ignoreAsIgnoredNodes({ignore: args.ignore}).ignored,
             pub_key: firstHop.public_key,
             source_pub_key: args.start || undefined,
+            use_mission_control: args.is_adjusted_for_past_failures,
           },
           (err, response) => {
             // Exit early when an error indicates that no routes are possible

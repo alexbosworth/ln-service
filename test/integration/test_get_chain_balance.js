@@ -9,6 +9,7 @@ const {getChainBalance} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
+const {waitForUtxo} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -55,6 +56,8 @@ test(`Get the chain balance`, async ({end, equal}) => {
   });
 
   await mineTransaction({cert, host, pass, port, transaction, user});
+
+  await waitForUtxo({lnd, transaction});
 
   // Check that the balance is updated
   const postDeposit = await getChainBalance({lnd});

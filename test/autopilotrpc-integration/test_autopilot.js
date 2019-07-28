@@ -25,7 +25,7 @@ const score = 50000000;
 
 // Adjusting autopilot should result in changed autopilot status
 test(`Autopilot`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {kill} = cluster;
 

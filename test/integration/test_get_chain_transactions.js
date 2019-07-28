@@ -11,6 +11,7 @@ const {getChainTransactions} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
+const {waitForUtxo} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;
@@ -50,6 +51,8 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
   });
 
   await mineTransaction({cert, host, pass, port, transaction, user});
+
+  await waitForUtxo({lnd, transaction});
 
   const {transactions} = await getChainTransactions({lnd});
 

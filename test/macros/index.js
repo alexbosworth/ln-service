@@ -11,6 +11,7 @@ const spawnLnd = promisify(require('./spawn_lnd'));
 const waitForChannel = promisify(require('./wait_for_channel'));
 const waitForPendingChannel = promisify(require('./wait_for_pending_channel'));
 const waitForTermination = promisify(require('./wait_for_termination'));
+const waitForUtxo = promisify(require('./wait_for_utxo'));
 
 module.exports = {
   chainSendTransaction,
@@ -24,4 +25,5 @@ module.exports = {
   waitForChannel,
   waitForPendingChannel,
   waitForTermination,
+  waitForUtxo,
 };

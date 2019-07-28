@@ -43,6 +43,7 @@ const {getPendingChainBalance} = require('./lightning');
 const {getPendingChannels} = require('./lightning');
 const {getPublicKey} = require('./wallet');
 const {getRoutes} = require('./lightning');
+const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
 const localLnd = require('./service/local_lnd');
@@ -133,6 +134,7 @@ module.exports = {
   getPendingChannels,
   getPublicKey,
   getRoutes,
+  getTowerServerInfo,
   getUtxos,
   getWalletInfo,
   localLnd,

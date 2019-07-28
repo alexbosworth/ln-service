@@ -45,7 +45,7 @@ If you're going to use extended gRPC APIs, make sure to add the APIs to make
 tags.
 
 ```sh
-make && make install tags="autopilotrpc chainrpc invoicesrpc routerrpc signrpc walletrpc"
+make && make install tags="autopilotrpc chainrpc invoicesrpc routerrpc signrpc walletrpc watchtowerrpc"
 ```
 
 ## Using gRPC
@@ -240,7 +240,7 @@ const {lnd} = lnService.authenticatedLndGrpc({
   macaroon: 'base64 encoded admin.macaroon',
   socket: '127.0.0.1:10009',
 });
-const wallet = await lnService.getWalletInfo({lnd};
+const wallet = await lnService.getWalletInfo({lnd});
 ```
 
 ### broadcastChainTransaction
@@ -540,7 +540,7 @@ Example:
 
 ```node
 const {createInvoice} = require('ln-service');
-const invoice = createInvoice({lnd});
+const invoice = await createInvoice({lnd});
 ```
 
 ### createSeed
@@ -563,7 +563,7 @@ Example:
 
 ```node
 const {createSeed} = require('ln-service');
-const {seed} = createSeed({lnd});
+const {seed} = await createSeed({lnd});
 ```
 
 ### createWallet
@@ -586,7 +586,7 @@ Example:
 ```node
 const {createWallet} = require('ln-service');
 const {seed} = await createSeed({lnd});
-await createWallet({lnd, seed, password: 'password});
+await createWallet({lnd, seed, password: 'password'});
 ```
 
 ### decodePaymentRequest
@@ -1810,7 +1810,7 @@ If no id is specified, a random id will be used
         mtokens: <Total Millitokens To Pay String>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
-      }
+      }]
     }
 
     @returns via cbk or Promise

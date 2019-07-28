@@ -16,7 +16,7 @@ const txIdHexByteLength = 64;
 
 // Sending to chain addresses should result in on-chain sent funds
 test(`Send to chain address`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.target;
 

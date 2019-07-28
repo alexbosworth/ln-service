@@ -13,7 +13,7 @@ const defaultFee = 1e3;
 const defaultVout = 0;
 
 // Closing a channel should close the channel
-test(`Close channel`, async ({end, equal}) => {
+test(`Close channel`, async ({end, equal, expectUncaughtException}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const channelOpen = await openChannel({

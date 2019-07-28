@@ -18,7 +18,7 @@ tests.forEach(({args, description, expected}) => {
   return test(description, ({end, equal}) => {
     const sub = subscribeToBlocks(args);
 
-    sub.on('block', ({height, id}) => {
+    sub.once('block', ({height, id}) => {
       equal(height, expected.height, 'Got height');
       equal(id, expected.id, 'Got id');
 

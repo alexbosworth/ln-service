@@ -1,6 +1,7 @@
 const {chanFormat} = require('bolt07');
 const {isFinite} = require('lodash');
 
+const asDate = epochTime => new Date(epochTime * 1e3).toISOString();
 const decBase = 10;
 const msPerSec = 1e3;
 const separatorChar = ':';
@@ -16,6 +17,7 @@ const separatorChar = ':';
       disabled: <Forwarding is Disabled Bool>
       fee_base_msat: <Base Fee Tokens String>
       fee_rate_milli_msat: <Fee Rate Number String>
+      [last_update]: <Last Update Epoch Time Seconds Number>
       max_htlc_msat: <Maximum HTLC Millitokens String>
       min_htlc: <Minimum HTLC Millitokens String>
       time_lock_delta: <CLTV Delta Number>
@@ -25,6 +27,7 @@ const separatorChar = ':';
       disabled: <Forwarding is Disabled Bool>
       fee_base_msat: <Base Fee Tokens String>
       fee_rate_milli_msat: <Fee Rate Number String>
+      [last_update]: <Last Update Epoch Time Seconds Number>
       max_htlc_msat: <Maximum HTLC Millitokens String>
       min_htlc: <Minimum HTLC Millitokens String>
       time_lock_delta: <CLTV Delta Number>
@@ -47,6 +50,7 @@ const separatorChar = ':';
       [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
       [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
       public_key: <Node Public Key String>
+      [updated_at]: <Edge Last Updated At ISO 8601 Date String>
     }]
     transaction_id: <Transaction Id Hex String>
     transaction_vout: <Transaction Output Index Number>
@@ -155,6 +159,7 @@ module.exports = args => {
       is_disabled: policy.disabled,
       max_htlc_mtokens: policy.max_htlc_msat,
       min_htlc_mtokens: policy.min_htlc,
+      updated_at: !policy.last_update ? undefined : asDate(policy.last_update),
     };
   });
 

@@ -56,6 +56,8 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   if (!!nodeDetails && !!nodeDetails.channels.length) {
     const [chan] = nodeDetails.channels;
 
+    chan.policies.forEach(policy => delete policy.updated_at);
+
     deepIs(chan, channel, 'Graph channel matches node details channel');
   }
 

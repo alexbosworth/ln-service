@@ -13,7 +13,7 @@ const defaultFeeRate = 1;
 
 // Getting fee rates should return the fee rates of nodes in the channel graph
 test(`Get fee rates`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
@@ -34,7 +34,7 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   equal(channels.length, [channelOpen].length, 'Channel was opened');
 
-  const [channel] = channels;
+  const channel = channels[0] || {};
 
   equal(channel.base_fee, defaultFeeRate, 'Channel base fee');
   equal(channel.fee_rate, defaultBaseFee, 'Channel fee rate');

@@ -12,7 +12,7 @@ const tokens = 1e6;
 
 // Subscribing to chain transactions should 
 test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.target;
 

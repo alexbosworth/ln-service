@@ -63,6 +63,8 @@ tests.forEach(({args, description, expected}) => {
   return test(description, ({deepEqual, end, equal}) => {
     const channel = channelEdgeAsChannel(args);
 
+    channel.policies.forEach(n => delete n.updated_at);
+
     deepEqual(channel, expected, 'Channel cast as channel');
 
     return end();

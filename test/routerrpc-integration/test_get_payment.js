@@ -111,20 +111,28 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
   equal(payment.mtokens, '101000', 'Paid mtokens');
   equal(payment.secret, invoice.secret, 'Paid for invoice secret');
 
+  const height = (await getWalletInfo({lnd})).current_block_height;
+
+  payment.hops.forEach(n => {
+    equal(n.timeout === height + 40 || n.timeout === height + 43, true);
+
+    delete n.timeout;
+
+    return;
+  });
+
   const expectedHops = [
     {
       channel: channel.id,
       channel_capacity: 1000000,
       fee_mtokens: '1000',
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
-      timeout: 494,
     },
     {
       channel: remoteChan.id,
       channel_capacity: 1000000,
       fee_mtokens: '0',
       forward_mtokens: '100000',
-      timeout: 494,
     },
   ];
 

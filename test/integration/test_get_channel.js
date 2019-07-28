@@ -12,7 +12,7 @@ const {ceil} = Math;
 
 // Getting a channel should return channel details from the channel graph
 test(`Get channel`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 

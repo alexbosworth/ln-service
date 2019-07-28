@@ -22,7 +22,7 @@ const tokens = 1e3;
 
 // Encountering errors in payment should return valid error codes
 test('Payment errors', async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 

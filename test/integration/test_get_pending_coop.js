@@ -17,7 +17,7 @@ const spendableRatio = 0.99;
 
 // Getting pending channels should show pending channels
 test(`Get pending channels`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
@@ -45,26 +45,24 @@ test(`Get pending channels`, async ({end, equal}) => {
     transaction_vout: coopChan.transaction_vout,
   });
 
-  await waitForPendingChannel({
-    lnd: cluster.target.lnd,
+  const {channel} = await waitForPendingChannel({
+    lnd: cluster.control.lnd,
     id: coopChan.transaction_id,
   });
 
-  const [coopClose] = (await getPendingChannels({lnd})).pending_channels;
-
-  equal(coopClose.is_active, false, 'Ended');
-  equal(coopClose.is_closing, true, 'Closing');
-  equal(coopClose.is_opening, false, 'Not Opening');
-  equal(coopClose.local_balance, 980950, 'Original balance');
-  equal(coopClose.partner_public_key, cluster.target_node_public_key, 'pubk');
-  equal(coopClose.pending_balance, 980950, 'Waiting on balance');
-  equal(coopClose.received, 0, 'Never received');
-  equal(coopClose.recovered_tokens, undefined, 'Nothing to recover in sweep');
-  equal(coopClose.remote_balance, 0, 'Opposing channel balance nil');
-  equal(coopClose.sent, 0, 'Never sent anything');
-  equal(coopClose.timelock_expiration, undefined, 'No timelock in coop mode');
-  equal(coopClose.transaction_id, coopChan.transaction_id, 'funding tx id');
-  equal(coopClose.transaction_vout, coopChan.transaction_vout, 'funding vout');
+  equal(channel.is_active, false, 'Ended');
+  equal(channel.is_closing, true, 'Closing');
+  equal(channel.is_opening, false, 'Not Opening');
+  equal(channel.local_balance, 980950, 'Original balance');
+  equal(channel.partner_public_key, cluster.target_node_public_key, 'pubk');
+  equal(channel.pending_balance, 980950, 'Waiting on balance');
+  equal(channel.received, 0, 'Never received');
+  equal(channel.recovered_tokens, undefined, 'Nothing to recover in sweep');
+  equal(channel.remote_balance, 0, 'Opposing channel balance nil');
+  equal(channel.sent, 0, 'Never sent anything');
+  equal(channel.timelock_expiration, undefined, 'No timelock in coop mode');
+  equal(channel.transaction_id, coopChan.transaction_id, 'funding tx id');
+  equal(channel.transaction_vout, coopChan.transaction_vout, 'funding vout');
 
   await cluster.kill({});
 

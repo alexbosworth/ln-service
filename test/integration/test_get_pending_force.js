@@ -2,12 +2,14 @@ const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getPeers} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {openChannel} = require('./../../');
 const {waitChannel} = require('./../macros');
 const {waitPendingChannel} = require('./../macros');
+const {waitForUtxo} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -18,7 +20,7 @@ const spendableRatio = 0.99;
 
 // Getting pending channels should show pending channels
 test(`Get pending channels`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
@@ -63,6 +65,8 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   await getPendingChannels({lnd, id: channelOpen.transaction_id});
 
+  await waitForUtxo({lnd, id: channelOpen.transaction_id});
+
   const [waitClose] = (await getPendingChannels({lnd})).pending_channels;
 
   equal(waitClose.close_transaction_id, undefined, 'Waiting for close tx');
@@ -82,7 +86,11 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
+  await delay(3000);
+
   const [forceClose] = (await getPendingChannels({lnd})).pending_channels;
+
+  await waitForUtxo({lnd, id: forceClose.transaction_id});
 
   equal(forceClose.close_transaction_id, channelClose.transaction_id, 'Txid');
   equal(forceClose.is_active, false, 'Not active anymore');

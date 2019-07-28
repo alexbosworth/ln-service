@@ -10,7 +10,7 @@
     "asyncjs-util": "1.1.1",
     "basicauth-middleware": "3.1.0",
     "bech32": "1.1.3",
-    "bitcoinjs-lib": "5.1.1",
+    "bitcoinjs-lib": "5.1.2",
     "bn.js": "5.0.0",
     "body-parser": "1.19.0",
     "bolt07": "1.4.2",
@@ -37,6 +37,9 @@
     "uuid": "3.3.2",
     "varuint-bitcoin": "1.1.0"
   },
+  "engines": {
+    "node": ">=10.4.0"
+  },
   "keywords": [
     "grpc",
     "lightning",
@@ -51,7 +54,7 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
-    "all-integration-tests": "tap -j 1 --no-coverage -t 90 test/autopilotrpc-integration/*.js test/chainrpc-integration/*.js test/grpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/routerrpc-integration/*.js test/signerrpc-integration/*.js test/walletrpc-integration/*.js",
+    "all-integration-tests": "tap -j 2 -t 90 test/autopilot/*.js test/autopilotrpc-integration/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/chainrpc-integration/*.js test/graph/*.js test/grpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/router/*.js test/routerrpc-integration/*.js test/routing/*.js test/signerrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js",
     "autopilot-integration-tests": "tap --no-coverage -t 90 test/autopilotrpc-integration/*.js",
     "chain-integration-tests": "tap --no-coverage -t 90 test/chainrpc-integration/*.js",
     "integration-tests": "tap --no-coverage -t 90 test/grpc-integration/*.js test/integration/*.js",
@@ -59,8 +62,9 @@
     "router-integration-tests": "tap --no-coverage test/routerrpc-integration/*.js",
     "signer-integration-tests": "tap --no-coverage test/signerrpc-integration/*.js",
     "start": "node server.js",
-    "test": "tap test/autopilot/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/graph/*.js test/router/*.js test/routing/*.js",
+    "test": "tap test/autopilot/*.js test/backups/*.js test/bolt02/*.js test/bolt11/*.js test/chain/*.js test/graph/*.js test/router/*.js test/routing/*.js",
+    "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "41.0.1"
+  "version": "41.1.0"
 }

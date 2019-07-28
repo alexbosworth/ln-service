@@ -16,7 +16,7 @@ const giveTokens = 1e5;
 // Subscribing to channels should trigger channel events
 test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   const expected = [];
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
   const socket = `${cluster.target.listen_ip}:${cluster.target.listen_port}`;

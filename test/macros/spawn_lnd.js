@@ -48,6 +48,7 @@ const times = 20;
 
   {
     [seed]: <Seed Phrase String>
+    [tower]: <Tower Enabled Bool>
   }
 
   @returns via cbk
@@ -69,12 +70,14 @@ const times = 20;
     seed: <Node Seed Phrase String>
   }
 */
-module.exports = ({seed}, cbk) => {
+module.exports = ({seed, tower}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
-      return asyncMapSeries(['listen', 'rest', 'rpc'], (_, cbk) => {
-        const port = startPortRange + round(random() * 2000);
+      const ports = ['listen', 'rest', 'rpc', 'tower'];
+
+      return asyncMapSeries(ports, (_, cbk) => {
+        const port = startPortRange + round(random() * 5000);
 
         const stopPort = port + 20000;
 
@@ -88,9 +91,9 @@ module.exports = ({seed}, cbk) => {
           return cbk([500, 'FailedToFindOpenPortsWhenSpawningLnd', {err}]);
         }
 
-        const [listen, rest, rpc] = ports;
+        const [listen, rest, rpc, tower] = ports;
 
-        return cbk(null, {listen, rest, rpc});
+        return cbk(null, {listen, rest, rpc, tower});
       });
     },
 
@@ -146,7 +149,7 @@ module.exports = ({seed}, cbk) => {
     {
       const {dir} = spawnChainDaemon;
 
-      const daemon = spawn(lightningDaemonExecFileName, [
+      const arguments = [
         '--adminmacaroonpath', join(dir, adminMacaroonFileName),
         '--autopilot.heuristic', 'externalscore:0.5',
         '--autopilot.heuristic', 'preferential:0.5',
@@ -161,6 +164,7 @@ module.exports = ({seed}, cbk) => {
         '--btcd.rpcuser', chainUser,
         '--datadir', dir,
         '--externalip', `${localhost}:${getPorts.listen}`,
+        '--historicalsyncinterval', '1s',
         '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
         '--listen', `${localhost}:${getPorts.listen}`,
         '--logdir', join(dir, lightningDaemonLogPath),
@@ -173,7 +177,20 @@ module.exports = ({seed}, cbk) => {
         '--tlskeypath', join(dir, lightningTlsKeyFileName),
         '--trickledelay', 1,
         '--unsafe-disconnect',
-      ]);
+      ];
+
+      const towerArgs = [
+        '--watchtower.active',
+        '--watchtower.externalip', `${localhost}:${getPorts.tower}`,
+        '--watchtower.listen', `${localhost}:${getPorts.tower}`,
+        '--watchtower.towerdir', dir,
+      ]
+
+      if (!!tower) {
+        towerArgs.forEach(n => arguments.push(n));
+      }
+
+      const daemon = spawn(lightningDaemonExecFileName, arguments);
 
       let isReady = false;
 

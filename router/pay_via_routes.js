@@ -32,7 +32,7 @@ const {isArray} = Array;
       mtokens: <Total Millitokens To Pay String>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
-    }
+    }]
   }
 
   @returns via cbk or Promise

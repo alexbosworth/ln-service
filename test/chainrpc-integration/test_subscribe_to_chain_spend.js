@@ -14,7 +14,7 @@ const tokens = 1e6;
 
 // Subscribing to chain spend should push events on spend confirmations
 test(`Subscribe to chain spend`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
   let gotAddressConf = false;
 
   const {address} = await createChainAddress({

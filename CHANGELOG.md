@@ -1,5 +1,10 @@
 # Versions
 
+## 41.1.0
+
+- Add watchtower server status method
+- Improve compatibility with lnd 0.7.1
+
 ## 41.0.1
 
 - Abstract out accounting methods to [ln-accounting](https://github.com/alexbosworth/ln-accounting)

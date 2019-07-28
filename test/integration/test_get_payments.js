@@ -18,7 +18,7 @@ const tokens = 100;
 
 // Getting payments should return the list of payments
 test('Get payments', async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
