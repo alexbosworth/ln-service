@@ -135,6 +135,7 @@ for `unlocker` methods.
 - [getPendingChannels](#getPendingChannels) - Get channels in pending states
 - [getPublicKey](#getPublicKey) - Get a public key out of the seed
 - [getRoutes](#getRoutes) - Find payable routes to a target destination
+- [getTowerServerInfo](#getTowerServerInfo) - Get information about the running tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
 - [openChannel](#openChannel) - Open a new channel
@@ -1485,6 +1486,28 @@ const {getRoutes} = require('ln-service');
 const destination = 'destinationPublicKeyHexString';
 const tokens = 1000;
 const {routes} = await getRoutes({destination, lnd, tokens});
+```
+
+### getTowerServerInfo
+
+Get watchtower server info.
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      [tower]: {
+        public_key: <Watchtower Server Public Key Hex String>
+        sockets: [<Socket String>]
+        uris: [<Watchtower External URI String>]
+      }
+    }
+
+```node
+const {getTowerServerInfo} = require('ln-service');
+const towerInfo = await getTowerServerInfo({lnd});
 ```
 
 ### getUtxos
