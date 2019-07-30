@@ -1505,6 +1505,8 @@ Get watchtower server info.
       }
     }
 
+Example:
+
 ```node
 const {getTowerServerInfo} = require('ln-service');
 const towerInfo = await getTowerServerInfo({lnd});
@@ -2017,18 +2019,17 @@ Verify and restore a channel from a single channel backup
     {
       backup: <Backup Hex String>
       lnd: <Authenticated LND gRPC API Object>
-      transaction_id: <Channel Funding Transaction Id Hex String>
-      transaction_vout: <Channel Funding Transaction Output Index Hex String>
     }
 
     @returns via cbk or Promise
+    {}
 
 Example:
 
 ```node
 const {getBackup, recoverFundsFromChannel} = require('ln-service');
-const chan = await getBackup({lnd, transaction_id: id, transaction_vout: i});
-await recoverFundsFromChannel({lnd, backup: chan.backup});
+const {backup} = await getBackup({lnd, transaction_id: id, transaction_vout: i});
+await recoverFundsFromChannel({backup, lnd});
 ```
 
 ### recoverFundsFromChannels
@@ -2312,7 +2313,7 @@ Example:
 
 ```node
 const {signMessage} = require('ln-service');
-consg {signature} = await signMessage({lnd, message: 'hello world'});
+const {signature} = await signMessage({lnd, message: 'hello world'});
 ```
 
 ### signTransaction
@@ -3317,8 +3318,6 @@ Verify a channel backup
     {
       backup: <Backup Hex String>
       lnd: <Authenticated LND gRPC API Object>
-      transaction_id: <Transaction Id Hex String>
-      transaction_vout: <Transaction Output Index Number>
     }
 
     @returns via cbk or Promise
@@ -3333,12 +3332,7 @@ Example:
 const {getBackups, verifyBackup} = require('ln-service');
 const [channelBackup] = (await getBackups({lnd})).channels;
 
-const validation = verifyBackup({
-  lnd,
-  backup: channelBackup.backup,
-  transaction_id: channelBackup.transaction_id,
-  transaction_vout: channelBackup.transaction_vout,
-});
+const isValid = (await verifyBackup({lnd, backup: channelBackup.backup})).is_valid;
 ```
 
 ### verifyBackups

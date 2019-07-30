@@ -10,46 +10,29 @@ const existsErr = 'unable to unpack single backups: channel already exists';
   {
     backup: <Backup Hex String>
     lnd: <Authenticated LND gRPC API Object>
-    transaction_id: <Channel Funding Transaction Id Hex String>
-    transaction_vout: <Channel Funding Transaction Output Index Hex String>
   }
 
   @returns via cbk or Promise
+  {}
 */
-module.exports = (args, cbk) => {
+module.exports = ({backup, lnd}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.backup) {
+        if (!backup) {
           return cbk([400, 'ExpectedBackupWhenAttemptingChannelRestoration']);
         }
 
-        if (!args.lnd || !args.lnd.default) {
+        if (!lnd || !lnd.default) {
           return cbk([400, 'ExpectedLndToRestoreChannelFromBackup']);
-        }
-
-        if (!args.transaction_id) {
-          return cbk([400, 'ExpectedTransactionIdOfChannelToRestore']);
-        }
-
-        if (args.transaction_vout === undefined) {
-          return cbk([400, 'ExpectedTransactionVoutOfChannelToRestore']);
         }
 
         return cbk();
       },
 
       // Check the backup
-      checkBackup: ['validate', ({}, cbk) => {
-        return verifyBackup({
-          backup: args.backup,
-          lnd: args.lnd,
-          transaction_id: args.transaction_id,
-          transaction_vout: args.transaction_vout,
-        },
-        cbk);
-      }],
+      checkBackup: ['validate', ({}, cbk) => verifyBackup({backup, lnd}, cbk)],
 
       // Attempt restore
       restoreChannel: ['checkBackup', ({checkBackup}, cbk) => {
@@ -57,17 +40,9 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ProvidedBackupIsInvalid']);
         }
 
-        const transactionId = Buffer.from(args.transaction_id, 'hex');
-
-        return args.lnd.default.restoreChannelBackups({
+        return lnd.default.restoreChannelBackups({
           chan_backups: {
-            chan_backups: [{
-              chan_backup: Buffer.from(args.backup, 'hex'),
-              chan_point: [{
-                funding_txid_bytes: transactionId.reverse(),
-                output_index: args.transaction_vout,
-              }],
-            }],
+            chan_backups: [{chan_backup: Buffer.from(backup, 'hex')}],
           },
         },
         err => {
@@ -79,10 +54,10 @@ module.exports = (args, cbk) => {
             return cbk([503, 'UnexpectedErrorRestoringChanFromBackup', {err}]);
           }
 
-          return cbk();
+          return cbk(null, {});
         });
       }],
     },
-    returnResult({reject, resolve}, cbk));
+    returnResult({reject, resolve, of: 'restoreChannel'}, cbk));
   });
 };
