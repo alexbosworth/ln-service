@@ -1,6 +1,6 @@
 # Versions
 
-## 41.1.0
+## 41.1.2
 
 - Add watchtower server status method
 - Improve compatibility with lnd 0.7.1
