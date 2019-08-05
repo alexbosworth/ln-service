@@ -10,6 +10,7 @@ const {returnResult} = require('asyncjs-util');
 
 const {broadcastResponse} = require('./../push');
 const {getChannel} = require('./../lightning');
+const {getWalletInfo} = require('./../lightning');
 const paymentFailure = require('./payment_failure');
 const rpcRouteFromRoute = require('./rpc_route_from_route');
 
@@ -227,8 +228,11 @@ module.exports = args => {
       // Wait for subscription pick up
       waitForSubscribers: cbk => nextTick(cbk),
 
+      // Get info
+      getInfo: cbk => getWalletInfo({lnd: args.lnd}, cbk),
+
       // Try paying
-      attempt: ['waitForSubscribers', ({}, cbk) => {
+      attempt: ['getInfo', 'waitForSubscribers', ({getInfo}, cbk) => {
         emitter.emit('paying', {route});
 
         return args.lnd.router.sendToRoute({
@@ -256,8 +260,12 @@ module.exports = args => {
 
           const failAt = !failure ? undefined : failure.failure_source_index;
 
-          if (!!failAt) {
-            const failHopKey = route.hops[failAt - 1].public_key;
+          const failKey = !failure ? undefined : failure.failure_source_pubkey;
+
+          if (!!failKey && !failKey.length && failAt !== undefined) {
+            const failureSource = !failAt ? getInfo : route.hops[failAt - 1];
+
+            const failHopKey = failureSource.public_key;
 
             res.failure.failure_source_pubkey = Buffer.from(failHopKey, 'hex');
           }
@@ -266,10 +274,7 @@ module.exports = args => {
             return cbk([503, 'ExpectedFailureSourcePublicKeyInFailDetails']);
           }
 
-          return cbk(null, {
-            failure: res.failure,
-            preimage: res.preimage,
-          });
+          return cbk(null, {failure: res.failure, preimage: res.preimage});
         });
       }],
 

@@ -4,10 +4,26 @@ const {payViaRoutes} = require('./../../');
 
 const preimage = Buffer.alloc(32);
 
+const getInfo = ({}, cbk) => {
+  return cbk(null, {
+    alias: '',
+    best_header_timestamp: Math.round(Date.now() / 1000),
+    block_hash: Buffer.alloc(32).toString('hex'),
+    block_height: 100,
+    identity_pubkey: Buffer.alloc(33).toString('hex'),
+    num_active_channels: 1,
+    num_peers: 1,
+    num_pending_channels: 1,
+    synced_to_chain: true,
+    version: 'version',
+  });
+};
+
 const tests = [
   {
     args: {
       lnd: {
+        default: {getInfo},
         router: {
           sendToRoute: ({}, cbk) => {
             return cbk(null, {
@@ -54,6 +70,7 @@ const tests = [
   {
     args: {
       lnd: {
+        default: {getInfo},
         router: {
           sendToRoute: ({}, cbk) => {
             return cbk(null, {
@@ -145,7 +162,10 @@ const tests = [
   },
   {
     args: {
-      lnd: {router: {sendToRoute: ({}, cbk) => cbk(null, {preimage})}},
+      lnd: {
+        default: {getInfo},
+        router: {sendToRoute: ({}, cbk) => cbk(null, {preimage})},
+      },
       routes: [{
         fee: 1,
         fee_mtokens: '1000',
