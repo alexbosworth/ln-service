@@ -28,6 +28,7 @@ const {isArray} = Array;
       [to_public_key]: <To Public Key Hex String>
     }]
     [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
+    [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
@@ -196,6 +197,7 @@ module.exports = args => {
             destination: args.destination,
             fee: args.max_fee,
             ignore: allIgnores,
+            is_adjusted_for_past_failures: !args.is_ignoring_past_failures,
             lnd: args.lnd,
             routes: args.routes,
             timeout: args.cltv_delta,
