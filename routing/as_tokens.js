@@ -1,6 +1,4 @@
-const decBase = 10;
-const {floor} = Math;
-const mtokPerToken = 1e3;
+const mtokPerToken = BigInt(1e3);
 
 /** Get millitokens as tokens
 
@@ -14,7 +12,7 @@ const mtokPerToken = 1e3;
   }
 */
 module.exports = ({mtokens}) => {
-  const tokens = floor(parseInt(mtokens.toString(), decBase) / mtokPerToken);
+  const tokens = Number(mtokens / mtokPerToken);
 
   return {tokens};
 };

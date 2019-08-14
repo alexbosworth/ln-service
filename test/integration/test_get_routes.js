@@ -149,7 +149,7 @@ test(`Get routes`, async ({end, equal}) => {
   const currentHeight = await getWalletInfo({lnd});
 
   const fullRoute = routeFromHops({
-    cltv: 40,
+    cltv: 46,
     height: (await getWalletInfo({lnd})).current_block_height,
     hops: [
       {

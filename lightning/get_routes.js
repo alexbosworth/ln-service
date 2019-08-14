@@ -12,6 +12,7 @@ const {ignoreAsIgnoredNodes} = require('./../routing');
 const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
 
+const blocksBuffer = 6;
 const defaultFinalCltvDelta = 40;
 const defaultTokens = 0;
 const isArray = Array;
@@ -42,6 +43,7 @@ const pathNotFoundErrors = [
     }]
     [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
     lnd: <Authenticated LND gRPC API Object>
+    [outgoing_channel]: [Outgoing Channel Id String>]
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
@@ -95,6 +97,10 @@ module.exports = (args, cbk) => {
 
         if (!args.lnd || !args.lnd.default || !args.lnd.default.queryRoutes) {
           return cbk([400, 'ExpectedLndForGetRoutesRequest']);
+        }
+
+        if (!!args.outgoing_channel && !!args.start) {
+          return cbk([400, 'ExpectedEitherOutgoingChannelOrStartKeyNotBoth']);
         }
 
         if (!!args.routes && !isArray(args.routes)) {
@@ -155,8 +161,51 @@ module.exports = (args, cbk) => {
         cbk);
       }],
 
+      // Get the wallet public key
+      getInfo: ['validate', ({}, cbk) => {
+        // Wallet info is only necessary for outgoing channel construction
+        if (!args.outgoing_channel) {
+          return cbk();
+        }
+
+        return getWalletInfo({lnd: args.lnd}, cbk);
+      }],
+
+      // Get the source key
+      getOutgoing: ['getInfo', ({getInfo}, cbk) => {
+        // The source key can be set discretely
+        if (!!args.start) {
+          return cbk(null, {channels: [], source_key: args.start});
+        }
+
+        // Exit early when there is no outgoing restraint
+        if (!args.outgoing_channel) {
+          return cbk(null, {channels: [], source_key: undefined});
+        }
+
+        const sourceKey = getInfo.public_key;
+
+        return getChannel({
+          id: args.outgoing_channel,
+          lnd: args.lnd,
+        },
+        (err, channel) => {
+          if (!!err) {
+            return cbk(err);
+          }
+
+          const peer = channel.policies.find(n => n.public_key !== sourceKey);
+
+          return cbk(null, {channels: [channel], source_key: peer.public_key});
+        });
+      }],
+
       // Derive routes
-      getRoutes: ['getIgnoredEdges', ({getIgnoredEdges}, cbk) => {
+      getRoutes: [
+        'getIgnoredEdges',
+        'getOutgoing',
+        ({getIgnoredEdges, getOutgoing}, cbk) =>
+      {
         const stubDestination = [[{public_key: args.destination}]];
         const hasRoutes = !!args.routes && !!args.routes.length;
         const ignore = getIgnoredEdges.filter(n => !!n);
@@ -183,14 +232,16 @@ module.exports = (args, cbk) => {
             return cbk(null, {extended, routes: []});
           }
 
+          const finalCltv = (args.timeout || defaultFinalCltvDelta);
+
           return args.lnd.default.queryRoutes({
             amt: args.tokens || defaultTokens,
             fee_limit: !args.fee ? undefined : {fee_limit: args.fee},
-            final_cltv_delta: args.timeout || defaultFinalCltvDelta,
+            final_cltv_delta: finalCltv + blocksBuffer,
             ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,
             ignored_nodes: ignoreAsIgnoredNodes({ignore: args.ignore}).ignored,
             pub_key: firstHop.public_key,
-            source_pub_key: args.start || undefined,
+            source_pub_key: getOutgoing.source_key,
             use_mission_control: args.is_adjusted_for_past_failures,
           },
           (err, response) => {
@@ -217,7 +268,7 @@ module.exports = (args, cbk) => {
 
       // Get the current block height if necessary for route assembly
       getWallet: ['getRoutes', ({}, cbk) => {
-        if (!args.routes) {
+        if (!args.routes && !args.outgoing_channel) {
           return cbk();
         }
 
@@ -225,23 +276,25 @@ module.exports = (args, cbk) => {
       }],
 
       // Assemble the final routes
-      assemble: ['getRoutes', 'getWallet', ({getRoutes, getWallet}, cbk) => {
-        // Exit early when no extended routes are specified
-        if (!args.routes || !args.routes.length) {
+      assemble: [
+        'getOutgoing',
+        'getRoutes',
+        'getWallet',
+        ({getOutgoing, getRoutes, getWallet}, cbk) =>
+      {
+        // Exit early when no route extensions are specified
+        if (!args.routes && !args.outgoing_channel) {
           const [standardRoute] = getRoutes;
 
           return cbk(null, standardRoute.routes);
         }
 
         const channels = {};
-        const [firstRoute] = args.routes;
         const gotChannels = {};
         let pkCursor;
         const source = getWallet.public_key;
 
-        const [finalHop] = firstRoute.slice().reverse();
-
-        args.routes.forEach(route => {
+        (args.routes || []).forEach(route => {
           return route.forEach(n => {
             if (!n.channel) {
               return;
@@ -270,11 +323,11 @@ module.exports = (args, cbk) => {
         });
 
         return asyncMapSeries(getRoutes, ({extended, routes}, cbk) => {
-          if (!routes.length) {
+          if (!routes.length && !args.outgoing_channel) {
             return cbk(null, []);
           }
 
-          const extendedHops = extended.map(hop => {
+          const extendedHops = (extended || []).map(hop => {
             return {channel: hop.channel, destination: hop.public_key};
           });
 
@@ -349,12 +402,19 @@ module.exports = (args, cbk) => {
                   return cbk(err);
                 }
 
+                const {hops} = hopsFromChannels({
+                  destination,
+                  channels: [].concat(getOutgoing.channels).concat(channels),
+                });
+
+                const finalCltv = (args.timeout || defaultFinalCltvDelta);
+
                 try {
                   return cbk(null, routeFromHops({
-                    cltv: args.timeout || defaultFinalCltvDelta,
+                    hops,
+                    cltv: finalCltv + blocksBuffer,
                     height: res.current_block_height,
                     hints: args.routes,
-                    hops: hopsFromChannels({channels, destination}).hops,
                     mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
                   }));
                 } catch (err) {

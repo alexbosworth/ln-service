@@ -1,12 +1,10 @@
-const {decodeChanId} = require('bolt07');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
-const {getPendingChannels} = require('./../../');
+const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
@@ -18,7 +16,6 @@ const {waitForPendingChannel} = require('./../macros');
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
-const mtok = '000';
 const tokens = 1e3;
 
 // Rebalancing channels should result in balanced channels
@@ -33,8 +30,8 @@ test('Rebalance', async ({end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     give_tokens: 1e5,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({
@@ -45,7 +42,7 @@ test('Rebalance', async ({end, equal}) => {
   // Generate to confirm the channel
   await cluster.generate({count: confirmationCount, node: cluster.control});
 
-  await waitForChannel({
+  const controlToTarget = await waitForChannel({
     lnd,
     id: controlToTargetChannel.transaction_id,
   });
@@ -56,8 +53,8 @@ test('Rebalance', async ({end, equal}) => {
     give_tokens: 1e5,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
-    partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
+    partner_public_key: cluster.control.public_key,
+    socket: cluster.control.socket,
   });
 
   await waitForPendingChannel({
@@ -73,30 +70,18 @@ test('Rebalance', async ({end, equal}) => {
     lnd: cluster.target.lnd,
   });
 
-  const height = (await getWalletInfo({lnd})).current_block_height;
   const invoice = await createInvoice({lnd, tokens});
-  const mtokens = `${tokens}${mtok}`;
 
-  await delay(3000);
+  const [inChannelId] = (await getChannels({lnd})).channels.map(({id}) => id);
 
-  const {channels} = await getChannels({lnd});
+  const {routes} = await getRoutes({
+    lnd,
+    tokens,
+    destination: cluster.control.public_key,
+    outgoing_channel: inChannelId,
+  });
 
-  const [inChannelId, outChannelId] = channels.map(({id}) => id);
-
-  const inChan = await getChannel({lnd, id: inChannelId});
-  const outChan = await getChannel({lnd, id: outChannelId});
-
-  inChan.id = inChannelId;
-  outChan.id = outChannelId;
-
-  const destination = (await getWalletInfo({lnd})).public_key;
-  const {id} = invoice;
-
-  const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
-
-  const routes = [routeFromHops({height, hops, mtokens})];
-
-  const selfPay = await pay({lnd, path: {id, routes}});
+  const selfPay = await pay({lnd, path: {routes, id: invoice.id}});
 
   equal(selfPay.secret, invoice.secret, 'Payment made to self');
 

@@ -31,6 +31,7 @@ const {isArray} = Array;
     [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
+    [outgoing_channel]: <Outgoing Channel Id String>
     [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
@@ -196,9 +197,10 @@ module.exports = args => {
           return getRoutes({
             destination: args.destination,
             fee: args.max_fee,
-            ignore: allIgnores,
+            ignore: !args.is_ignoring_past_failures ? [] : allIgnores,
             is_adjusted_for_past_failures: !args.is_ignoring_past_failures,
             lnd: args.lnd,
+            outgoing_channel: args.outgoing_channel,
             routes: args.routes,
             timeout: args.cltv_delta,
             tokens: args.tokens,

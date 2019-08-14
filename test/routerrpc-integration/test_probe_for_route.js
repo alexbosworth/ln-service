@@ -131,7 +131,7 @@ test('Probe for route', async ({deepIs, end, equal}) => {
   equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
   deepIs(route.hops.length, 2, 'Found route hops returned');
   equal(route.mtokens, '500001500', 'Found route mtokens');
-  equal(route.timeout, 582, 'Found route timeout');
+  equal(route.timeout, 588, 'Found route timeout');
   equal(route.tokens, 500001, 'Found route tokens');
 
   const {secret} = await payViaRoutes({lnd, id: invoice.id, routes: [route]});

@@ -1,4 +1,4 @@
-const rateDivisor = 1e6;
+const rateDivisor = BigInt(1e6);
 
 /** Fee for policy
 
@@ -35,7 +35,7 @@ module.exports = ({mtokens, policy}) => {
   const feeRate = BigInt(policy.fee_rate);
   const forwardMtokens = BigInt(mtokens);
 
-  const feeRateMtokens = forwardMtokens * feeRate / BigInt(rateDivisor);
+  const feeRateMtokens = forwardMtokens * feeRate / rateDivisor;
 
   const fee = baseFeeMtokens + feeRateMtokens;
 

@@ -107,7 +107,7 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
         forward: tokens,
         forward_mtokens: `${tokens}000`,
         public_key: cluster.target_node_public_key,
-        timeout: 522,
+        timeout: 528,
       },
       {
         channel: targetToRemoteChan.id,
@@ -117,11 +117,11 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
         forward: tokens,
         forward_mtokens: `${tokens}000`,
         public_key: cluster.remote_node_public_key,
-        timeout: 522,
+        timeout: 528,
       }
     ],
     mtokens: '500001500',
-    timeout: 562,
+    timeout: 568,
     tokens: 500001,
   });
 
@@ -191,7 +191,7 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   equal(success.route.fee_mtokens, '1500', 'Successful route fee mtokens');
   deepIs(success.route.hops.length, 2, 'Successful route returned');
   equal(success.route.mtokens, '500001500', 'Successful route mtokens');
-  equal(success.route.timeout, 582, 'Successful route timeout');
+  equal(success.route.timeout, 588, 'Successful route timeout');
   equal(success.route.tokens, 500001, 'Successful route tokens');
   equal(success.update, undefined, 'Success extra update info');
 

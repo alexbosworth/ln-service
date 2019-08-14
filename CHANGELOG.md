@@ -1,5 +1,11 @@
 # Versions
 
+## 41.2.0
+
+- Add outgoing channel support to getRoutes
+- Pad the final CLTV of getRoutes output
+- Add is_synced_to_graph to getWalletInfo
+
 ## 41.1.4
 
 - Add watchtower server status method

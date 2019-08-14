@@ -26,6 +26,7 @@ const msPerSec = 1e3;
     current_block_hash: <Best Chain Hash Hex String>
     current_block_height: <Best Chain Height Number>
     is_synced_to_chain: <Is Synced To Chain Bool>
+    [is_synced_to_graph]: <Is Synced To Network Graph Bool>
     latest_block_at: <Latest Known Block At Date String>
     peers_count: <Peer Count Number>
     pending_channels_count: <Pending Channels Count Number>
@@ -127,6 +128,7 @@ module.exports = ({lnd}, cbk) => {
             current_block_hash: res.block_hash,
             current_block_height: res.block_height,
             is_synced_to_chain: res.synced_to_chain,
+            is_synced_to_graph: !res.synced_to_graph ? undefined : true,
             latest_block_at: latestBlockAt.toISOString(),
             peers_count: res.num_peers,
             pending_channels_count: res.num_pending_channels,
