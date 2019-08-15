@@ -1,5 +1,10 @@
 # Versions
 
+## 41.3.0
+
+- Add hop hints strictness option to getRoutes to only find routes that go through specified routes
+- Add hop hints strictness to subscribeToProbe, probeForRoute
+
 ## 41.2.0
 
 - Add outgoing channel support to getRoutes

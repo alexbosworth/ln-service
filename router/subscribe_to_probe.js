@@ -29,6 +29,7 @@ const {isArray} = Array;
     }]
     [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
     [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
+    [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [outgoing_channel]: <Outgoing Channel Id String>
@@ -199,6 +200,7 @@ module.exports = args => {
             fee: args.max_fee,
             ignore: !args.is_ignoring_past_failures ? [] : allIgnores,
             is_adjusted_for_past_failures: !args.is_ignoring_past_failures,
+            is_strict_hints: args.is_strict_hints,
             lnd: args.lnd,
             outgoing_channel: args.outgoing_channel,
             routes: args.routes,

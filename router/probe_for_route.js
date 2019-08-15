@@ -21,6 +21,7 @@ const {isArray} = Array;
       [to_public_key]: <To Public Key Hex String>
     }]
     [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
+    [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
@@ -91,6 +92,7 @@ module.exports = (args, cbk) => {
           destination: args.destination,
           ignore: args.ignore,
           ignore_probability_below: args.ignore_probability_below,
+          is_strict_hints: args.is_strict_hints,
           lnd: args.lnd,
           max_fee: args.max_fee,
           routes: args.routes,

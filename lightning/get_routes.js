@@ -42,12 +42,13 @@ const pathNotFoundErrors = [
       [to_public_key]: <To Public Key Hex String>
     }]
     [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
+    [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [outgoing_channel]: [Outgoing Channel Id String>]
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
-      [channel_capacity]: <Channel Capacity Tokens Number>
       [channel]: <Standard Format Channel Id String>
+      [channel_capacity]: <Channel Capacity Tokens Number>
       [cltv_delta]: <CLTV Blocks Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
@@ -209,8 +210,9 @@ module.exports = (args, cbk) => {
         const stubDestination = [[{public_key: args.destination}]];
         const hasRoutes = !!args.routes && !!args.routes.length;
         const ignore = getIgnoredEdges.filter(n => !!n);
+        const strict = !!args.is_strict_hints;
 
-        const destination = !args.destination ? [] : stubDestination;
+        const destination = !args.destination || strict ? [] : stubDestination;
 
         const collectivePaths = [].concat(args.routes).concat(destination);
 

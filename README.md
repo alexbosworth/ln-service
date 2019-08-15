@@ -1447,8 +1447,8 @@ addition to routes.
       lnd: <Authenticated LND gRPC API Object>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
-        [channel_capacity]: <Channel Capacity Tokens Number>
         [channel]: <Standard Format Channel Id String>
+        [channel_capacity]: <Channel Capacity Tokens Number>
         [cltv_delta]: <CLTV Blocks Delta Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         public_key: <Forward Edge Public Key Hex String>
@@ -1968,6 +1968,7 @@ Requires lnd built with routerrpc build tag
         [to_public_key]: <To Public Key Hex String>
       }]
       [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
+      [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
@@ -3096,6 +3097,8 @@ Requires lnd built with routerrpc build tag
         [to_public_key]: <To Public Key Hex String>
       }]
       [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
+      [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
+      [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [routes]: [[{
