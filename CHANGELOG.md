@@ -1,6 +1,6 @@
 # Versions
 
-## 42.0.0
+## 42.0.1
 
 - Fix `closeChannel` to allow specifying a channel id when closing a channel
 - Add `connectWatchtower` to connect to a watchtower

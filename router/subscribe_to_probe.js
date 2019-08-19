@@ -183,6 +183,9 @@ module.exports = args => {
 
         // Get the next route
         getNextRoute: ['getReputations', ({getReputations}, cbk) => {
+          const isIgnoringFailures = !!args.is_ignoring_past_failures;
+          const isOutConstrained = !!args.outgoing_channel;
+
           const likelyFailures = getReputations.nodes.map(node => {
             return node.channels.map(n => ({
               channel: n.id,
@@ -198,7 +201,7 @@ module.exports = args => {
           return getRoutes({
             cltv_delta: args.cltv_delta,
             destination: args.destination,
-            ignore: !args.is_ignoring_past_failures ? [] : allIgnores,
+            ignore: !isIgnoringFailures && !isOutConstrained ? [] : allIgnores,
             is_adjusted_for_past_failures: !args.is_ignoring_past_failures,
             is_strict_hints: args.is_strict_hints,
             lnd: args.lnd,
