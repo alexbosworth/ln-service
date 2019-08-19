@@ -17,9 +17,9 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest('hex');
     lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required if wss is set
     [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
+    [max_timeout_height]: <Max CLTV Timeout Number>
     [outgoing_channel]: <Pay Through Outbound Standard Channel Id String>
     request: <BOLT 11 Payment Request String>
-    timeout_height: <Max CLTV Timeout Number>
     [tokens]: <Total Tokens To Pay to Request Number>
     [wss]: [<Web Socket Server Object>]
   }
@@ -79,7 +79,7 @@ module.exports = (args, cbk) => {
       pay: ['validate', ({}, cbk) => {
         const params = {
           amt: !args.tokens ? undefined : args.tokens.toString(),
-          cltv_limit: !args.timeout ? undefined : args.timeout_height,
+          cltv_limit: args.max_timeout_height || undefined,
           fee_limit: !args.max_fee ? undefined : {fixed: args.max_fee},
           payment_request: args.request,
         };

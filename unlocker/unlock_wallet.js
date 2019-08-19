@@ -7,7 +7,7 @@ const invalidPasswordError = 'invalid passphrase for master public key';
 
   {
     lnd: <Unauthenticated LND gRPC API Object>
-    password: <Password String>
+    password: <Wallet Password String>
   }
 
   @returns via cbk or Promise

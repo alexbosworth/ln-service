@@ -340,10 +340,61 @@ const tests = [
       ],
     },
   },
+
+  // Policy info is required
+  {
+    args: {
+      channels: [
+        {
+          capacity: 10000,
+          id: 'ALICExBOB',
+          policies: [
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 1,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'ALICE',
+            },
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 1,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'BOB',
+            },
+          ],
+        },
+        {
+          capacity: 10000,
+          id: 'ALICExCAROL',
+          policies: [
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 1,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'CAROL'
+            },
+            {},
+          ],
+        },
+      ],
+      end: 'CAROL',
+      mtokens: 1000,
+      nodes: ['ALICE', 'BOB', 'CAROL'],
+      start: 'BOB',
+    },
+    description: 'No path is found',
+    expected: {},
+  },
 ];
 
 tests.forEach(({args, description, expected}) => {
-  return test(description, ({deepEqual, end}) => {
+  return test(description, ({deepEqual, end, equal}) => {
     const {hops} = calculateHops(args);
 
     deepEqual(hops, expected.hops, 'Hops are calculated');

@@ -58,7 +58,9 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   try {
     await payViaPaymentRequest({lnd, request: invoice.request});
-  } catch (err) {}
+  } catch (err) {
+    deepIs(err, [503, 'FailedToFindPayableRouteToDestination']);
+  }
 
   const paymentStatus = await getPayment({id, lnd});
 
@@ -100,43 +102,47 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   await payViaPaymentRequest({lnd, request: invoice.request});
 
-  equal((await getPayment({id, lnd})).is_confirmed, true, 'Paid');
-  equal((await getPayment({id, lnd})).is_failed, false, 'Success');
-  equal((await getPayment({id, lnd})).is_pending, false, 'Done');
+  try {
+    equal((await getPayment({id, lnd})).is_confirmed, true, 'Paid');
+    equal((await getPayment({id, lnd})).is_failed, false, 'Success');
+    equal((await getPayment({id, lnd})).is_pending, false, 'Done');
 
-  const {payment} = await getPayment({id, lnd});
+    const {payment} = await getPayment({id, lnd});
 
-  equal(payment.fee_mtokens, '1000', 'Fee mtokens tokens paid');
-  equal(payment.id, id, 'Payment hash is equal on both sides');
-  equal(payment.mtokens, '101000', 'Paid mtokens');
-  equal(payment.secret, invoice.secret, 'Paid for invoice secret');
+    equal(payment.fee_mtokens, '1000', 'Fee mtokens tokens paid');
+    equal(payment.id, id, 'Payment hash is equal on both sides');
+    equal(payment.mtokens, '101000', 'Paid mtokens');
+    equal(payment.secret, invoice.secret, 'Paid for invoice secret');
 
-  const height = (await getWalletInfo({lnd})).current_block_height;
+    const height = (await getWalletInfo({lnd})).current_block_height;
 
-  payment.hops.forEach(n => {
-    equal(n.timeout === height + 40 || n.timeout === height + 43, true);
+    payment.hops.forEach(n => {
+      equal(n.timeout === height + 40 || n.timeout === height + 43, true);
 
-    delete n.timeout;
+      delete n.timeout;
 
-    return;
-  });
+      return;
+    });
 
-  const expectedHops = [
-    {
-      channel: channel.id,
-      channel_capacity: 1000000,
-      fee_mtokens: '1000',
-      forward_mtokens: `${invoice.tokens}${mtokPadding}`,
-    },
-    {
-      channel: remoteChan.id,
-      channel_capacity: 1000000,
-      fee_mtokens: '0',
-      forward_mtokens: '100000',
-    },
-  ];
+    const expectedHops = [
+      {
+        channel: channel.id,
+        channel_capacity: 1000000,
+        fee_mtokens: '1000',
+        forward_mtokens: `${invoice.tokens}${mtokPadding}`,
+      },
+      {
+        channel: remoteChan.id,
+        channel_capacity: 1000000,
+        fee_mtokens: '0',
+        forward_mtokens: '100000',
+      },
+    ];
 
-  deepIs(payment.hops, expectedHops, 'Hops are returned');
+    deepIs(payment.hops, expectedHops, 'Hops are returned');
+  } catch (err) {
+    equal(err, null, 'No error is returned');
+  }
 
   await cluster.kill({});
 

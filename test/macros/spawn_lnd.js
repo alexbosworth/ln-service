@@ -49,6 +49,7 @@ const times = 20;
   {
     [seed]: <Seed Phrase String>
     [tower]: <Tower Enabled Bool>
+    [watchers]: <Watchtower Client Enabled Bool>
   }
 
   @returns via cbk
@@ -70,7 +71,7 @@ const times = 20;
     seed: <Node Seed Phrase String>
   }
 */
-module.exports = ({seed, tower}, cbk) => {
+module.exports = ({seed, tower, watchers}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
@@ -163,6 +164,7 @@ module.exports = ({seed, tower}, cbk) => {
         '--btcd.rpcpass', chainPass,
         '--btcd.rpcuser', chainUser,
         '--datadir', dir,
+        '--debuglevel', 'debug',
         '--externalip', `${localhost}:${getPorts.listen}`,
         '--historicalsyncinterval', '1s',
         '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
@@ -188,6 +190,10 @@ module.exports = ({seed, tower}, cbk) => {
 
       if (!!tower) {
         towerArgs.forEach(n => arguments.push(n));
+      }
+
+      if (!!watchers) {
+        arguments.push('--wtclient.active');
       }
 
       const daemon = spawn(lightningDaemonExecFileName, arguments);

@@ -5,7 +5,7 @@ const {returnResult} = require('asyncjs-util');
 /** Verify a channel backup
 
   {
-    backup: <Backup Hex String>
+    backup: <Individual Channel Backup Hex String>
     lnd: <Authenticated LND gRPC API Object>
   }
 

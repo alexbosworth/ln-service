@@ -1,3 +1,4 @@
+const defaultCltvDelta = 40;
 const {isArray} = Array;
 
 /** Derive policy hops from an in-order set of channels with dual policies
@@ -66,10 +67,6 @@ module.exports = ({channels, destination}) => {
       throw new Error('ExpectedChannelIdForTranslationToChannelHop');
     }
 
-    if (!Array.isArray(channel.policies)) {
-      throw new Error('ExpectedArrayOfPoliciesForChannelInHop');
-    }
-
     const nextHop = channel.destination || hopDestinations[i];
     const nextPolicy = chans[i + [channel].length];
     let overridePolicy;
@@ -89,7 +86,7 @@ module.exports = ({channels, destination}) => {
       base_fee_mtokens: (overridePolicy || policy).base_fee_mtokens,
       channel: channel.id,
       channel_capacity: channel.capacity,
-      cltv_delta: peer.cltv_delta,
+      cltv_delta: peer.cltv_delta || defaultCltvDelta,
       fee_rate: (overridePolicy || policy).fee_rate,
       public_key: nextHop,
     };

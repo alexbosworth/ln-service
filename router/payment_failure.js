@@ -2,7 +2,7 @@ const {chanFormat} = require('bolt07');
 
 const policyFromChannelUpdate = require('./policy_from_channel_update');
 
-/** Payment failure
+/** Derive payment failure from raw API failure
 
   {
     failure: {
@@ -29,7 +29,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
 
   @returns
   {
-    code: <Error Code Number>
+    code: <Error Type Code Number>
     [details]: {
       [channel]: <Standard Format Channel Id String>
       [mtokens]: <Error Millitokens String>

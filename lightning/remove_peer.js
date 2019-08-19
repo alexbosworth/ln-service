@@ -16,7 +16,7 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.lnd || !args.lnd.default || !args.lnd.default.disconnectPeer) {
+        if (!args.lnd || !args.lnd.default) {
           return cbk([400, 'ExpectedLndForPeerDisconnection']);
         }
 
@@ -29,7 +29,10 @@ module.exports = (args, cbk) => {
 
       // Disconnect
       disconnect: ['validate', ({}, cbk) => {
-        return args.lnd.default.disconnectPeer({pub_key: args.public_key}, err => {
+        return args.lnd.default.disconnectPeer({
+          pub_key: args.public_key,
+        },
+        err => {
           if (!!err) {
             return cbk([503, 'UnexpectedErrorRemovingPeer', {err}]);
           }

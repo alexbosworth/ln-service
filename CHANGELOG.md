@@ -1,5 +1,27 @@
 # Versions
 
+## 42.0.0
+
+- Fix `closeChannel` to allow specifying a channel id when closing a channel
+- Add `connectWatchtower` to connect to a watchtower
+- Add `disconnectWatchtower` to disconnect a watchtower
+- Add `getConnectedWatchtowers` to get watchtowers and watchtower info
+- Add `isDestinationPayable` to check if a destination is payable
+- Add `probeForRoute` option `is_ignoring_past_failures` to ignore mission control in probe
+- Add `updateConnectedWatchtower`  to update a connected watchtower
+
+### Breaking Changes
+
+- `getRoutes`: `timeout` argument for the final cltv delta is renamed `cltv_delta`
+- `getRoutes`: `fee` argument for the max fee is renamed `max_fee`
+- `pay` max timeout rename: `timeout_height` to `max_timeout_height`
+- `payViaPaymentDetails`: max cltv rename: `timeout_height` to `max_timeout_height`
+- `payViaPaymentRequest`: max cltv rename: `timeout_height` to `max_timeout_height`
+- `probeForRoute`: Ignoring below probability option `ignore_probability_below` eliminated
+- `subscribeToPayViaDetails`: max cltv rename: `timeout_height` to `max_timeout_height`
+- `subscribeToProbe`: max cltv rename: `timeout_height` to `max_timeout_height`
+- `subscribeToProbe`: remove `ignore_probability_below`
+
 ## 41.3.0
 
 - Add hop hints strictness option to getRoutes to only find routes that go through specified routes

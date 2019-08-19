@@ -17,7 +17,7 @@ const {round} = Math;
   Requires lnd built with invoicesrpc tag
 
   {
-    [cltv_delta]: <CLTV Delta Number>
+    [cltv_delta]: <Final CLTV Delta Number>
     [description]: <Invoice Description String>
     [expires_at]: <Expires At ISO 8601 Date String>
     id: <Payment Hash Hex String>

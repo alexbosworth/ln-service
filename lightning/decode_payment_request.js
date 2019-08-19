@@ -23,7 +23,7 @@ const {now} = Date;
     chain_address: <Fallback Chain Address String>
     [cltv_delta]: <Final CLTV Delta Number>
     description: <Payment Description String>
-    destination_hash: <Payment Longer Description Hash String>
+    description_hash: <Payment Longer Description Hash String>
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
     id: <Payment Hash String>

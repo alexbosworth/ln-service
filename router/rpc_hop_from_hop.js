@@ -13,6 +13,9 @@ const {chanNumber} = require('bolt07');
     timeout: <Timeout Block Height Number>
   }
 
+  @throws
+  <Error>
+
   @returns
   {
     amt_to_forward: <Tokens to Forward String>

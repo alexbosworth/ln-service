@@ -59,12 +59,13 @@
     "chain-integration-tests": "tap --no-coverage -t 90 test/chainrpc-integration/*.js",
     "integration-tests": "tap --no-coverage -t 90 test/grpc-integration/*.js test/integration/*.js",
     "invoices-integration-tests": "tap --no-coverage -t 90 test/invoicesrpc-integration/*.js",
-    "router-integration-tests": "tap --no-coverage test/routerrpc-integration/*.js",
+    "router-integration-tests": "tap --no-coverage -j 2 -t 90 test/routerrpc-integration/*.js",
     "signer-integration-tests": "tap --no-coverage test/signerrpc-integration/*.js",
     "start": "node server.js",
     "test": "tap test/autopilot/*.js test/backups/*.js test/bolt02/*.js test/bolt11/*.js test/chain/*.js test/graph/*.js test/router/*.js test/routing/*.js",
+    "tower_client-integration-tests": "tap --no-coverage test/tower_clientrpc-integration/*.js",
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "41.3.0"
+  "version": "42.0.0"
 }

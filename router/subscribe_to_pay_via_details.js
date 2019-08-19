@@ -15,6 +15,7 @@ const randomId = () => randomBytes(32).toString('hex');
     [id]: <Payment Request Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
+    [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     [routes]: [[{
@@ -24,7 +25,6 @@ const randomId = () => randomBytes(32).toString('hex');
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
-    [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     tokens: <Tokens To Pay Number>
   }
 
@@ -52,7 +52,9 @@ const randomId = () => randomBytes(32).toString('hex');
 
   @event 'failed'
   {
+    is_invalid_payment: <Failed Due to Invalid Payment Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+    is_route_not_found: <Failed Due to Route Not Found Bool>
   }
 
   @event 'paying'
@@ -64,11 +66,11 @@ module.exports = args => {
   }
 
   if (!args.lnd || !args.lnd.router) {
-    throw new Error('ExpectedAuthenticatedLndToSubscribeToPayment');
+    throw new Error('ExpectedAuthenticatedLndToSubscribeToPayViaDetails');
   }
 
   if (!args.tokens && !args.request){
-    throw new Error('ExpectedTokenAmountToPayWhenPaymentRequestNotSpecified');
+    throw new Error('ExpectedTokenAmountToPayInPaymentDetails');
   }
 
   return subscribeToPay({
@@ -77,10 +79,10 @@ module.exports = args => {
     id: args.id || randomId(),
     lnd: args.lnd,
     max_fee: args.max_fee,
+    max_timeout_height: args.max_timeout_height,
     outgoing_channel: args.outgoing_channel,
     pathfinding_timeout: args.pathfinding_timeout,
     routes: args.routes,
-    timeout_height: args.timeout_height,
     tokens: args.tokens,
   });
 };

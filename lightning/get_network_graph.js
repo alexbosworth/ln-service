@@ -8,7 +8,7 @@ const {isArray} = Array;
 const msPerSec = 1e3
 const outpointSeparatorChar = ':';
 
-/** Get network graph
+/** Get the network graph
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -36,7 +36,7 @@ const outpointSeparatorChar = ':';
       alias: <Name String>
       color: <Hex Encoded Color String>
       public_key: <Node Public Key String>
-      sockets: [<Network Address and Port String>]
+      sockets: [<Network Host:Port String>]
       updated_at: <Last Updated ISO 8601 Date String>
     }]
   }

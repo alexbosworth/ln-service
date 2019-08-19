@@ -10,8 +10,8 @@ const {isArray} = Array;
   {
     backup: <Multi-Backup Hex String>
     channels: [{
-      transaction_id: <Transaction Id Hex String>
-      transaction_vout: <Transaction Output Index Number>
+      transaction_id: <Funding Transaction Id Hex String>
+      transaction_vout: <Funding Transaction Output Index Number>
     }]
     lnd: <Authenticated LND gRPC API Object>
   }

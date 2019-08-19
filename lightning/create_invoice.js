@@ -9,6 +9,7 @@ const getInvoice = require('./get_invoice');
 const {isArray} = Array;
 const msPerSec = 1e3;
 const {parse} = Date;
+const {round} = Math;
 
 /** Create a Lightning invoice.
 
@@ -96,7 +97,7 @@ module.exports = (args, cbk) => {
 
         return args.lnd.default.addInvoice({
           cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
-          expiry: !expiryMs ? undefined : Math.round(expiryMs / msPerSec),
+          expiry: !expiryMs ? undefined : round(expiryMs / msPerSec),
           fallback_addr: fallbackAddress,
           memo: args.description,
           private: !!args.is_including_private_channels,

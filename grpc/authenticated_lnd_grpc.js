@@ -25,10 +25,12 @@ const grpcOptions = {
 
 /** Initiate an gRPC API Methods Object for authenticated methods
 
+  Both the cert and macaroon expect the entire serialized lnd generated file
+
   {
     [cert]: <Base64 or Hex Serialized LND TLS Cert>
     macaroon: <Base64 or Hex Serialized Macaroon String>
-    [socket]: <Host:Port String>
+    [socket]: <Host:Port Network Address String>
   }
 
   @throws
@@ -60,6 +62,7 @@ module.exports = ({cert, macaroon, socket}) => {
     process.env.GRPC_SSL_CIPHER_SUITES = grpcSslCipherSuites;
   }
 
+  // Assemble different services from their proto files
   const lnd = keys(serviceTypes).reduce((services, type) => {
     const service = serviceTypes[type];
 

@@ -1,5 +1,7 @@
 const {chanNumber} = require('bolt07');
 
+const {isArray} = Array;
+
 /** Ignore as ignored edges
 
   {
@@ -16,7 +18,7 @@ const {chanNumber} = require('bolt07');
   @returns
   {
     [ignored]: [{
-      channel_id: <Numeric Channel Id>
+      channel_id: <Numeric Channel Id String>
       direction_reverse: <Direction Reversed Bool>
     }]
   }
@@ -26,7 +28,7 @@ module.exports = ({ignore}) => {
     return {};
   }
 
-  if (!Array.isArray(ignore)) {
+  if (!isArray(ignore)) {
     throw new Error('ExpectedArrayOfEdgesToIgnore');
   }
 

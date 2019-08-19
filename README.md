@@ -45,7 +45,7 @@ If you're going to use extended gRPC APIs, make sure to add the APIs to make
 tags.
 
 ```sh
-make && make install tags="autopilotrpc chainrpc invoicesrpc routerrpc signrpc walletrpc watchtowerrpc"
+make && make install tags="autopilotrpc chainrpc invoicesrpc routerrpc signrpc walletrpc watchtowerrpc wtclientrpc"
 ```
 
 ## Using gRPC
@@ -81,11 +81,11 @@ const {lnd} = lnService.authenticatedLndGrpc({
 
 // Callback syntax
 lnService.getWalletInfo({lnd}, (err, result) => {
-  console.log(result.public_key);
+  const nodeKey = result.public_key;
 });
 
 // Promise syntax
-console.log((await lnService.getWalletInfo({lnd})).public_key);
+const nodePublicKey = (await lnService.getWalletInfo({lnd})).public_key;
 ```
 
 An [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) function is also available
@@ -101,6 +101,7 @@ for `unlocker` methods.
 - [cancelHodlInvoice](#cancelHodlInvoice) - Cancel a held or open invoice
 - [changePassword](#changePassword) - Change the wallet unlock password
 - [closeChannel](#closeChannel) - Terminate an open channel
+- [connectWatchtower](#connectWatchtower) - Connect a watchtower
 - [createChainAddress](#createChainAddress) - Get a chain address to receive at
 - [createHodlInvoice](#createHodlInvoice) - Make a HODL HTLC invoice
 - [createInvoice](#createInvoice) - Make a regular invoice
@@ -108,6 +109,7 @@ for `unlocker` methods.
 - [createWallet](#createWallet) - Make a new wallet
 - [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
+- [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
 - [getAutopilot](#getAutopilot) - Get autopilot status or node scores
 - [getBackup](#getBackup) - Get a backup of a channel
 - [getBackups](#getBackups) - Get a backup for all channels
@@ -119,6 +121,7 @@ for `unlocker` methods.
 - [getChannelBalance](#getChannelBalance) - Get the balance of channel funds
 - [getChannels](#getChannels) - Get all open channels
 - [getClosedChannels](#getClosedChannels) - Get previously open channels
+- [getConnectedWatchtowers](#getConnectedWatchtowers) - Get connected watchtower details
 - [getFeeRates](#getFeeRates) - Get current routing fee rates
 - [getForwardingReputations](#getForwardingReputations) - Get graph reputations
 - [getForwards](#getForwards) - Get forwarded routed payments
@@ -138,6 +141,7 @@ for `unlocker` methods.
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about the running tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
+- [isDestinationPayable](#isDestinationPayable) - Check if a destination or pay req is payable
 - [openChannel](#openChannel) - Open a new channel
 - [parsePaymentRequest](#parsePaymentRequest) - Parse a BOLT11 Payment Request
 - [pay](#pay) - Send a payment
@@ -174,6 +178,7 @@ for `unlocker` methods.
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
+- [updateConnectedWatchtower] (#updateConnectedWatchtower) - Update watchtower details
 - [updateRoutingFees](#updateRoutingFees) - Change routing fees
 - [verifyBackup](#verifyBackup) - Verify a channel backup
 - [verifyBackups](#verifyBackups) - Verify a set of channel backups
@@ -376,7 +381,7 @@ Cancel an invoice
 Requires lnd built with invoicesrpc
 
     {
-      id: <Payment Hash Hex String>
+      id: <Payment Preimage Hash Hex String>
       lnd: <Authenticated RPC LND gRPC API Object>
     }
 
@@ -444,6 +449,30 @@ const {closeChannel} = require('ln-service');
 const closing = await closeChannel({id, lnd});
 ```
 
+### connectWatchtower
+
+Connect to a watchtower
+
+This method requires LND built with wtclientrpc build tag
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+      public_key: <Watchtower Public Key Hex String>
+      socket: <Network Socket Address IP:PORT String>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {connectWatchtower, getTowerServerInfo} = require('ln-service');
+
+const {tower} = await getTowerServerInfo({lnd: towerServerLnd});
+
+await connectWatchtower({lnd, public_key: tower.public_key, socket: tower.socket});
+```
+
 ### createChainAddress
 
 Create a new receive address.
@@ -475,7 +504,7 @@ arrives. It must be settled separately with a preimage.
 Requires lnd built with invoicesrpc tag
 
     {
-      [cltv_delta]: <CLTV Delta Number>
+      [cltv_delta]: <Final CLTV Delta Number>
       [description]: <Invoice Description String>
       [expires_at]: <Expires At ISO 8601 Date String>
       id: <Payment Hash Hex String>
@@ -604,7 +633,7 @@ Get decoded payment request
       chain_address: <Fallback Chain Address String>
       [cltv_delta]: <Final CLTV Delta Number>
       description: <Payment Description String>
-      destination_hash: <Payment Longer Description Hash String>
+      description_hash: <Payment Longer Description Hash String>
       destination: <Public Key String>
       expires_at: <ISO 8601 Date String>
       id: <Payment Hash String>
@@ -641,6 +670,27 @@ Requires LND built with routerrpc build tag
 ```node
 const {deleteForwardingReputations} = require('ln-service');
 await deleteForwardingReputations({});
+```
+
+### disconnectWatchtower
+
+Disconnect a watchtower
+
+Requires LND built with wtclientrpc build tag
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+      public_key: <Watchtower Public Key Hex String>
+    }
+
+    @returns via cbk or Promise
+
+```node
+const {disconnectWatchtower, getConnectedWatchtowers} = require('ln-service');
+
+const [tower] = (await getConnectedWatchtowers({lnd})).towers;
+
+await disconnectWatchtower({lnd, public_key: tower.public_key});
 ```
 
 ### getAutopilot
@@ -775,6 +825,29 @@ const sendTo = [{address: 'chainAddressString', tokens: 100000000}];
 const {fee} = await getChainTransactions({lnd, send_to: sendTo});
 ```
 
+### getChainFeeRate
+
+Get chain fee rate estimate
+
+Requires lnd built with `walletrpc` tag
+
+    {
+      [confirmation_target]: <Future Blocks Confirmation Number>
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      tokens_per_vbyte: <Tokens Per Virtual Byte Number>
+    }
+
+Example:
+
+```node
+const {getChainFeeRate} = require('ln-service');
+const fee = (await getChainFeeRate({lnd, confirmation_target: 6})).tokens_per_vbyte;
+```
+
 ### getChainTransactions
 
 Get chain transactions.
@@ -827,7 +900,7 @@ const balanceInChannels = (await getChannelBalance({lnd})).channel_balance;
 
 ### getChannel
 
-Get a channel
+Get graph information about a channel on the network
 
     {
       id: <Standard Format Channel Id String>
@@ -919,11 +992,11 @@ Get closed out channels
 Multiple close type flags are supported.
 
     {
-      [is_breach_close]: <Bool>
-      [is_cooperative_close]: <Bool>
-      [is_funding_cancel]: <Bool>
-      [is_local_force_close]: <Bool>
-      [is_remote_force_close]: <Bool>
+      [is_breach_close]: <Only Return Breach Close Channels Bool>
+      [is_cooperative_close]: <Only Return Cooperative Close Channels Bool>
+      [is_funding_cancel]: <Only Return Funding Canceled Channels Bool>
+      [is_local_force_close]: <Only Return Local Force Close Channels Bool>
+      [is_remote_force_close]: <Only Return Remote Force Close CHannels Bool>
       lnd: <Authenticated LND gRPC API Object>
     }
 
@@ -952,6 +1025,48 @@ Example:
 ```node
 const {getClosedChannels} = require('ln-service');
 const breachCount = await getClosedChannels({lnd, is_breach_close: true});
+```
+
+### getConnectedWatchtowers
+
+Get a list of connected watchtowers and watchtower info
+
+Requires LND built with wtclientrpc build tag
+
+Includes previously connected watchtowers
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      max_session_update_count: <Maximum Updates Per Session Number>
+      sweep_tokens_per_vbyte: <Sweep Tokens per Virtual Byte Number>
+      backups_count: <Total Backups Made Count Number>
+      failed_backups_count: <Total Backup Failures Count Number>
+      finished_sessions_count: <Finished Updated Sessions Count Number>
+      pending_backups_count: <As Yet Unacknowledged Backup Requests Count Number>
+      sessions_count: <Total Backup Sessions Starts Count Number>
+      towers: [{
+        is_active: <Tower Can Be Used For New Sessions Bool>
+        public_key: <Identity Public Key Hex String>
+        sessions: [{
+          backups_count: <Total Successful Backups Made Count Number>
+          max_backups_count: <Backups Limit Number>
+          pending_backups_count: <Backups Pending Acknowledgement Count Number>
+          sweep_tokens_per_vbyte: <Fee Rate in Tokens Per Virtual Byte Number>
+        }]
+        sockets: [<Tower Network Address IP:Port String>]
+      }]
+    }
+
+Example:
+
+```node
+const {getConnectedWatchtowers} = require('ln-service');
+
+const {towers} = (await getConnectedWatchtowers({lnd}));
 ```
 
 ### getFeeRates
@@ -1017,6 +1132,8 @@ const {nodes} = await getForwardingReputations({lnd});
 Get forwarded payments, from oldest to newest
 
 When using an "after" date a "before" date is required.
+
+If a next token is returned, pass it to get additional page of results.
 
     {
       [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
@@ -1090,6 +1207,8 @@ const invoiceDetails = await getInvoice({id, lnd});
 
 Get all created invoices.
 
+If a next token is returned, pass it to get another page of invoices.
+
     {
       [limit]: <Page Result Limit Number>
       lnd: <Authenticated LND gRPC API Object>
@@ -1099,11 +1218,11 @@ Get all created invoices.
     @returns via cbk or Promise
     {
       invoices: [{
-        chain_address: <Fallback Chain Address String>
+        [chain_address]: <Fallback Chain Address String>
         [confirmed_at]: <Settled at ISO 8601 Date String>
         created_at: <ISO 8601 Date String>
         description: <Description String>
-        description_hash: <Description Hash Hex String>
+        [description_hash]: <Description Hash Hex String>
         expires_at: <ISO 8601 Date String>
         id: <Payment Hash String>
         [is_canceled]: <Invoice is Canceled Bool>
@@ -1136,7 +1255,7 @@ const {invoices} = await getInvoices({lnd});
 
 ### getNetworkGraph
 
-Get network graph
+Get the network graph
 
     {
       lnd: <Authenticated LND gRPC API Object>
@@ -1260,7 +1379,9 @@ Get the status of a past payment
     @returns via cbk or Promise
     {
       [failed]: {
+        is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
         is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+        is_route_not_found: <Failed Due to Absence of Path Through Graph Bool>
       }
       [is_confirmed]: <Payment Is Settled Bool>
       [is_failed]: <Payment Is Failed Bool>
@@ -1330,17 +1451,18 @@ Get payments made through channels.
     @returns via cbk or Promise
     {
       payments: [{
-        created_at: <ISO8601 Date String>
-        destination: <Compressed Public Key String>
-        fee: <Tokens Number>
+        created_at: <Payment at ISO-8601 Date String>
+        destination: <Destination Node Public Key Hex String>
+        fee: <Paid Routing Fee Tokens Number>
+        fee_mtokens: <Paid Routing Fee in Millitokens String>
         hops: [<Node Hop Public Key Hex String>]
-        id: <RHash Id String>
-        is_confirmed: <Bool>
-        is_outgoing: <Is Outgoing Bool>
-        mtokens: <Millitokens Paid String>
+        id: <Payment Preimage Hash String>
+        is_confirmed: <Payment is Confirmed Bool>
+        is_outgoing: <Transaction Is Outgoing Bool>
+        mtokens: <Millitokens Sent to Destination String>
         [request]: <BOLT 11 Payment Request String>
         secret: <Payment Preimage Hex String>
-        tokens: <Sent Tokens Number>
+        tokens: <Tokens Sent to Destination Number>
       }]
     }
 
@@ -1436,25 +1558,28 @@ When paying to a private route, make sure to pass the final destination in
 addition to routes.
 
     {
+      [cltv_delta]: <Final CLTV Delta Number>
       [destination]: <Final Send Destination Hex Encoded Public Key String>
-      [fee]: <Maximum Fee Tokens Number>
       [get_channel]: <Custom Get Channel Function>
       [ignore]: [{
         [channel]: <Channel Id String>
         from_public_key: <Public Key Hex String>
         [to_public_key]: <To Public Key Hex String>
       }]
+      [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
+      [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
+      [max_fee]: <Maximum Fee Tokens Number>
+      [outgoing_channel]: [Outgoing Channel Id String>]
       [routes]: [[{
-        [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
         [channel_capacity]: <Channel Capacity Tokens Number>
-        [cltv_delta]: <CLTV Blocks Delta Number>
+        [cltv_delta]: <CLTV Delta Blocks Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         public_key: <Forward Edge Public Key Hex String>
       }]]
       [start]: <Starting Node Public Key Hex String>
-      [timeout]: <Final CLTV Delta Number>
       [tokens]: <Tokens to Send Number>
     }
 
@@ -1572,9 +1697,53 @@ const {getWalletInfo} = require('ln-service');
 const walletInfo = await getWalletInfo({lnd});
 ```
 
+### isDestinationPayable
+
+Determine if a payment destination is actually payable by probing it
+
+Requires lnd built with routerrpc build tag
+
+Note: on versions of lnd prior to 0.7.1, is_payable will always be false
+
+    {
+      [cltv_delta]: <Final CLTV Delta Number>
+      destination: <Pay to Node with Public Key Hex String>
+      lnd: <Authenticated LND gRPC API Object>
+      [max_fee]: <Maximum Fee Tokens To Pay Number>
+      [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+      [outgoing_channel]: <Pay Out of Outgoing Standard Format Channel Id String>
+      [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
+      [routes]: [[{
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+        [channel]: <Standard Format Channel Id String>
+        [cltv_delta]: <CLTV Blocks Delta Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+        public_key: <Forward Edge Public Key Hex String>
+      }]]
+      [tokens]: <Paying Tokens Number>
+    }
+
+    @returns via cbk or Promise
+    {
+      is_payable: <Payment Is Successfully Tested Within Constraints Bool>
+    }
+
+Example:
+
+```node
+const {decodePaymentRequest, isDestinationPayable} = require('ln-service');
+const request = 'lnbc1pvjluezpp5qqqsyq...';
+const {destination, tokens} = await decodePaymentRequest({lnd, request});
+const isPayable = (await isDestinationPayable({lnd, }))
+```
+
 ### openChannel
 
 Open a new channel.
+
+The capacity of the channel is set with local_tokens
+
+If give_tokens is set, it is a gift and it does not alter the capacity
 
     {
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
@@ -1668,6 +1837,7 @@ hops is required to form the route.
       lnd: <Authenticated LND gRPC API Object>
       [log]: <Log Function> // Required if wss is set
       [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
+      [max_timeout_height]: <Max CLTV Timeout Number>
       [outgoing_channel]: <Pay Through Outbound Standard Channel Id String>
       [path]: {
         id: <Payment Hash Hex String>
@@ -1691,7 +1861,6 @@ hops is required to form the route.
       }
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       [request]: <BOLT 11 Payment Request String>
-      [timeout_height]: <Max CLTV Timeout Number>
       [tokens]: <Total Tokens To Pay to Payment Request Number>
       [wss]: [<Web Socket Server Object>]
     }
@@ -1735,9 +1904,9 @@ Requires lnd built with routerrpc build tag
       [id]: <Payment Request Hash Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
+      [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
-      [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       tokens: <Tokens To Pay Number>
     }
 
@@ -1776,10 +1945,10 @@ Requires lnd built with routerrpc build tag
     {
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
+      [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       request: <BOLT 11 Payment Request String>
-      [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [tokens]: <Tokens To Pay Number>
     }
 
@@ -1967,7 +2136,7 @@ Requires lnd built with routerrpc build tag
         from_public_key: <Public Key Hex String>
         [to_public_key]: <To Public Key Hex String>
       }]
-      [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
+      [is_ignoring_past_failures]: <Adjust Probe For Past Routing Failures Bool>
       [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
@@ -2625,8 +2794,8 @@ Subscribe to graph updates
     @event 'channel_closed'
     {
       capacity: <Channel Capacity Tokens Number>
-      id: <Standard Format Channel Id String>
       close_height: <Channel Close Confirmed Block Height Number>
+      id: <Standard Format Channel Id String>
       transaction_id: <Channel Transaction Id String>
       transaction_vout: <Channel Transaction Output Index Number>
       updated_at: <Update Received At ISO 8601 Date String>
@@ -2721,15 +2890,21 @@ Subscribe to invoices
 
     @event 'invoice_updated'
     {
+      [chain_address]: <Fallback Chain Address String>
+      cltv_delta: <Final CLTV Delta Number>
       [confirmed_at]: <Confirmed At ISO 8601 Date String>
       created_at: <Created At ISO 8601 Date String>
       description: <Description String>
+      description_hash: <Description Hash Hex String>
       expires_at: <Expires At ISO 8601 Date String>
-      id: <Invoice Id Hex String>
+      id: <Invoice Payment Hash Hex String>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
+      received: <Received Tokens Number>
+      received_mtokens: <Received Millitokens String>
+      request: <BOLT 11 Payment Request String>
       secret: <Payment Secret Hex String>
-      tokens: <Tokens Number>
+      tokens: <Invoiced Tokens Number>
     }
 
 Example:
@@ -2779,7 +2954,9 @@ Either a request or a destination, id, and tokens amount is required
 
     @event 'failed'
     {
+      is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+      is_route_not_found: <Failed Due to Absence of Path Through Graph Bool>
     }
 
     @event 'paying'
@@ -2807,9 +2984,9 @@ Requires lnd built with routerrpc build tag
       [id]: <Payment Request Hash Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
+      [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
-      [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       tokens: <Tokens To Pay Number>
     }
 
@@ -2837,7 +3014,9 @@ Requires lnd built with routerrpc build tag
 
     @event 'failed'
     {
+      is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+      is_route_not_found: <Failed Due to Route Not Found Bool>
     }
 
     @event 'paying'
@@ -2895,10 +3074,12 @@ Requires lnd built with routerrpc build tag
 
     @event 'failed'
     {
+      is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+      is_route_not_found: <Failed Due to Route Not Found Bool>
     }
 
-    @event 'paying
+    @event 'paying'
     {}
 
 Example:
@@ -3096,11 +3277,11 @@ Requires lnd built with routerrpc build tag
         from_public_key: <Public Key Hex String>
         [to_public_key]: <To Public Key Hex String>
       }]
-      [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
       [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
       [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
+      [max_timeout_height]: <Maximum CLTV Timeout Height>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
         [channel_capacity]: <Channel Capacity Tokens Number>
@@ -3228,10 +3409,10 @@ Subscribe to transactions
     {
       [block_id]: <Block Hash String>
       confirmation_count: <Confirmation Count Number>
-      is_confirmed: <Is Confirmed Bool>
-      is_outgoing: <Transaction Outbound Bool>
       fee: <Fees Paid Tokens Number>
       id: <Transaction Id String>
+      is_confirmed: <Is Confirmed Bool>
+      is_outgoing: <Transaction Outbound Bool>
       tokens: <Tokens Number>
     }
 
@@ -3279,7 +3460,7 @@ Unlock the wallet
 
     {
       lnd: <Unauthenticated LND gRPC API Object>
-      password: <Password String>
+      password: <Wallet Password String>
     }
 
     @returns via cbk or Promise
@@ -3292,17 +3473,44 @@ const {lnd} = unauthenticatedLndGrpc({});
 await unlockWallet({lnd, password: 'walletSecretPassword'});
 ```
 
+### updateConnectedWatchtower
+
+Update a watchtower
+
+Requires LND built with wtclientrpc build tag
+
+    {
+      [add_socket]: <Add Socket String>
+      lnd: <Authenticated LND gRPC API Object>
+      public_key: <Watchtower Public Key Hex String>
+      [remove_socket]: <Remove Socket String>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {updateConnectedWatchtower} = require('ln-service');
+
+await updateConnectedWatchtower({
+  lnd,
+  add_socket: additionalWatchtowerNetworkAddress,
+  public_key: watchtowerPublicKey,
+});
+```
+
 ### updateRoutingFees
 
 Update routing fees on a single channel or on all channels
 
     {
-      [base_fee_tokens]: <Base Fee Charged Tokens Number>
-      [cltv_delta]: <CLTV Delta Number>
+      [base_fee_tokens]: <Base Fee Tokens Charged Number>
+      [cltv_delta]: <HTLC CLTV Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       lnd: <Authenticated LND gRPC API Object>
-      [transaction_id]: <Channel Transaction Id String>
-      [transaction_vout]: <Channel Transaction Output Index Number>
+      [transaction_id]: <Channel Funding Transaction Id String>
+      [transaction_vout]: <Channel Funding Transaction Output Index Number>
     }
 
     @returns via cbk or Promise
@@ -3319,7 +3527,7 @@ await updateRoutingFees({lnd, fee_rate: 2500});
 Verify a channel backup
 
     {
-      backup: <Backup Hex String>
+      backup: <Individual Channel Backup Hex String>
       lnd: <Authenticated LND gRPC API Object>
     }
 
@@ -3345,8 +3553,8 @@ Verify a set of aggregated channel backups
     {
       backup: <Multi-Backup Hex String>
       channels: [{
-        transaction_id: <Transaction Id Hex String>
-        transaction_vout: <Transaction Output Index Number>
+        transaction_id: <Funding Transaction Id Hex String>
+        transaction_vout: <Funding Transaction Output Index Number>
       }]
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -3371,12 +3579,12 @@ Verify a message was signed by a known pubkey
     {
       lnd: <Authenticated LND gRPC API Object>
       message: <Message String>
-      signature: <Signature String>
+      signature: <Signature Hex String>
     }
 
     @returns via cbk or Promise
     {
-      signed_by: <Public Key String>
+      signed_by: <Public Key Hex String>
     }
 
 Example:

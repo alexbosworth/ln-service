@@ -57,15 +57,49 @@ const tests = [
       updated_at: new Date(1000).toISOString(),
     },
   },
+  {
+    args: {},
+    description: 'Capacity is required',
+    error: 'ExpectedChannelCapacityInChannelEdgeResponse',
+  },
+  {
+    args: {capacity: '0'},
+    description: 'Channel point is required',
+    error: 'ExpectedChannelOutpointInChannelEdgeResponse',
+  },
+  {
+    args: {capacity: '0', chan_point: '01:1'},
+    description: 'Channel id is required',
+    error: 'ExpectedChannelIdInChannelEdgeResponse',
+  },
+  {
+    args: {capacity: '0', chan_point: '01:1', channel_id: 'foo'},
+    description: 'Numeric channel id is required',
+    error: 'ExpectedNumericFormatChannelIdInChannelEdgeResponse',
+  },
+  {
+    args: {capacity: '0', chan_point: '01:1', channel_id: '11'},
+    description: 'Channel last update is required',
+    error: 'ExpectedChannelLastUpdate',
+  },
+  {
+    args: {capacity: '0', chan_point: '01:1', channel_id: '1', last_update: 1},
+    description: 'Channel node 1 is required',
+    error: 'ExpectedChannelNode1PublicKey',
+  },
 ];
 
-tests.forEach(({args, description, expected}) => {
-  return test(description, ({deepEqual, end, equal}) => {
-    const channel = channelEdgeAsChannel(args);
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({deepEqual, end, equal, throws}) => {
+    if (!!error) {
+      throws(() => channelEdgeAsChannel(args), new Error(error), 'Got error');
+    } else {
+      const channel = channelEdgeAsChannel(args);
 
-    channel.policies.forEach(n => delete n.updated_at);
+      channel.policies.forEach(n => delete n.updated_at);
 
-    deepEqual(channel, expected, 'Channel cast as channel');
+      deepEqual(channel, expected, 'Channel cast as channel');
+    }
 
     return end();
   });

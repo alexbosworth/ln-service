@@ -7,15 +7,15 @@ const scriptFromChainAddress = require('./script_from_chain_address');
 
   An lnd built with the chainrpc build tag is required
 
-  A chain address is required
+  A chain address or raw output script is required
 
   {
-    [bech32_address]: <Address String>
+    [bech32_address]: <Bech32 P2WPKH or P2WSH Address String>
     lnd: <Chain RPC LND gRPC API Object>
     [min_height]: <Minimum Transaction Inclusion Blockchain Height Number>
-    [output_script]: <Output Script Hex String>
-    [p2pkh_address]: <Address String>
-    [p2sh_address]: <Address String>
+    [output_script]: <Output Script AKA ScriptPub Hex String>
+    [p2pkh_address]: <Pay to Public Key Hash Address String>
+    [p2sh_address]: <Pay to Script Hash Address String>
     [transaction_id]: <Blockchain Transaction Id Hex String>
     [transaction_vout]: <Blockchain Transaction Output Index Number>
   }

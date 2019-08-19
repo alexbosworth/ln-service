@@ -5,9 +5,12 @@ const {isArray} = Array;
 
 /** Get a route from a sequence of channels
 
+  Either next hop destination in channels or final destination is required
+
   {
     channels: [{
       capacity: <Maximum Tokens Number>
+      [destination]: <Next Node Public Key Hex String>
       id: <Standard Format Channel Id String>
       policies: [{
         base_fee_mtokens: <Base Fee Millitokens String>
@@ -18,8 +21,8 @@ const {isArray} = Array;
         public_key: <Node Public Key String>
       }]
     }]
-    [cltv]: <Final Cltv Delta Number>
-    destination: <Destination Public Key Hex String>
+    [cltv]: <Final CLTV Delta Number>
+    [destination]: <Destination Public Key Hex String>
     height: <Current Block Height Number>
     mtokens: <Millitokens To Send String>
   }
@@ -53,7 +56,7 @@ module.exports = ({channels, cltv, destination, height, mtokens}) => {
     throw new Error('ExpectedChannelsToFormRouteToDestination');
   }
 
-  if (!destination) {
+  if (!channels.slice().pop().destination && !destination) {
     throw new Error('ExpectedDestinationForRouteToDestination');
   }
 

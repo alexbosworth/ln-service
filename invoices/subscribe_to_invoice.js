@@ -10,7 +10,7 @@ const msPerSec = 1e3;
   Lnd built with invoicesrpc tag is required
 
   {
-    id: <Invoice Payment Hash Hex String>
+    id: <Invoice Payment Preimage Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
   }
 

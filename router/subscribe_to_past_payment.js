@@ -18,7 +18,7 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   {
     [id]: <Payment Request Hash Hex String>
-    lnd: <Authenticated Lnd gRPC API Object>
+    lnd: <Authenticated LND gRPC API Object>
   }
 
   @throws
@@ -46,7 +46,9 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   @event 'failed'
   {
+    is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+    is_route_not_found: <Failed Due to Absence of Path Through Graph Bool>
   }
 
   @event 'paying'
@@ -88,6 +90,7 @@ module.exports = args => {
       return emitter.emit('failed', ({
         is_invalid_payment: data.state === states.invalid_payment,
         is_pathfinding_timeout: data.state === states.pathfinding_timeout,
+        is_route_not_found: data.state === states.pathfinding_routes_failed,
       }));
 
     case states.paying:

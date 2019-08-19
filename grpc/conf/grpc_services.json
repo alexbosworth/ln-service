@@ -10,7 +10,8 @@
     "Router": "routerrpc",
     "WalletUnlocker": "lnrpc",
     "WalletKit": "walletrpc",
-    "Watchtower": "watchtowerrpc"
+    "Watchtower": "watchtowerrpc",
+    "WatchtowerClient": "wtclientrpc"
   },
   "protoFiles": {
     "Autopilot": "autopilot.proto",
@@ -21,7 +22,8 @@
     "Router": "router.proto",
     "WalletUnlocker": "rpc.proto",
     "WalletKit": "walletkit.proto",
-    "Watchtower": "watchtower.proto"
+    "Watchtower": "watchtower.proto",
+    "WatchtowerClient": "wtclient.proto"
   },
   "serviceTypes": {
     "autopilot": "Autopilot",
@@ -30,6 +32,7 @@
     "invoices": "Invoices",
     "router": "Router",
     "signer": "Signer",
+    "tower_client": "WatchtowerClient",
     "tower_server": "Watchtower",
     "wallet": "WalletKit"
   }

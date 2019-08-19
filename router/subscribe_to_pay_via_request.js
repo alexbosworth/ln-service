@@ -7,10 +7,10 @@ const subscribeToPay = require('./subscribe_to_pay');
   {
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
+    [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     request: <BOLT 11 Payment Request String>
-    [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     [tokens]: <Tokens To Pay Number>
   }
 
@@ -39,10 +39,12 @@ const subscribeToPay = require('./subscribe_to_pay');
 
   @event 'failed'
   {
+    is_invalid_payment: <Failed Due to Invalid Payment Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+    is_route_not_found: <Failed Due to Route Not Found Bool>
   }
 
-  @event 'paying
+  @event 'paying'
   {}
 */
 module.exports = args => {
@@ -57,10 +59,10 @@ module.exports = args => {
   return subscribeToPay({
     lnd: args.lnd,
     max_fee: args.max_fee,
+    max_timeout_height: args.max_timeout_height,
     outgoing_channel: args.outgoing_channel,
     pathfinding_timeout: args.pathfinding_timeout,
     request: args.request,
-    timeout_height: args.timeout_height,
     tokens: args.tokens,
   });
 };

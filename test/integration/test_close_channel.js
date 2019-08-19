@@ -2,49 +2,47 @@ const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
-const {getChannels} = require('./../../');
-const {openChannel} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
-
-const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
+const {setupChannel} = require('./../macros');
 
 // Closing a channel should close the channel
-test(`Close channel`, async ({end, equal, expectUncaughtException}) => {
+test(`Close channel`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
-  const channelOpen = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    lnd: cluster.control.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
-  });
+  // Force close channel using tx id and vout
+  {
+    const channelOpen = await setupChannel({
+      generate: cluster.generate,
+      lnd: cluster.control.lnd,
+      to: cluster.target,
+    });
 
-  await waitForPendingChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.control.lnd,
-  });
+    const channelClose = await closeChannel({
+      is_force_close: true,
+      lnd: cluster.control.lnd,
+      transaction_id: channelOpen.transaction_id,
+      transaction_vout: channelOpen.transaction_vout,
+    });
 
-  await cluster.generate({count: confirmationCount});
+    equal(channelClose.transaction_id.length, 64, 'Force close id returned');
+    equal(channelClose.transaction_vout, 0, 'Force close vout returned');
+  }
 
-  await waitForChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.control.lnd,
-  });
+  // Coop close channel using the channel id
+  {
+    const channelOpen = await setupChannel({
+      generate: cluster.generate,
+      lnd: cluster.control.lnd,
+      to: cluster.target,
+    });
 
-  const channelClose = await closeChannel({
-    is_force_close: true,
-    lnd: cluster.control.lnd,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-  });
+    const channelClose = await closeChannel({
+      id: channelOpen.id,
+      lnd: cluster.control.lnd,
+    });
 
-  equal(!!channelClose.transaction_id, true, 'Closing id is returned');
-  equal(channelClose.transaction_vout, defaultVout, 'Closing vout returned');
+    equal(channelClose.transaction_id.length, 64, 'Coop close id is returned');
+    equal(channelClose.transaction_vout, 0, 'Coop close tx vout returned');
+  }
 
   await cluster.kill({});
 

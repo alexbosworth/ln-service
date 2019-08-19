@@ -24,8 +24,8 @@ const msPerSec = 1e3;
   @event 'channel_closed'
   {
     capacity: <Channel Capacity Tokens Number>
-    id: <Standard Format Channel Id String>
     close_height: <Channel Close Confirmed Block Height Number>
+    id: <Standard Format Channel Id String>
     transaction_id: <Channel Transaction Id String>
     transaction_vout: <Channel Transaction Output Index Number>
     updated_at: <Update Received At ISO 8601 Date String>

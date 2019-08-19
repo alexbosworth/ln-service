@@ -1,10 +1,10 @@
-const BN = require('bn.js');
 const {chanFormat} = require('bolt07');
 
 const decBase = 10;
-const msatsPerToken = new BN(1e3, 10);
+const {isArray} = Array;
+const mtokensPerToken = BigInt(1e3);
 
-/** Routes from query routes GRPC response
+/** Routes from raw lnd query routes gRPC response
 
   {
     response: {
@@ -58,7 +58,7 @@ module.exports = ({response}) => {
 
   const {routes} = response;
 
-  if (!Array.isArray(routes)) {
+  if (!isArray(routes)) {
     throw new Error('ExpectedRoutes');
   }
 
@@ -75,7 +75,7 @@ module.exports = ({response}) => {
       return true;
     }
 
-    if (!Array.isArray(route.hops)) {
+    if (!isArray(route.hops)) {
       return true;
     }
 
@@ -96,29 +96,28 @@ module.exports = ({response}) => {
 
   return {
     routes: routes.map(route => {
-      const totalFeesMsat = new BN(route.total_fees_msat, decBase);
-      const totalAmtMsat = new BN(route.total_amt_msat, decBase);
+      const totalFeesMtok = BigInt(route.total_fees_msat);
+      const totalAmtMtok = BigInt(route.total_amt_msat);
 
       return {
-        fee: totalFeesMsat.div(msatsPerToken).toNumber(),
-        fee_mtokens: totalFeesMsat.toString(),
+        fee: Number(totalFeesMtok / mtokensPerToken),
+        fee_mtokens: route.total_fees_msat,
         hops: route.hops.map(h => {
           return {
             channel: chanFormat({number: h.chan_id}).channel,
-            channel_capacity: new BN(h.chan_capacity, decBase).toNumber(),
-            fee: new BN(h.fee, decBase).toNumber(decBase),
-            fee_mtokens: new BN(h.fee_msat, decBase).toString(),
-            forward: new BN(h.amt_to_forward, decBase).toNumber(),
-            forward_mtokens: new BN(h.amt_to_forward_msat, decBase).toString(),
+            channel_capacity: parseInt(h.chan_capacity, decBase),
+            fee: parseInt(h.fee, decBase),
+            fee_mtokens: h.fee_msat,
+            forward: parseInt(h.amt_to_forward, decBase),
+            forward_mtokens: h.amt_to_forward_msat,
             public_key: h.pub_key,
             timeout: h.expiry,
           };
         }),
-        mtokens: totalAmtMsat.toString(),
+        mtokens: route.total_amt_msat,
         timeout: route.total_time_lock,
-        tokens: totalAmtMsat.div(msatsPerToken).toNumber(),
+        tokens: Number(totalAmtMtok / mtokensPerToken),
       };
     }),
   };
 };
-

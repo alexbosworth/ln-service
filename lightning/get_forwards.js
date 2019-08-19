@@ -18,6 +18,8 @@ const {stringify} = JSON;
 
   When using an "after" date a "before" date is required.
 
+  If a next token is returned, pass it to get additional page of results.
+
   {
     [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
     [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>

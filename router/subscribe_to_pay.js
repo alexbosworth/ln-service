@@ -8,6 +8,7 @@ const {routeHintFromRoute} = require('./../routing');
 const {states} = require('./payment_states');
 
 const decBase = 10;
+const defaultCltvDelta = 43;
 const defaultTimeoutSeconds = 20;
 const hexToBuf = hex => Buffer.from(hex, 'hex');
 const {isArray} = Array;
@@ -19,7 +20,11 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
 /** Subscribe to the flight of a payment
 
+  lnd built with routerrpc build tag is required
+
   Either a request or a destination, id, and tokens amount is required
+
+  Failure due to invalid payment will only be registered on lnd 0.7.1+
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -66,7 +71,9 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   @event 'failed'
   {
+    is_invalid_payment: <Failed Due to Invalid Payment Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+    is_route_not_found: <Failed Due to Route Not Found Bool>
   }
 
   @event 'paying
@@ -114,12 +121,14 @@ module.exports = args => {
   const hints = routes
     .map(route => ({hop_hints: routeHintFromRoute({route}).hops}));
 
+  const finalCltv = !args.cltv_delta ? defaultCltvDelta : args.cltv_delta;
+
   const sub = args.lnd.router.sendPayment({
     amt: !args.tokens ? undefined : args.tokens,
     cltv_limit: !args.timeout_height ? maxCltv : args.timeout_height,
     dest: !args.destination ? undefined : hexToBuf(args.destination),
     fee_limit_sat: maxFee,
-    final_cltv_delta: !args.cltv_delta ? undefined : args.cltv_delta,
+    final_cltv_delta: !args.request ? finalCltv : undefined,
     outgoing_chan_id: !channel ? undefined : chanNumber({channel}).number,
     payment_hash: !args.id ? undefined : hexToBuf(args.id),
     payment_request: !args.request ? undefined : args.request,
@@ -151,6 +160,7 @@ module.exports = args => {
       return emitter.emit('failed', ({
         is_invalid_payment: data.state === states.invalid_payment,
         is_pathfinding_timeout: data.state === states.pathfinding_timeout,
+        is_route_not_found: data.state === states.pathfinding_routes_failed,
       }));
 
     case states.paying:

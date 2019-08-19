@@ -15,17 +15,18 @@ const msPerSecond = 1e3;
   @returns via cbk or Promise
   {
     payments: [{
-      created_at: <ISO8601 Date String>
-      destination: <Compressed Public Key String>
-      fee: <Tokens Number>
+      created_at: <Payment at ISO-8601 Date String>
+      destination: <Destination Node Public Key Hex String>
+      fee: <Paid Routing Fee Tokens Number>
+      fee_mtokens: <Paid Routing Fee in Millitokens String>
       hops: [<Node Hop Public Key Hex String>]
-      id: <RHash Id String>
-      is_confirmed: <Bool>
-      is_outgoing: <Is Outgoing Bool>
-      mtokens: <Millitokens Paid String>
+      id: <Payment Preimage Hash String>
+      is_confirmed: <Payment is Confirmed Bool>
+      is_outgoing: <Transaction Is Outgoing Bool>
+      mtokens: <Millitokens Sent to Destination String>
       [request]: <BOLT 11 Payment Request String>
       secret: <Payment Preimage Hex String>
-      tokens: <Sent Tokens Number>
+      tokens: <Tokens Sent to Destination Number>
     }]
   }
 */

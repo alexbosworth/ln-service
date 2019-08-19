@@ -35,9 +35,7 @@ module.exports = ({mtokens, policy}) => {
   const feeRate = BigInt(policy.fee_rate);
   const forwardMtokens = BigInt(mtokens);
 
-  const feeRateMtokens = forwardMtokens * feeRate / rateDivisor;
-
-  const fee = baseFeeMtokens + feeRateMtokens;
+  const fee = baseFeeMtokens + forwardMtokens * feeRate / rateDivisor;
 
   return {fee_mtokens: fee.toString()};
 };

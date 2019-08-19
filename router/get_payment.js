@@ -16,7 +16,9 @@ const paymentNotInitiatedErr = `payment isn't initiated`;
   @returns via cbk or Promise
   {
     [failed]: {
+      is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+      is_route_not_found: <Failed Due to Absence of Path Through Graph Bool>
     }
     [is_confirmed]: <Payment Is Settled Bool>
     [is_failed]: <Payment Is Failed Bool>

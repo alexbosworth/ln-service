@@ -6,10 +6,12 @@ const bufferFromHex = hex => Buffer.from(hex, 'hex');
 
 /** Cancel an invoice
 
+  This call can cancel both HODL invoices and also void regular invoices
+
   Requires lnd built with invoicesrpc
 
   {
-    id: <Payment Hash Hex String>
+    id: <Payment Preimage Hash Hex String>
     lnd: <Authenticated RPC LND gRPC API Object>
   }
 

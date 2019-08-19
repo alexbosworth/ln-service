@@ -13,6 +13,7 @@ const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
     [id]: <Payment Request Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
+    [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     routes: [[{
@@ -22,7 +23,6 @@ const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
-    [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
     tokens: <Tokens To Pay Number>
   }
 
@@ -70,10 +70,10 @@ module.exports = (args, cbk) => {
           id: args.id,
           lnd: args.lnd,
           max_fee: args.max_fee,
+          max_timeout_height: args.max_timeout_height,
           outgoing_channel: args.outgoing_channel,
           pathfinding_timeout: args.pathfinding_timeout,
           routes: args.routes,
-          timeout_height: args.timeout_height,
           tokens: args.tokens,
         });
 

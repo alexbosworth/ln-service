@@ -23,15 +23,31 @@ const tests = [
     description: 'To ignored node is returned',
     expected: {ignore: '00'},
   },
+  {
+    args: {},
+    description: 'No ignore means empty result',
+    expected: {},
+  },
+  {
+    args: {ignore: 'foo'},
+    description: 'Ignore must be array',
+    error: 'ExpectedArrayOfIgnoresForIgnoredNodes',
+  },
 ];
 
-tests.forEach(({args, description, expected}) => {
-  return test(description, ({deepEqual, end}) => {
-    const {ignored} = ignoreAsIgnoredNodes(args);
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({deepEqual, end, equal, throws}) => {
+    if (!!error) {
+      throws(() => ignoreAsIgnoredNodes(args), new Error(error), 'Got error');
+    } else if (!!expected.ignore) {
+      const {ignored} = ignoreAsIgnoredNodes(args);
 
-    const [ignore] = ignored;
+      const [ignore] = ignored;
 
-    deepEqual(ignore.toString('hex'), expected.ignore, 'Node ignore mapped');
+      deepEqual(ignore.toString('hex'), expected.ignore, 'Node ignore mapped');
+    } else {
+      equal(ignoreAsIgnoredNodes(args).ignored, undefined, 'Nothing ignored');
+    }
 
     return end();
   });

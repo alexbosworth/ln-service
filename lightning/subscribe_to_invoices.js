@@ -17,15 +17,21 @@ const msPerSec = 1e3;
 
   @event 'invoice_updated'
   {
+    [chain_address]: <Fallback Chain Address String>
+    cltv_delta: <Final CLTV Delta Number>
     [confirmed_at]: <Confirmed At ISO 8601 Date String>
     created_at: <Created At ISO 8601 Date String>
     description: <Description String>
+    description_hash: <Description Hash Hex String>
     expires_at: <Expires At ISO 8601 Date String>
-    id: <Invoice Id Hex String>
+    id: <Invoice Payment Hash Hex String>
     is_confirmed: <Invoice is Confirmed Bool>
     is_outgoing: <Invoice is Outgoing Bool>
+    received: <Received Tokens Number>
+    received_mtokens: <Received Millitokens String>
+    request: <BOLT 11 Payment Request String>
     secret: <Payment Secret Hex String>
-    tokens: <Tokens Number>
+    tokens: <Invoiced Tokens Number>
   }
 */
 module.exports = ({lnd}) => {
@@ -90,17 +96,21 @@ module.exports = ({lnd}) => {
     const expiresAt = createdAt + parseInt(invoice.expiry);
 
     return eventEmitter.emit('invoice_updated', {
+      chain_address: invoice.fallback_addr || undefined,
+      cltv_delta: parseInt(invoice.cltv_expiry, decBase),
       confirmed_at: !invoice.settled ? undefined : confirmed,
       created_at: new Date(createdAt * msPerSec).toISOString(),
       description: invoice.memo || '',
+      description_hash: descriptionHash.toString('hex') || undefined,
       expires_at: new Date(expiresAt * msPerSec).toISOString(),
       id: invoice.r_hash.toString('hex'),
       is_confirmed: invoice.settled,
       is_outgoing: false,
-      secret: invoice.r_preimage.toString('hex'),
-      tokens: parseInt(invoice.value, decBase),
       received: parseInt(invoice.amt_paid_sat, decBase),
       received_mtokens: invoice.amt_paid_msat,
+      request: invoice.payment_request,
+      secret: invoice.r_preimage.toString('hex'),
+      tokens: parseInt(invoice.value, decBase),
     });
   });
 

@@ -20,10 +20,10 @@ const msPerSec = 1e3;
   {
     [block_id]: <Block Hash String>
     confirmation_count: <Confirmation Count Number>
-    is_confirmed: <Is Confirmed Bool>
-    is_outgoing: <Transaction Outbound Bool>
     fee: <Fees Paid Tokens Number>
     id: <Transaction Id String>
+    is_confirmed: <Is Confirmed Bool>
+    is_outgoing: <Transaction Outbound Bool>
     tokens: <Tokens Number>
   }
 */
@@ -51,13 +51,13 @@ module.exports = ({lnd}) => {
     const createdAt = parseInt(tx.time_stamp, decBase);
 
     return eventEmitter.emit('chain_transaction', {
-      block_id: tx.block_hash || null,
+      block_id: tx.block_hash || undefined,
       confirmation_count: tx.num_confirmations,
       created_at: new Date(createdAt * msPerSec).toISOString(),
-      is_confirmed: !!tx.block_hash,
-      is_outgoing: parseInt(tx.amount, decBase) < 0,
       fee: parseInt(tx.total_fees, decBase),
       id: tx.tx_hash,
+      is_confirmed: !!tx.block_hash,
+      is_outgoing: parseInt(tx.amount, decBase) < 0,
       tokens: abs(parseInt(tx.amount, decBase)),
     });
   });

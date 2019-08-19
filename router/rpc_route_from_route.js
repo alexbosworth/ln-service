@@ -20,6 +20,9 @@ const rpcHopFromHop = require('./rpc_hop_from_hop');
     tokens: <Total Fee-Inclusive Tokens Number>
   }
 
+  @throws
+  <Error>
+
   @returns
   {
     hops: [{

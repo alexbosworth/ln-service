@@ -7,7 +7,7 @@ const {channelEdgeAsChannel} = require('./../graph');
 const edgeIsZombieErrorMessage = 'edge marked as zombie';
 const edgeNotFoundErrorMessage = 'edge not found';
 
-/** Get a channel
+/** Get graph information about a channel on the network
 
   {
     id: <Standard Format Channel Id String>

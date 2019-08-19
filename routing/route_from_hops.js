@@ -140,6 +140,7 @@ module.exports = ({cltv, height, hints, hops, mtokens}) => {
     };
 
     const fee = policyFee({policy, mtokens: forwardMtokens});
+
     timeoutHeight += !i ? minCltv : hop.cltv_delta;
 
     forwardMtokens += feeMtokens;

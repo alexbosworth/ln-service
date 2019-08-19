@@ -6,9 +6,9 @@ const {returnResult} = require('asyncjs-util');
 
 const getChannel = require('./get_channel');
 const getWalletInfo = require('./get_wallet_info');
-const {hopsFromChannels} = require('./../routing');
 const {ignoreAsIgnoredEdges} = require('./../routing');
 const {ignoreAsIgnoredNodes} = require('./../routing');
+const {routeFromChannels} = require('./../routing');
 const {routeFromHops} = require('./../routing');
 const {routesFromQueryRoutes} = require('./../routing');
 
@@ -18,6 +18,7 @@ const defaultTokens = 0;
 const isArray = Array;
 const mtokBuffer = '000';
 const notFoundCode = 404;
+const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
 
 const pathNotFoundErrors = [
   'noPathFound',
@@ -33,8 +34,8 @@ const pathNotFoundErrors = [
   addition to routes.
 
   {
+    [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Final Send Destination Hex Encoded Public Key String>
-    [fee]: <Maximum Fee Tokens Number>
     [get_channel]: <Custom Get Channel Function>
     [ignore]: [{
       [channel]: <Channel Id String>
@@ -42,19 +43,19 @@ const pathNotFoundErrors = [
       [to_public_key]: <To Public Key Hex String>
     }]
     [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
-    [is_strict_hints]: <Only Route Through Specified Paths Bool>
+    [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
+    [max_fee]: <Maximum Fee Tokens Number>
     [outgoing_channel]: [Outgoing Channel Id String>]
     [routes]: [[{
-      [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
       [channel]: <Standard Format Channel Id String>
       [channel_capacity]: <Channel Capacity Tokens Number>
-      [cltv_delta]: <CLTV Blocks Delta Number>
+      [cltv_delta]: <CLTV Delta Blocks Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
     [start]: <Starting Node Public Key Hex String>
-    [timeout]: <Final CLTV Delta Number>
     [tokens]: <Tokens to Send Number>
   }
 
@@ -74,7 +75,7 @@ const pathNotFoundErrors = [
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
-      timeout: <Final CLTV Delta Number>
+      timeout: <Route Timeout Height Number>
       tokens: <Total Fee-Inclusive Tokens Number>
     }]
   }
@@ -197,6 +198,8 @@ module.exports = (args, cbk) => {
 
           const peer = channel.policies.find(n => n.public_key !== sourceKey);
 
+          channel.destination = peer.public_key;
+
           return cbk(null, {channels: [channel], source_key: peer.public_key});
         });
       }],
@@ -234,11 +237,11 @@ module.exports = (args, cbk) => {
             return cbk(null, {extended, routes: []});
           }
 
-          const finalCltv = (args.timeout || defaultFinalCltvDelta);
+          const finalCltv = (args.cltv_delta || defaultFinalCltvDelta);
 
           return args.lnd.default.queryRoutes({
             amt: args.tokens || defaultTokens,
-            fee_limit: !args.fee ? undefined : {fee_limit: args.fee},
+            fee_limit: !args.max_fee ? undefined : {fee_limit: args.max_fee},
             final_cltv_delta: finalCltv + blocksBuffer,
             ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,
             ignored_nodes: ignoreAsIgnoredNodes({ignore: args.ignore}).ignored,
@@ -404,23 +407,18 @@ module.exports = (args, cbk) => {
                   return cbk(err);
                 }
 
-                const {hops} = hopsFromChannels({
-                  destination,
-                  channels: [].concat(getOutgoing.channels).concat(channels),
-                });
-
-                const finalCltv = (args.timeout || defaultFinalCltvDelta);
-
                 try {
-                  return cbk(null, routeFromHops({
-                    hops,
-                    cltv: finalCltv + blocksBuffer,
+                  const {route} = routeFromChannels({
+                    destination,
+                    channels: [].concat(getOutgoing.channels).concat(channels),
+                    cltv: (args.cltv_delta || defaultFinalCltvDelta),
                     height: res.current_block_height,
-                    hints: args.routes,
-                    mtokens: `${args.tokens || defaultTokens}${mtokBuffer}`,
-                  }));
+                    mtokens: tokensAsMtokens(args.tokens || defaultTokens),
+                  });
+
+                  return cbk(null, route);
                 } catch (err) {
-                  return cbk([500, 'UnexpectedHopsFromChannelsError', {err}]);
+                  return cbk([500, 'UnexpectedRouteFromChannelsErr', {err}]);
                 }
               });
             });
@@ -433,7 +431,7 @@ module.exports = (args, cbk) => {
       // Total routes
       assembledRoutes: ['assemble', ({assemble}, cbk) => {
         const routes = flatten(assemble).filter(route => {
-          if (!!args.fee && route.fee > args.fee) {
+          if (!!args.max_fee && route.fee > args.max_fee) {
             return false;
           }
 

@@ -7,6 +7,139 @@ const {hopsFromChannels} = require('./../../routing');
 const tests = [
   {
     args: {
+      channels: [
+        {
+          capacity: 16777215,
+          destination: 'b',
+          id: '1x1x1',
+          policies: [
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 40,
+              fee_rate: 5000,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'a',
+            },
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 40,
+              fee_rate: 2500,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'b',
+            },
+          ],
+        },
+        {
+          capacity: 16777215,
+          destination: 'c',
+          id: '2x2x2',
+          policies: [
+            {
+              base_fee_mtokens: '0',
+              cltv_delta: 30,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'c',
+            },
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 40,
+              fee_rate: 2500,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'b',
+            },
+          ],
+        },
+        {
+          capacity: 16777215,
+          destination: 'd',
+          id: '3x3x3',
+          policies: [
+            {
+              base_fee_mtokens: '100',
+              cltv_delta: 144,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'd',
+            },
+            {
+              base_fee_mtokens: '0',
+              cltv_delta: 30,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'c',
+            },
+          ],
+        },
+        {
+          capacity: 16777215,
+          destination: 'e',
+          id: '4x4x4',
+          policies: [
+            {
+              base_fee_mtokens: '100',
+              cltv_delta: 144,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'd',
+            },
+            {
+              base_fee_mtokens: '1000',
+              cltv_delta: 144,
+              fee_rate: 1,
+              is_disabled: false,
+              min_htlc_mtokens: '1000',
+              public_key: 'e',
+            },
+          ],
+        },
+      ],
+    },
+    description: 'Map 4 channels to 4 hops',
+    expected: [
+      {
+        base_fee_mtokens: '1000',
+        channel: '1x1x1',
+        channel_capacity: 16777215,
+        cltv_delta: 40,
+        fee_rate: 2500,
+        public_key: 'b',
+      },
+      {
+        base_fee_mtokens: '1000',
+        channel: '2x2x2',
+        channel_capacity: 16777215,
+        cltv_delta: 30,
+        fee_rate: 2500,
+        public_key: 'c',
+      },
+      {
+        base_fee_mtokens: '0',
+        channel: '3x3x3',
+        channel_capacity: 16777215,
+        cltv_delta: 144,
+        fee_rate: 1,
+        public_key: 'd',
+      },
+      {
+        base_fee_mtokens: '100',
+        channel: '4x4x4',
+        channel_capacity: 16777215,
+        cltv_delta: 144,
+        fee_rate: 1,
+        public_key: 'e',
+      },
+    ],
+  },
+  {
+    args: {
       channels: betaChannels,
       destination: '03277a99c297a53859b42a9bb8cb2c5c17b9eaa44509bae150e2ea35ca5aa29bd9',
     },
@@ -76,13 +209,81 @@ const tests = [
       },
     ],
   },
+  {
+    args: {
+      channels: [{
+        capacity: 100,
+        destination: Buffer.alloc(33).toString('hex'),
+        id: '1x1x1',
+        policies: [
+          {
+            base_fee_mtokens: '1',
+            fee_rate: 1,
+            is_disabled: false,
+            min_htlc_mtokens: '1',
+            public_key: Buffer.alloc(33).toString('hex'),
+          },
+          {
+            base_fee_mtokens: '1',
+            fee_rate: 1,
+            is_disabled: false,
+            min_htlc_mtokens: '1',
+            public_key: Buffer.alloc(33, 1).toString('hex'),
+          },
+        ],
+      }],
+    },
+    description: 'Mapping channels without a CLTV results in a default CLTV',
+    expected: [{
+      base_fee_mtokens: '1',
+      channel: '1x1x1',
+      channel_capacity: 100,
+      cltv_delta: 40,
+      fee_rate: 1,
+      public_key: Buffer.alloc(33).toString('hex'),
+    }],
+  },
+  {
+    args: {},
+    description: 'Mapping hops from channels requires channels',
+    error: 'ExpectedChannelsToDeriveHops',
+  },
+  {
+    args: {channels: []},
+    description: 'Mapping hops from channels requires channels array',
+    error: 'ExpectedChannelsToDeriveHops',
+  },
+  {
+    args: {channels: [{}]},
+    description: 'Mapping hops from channels requires channels with policies',
+    error: 'ExpectedChannelPoliciesWhenCalculatingHops',
+  },
+  {
+    args: {channels: [{policies: []}]},
+    description: 'Mapping hops from channels requires next hop public key',
+    error: 'ExpectedNextHopPublicKey',
+  },
+  {
+    args: {channels: [{destination: 'destination', policies: []}]},
+    description: 'Mapping hops from channels requires hop channel ids',
+    error: 'ExpectedChannelIdForTranslationToChannelHop',
+  },
+  {
+    args: {channels: [{destination: 'destination', id: 'id', policies: []}]},
+    description: 'Mapping hops from channels requires hop channel ids',
+    expected: [],
+  },
 ];
 
-tests.forEach(({args, description, expected}) => {
-  return test(description, ({deepIs, end}) => {
-    const {hops} = hopsFromChannels(args);
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({deepIs, end, throws}) => {
+    if (!!error) {
+      throws(() => hopsFromChannels(args), new Error(error), 'Got error');
+    } else {
+      const {hops} = hopsFromChannels(args);
 
-    deepIs(hops, expected, 'Hops returned as expected');
+      deepIs(hops, expected, 'Hops returned as expected');
+    }
 
     return end();
   });

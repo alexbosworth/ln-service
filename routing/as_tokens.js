@@ -1,4 +1,4 @@
-const mtokPerToken = BigInt(1e3);
+const mtokensPerToken = BigInt(1e3);
 
 /** Get millitokens as tokens
 
@@ -12,7 +12,7 @@ const mtokPerToken = BigInt(1e3);
   }
 */
 module.exports = ({mtokens}) => {
-  const tokens = Number(mtokens / mtokPerToken);
+  const tokens = Number(mtokens / mtokensPerToken);
 
   return {tokens};
 };

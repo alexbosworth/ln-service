@@ -17,6 +17,7 @@ const {routeFromHops} = require('./../../routing');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
+const buffer = 6;
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
@@ -103,7 +104,10 @@ test(`Get routes`, async ({end, equal}) => {
 
   equal(backwardsRoutes.routes.length, 1, 'Route can be calculated backwards');
 
-  const ignorePath = await getRoutes({destination, lnd, tokens,
+  const ignorePath = await getRoutes({
+    destination,
+    lnd,
+    tokens,
     ignore: [{
       channel: remoteChan.id,
       from_public_key: cluster.target_node_public_key,
@@ -149,7 +153,7 @@ test(`Get routes`, async ({end, equal}) => {
   const currentHeight = await getWalletInfo({lnd});
 
   const fullRoute = routeFromHops({
-    cltv: 46,
+    cltv: 40,
     height: (await getWalletInfo({lnd})).current_block_height,
     hops: [
       {
@@ -179,13 +183,13 @@ test(`Get routes`, async ({end, equal}) => {
   equal(fullRoute.fee, direct.fee, 'Fee is the same for full route');
   equal(fullRoute.fee_mtokens, direct.fee_mtokens, 'Fee mtokens same');
   equal(fullRoute.mtokens, direct.mtokens, 'Full route mtokens equivalent');
-  equal(fullRoute.timeout, direct.timeout, 'Full route timeout equivalent');
+  equal(fullRoute.timeout, direct.timeout - buffer, 'Timeout equivalent');
   equal(fullRoute.tokens, direct.tokens, 'Full route tokens equivalent');
 
   equal(indirect.fee, direct.fee, 'Fee is the same across routes');
   equal(indirect.fee_mtokens, direct.fee_mtokens, 'Fee mtokens equivalent');
   equal(indirect.mtokens, direct.mtokens, 'Millitokens equivalent');
-  equal(indirect.timeout, direct.timeout, 'Timeouts equivalent');
+  equal(indirect.timeout, direct.timeout - buffer, 'Timeouts equivalent');
   equal(indirect.tokens, direct.tokens, 'Tokens equivalent');
 
   direct.hops.forEach((expected, i) => {
@@ -199,7 +203,7 @@ test(`Get routes`, async ({end, equal}) => {
     equal(fullHop.forward, expected.forward, `${i} f-hop forward tokens`);
     equal(fullHop.forward_mtokens, expected.forward_mtokens, `${i} f-mtok`);
     equal(fullHop.public_key, expected.public_key, `${i} f-indirect pubkey`);
-    equal(fullHop.timeout, expected.timeout, `${i} f-hop timeout`);
+    equal(fullHop.timeout, expected.timeout - buffer, `${i} f-hop timeout`);
 
     equal(indirectHop.channel, expected.channel, `${i} hop channel id`);
     equal(indirectHop.channel_capacity, expected.channel_capacity, `${i} cap`);
@@ -208,7 +212,7 @@ test(`Get routes`, async ({end, equal}) => {
     equal(indirectHop.forward, expected.forward, `${i} hop forward tokens`);
     equal(indirectHop.forward_mtokens, expected.forward_mtokens, `${i} mtok`);
     equal(indirectHop.public_key, expected.public_key, `${i} indirect pubkey`);
-    equal(indirectHop.timeout, expected.timeout, `${i} hop timeout`);
+    equal(indirectHop.timeout, expected.timeout - buffer, `${i} hop timeout`);
 
     return;
   });

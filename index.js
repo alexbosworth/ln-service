@@ -6,6 +6,7 @@ const {calculatePaths} = require('./routing');
 const {cancelHodlInvoice} = require('./invoices');
 const {changePassword} = require('./unlocker');
 const {closeChannel} = require('./lightning');
+const {connectWatchtower} = require('./tower_client');
 const {createChainAddress} = require('./lightning');
 const {createHodlInvoice} = require('./invoices');
 const {createInvoice} = require('./lightning');
@@ -16,6 +17,7 @@ const {createWallet} = require('./unlocker');
 const {decodePaymentRequest} = require('./lightning');
 const {deleteForwardingReputations} = require('./router');
 const {deletePayments} = require('./lightning');
+const {disconnectWatchtower} = require('./tower_client');
 const {getAutopilot} = require('./autopilot');
 const {getBackup} = require('./lightning');
 const {getBackups} = require('./lightning');
@@ -27,6 +29,7 @@ const {getChannel} = require('./lightning');
 const {getChannelBalance} = require('./lightning');
 const {getChannels} = require('./lightning');
 const {getClosedChannels} = require('./lightning');
+const {getConnectedWatchtowers} = require('./tower_client');
 const {getFeeRates} = require('./lightning');
 const {getForwardingReputations} = require('./router');
 const {getForwards} = require('./lightning');
@@ -46,6 +49,7 @@ const {getRoutes} = require('./lightning');
 const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
+const {isDestinationPayable} = require('./router');
 const localLnd = require('./service/local_lnd');
 const {openChannel} = require('./lightning');
 const {parsePaymentRequest} = require('./bolt11');
@@ -83,6 +87,7 @@ const {subscribeToProbe} = require('./router');
 const {subscribeToTransactions} = require('./lightning');
 const {unauthenticatedLndGrpc} = require('./grpc');
 const {unlockWallet} = require('./unlocker');
+const {updateConnectedWatchtower} = require('./tower_client');
 const {updateRoutingFees} = require('./lightning');
 const {verifyBackup} = require('./lightning');
 const {verifyBackups} = require('./lightning');
@@ -97,6 +102,7 @@ module.exports = {
   cancelHodlInvoice,
   changePassword,
   closeChannel,
+  connectWatchtower,
   createChainAddress,
   createHodlInvoice,
   createInvoice,
@@ -107,6 +113,7 @@ module.exports = {
   decodePaymentRequest,
   deleteForwardingReputations,
   deletePayments,
+  disconnectWatchtower,
   getAutopilot,
   getBackup,
   getBackups,
@@ -118,6 +125,7 @@ module.exports = {
   getChannelBalance,
   getChannels,
   getClosedChannels,
+  getConnectedWatchtowers,
   getFeeRates,
   getForwardingReputations,
   getForwards,
@@ -137,6 +145,7 @@ module.exports = {
   getTowerServerInfo,
   getUtxos,
   getWalletInfo,
+  isDestinationPayable,
   localLnd,
   openChannel,
   parsePaymentRequest,
@@ -174,6 +183,7 @@ module.exports = {
   subscribeToTransactions,
   unauthenticatedLndGrpc,
   unlockWallet,
+  updateConnectedWatchtower,
   updateRoutingFees,
   verifyBackup,
   verifyBackups,

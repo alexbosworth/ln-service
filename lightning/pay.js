@@ -32,6 +32,7 @@ const sha256 = buffer => createHash('sha256').update(buffer).digest('hex');
     lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required if wss is set
     [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
+    [max_timeout_height]: <Max CLTV Timeout Number>
     [outgoing_channel]: <Pay Through Outbound Standard Channel Id String>
     [path]: {
       id: <Payment Hash Hex String>
@@ -55,7 +56,6 @@ const sha256 = buffer => createHash('sha256').update(buffer).digest('hex');
     }
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     [request]: <BOLT 11 Payment Request String>
-    [timeout_height]: <Max CLTV Timeout Number>
     [tokens]: <Total Tokens To Pay to Payment Request Number>
     [wss]: [<Web Socket Server Object>]
   }
@@ -86,9 +86,9 @@ module.exports = (args, cbk) => {
       lnd: args.lnd,
       log: args.log,
       max_fee: args.max_fee || defaultMaxFee,
+      max_timeout_height: args.max_timeout_height,
       outgoing_channel: args.outgoing_channel,
       request: args.request,
-      timeout_height: args.timeout_height,
       tokens: args.tokens,
       wss: args.wss,
     },

@@ -6,6 +6,7 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
+const {deleteForwardingReputations} = require('./../../');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getRoutes} = require('./../../');
@@ -121,22 +122,36 @@ test('Probe for route', async ({deepIs, end, equal}) => {
     lnd: cluster.target.lnd,
   });
 
-  const {route} = await probeForRoute({
-    lnd,
-    destination: cluster.remote_node_public_key,
-    tokens: invoice.tokens,
-  });
+  await deleteForwardingReputations({lnd});
 
-  equal(route.fee, 1, 'Found route fee');
-  equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
-  deepIs(route.hops.length, 2, 'Found route hops returned');
-  equal(route.mtokens, '500001500', 'Found route mtokens');
-  equal(route.timeout, 588, 'Found route timeout');
-  equal(route.tokens, 500001, 'Found route tokens');
+  try {
+    const {route} = await probeForRoute({
+      lnd,
+      destination: cluster.remote.public_key,
+      tokens: invoice.tokens,
+    });
 
-  const {secret} = await payViaRoutes({lnd, id: invoice.id, routes: [route]});
+    if (!route) {
+      throw new Error('ExpectedRouteFromProbe');
+    }
 
-  equal(secret, invoice.secret, 'Route works');
+    equal(route.fee, 1, 'Found route fee');
+    equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
+    deepIs(route.hops.length, 2, 'Found route hops returned');
+    equal(route.mtokens, '500001500', 'Found route mtokens');
+    equal(route.timeout, 588, 'Found route timeout');
+    equal(route.tokens, 500001, 'Found route tokens');
+
+    const {secret} = await payViaRoutes({
+      lnd,
+      id: invoice.id,
+      routes: [route],
+    });
+
+    equal(secret, invoice.secret, 'Route works');
+  } catch (err) {
+    equal(err, null, 'No error when probing for route');
+  }
 
   await cluster.kill({});
 

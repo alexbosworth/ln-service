@@ -27,11 +27,11 @@ const {isArray} = Array;
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
-    [ignore_probability_below]: <Require a Minimum N out of 1 Million Number>
     [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
     [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
+    [max_timeout_height]: <Maximum CLTV Timeout Height>
     [outgoing_channel]: <Outgoing Channel Id String>
     [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
     [routes]: [[{
@@ -196,15 +196,15 @@ module.exports = args => {
             .concat(ignore.slice());
 
           return getRoutes({
+            cltv_delta: args.cltv_delta,
             destination: args.destination,
-            fee: args.max_fee,
             ignore: !args.is_ignoring_past_failures ? [] : allIgnores,
             is_adjusted_for_past_failures: !args.is_ignoring_past_failures,
             is_strict_hints: args.is_strict_hints,
             lnd: args.lnd,
+            max_fee: args.max_fee,
             outgoing_channel: args.outgoing_channel,
             routes: args.routes,
-            timeout: args.cltv_delta,
             tokens: args.tokens,
           },
           cbk);
@@ -213,9 +213,14 @@ module.exports = args => {
         // Attempt paying the route
         attemptRoute: ['getNextRoute', ({getNextRoute}, cbk) => {
           const failures = [];
+          const maxCltv = args.max_timeout_height;
           const {routes} = getNextRoute;
 
           if (!routes.length) {
+            return cbk(null, {failures});
+          }
+
+          if (!!maxCltv && !!routes.find(n => n.timeout > maxCltv)) {
             return cbk(null, {failures});
           }
 

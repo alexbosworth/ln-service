@@ -6,12 +6,12 @@ const {returnResult} = require('asyncjs-util');
   {
     lnd: <Authenticated LND gRPC API Object>
     message: <Message String>
-    signature: <Signature String>
+    signature: <Signature Hex String>
   }
 
   @returns via cbk or Promise
   {
-    signed_by: <Public Key String>
+    signed_by: <Public Key Hex String>
   }
 */
 module.exports = ({lnd, message, signature}, cbk) => {

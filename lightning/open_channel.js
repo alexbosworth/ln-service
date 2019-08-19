@@ -6,6 +6,10 @@ const minChannelTokens = 20000;
 
 /** Open a new channel.
 
+  The capacity of the channel is set with local_tokens
+
+  If give_tokens is set, it is a gift and it does not alter the capacity
+
   {
     [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
     [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero

@@ -22,6 +22,8 @@ const {stringify} = JSON;
 
 /** Get all created invoices.
 
+  If a next token is returned, pass it to get another page of invoices.
+
   {
     [limit]: <Page Result Limit Number>
     lnd: <Authenticated LND gRPC API Object>
@@ -31,11 +33,12 @@ const {stringify} = JSON;
   @returns via cbk or Promise
   {
     invoices: [{
-      chain_address: <Fallback Chain Address String>
+      [chain_address]: <Fallback Chain Address String>
+      cltv_delta: <Final CLTV Delta Number>
       [confirmed_at]: <Settled at ISO 8601 Date String>
       created_at: <ISO 8601 Date String>
       description: <Description String>
-      description_hash: <Description Hash Hex String>
+      [description_hash]: <Description Hash Hex String>
       expires_at: <ISO 8601 Date String>
       id: <Payment Hash String>
       [is_canceled]: <Invoice is Canceled Bool>
@@ -230,7 +233,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             confirmed_at: !!invoice.settled ? settledDate : undefined,
             created_at: new Date(createTimeMs).toISOString(),
             description: invoice.memo,
-            description_hash: memoHash,
+            description_hash: memoHash || undefined,
             expires_at: new Date(createTimeMs + expiresInMs).toISOString(),
             id: invoice.r_hash.toString('hex'),
             is_canceled: invoice.state === canceledState || undefined,

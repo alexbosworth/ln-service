@@ -7,6 +7,7 @@ const createCluster = promisify(require('./create_cluster'));
 const delay = promisify(setTimeout);
 const generateBlocks = promisify(require('./generate_blocks'));
 const mineTransaction = promisify(require('./mine_transaction'));
+const setupChannel = require('./setup_channel');
 const spawnLnd = promisify(require('./spawn_lnd'));
 const waitForChannel = promisify(require('./wait_for_channel'));
 const waitForPendingChannel = promisify(require('./wait_for_pending_channel'));
@@ -21,6 +22,7 @@ module.exports = {
   delay,
   generateBlocks,
   mineTransaction,
+  setupChannel,
   spawnLnd,
   waitForChannel,
   waitForPendingChannel,

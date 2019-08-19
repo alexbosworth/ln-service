@@ -41,8 +41,8 @@ module.exports = (args, cbk) => {
 
         const isDirectClose = !!txId && vout !== undefined;
 
-        if (!args.channel && !isDirectClose) {
-          return cbk([400, 'ExpectedIdOfChannelToClose', args]);
+        if (!args.id && !isDirectClose) {
+          return cbk([400, 'ExpectedIdOfChannelToClose']);
         }
 
         if (!args.lnd || !args.lnd.default || !args.lnd.default.closeChannel) {
@@ -66,6 +66,7 @@ module.exports = (args, cbk) => {
 
       // Add peer
       addPeer: ['validate', ({}, cbk) => {
+        // Exit early and avoid adding peer when force close, unknown peer key
         if (!!args.is_force_close || !args.public_key) {
           return cbk();
         }
@@ -80,7 +81,7 @@ module.exports = (args, cbk) => {
 
       // Get a single channel
       getChannel: ['validate', ({}, cbk) => {
-        if (!args.channel) {
+        if (!args.id) {
           return cbk(null, {
             transaction_id: args.transaction_id,
             transaction_vout: args.transaction_vout,
@@ -92,7 +93,6 @@ module.exports = (args, cbk) => {
 
       // Close out the channel
       closeChannel: ['addPeer', 'getChannel', ({getChannel}, cbk) => {
-        let isAnnounced = false;
         const tokensPerVByte = args.tokens_per_vbyte;
         const transactionId = Buffer.from(getChannel.transaction_id, 'hex');
         const transactionVout = getChannel.transaction_vout;
@@ -107,38 +107,36 @@ module.exports = (args, cbk) => {
           target_conf: args.target_confirmations || undefined,
         });
 
+        const finished = (err, res) => {
+          closeChannel.removeAllListeners();
+
+          return cbk(err, res);
+        };
+
         closeChannel.on('data', chan => {
           switch (chan.update) {
           case 'chan_close':
             break;
 
           case 'close_pending':
-            if (isAnnounced) {
-              break;
-            }
-
-            isAnnounced = true;
-
             if (!chan.close_pending) {
-              return cbk([503, 'ExpectedClosePendingData']);
+              return finished([503, 'ExpectedClosePendingData']);
             }
 
             if (!chan.close_pending.txid) {
-              return cbk([503, 'ExpectedClosePendingTransactionId']);
+              return finished([503, 'ExpectedClosePendingTransactionId']);
             }
 
             if (chan.close_pending.output_index === undefined) {
-              return cbk([503, 'ExpectedOutputIndexForPendingChannelClose']);
+              return finished([503, 'ExpectedOutputIndexForPendingChanClose']);
             }
 
             const closeTxId = chan.close_pending.txid.reverse();
 
-            closeChannel.removeAllListeners();
-
-            return cbk(null, {
+            return finished(null, {
               transaction_id: closeTxId.toString('hex'),
               transaction_vout: chan.close_pending.output_index,
-            })
+            });
             break;
 
           case 'confirmation':
@@ -151,21 +149,11 @@ module.exports = (args, cbk) => {
 
         closeChannel.on('end', () => {});
 
-        closeChannel.on('error', err => {});
-
-        closeChannel.on('status', n => {
-          if (isAnnounced) {
-            return;
-          }
-
-          isAnnounced = true;
-
-          if (!n || !n.details) {
-            return cbk([503, 'UnknownChannelOpenStatus']);
-          }
-
-          return cbk([503, 'FailedToCloseChannel']);
+        closeChannel.on('error', err => {
+          return finished([503, 'UnexpectedCloseChannelError', {err}]);
         });
+
+        closeChannel.on('status', () => {});
 
         return;
       }],

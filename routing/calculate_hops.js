@@ -3,6 +3,7 @@ const PriorityQueue = require('@datastructures-js/priority-queue');
 const policyFee = require('./policy_fee');
 
 const decBase = 10;
+const fromPolicy = (policies, k) => !!policies.find(n => n.public_key === k);
 const minCltvDelta = 0;
 const minFee = 0;
 const mtokPerTok = 1e3;
@@ -74,7 +75,7 @@ module.exports = ({channels, end, ignore, mtokens, start}) => {
   };
 
   const checkEdge = ({channel, from, to}) => {
-    if (from !== start && !!channel.is_disabled) {
+    if (from !== start && fromPolicy(channel.policies, from).is_disabled) {
       return;
     }
 

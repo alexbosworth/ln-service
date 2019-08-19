@@ -13,13 +13,29 @@ const tests = [
       ignored: [{channel_id: '1099511758851', direction_reverse: false}],
     },
   },
+  {
+    args: {},
+    description: 'No ignored directives means empty result',
+    expected: {},
+  },
+  {
+    args: {ignore: 'foo'},
+    description: 'Ignore must be an array',
+    error: 'ExpectedArrayOfEdgesToIgnore',
+  }
 ];
 
-tests.forEach(({args, description, expected}) => {
-  return test(description, ({deepEqual, end}) => {
-    const {ignored} = ignoreAsIgnoredEdges(args);
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({deepEqual, end, equal, throws}) => {
+    if (!!error) {
+      throws(() => ignoreAsIgnoredEdges(args), new Error(error), 'Got error');
+    } else if (!!expected.ignored) {
+      const {ignored} = ignoreAsIgnoredEdges(args);
 
-    deepEqual(expected.ignored, ignored, 'Edges mapped to ignores');
+      deepEqual(expected.ignored, ignored, 'Edges mapped to ignores');
+    } else {
+      equal(ignoreAsIgnoredEdges(args).ignored, undefined, 'Got no ignore');
+    }
 
     return end();
   });

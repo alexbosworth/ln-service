@@ -3,6 +3,7 @@ const getForwardingReputations = require('./get_forwarding_reputations');
 const getPayment = require('./get_payment');
 const getPaymentOdds = require('./get_payment_odds');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
+const isDestinationPayable = require('./is_destination_payable');
 const payViaPaymentDetails = require('./pay_via_payment_details');
 const payViaPaymentRequest = require('./pay_via_payment_request');
 const payViaRoutes = require('./pay_via_routes');
@@ -19,6 +20,7 @@ module.exports = {
   getPayment,
   getPaymentOdds,
   ignoreFromRoutingFailure,
+  isDestinationPayable,
   payViaPaymentDetails,
   payViaPaymentRequest,
   payViaRoutes,

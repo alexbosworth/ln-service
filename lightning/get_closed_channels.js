@@ -13,11 +13,11 @@ const outpointSeparator = ':';
   Multiple close type flags are supported.
 
   {
-    [is_breach_close]: <Bool>
-    [is_cooperative_close]: <Bool>
-    [is_funding_cancel]: <Bool>
-    [is_local_force_close]: <Bool>
-    [is_remote_force_close]: <Bool>
+    [is_breach_close]: <Only Return Breach Close Channels Bool>
+    [is_cooperative_close]: <Only Return Cooperative Close Channels Bool>
+    [is_funding_cancel]: <Only Return Funding Canceled Channels Bool>
+    [is_local_force_close]: <Only Return Local Force Close Channels Bool>
+    [is_remote_force_close]: <Only Return Remote Force Close CHannels Bool>
     lnd: <Authenticated LND gRPC API Object>
   }
 

@@ -58,6 +58,10 @@ module.exports = (args, cbk) => {
           return cbk([503, 'ExpectedBackupChannelBackupInSnapshot']);
         }
 
+        if (!Buffer.isBuffer(backup.chan_backup)) {
+          return cbk([503, 'ExpectedChannelBackupBufferFromSnapshot']);
+        }
+
         if (!backup.chan_point) {
           return cbk([503, 'ExpectedBackupChanPointInSnapshot']);
         }
@@ -68,10 +72,6 @@ module.exports = (args, cbk) => {
 
         if (backup.chan_point.output_index === undefined) {
           return cbk([503, 'ExpectedSnapshotChannelFundingOutputIndex']);
-        }
-
-        if (!Buffer.isBuffer(backup.chan_backup)) {
-          return cbk([503, 'ExpectedChannelBackupBufferFromSnapshot']);
         }
 
         const transactionId = backup.chan_point.funding_txid_bytes.reverse();

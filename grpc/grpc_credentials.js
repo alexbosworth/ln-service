@@ -11,6 +11,9 @@ const grpcSsl = require('./grpc_ssl');
     [macaroon]: <Base64 or Hex Serialized Macaroon String>
   }
 
+  @throws
+  <Error>
+
   @returns
   {
     credentials: <gRPC Credentials Object>

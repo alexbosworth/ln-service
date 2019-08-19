@@ -15,17 +15,21 @@ test(`Add a peer`, async ({end, equal}) => {
 
   equal(connectedKeys.find(n => n === remoteNodeKey), undefined, 'No peer');
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
-  });
+  try {
+    await addPeer({
+      lnd,
+      public_key: cluster.remote.public_key,
+      socket: cluster.remote.socket,
+    });
 
-  const {peers} = await getPeers({lnd});
+    const {peers} = await getPeers({lnd});
 
-  const connected = peers.find(n => n.public_key === remoteNodeKey);
+    const connected = peers.find(n => n.public_key === remoteNodeKey);
 
-  equal(connected.public_key, remoteNodeKey, 'Connected to remote node');
+    equal(connected.public_key, remoteNodeKey, 'Connected to remote node');
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  }
 
   await cluster.kill({});
 
