@@ -1116,8 +1116,14 @@ Requires LND built with routerrpc build tag
           success_odds: <Odds of Success Out of 1 Million Number>
           [to_public_key]: <To Public Key Hex String>
         }]
-        general_success_odds: <Non-Channel-Specific Odds Out of 1 Million Number>
-        last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
+        [general_success_odds]: <Non-Channel-Specific Odds Out of 1 Million Number>
+        [last_failed_forward_at]: <Last Failed Forward Time ISO-8601 Date String>
+        peers: [{
+          last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
+          min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
+          success_odds: <Odds of Success Out of 1 Million Number>
+          to_public_key: <To Public Key Hex String>
+        }]
         public_key: <Node Identity Public Key Hex String>
       }]
     }
@@ -2921,8 +2927,6 @@ const [lastUpdatedInvoice] = await once(sub, 'invoice_updated');
 Subscribe to the status of a past payment
 
 Requires lnd built with routerrpc build tag
-
-Either a request or a destination, id, and tokens amount is required
 
     {
       [id]: <Payment Request Hash Hex String>

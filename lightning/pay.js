@@ -296,6 +296,10 @@ module.exports = (args, cbk) => {
                 });
               }
 
+              if (/IncorrectOrUnknownPaymentDetails/.test(paymentError)) {
+                return cbk(null, {failed: [404, 'UnknownPaymentHash']});
+              }
+
               if (/TemporaryChannelFailure/.test(paymentError)) {
                 return cbk(null, {
                   failure: [503, 'TemporaryChannelFailure', {channel}],

@@ -91,7 +91,7 @@ module.exports = (args, cbk) => {
           cltv_delta: args.cltv_delta,
           destination: args.destination,
           ignore: args.ignore,
-          is_adjusted_for_past_failures: !args.is_ignoring_past_failures,
+          is_ignoring_past_failures: args.is_ignoring_past_failures,
           is_strict_hints: args.is_strict_hints,
           lnd: args.lnd,
           max_fee: args.max_fee,

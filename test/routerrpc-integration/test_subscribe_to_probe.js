@@ -6,6 +6,7 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
+const {deleteForwardingReputations} = require('./../../');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getRoutes} = require('./../../');
@@ -155,8 +156,8 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    partner_public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await waitForPendingChannel({
@@ -171,6 +172,8 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
     id: newChannel.transaction_id,
     lnd: cluster.target.lnd,
   });
+
+  await deleteForwardingReputations({lnd});
 
   const subSuccess = subscribeToProbe({
     lnd,

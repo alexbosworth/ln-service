@@ -78,8 +78,8 @@ test('Probe for route', async ({deepIs, end, equal}) => {
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   const {channels} = await getChannels({lnd: cluster.remote.lnd});
@@ -89,24 +89,39 @@ test('Probe for route', async ({deepIs, end, equal}) => {
   await delay(1000);
 
   try {
-    await probeForRoute({lnd, tokens, destination: cluster.remote.public_key});
-  } catch (err) {}
+    const res = await probeForRoute({
+      lnd,
+      tokens,
+      destination: cluster.remote.public_key,
+      is_ignoring_past_failures: true,
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error probing');
+  }
 
-  {
-    const {nodes} = await getForwardingReputations({lnd});
+  const {nodes} = await getForwardingReputations({lnd});
 
-    const [node] = nodes;
+  const [node] = nodes;
 
+  equal(node.public_key, cluster.target.public_key, 'Temp fail node added');
+
+  if (!!node.channels.length) {
     const [channel] = node.channels;
 
     equal(node.general_success_odds, defaultOdds, 'Node odds are default');
     equal(node.last_failed_forward_at, undefined, 'No last forward set');
-    equal(node.public_key, cluster.target.public_key, 'Temp fail node added');
 
     equal(channel.id, targetToRemoteChan.id, 'Fail channel id returned');
     equal(!!channel.last_failed_forward_at, true, 'Last fail time returned');
     equal(channel.min_relevant_tokens, tokens, 'Min relevant tokens set');
     equal(channel.success_odds < 1000, true, 'Success odds returned');
+  } else {
+    const [peer] = node.peers;
+
+    equal(!!peer.last_failed_forward_at, true, 'Last fail time returned');
+    equal(peer.min_relevant_tokens, tokens, 'Min relevant tokens returned');
+    equal(peer.success_odds < 1000, true, 'Peer success odds returned');
+    equal(peer.to_public_key, cluster.remote.public_key, 'Got peer pub key');
   }
 
   await cluster.kill({});

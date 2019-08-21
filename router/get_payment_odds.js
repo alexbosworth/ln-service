@@ -49,6 +49,7 @@ module.exports = ({hops, lnd}, cbk) => {
             channel: hop.channel,
             forward_mtokens: hop.forward_mtokens,
             from_public_key: !i ? undefined : hops[i - 1].public_key,
+            to_public_key: hops[i].public_key,
           };
         });
 
@@ -80,17 +81,22 @@ module.exports = ({hops, lnd}, cbk) => {
           const forwardingChannel = forwardingNode.channels
             .find(channel => channel.id === forward.channel);
 
+          const forwardingPeer = forwardingNode.peers
+            .find(peer => peer.to_public_key === forward.to_public_key);
+
+          const forwarding = forwardingPeer || forwardingChannel;
+
           // Exit early with general node odds when no chan reputation exists
-          if (!forwardingChannel) {
-            return forwardingNode.general_success_odds;
+          if (!forwarding) {
+            return forwardingNode.general_success_odds || defaultOdds;
           }
 
           // Exit early with default odds when reputation is not relevant
-          if (forwardMtokens < BigInt(forwardingChannel.min_relevant_tokens)) {
+          if (forwardMtokens < BigInt(forwarding.min_relevant_tokens)) {
             return forwardingNode.general_success_odds;
           }
 
-          return forwardingChannel.success_odds;
+          return forwarding.success_odds;
         });
 
         const totalDenominator = odds.slice(1)

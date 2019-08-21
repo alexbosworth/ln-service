@@ -1,6 +1,14 @@
 # Versions
 
-## 42.0.1
+## 43.0.0
+
+- `getForwardingReputations` add support for general peer reputations
+
+### Breaking Changes
+
+- `getForwardingReputations` returns either channel or peer odds depending on lnd version
+
+## 42.0.2
 
 - Fix `closeChannel` to allow specifying a channel id when closing a channel
 - Add `connectWatchtower` to connect to a watchtower

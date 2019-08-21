@@ -97,6 +97,10 @@ module.exports = (args, cbk) => {
             return cbk([404, 'UnknownPaymentHash']);
           }
 
+          if (!!res && /UnknownPaymentDetails/.test(res.payment_error)) {
+            return cbk([404, 'UnknownPaymentHash']);
+          }
+
           if (!!res && !!res.payment_error) {
             return cbk([503, 'SendPaymentFail', {message: res.payment_error}]);
           }

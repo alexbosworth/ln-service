@@ -10,6 +10,7 @@ const {isArray} = Array;
 const msPerSec = 1e3;
 const oddsDenominator = 1e6;
 const {round} = Math;
+const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
 /** Get the set of forwarding reputations
 
@@ -31,8 +32,14 @@ const {round} = Math;
         success_odds: <Odds of Success Out of 1 Million Number>
         [to_public_key]: <To Public Key Hex String>
       }]
-      general_success_odds: <Non-Channel-Specific Odds Out of 1 Million Number>
+      [general_success_odds]: <Non-Channel-Specific Odds Out of 1 Million Number>
       [last_failed_forward_at]: <Last Failed Forward Time ISO-8601 Date String>
+      peers: [{
+        last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
+        min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
+        success_odds: <Odds of Success Out of 1 Million Number>
+        to_public_key: <To Public Key Hex String>
+      }]
       public_key: <Node Identity Public Key Hex String>
     }]
   }
@@ -64,13 +71,13 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
             return cbk([503, 'ExpectedArrayOfNodesInMissionControlResponse']);
           }
 
-          return cbk(null, res.nodes);
+          return cbk(null, {nodes: res.nodes, pairs: res.pairs});
         });
       }],
 
       // Format and check reputations
-      format: ['getReputations', ({getReputations}, cbk) => {
-        return asyncMapSeries(getReputations, (node, cbk) => {
+      channels: ['getReputations', ({getReputations}, cbk) => {
+        return asyncMapSeries(getReputations.nodes, (node, cbk) => {
           if (!node) {
             return cbk([503, 'ExpectedNodeInMissionControlResponse']);
           }
@@ -83,7 +90,7 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
             return cbk([503, 'ExpectedLastFailTimeInReputationResponse']);
           }
 
-          if (!node.other_chan_success_prob) {
+          if (!node.other_success_prob) {
             return cbk([503, 'ExpectedChanSuccessProbForNode']);
           }
 
@@ -91,7 +98,7 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
             return cbk([503, 'ExpectedNodePublicKeyInResponse']);
           }
 
-          const generalOdds = parseFloat(node.other_chan_success_prob);
+          const generalOdds = parseFloat(node.other_success_prob);
           const publicKey = node.pubkey.toString('hex');
 
           const lastFailedAt = parseInt(node.last_fail_time, decBase);
@@ -176,11 +183,69 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
         cbk);
       }],
 
-      // Final set of reputations
-      reputations: ['format', ({format}, cbk) => {
-        const nodes = format.filter(n => !n.last_failed_forward_at);
+      // Peers
+      peers: ['getReputations', ({getReputations}, cbk) => {
+        const {pairs} = getReputations;
 
-        return cbk(null, {nodes});
+        if (!!pairs.find(n => !n.last_fail_time)) {
+          return cbk([503, 'ExpectedLastFailTimeInReputationsResponse']);
+        }
+
+        if (!!pairs.find(n => !n.min_penalize_amt_sat)) {
+          return cbk([503, 'ExpectedMinPenalizeAmtSatInReputationResponse']);
+        }
+
+        if (!!pairs.find(n => !Buffer.isBuffer(n.node_from))) {
+          return cbk([503, 'ExpectedFromNodePublicKeyInReputationsResponse']);
+        }
+
+        if (!!pairs.find(n => !Buffer.isBuffer(n.node_to))) {
+          return cbk([503, 'ExpectedToNodePublicKeyInReputationsResponse'])
+        }
+
+        if (!!pairs.find(n => n.success_prob === undefined)) {
+          return cbk([503, 'ExpectedSuccessProbInReputationResponse']);
+        }
+
+        return cbk(null, pairs.map(n => ({
+          last_failed_forward_at: timeAsDate(n.last_fail_time),
+          min_relevant_tokens: parseInt(n.min_penalize_amt_sat, decBase),
+          public_key: n.node_from.toString('hex'),
+          success_odds: round(parseFloat(n.success_prob) * oddsDenominator),
+          to_public_key: n.node_to.toString('hex'),
+        })));
+      }],
+
+      // Final set of reputations
+      reputations: ['channels', 'peers', ({channels, peers}, cbk) => {
+        const nodes = channels.filter(n => !n.last_failed_forward_at);
+
+        peers.filter(pair => {
+          if (!!nodes.find(n => n.public_key === pair.public_key)) {
+            return;
+          }
+
+          return nodes.push({public_key: pair.public_key});
+        });
+
+        const nodesWithPeers = nodes.map(node => {
+          const publicKey = node.public_key;
+
+          return {
+            channels: node.channels || [],
+            general_success_odds: node.general_success_odds || undefined,
+            last_failed_forward_at: node.last_failed_forward_at || undefined,
+            peers: peers.filter(n => n.public_key === publicKey).map(n => ({
+              last_failed_forward_at: n.last_failed_forward_at,
+              min_relevant_tokens: n.min_relevant_tokens,
+              success_odds: n.success_odds,
+              to_public_key: n.to_public_key,
+            })),
+            public_key: publicKey,
+          };
+        });
+
+        return cbk(null, {nodes: nodesWithPeers});
       }]
     },
     returnResult({reject, resolve, of: 'reputations'}, cbk));
