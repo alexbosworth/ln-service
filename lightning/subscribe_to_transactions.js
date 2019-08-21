@@ -22,6 +22,7 @@ const msPerSec = 1e3;
     confirmation_count: <Confirmation Count Number>
     fee: <Fees Paid Tokens Number>
     id: <Transaction Id String>
+    address: <address>
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Transaction Outbound Bool>
     tokens: <Tokens Number>
@@ -55,6 +56,7 @@ module.exports = ({lnd}) => {
       confirmation_count: tx.num_confirmations,
       created_at: new Date(createdAt * msPerSec).toISOString(),
       fee: parseInt(tx.total_fees, decBase),
+      address: tx.address,
       id: tx.tx_hash,
       is_confirmed: !!tx.block_hash,
       is_outgoing: parseInt(tx.amount, decBase) < 0,
