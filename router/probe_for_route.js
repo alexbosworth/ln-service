@@ -112,11 +112,11 @@ module.exports = (args, cbk) => {
           args.pathfinding_timeout || defaultProbeTimeoutMs
         );
 
+        sub.once('end', () => finished(null, {}));
+
         sub.once('error', err => finished(err));
 
         sub.once('probe_success', ({route}) => finished(null, {route}));
-
-        sub.once('end', () => finished(null, {}));
 
         return;
       }],

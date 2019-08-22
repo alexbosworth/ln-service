@@ -125,12 +125,12 @@ module.exports = (args, cbk) => {
           }
 
           // Exit early when this is a node ignore
-          if (!ignore.to_public_key && !ignore.from_public_key) {
+          if (!ignore.from_public_key && !ignore.to_public_key) {
             return cbk(null, ignore);
           }
 
           // Exit early when this is a full edge ignore
-          if (!!ignore.to_public_key && !!ignore.to_public_key) {
+          if (!!ignore.from_public_key && !!ignore.to_public_key) {
             return cbk(null, ignore);
           }
 
@@ -212,8 +212,18 @@ module.exports = (args, cbk) => {
       {
         const stubDestination = [[{public_key: args.destination}]];
         const hasRoutes = !!args.routes && !!args.routes.length;
-        const ignore = getIgnoredEdges.filter(n => !!n);
         const strict = !!args.is_strict_hints;
+
+        const ignore = getIgnoredEdges
+          .filter(n => !!n)
+          .filter(edge => {
+            if (!args.outgoing_channel || !!edge.channel) {
+              return true;
+            }
+
+            // When specifying an outgoing source, don't ever ignore it
+            return edge.to_public_key !== getOutgoing.source_key;
+          });
 
         const destination = !args.destination || strict ? [] : stubDestination;
 
@@ -244,7 +254,7 @@ module.exports = (args, cbk) => {
             fee_limit: !args.max_fee ? undefined : {fee_limit: args.max_fee},
             final_cltv_delta: finalCltv + blocksBuffer,
             ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,
-            ignored_nodes: ignoreAsIgnoredNodes({ignore: args.ignore}).ignored,
+            ignored_nodes: ignoreAsIgnoredNodes({ignore}).ignored,
             pub_key: firstHop.public_key,
             source_pub_key: getOutgoing.source_key,
             use_mission_control: args.is_adjusted_for_past_failures,

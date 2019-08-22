@@ -12,8 +12,8 @@
           "public_key": "origin"
         },
         {
-          "base_fee_mtokens": "1000",
-          "cltv_delta": 40,
+          "base_fee_mtokens": "9999",
+          "cltv_delta": 999,
           "fee_rate": 2,
           "public_key": "alice"
         }
@@ -26,13 +26,13 @@
       "policies": [
         {
           "base_fee_mtokens": "1234",
-          "cltv_delta": 999,
+          "cltv_delta": 40,
           "fee_rate": 7,
           "public_key": "alice"
         },
         {
-          "base_fee_mtokens": "2000",
-          "cltv_delta": 40,
+          "base_fee_mtokens": "9999",
+          "cltv_delta": 999,
           "fee_rate": 2,
           "public_key": "bob"
         }
@@ -44,14 +44,14 @@
       "id": "2",
       "policies": [
         {
-          "base_fee_mtokens": "3000",
-          "cltv_delta": 40,
+          "base_fee_mtokens": "9999",
+          "cltv_delta": 999,
           "fee_rate": 3,
           "public_key": "charlie"
         },
         {
           "base_fee_mtokens": "3000",
-          "cltv_delta": 999,
+          "cltv_delta": 40,
           "fee_rate": 9,
           "public_key": "bob"
         }

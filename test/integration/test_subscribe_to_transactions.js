@@ -30,7 +30,12 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
     equal(tx.is_outgoing, true, 'Tx is outgoing');
     equal(tx.fee, 8200, 'Transaction has a chain fee');
     equal(!!tx.id, true, 'Tx has an id');
+    equal(tx.output_addresses.length, 2, 'Destination and change returned');
     equal(tx.tokens, 1008200, 'Tx tokens is fee + tokens sent');
+
+    if (!!tx.output_addresses.find(n => n.length < 14 || n.length > 74)) {
+      fail('Output address lengths must be between 14 and 74');
+    }
 
     if (tx.is_confirmed !== false && tx.is_confirmed !== true) {
       fail('Transaction must have confirmation status');

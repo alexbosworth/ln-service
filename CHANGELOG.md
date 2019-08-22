@@ -1,5 +1,9 @@
 # Versions
 
+## 43.1.0
+
+- `subscribeToTransactions` include the derived output addresses in chain_transaction event
+
 ## 43.0.0
 
 - `getForwardingReputations` add support for general peer reputations

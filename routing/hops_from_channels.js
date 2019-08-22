@@ -86,7 +86,7 @@ module.exports = ({channels, destination}) => {
       base_fee_mtokens: (overridePolicy || policy).base_fee_mtokens,
       channel: channel.id,
       channel_capacity: channel.capacity,
-      cltv_delta: peer.cltv_delta || defaultCltvDelta,
+      cltv_delta: (overridePolicy || policy).cltv_delta || defaultCltvDelta,
       fee_rate: (overridePolicy || policy).fee_rate,
       public_key: nextHop,
     };
