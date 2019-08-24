@@ -1,5 +1,9 @@
 # Versions
 
+## 43.2.0
+
+- `getNode` added `is_omitting_channels`. This is recommended if not getting channels.
+
 ## 43.1.0
 
 - `subscribeToTransactions` include the derived output addresses in chain_transaction event

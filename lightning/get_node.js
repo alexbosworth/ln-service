@@ -1,15 +1,21 @@
 const asyncAuto = require('async/auto');
-const {channelEdgeAsChannel} = require('./../graph');
+const asyncMapLimit = require('async/mapLimit');
+const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
+
+const {channelEdgeAsChannel} = require('./../graph');
+const getChannel = require('./get_channel');
 
 const colorTemplate = '#000000';
 const decBase = 10;
+const getChannelLimit = 20;
 const {isArray} = Array;
 const msPerSec = 1e3;
 
 /** Get information about a node
 
   {
+    [is_omitting_channels]: <Omit Channels from Node Bool>
     lnd: <Authenticated LND gRPC API Object>
     public_key: <Node Public Key Hex String>
   }
@@ -19,7 +25,7 @@ const msPerSec = 1e3;
     alias: <Node Alias String>
     capacity: <Node Total Capacity Tokens Number>
     channel_count: <Known Node Channels Number>
-    [channels]: [{
+    channels: [{
       capacity: <Maximum Tokens Number>
       id: <Standard Format Channel Id String>
       policies: [{
@@ -61,8 +67,8 @@ module.exports = (args, cbk) => {
 
       // Get node
       getNode: ['validate', ({}, cbk) => {
-        args.lnd.default.getNodeInfo({
-          include_channels: true,
+        return args.lnd.default.getNodeInfo({
+          include_channels: !args.is_omitting_channels,
           pub_key: args.public_key,
         },
         (err, res) => {
@@ -135,17 +141,30 @@ module.exports = (args, cbk) => {
 
           const updated = !updatedAt ? undefined : new Date(updatedAt);
 
-          return cbk(null, {
-            alias: res.node.alias,
-            capacity: parseInt(res.total_capacity, decBase),
-            channel_count: res.num_channels,
-            channels: nodeChannels.map(chan => channelEdgeAsChannel(chan)),
-            color: res.node.color,
-            sockets: res.node.addresses.map(({addr, network}) => ({
-              socket: addr,
-              type: network,
-            })),
-            updated_at: !updated ? undefined : updated.toISOString(),
+          const channelIds = nodeChannels
+            .map(n => chanFormat({number: n.channel_id}).channel);
+
+          // Fetch the channels directly as getNode gives back wrong policies
+          return asyncMapLimit(channelIds, getChannelLimit, (id, cbk) => {
+            return getChannel({id, lnd: args.lnd}, cbk);
+          },
+          (err, channels) => {
+            if (!!err) {
+              return cbk(err);
+            }
+
+            return cbk(null, {
+              channels,
+              alias: res.node.alias,
+              capacity: parseInt(res.total_capacity, decBase),
+              channel_count: res.num_channels,
+              color: res.node.color,
+              sockets: res.node.addresses.map(({addr, network}) => ({
+                socket: addr,
+                type: network,
+              })),
+              updated_at: !updated ? undefined : updated.toISOString(),
+            });
           });
         });
       }],

@@ -13,6 +13,7 @@ const defaultFee = 1e3;
 
   {
     generate: <Generate Blocks Promise>
+    [generator]: <Generator Node Object>
     lnd: <Authenticated LND gRPC API Object>
     to: {
       public_key: <Partner Public Key Hex String>
@@ -27,7 +28,7 @@ const defaultFee = 1e3;
     transaction_vout: <Funding Transaction Output Index Number>
   }
 */
-module.exports = ({generate, lnd, to}, cbk) => {
+module.exports = ({generate, generator, lnd, to}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Open channel
@@ -49,7 +50,7 @@ module.exports = ({generate, lnd, to}, cbk) => {
 
       // Generate blocks
       generate: ['waitPending', async ({}) => {
-        return await generate({count: confirmationCount});
+        return await generate({count: confirmationCount, node: generator});
       }],
 
       // Wait for open

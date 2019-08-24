@@ -24,7 +24,9 @@ const {isArray} = Array;
     [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
-    [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
+    [outgoing_channel]: <Outgoing Channel Id String>
+    [path_timeout_ms]: <Time to Spend On A Path Milliseconds Number>
+    [probe_timeout_ms]: <Probe Timeout Milliseconds Number>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
@@ -95,6 +97,8 @@ module.exports = (args, cbk) => {
           is_strict_hints: args.is_strict_hints,
           lnd: args.lnd,
           max_fee: args.max_fee,
+          outgoing_channel: args.outgoing_channel,
+          path_timeout_ms: args.path_timeout_ms,
           routes: args.routes,
           tokens: args.tokens,
         });
@@ -109,7 +113,7 @@ module.exports = (args, cbk) => {
 
         timeout = setTimeout(
           () => finished([503, 'ProbeForRouteTimedOut']),
-          args.pathfinding_timeout || defaultProbeTimeoutMs
+          args.probe_timeout_ms || defaultProbeTimeoutMs
         );
 
         sub.once('end', () => finished(null, {}));

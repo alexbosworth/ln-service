@@ -3,68 +3,55 @@ const {test} = require('tap');
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const {getChannels} = require('./../../');
 const {getNode} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {openChannel} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
+const {updateRoutingFees} = require('./../../');
 
+const baseFee = 1337;
 const channelCapacityTokens = 1e6;
+const cltvDelta = 42;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultAliasLength = '00000000000000000000'.length;
+const feeRate = 21;
+const mtokPerTok = BigInt(1e3);
 
 // Getting a node should return the public graph node info
 test(`Get node`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {control} = cluster;
+
+  const {generate} = cluster;
   const {lnd} = control;
 
-  const controlToTargetChannel = await openChannel({
+  const controlToTarget = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  const targetToRemote = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    to: cluster.remote,
   });
 
-  await waitForPendingChannel({
+  await updateRoutingFees({
     lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    base_fee_tokens: baseFee,
+    cltv_delta: cltvDelta,
+    fee_rate: feeRate,
+    transaction_id: controlToTarget.transaction_id,
+    transaction_vout: controlToTarget.transaction_vout,
   });
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await delay(3000);
@@ -75,6 +62,30 @@ test(`Get node`, async ({deepIs, end, equal}) => {
   const controlPublicKey = (await getWalletInfo({lnd})).public_key;
 
   const node = await getNode({lnd, public_key: controlPublicKey});
+
+  {
+    const {channels} = await getNode({
+      lnd,
+      is_omitting_channels: true,
+      public_key: controlPublicKey,
+    });
+
+    equal(channels.length, [].length, 'Channels are omitted')
+  }
+
+  if (!!node.channels.length) {
+    const [{policies}] = node.channels;
+
+    const policy = policies.find(n => n.public_key === control.public_key);
+
+    equal(BigInt(policy.base_fee_mtokens), BigInt(baseFee)*mtokPerTok, 'Base');
+    equal(policy.cltv_delta, cltvDelta, 'Got expected cltv delta');
+    equal(policy.fee_rate, feeRate, 'Got expected fee rate');
+    equal(policy.is_disabled, false, 'Channel is not disabled');
+    equal(policy.max_htlc_mtokens, '990000000', 'Max HTLC mtokens returned');
+    equal(policy.min_htlc_mtokens, '1000', 'Min HTLC mtokens returned');
+    equal(!!policy.updated_at, true, 'Policy updated at date returned');
+  }
 
   const [socket] = node.sockets;
 

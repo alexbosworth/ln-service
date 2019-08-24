@@ -3417,6 +3417,7 @@ Subscribe to transactions
       id: <Transaction Id String>
       is_confirmed: <Is Confirmed Bool>
       is_outgoing: <Transaction Outbound Bool>
+      output_addresses: [<Chain Address String>]
       tokens: <Tokens Number>
     }
 

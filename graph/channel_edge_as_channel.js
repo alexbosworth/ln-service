@@ -81,12 +81,8 @@ module.exports = args => {
   }
 
   if (!!args.node1_policy) {
-    if (args.node1_policy.time_lock_delta === undefined) {
-      throw new Error('ExpectedChannelNode1TimelockDelta');
-    }
-
-    if (!args.node1_policy.min_htlc) {
-      throw new Error('ExpectedChannelNode1PolicyMinimumHtlcValue');
+    if (args.node1_policy.disabled === undefined) {
+      throw new Error('ExpectedChannelNode1DisabledStatus');
     }
 
     if (!args.node1_policy.fee_base_msat) {
@@ -97,8 +93,12 @@ module.exports = args => {
       throw new Error('ExpectedChannelNode1FeeRate');
     }
 
-    if (args.node1_policy.disabled === undefined) {
-      throw new Error('ExpectedChannelNode1DisabledStatus');
+    if (!args.node1_policy.min_htlc) {
+      throw new Error('ExpectedChannelNode1PolicyMinimumHtlcValue');
+    }
+
+    if (args.node1_policy.time_lock_delta === undefined) {
+      throw new Error('ExpectedChannelNode1TimelockDelta');
     }
   }
 
@@ -168,11 +168,8 @@ module.exports = args => {
   node1Policy.public_key = args.node1_pub;
   node2Policy.public_key = args.node2_pub;
 
-  const firstPolicy = args.node1_policy;
-  const secondPolicy = args.node2_policy;
-
   return {
-    policies,
+    policies: [node1Policy, node2Policy],
     id: chanFormat({number: args.channel_id}).channel,
     capacity: parseInt(args.capacity, decBase),
     transaction_id: transactionId,

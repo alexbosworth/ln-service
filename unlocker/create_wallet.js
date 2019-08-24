@@ -47,7 +47,7 @@ module.exports = ({lnd, passphrase, password, seed}, cbk) => {
         },
         err => {
           if (!!err) {
-            return cbk([503, 'UnexpectedUnlockWalletError', {err}]);
+            return cbk([503, 'UnexpectedInitWalletError', {err}]);
           }
 
           return cbk();
