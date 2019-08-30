@@ -117,11 +117,11 @@ module.exports = (args, cbk) => {
             return cbk([503, 'ExpectedPaymentRouteHops']);
           }
 
-          if (!res.payment_route.total_fees) {
+          if (res.payment_route.total_fees === undefined) {
             return cbk([503, 'ExpectedPaymentFeesPaid']);
           }
 
-          if (!res.payment_route.total_fees_msat) {
+          if (res.payment_route.total_fees_msat === undefined) {
             return cbk([503, 'ExpectedPaymentFeesPaidInMillitokens']);
           }
 
