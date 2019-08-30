@@ -810,7 +810,7 @@ message Transaction {
     int64 time_stamp = 6 [ json_name = "time_stamp" ];
 
     /// Fees paid for this transaction
-    int64 total_fees = 7 [ json_name = "total_fees" ];
+    int64 total_fees = 7 [ json_name = "total_fees", jstype = JS_STRING ];
 
     /// Addresses that received funds for this transaction
     repeated string dest_addresses = 8 [ json_name = "dest_addresses" ];
@@ -1101,7 +1101,7 @@ message Channel {
     height, the next 3 the index within the block, and the last 2 bytes are the
     output index for the channel.
     */
-    uint64 chan_id = 4 [json_name = "chan_id"];
+    uint64 chan_id = 4 [json_name = "chan_id", jstype = JS_STRING];
 
     /// The total amount of funds held in this channel
     int64 capacity = 5 [json_name = "capacity"];
@@ -1194,7 +1194,7 @@ message ChannelCloseSummary {
     string channel_point = 1 [json_name = "channel_point"];
 
     ///  The unique channel ID for the channel. 
-    uint64 chan_id = 2 [json_name = "chan_id"];
+    uint64 chan_id = 2 [json_name = "chan_id", jstype = JS_STRING];
 
     /// The hash of the genesis block that this channel resides within.
     string chain_hash = 3 [json_name = "chain_hash"];
@@ -1728,7 +1728,7 @@ message Route {
     of a one-hop payment, this value will be zero as we don't need to pay a fee
     to ourselves.
     */
-    int64 total_fees = 2 [json_name = "total_fees", deprecated = true];
+    int64 total_fees = 2 [json_name = "total_fees", deprecated = true, jstype = JS_STRING];
 
     /**
     The total amount of funds required to complete a payment over this route.
@@ -1747,7 +1747,7 @@ message Route {
     /**
     The total fees in millisatoshis.
     */
-    int64 total_fees_msat = 5 [json_name = "total_fees_msat"];
+    int64 total_fees_msat = 5 [json_name = "total_fees_msat", jstype = JS_STRING];
     
     /**
     The total amount in millisatoshis.
@@ -1826,7 +1826,7 @@ message ChannelEdge {
     height, the next 3 the index within the block, and the last 2 bytes are the
     output index for the channel.
     */
-    uint64 channel_id = 1 [json_name = "channel_id"];
+    uint64 channel_id = 1 [json_name = "channel_id", jstype = JS_STRING];
     string chan_point = 2 [json_name = "chan_point"];
 
     uint32 last_update = 3 [json_name = "last_update", deprecated = true];
