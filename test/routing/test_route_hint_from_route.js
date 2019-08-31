@@ -4,6 +4,16 @@ const {routeHintFromRoute} = require('./../../routing');
 
 const tests = [
   {
+    args: {},
+    description: 'Route is required',
+    error: 'ExpectedRouteArrayToDeriveHints',
+  },
+  {
+    args: {route: []},
+    description: 'Non-empty route is required',
+    error: 'ExpectedRouteArrayToDeriveHints',
+  },
+  {
     args: {
       route: [
         {
@@ -47,11 +57,15 @@ const tests = [
   },
 ];
 
-tests.forEach(({args, description, expected}) => {
-  return test(description, ({deepIs, end}) => {
-    const route = routeHintFromRoute(args);
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({deepIs, end, throws}) => {
+    if (!!error) {
+      throws(() => routeHintFromRoute(args), new Error(error), 'Got error');
+    } else {
+      const route = routeHintFromRoute(args);
 
-    deepIs(route, expected, 'Hints are derived as expected');
+      deepIs(route, expected, 'Hints are derived as expected');
+    }
 
     return end();
   });

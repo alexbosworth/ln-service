@@ -9,16 +9,8 @@ const minFee = 0;
 /** Given hops to a destination, construct a payable route
 
   {
-    [cltv]: <Final Cltv Delta Number>
+    [cltv_delta]: <Final Cltv Delta Number>
     height: <Current Block Height Number>
-    [hints]: [[{
-      [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
-      [channel_capacity]: <Channel Capacity Tokens Number>
-      [channel]: <Standard Format Channel Id String>
-      [cltv_delta]: <CLTV Blocks Delta Number>
-      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
-      public_key: <Forward Edge Public Key Hex String>
-    }]]
     hops: [{
       base_fee_mtokens: <Base Fee Millitokens String>
       channel: <Standard Format Channel Id String>
@@ -27,6 +19,7 @@ const minFee = 0;
       fee_rate: <Fee Rate In Millitokens Per Million Number>
       public_key: <Next Hop Public Key Hex String>
     }]
+    initial_cltv: <Initial CLTV Delta Number>
     mtokens: <Millitokens To Send String>
   }
 
@@ -52,8 +45,10 @@ const minFee = 0;
     tokens: <Total Fee-Inclusive Tokens Number>
   }
 */
-module.exports = ({cltv, height, hints, hops, mtokens}) => {
-  const finalCltvDelta = cltv || defaultCltvBuffer;
+module.exports = args => {
+  const {height, hops, mtokens} = args;
+
+  const finalCltvDelta = args.cltv_delta || defaultCltvBuffer;
 
   if (height === undefined) {
     throw new Error('ExpectedChainHeightForRoute');
@@ -63,21 +58,13 @@ module.exports = ({cltv, height, hints, hops, mtokens}) => {
     throw new Error('ExpectedHopsToConstructRouteFrom');
   }
 
+  if (!args.initial_cltv) {
+    throw new Error('ExpectedInitialCltvDeltaToConstructRouteFromHops');
+  }
+
   if (!mtokens) {
     throw new Error('ExpectedMillitokensToSendAcrossHops');
   }
-
-  const edges = {};
-
-  (hints || []).forEach(path => {
-    path.forEach((hint, i) => {
-      if (!hint.channel) {
-        return;
-      }
-
-      edges[`${hint.public_key}:${hint.channel}`] = hint;
-    });
-  });
 
   // Check hops for validity
   hops.forEach((hop, i) => {
@@ -93,16 +80,6 @@ module.exports = ({cltv, height, hints, hops, mtokens}) => {
       throw new Error('ExpectedHopCltvForRouteConstruction');
     }
 
-    const nextHop = hops[i + 1];
-
-    if (!!nextHop && edges[`${nextHop.public_key}:${nextHop.channel}`]) {
-      const key = `${nextHop.public_key}:${nextHop.channel}`;
-
-      hop.base_fee_mtokens = edges[key].base_fee_mtokens;
-      hop.cltv_delta = edges[key].cltv_delta;
-      hop.fee_rate = edges[key].fee_rate;
-    }
-
     if (hop.fee_rate === undefined) {
       throw new Error('ExpectedHopFeeRateForRouteConstruction');
     }
@@ -115,18 +92,18 @@ module.exports = ({cltv, height, hints, hops, mtokens}) => {
   });
 
   let forwardMtokens = BigInt(mtokens);
-  let nextFeeTokens = BigInt(minFee);
+  const [firstHop] = hops.slice();
   let timeoutHeight = height + finalCltvDelta;
 
   // To construct the route, we need to go backwards from the end
-  const backwardsPath = hops.slice().reverse().map((hop, i) => {
-    const policy = {
-      base_fee_mtokens: hop.base_fee_mtokens,
-      fee_rate: hop.fee_rate,
-    };
+  const backwardsPath = hops.slice().reverse().map((hop, i, hops) => {
+    let feeMtokens = BigInt(minFee);
 
-    const cltvDelta = !i ? minCltv : hop.cltv_delta;
-    const feeMtokens = nextFeeTokens;
+    if (!!i) {
+      const forward = policyFee({policy: hops[i-1], mtokens: forwardMtokens});
+
+      feeMtokens = BigInt(forward.fee_mtokens);
+    }
 
     const routeHop = {
       channel: hop.channel,
@@ -139,12 +116,8 @@ module.exports = ({cltv, height, hints, hops, mtokens}) => {
       timeout: timeoutHeight,
     };
 
-    const fee = policyFee({policy, mtokens: forwardMtokens});
-
-    timeoutHeight += !i ? minCltv : hop.cltv_delta;
-
     forwardMtokens += feeMtokens;
-    nextFeeTokens = BigInt(fee.fee_mtokens);
+    timeoutHeight += !i || i === hops.length - 1 ? minCltv : hop.cltv_delta;
 
     return routeHop;
   });
@@ -160,7 +133,7 @@ module.exports = ({cltv, height, hints, hops, mtokens}) => {
     fee_mtokens: totalFeeMtokens.toString(),
     hops: backwardsPath.slice().reverse(),
     mtokens: totalMtokens.toString(),
-    timeout: timeoutHeight,
+    timeout: timeoutHeight + args.initial_cltv,
     tokens: asTokens({mtokens: totalMtokens}).tokens,
   };
 };

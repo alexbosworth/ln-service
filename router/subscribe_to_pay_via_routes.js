@@ -258,10 +258,16 @@ module.exports = args => {
 
           const failure = res.failure;
 
-          const failAt = !failure ? undefined : failure.failure_source_index;
-
           const failKey = !failure ? undefined : failure.failure_source_pubkey;
 
+          // When the source pubkey is populated it means fail index is invalid
+          if (!!res.failure && !!res.failure.failure_source_pubkey.length) {
+            delete failure.failure_source_index;
+          }
+
+          const failAt = !failure ? undefined : failure.failure_source_index;
+
+          // When the fail index exists, populate the source pubkey
           if (!!failKey && !failKey.length && failAt !== undefined) {
             const failureSource = !failAt ? getInfo : route.hops[failAt - 1];
 
@@ -313,7 +319,24 @@ module.exports = args => {
           return cbk();
         }
 
-        return cbk(null, paymentFailure({keys, failure: attempt.failure}));
+        let channel;
+        const failKey = attempt.failure.failure_source_pubkey;
+        const {failure} = attempt;
+        const {hops} = route;
+
+        // A fail index indicates the hop channel that failed
+        if (failure.failure_source_index !== undefined) {
+          channel = (hops[failure.failure_source_index] || {}).channel;
+        } else if (!!failKey) {
+          const key = failKey.toString('hex');
+
+          const failIndex = hops.findIndex(n => n.public_key === key);
+
+          // A fail key can be used to find the channel within the route
+          channel = (hops[failIndex - [key].length] || {}).channel;
+        }
+
+        return cbk(null, paymentFailure({channel, failure, keys}));
       }],
 
       // Attempt success

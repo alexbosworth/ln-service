@@ -1,5 +1,17 @@
 # Versions
 
+## 44.0.0
+
+- `getRoutes` Improve route construction correctness
+- `routeFromChannels`, `routeFromHops`, standardize `cltv` argument as `cltv_delta`
+
+### Breaking Changs
+
+- `routeFromChannels` argument `cltv` is renamed `cltv_delta`
+- `routeFromHops` method removed, use `routeFromChannels` instead
+- `subscribeToChainAddress` argument `min_height` is now required
+- `subscribeToChainSpend` argument `min_height` is now required
+
 ## 43.2.0
 
 - `getNode` added `is_omitting_channels`. This is recommended if not getting channels.

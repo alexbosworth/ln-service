@@ -14,8 +14,8 @@ test(`Get channel backup`, async ({end, equal}) => {
   const channel = await openChannel({
     lnd,
     local_tokens: 1e6,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({lnd, id: channel.transaction_id});

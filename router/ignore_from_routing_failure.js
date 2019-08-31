@@ -67,6 +67,7 @@ module.exports = args => {
   if (!!failedHop && !!args.channel) {
     ignore.push({
       channel: args.channel,
+      from_public_key: (args.hops[failIndex - 1] || {}).public_key,
       reason: args.reason,
       to_public_key: failedHop.public_key,
     });
@@ -103,6 +104,7 @@ module.exports = args => {
     // If the peer is unknown, it could be that the next hop to blame
     ignore.push({
       channel: nextHop.channel,
+      from_public_key: (args.hops[failIndex] || {}).public_key,
       reason: args.reason,
       to_public_key: nextHop.public_key,
     });

@@ -120,16 +120,11 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     equal(code, 404, 'Invoice is unknown');
     equal(message, 'UnknownPaymentHash', 'Payment hash not recognized');
 
-    const [failure] = failures;
+    const [[failCode, failMessage, failDetails]] = failures;
 
-    deepIs(failure, [404, 'UnknownPaymentHash', {
-      channel: undefined,
-      mtokens: undefined,
-      policy: null,
-      public_key: destination,
-      timeout_height: undefined,
-      update: undefined,
-    }]);
+    equal(failCode, 404, 'No known entity');
+    equal(failMessage, 'UnknownPaymentHash', 'This is an unknown hash');
+    equal(failDetails.public_key, destination, 'Failure source is end');
   }
 
   const toRemote = await getChannel({
@@ -141,7 +136,7 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
 
   const insufficientFeeRoute = routeFromChannels({
     channels: [await getChannel({lnd, id: controlToTargetChan.id}), toRemote],
-    cltv: 40,
+    cltv_delta: 40,
     destination: decodedRequest.destination,
     height: (await getWalletInfo({lnd})).current_block_height,
     mtokens: '100000',

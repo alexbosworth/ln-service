@@ -23,6 +23,10 @@ module.exports = ({mtokens, policy}) => {
     throw new Error('ExpectedMillitokensForPolicyFeeCalculation');
   }
 
+  if (!policy) {
+    throw new Error('ExpectedPolicyToCalculateFeeFor');
+  }
+
   if (!policy.base_fee_mtokens) {
     throw new Error('ExpectedBaseFeeMillitokensForPolicyFeeCalculation');
   }

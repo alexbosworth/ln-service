@@ -3,6 +3,8 @@ const EventEmitter = require('events');
 const scriptFromChainAddress = require('./script_from_chain_address');
 const {dummyTxId} = require('./constants');
 
+const defaultMinConfirmations = 1;
+
 /** Subscribe to confirmation details about transactions sent to an address
 
   Requires lnd built with chainrpc build tag
@@ -13,7 +15,7 @@ const {dummyTxId} = require('./constants');
     [bech32_address]: <Address String>
     lnd: <Chain RPC LND gRPC API Object>
     [min_confirmations]: <Minimum Confirmations Number>
-    [min_height]: <Minimum Transaction Inclusion Blockchain Height Number>
+    min_height: <Minimum Transaction Inclusion Blockchain Height Number>
     [output_script]: <Output Script Hex String>
     [p2pkh_address]: <Address String>
     [p2sh_address]: <Address String>
@@ -38,6 +40,14 @@ const {dummyTxId} = require('./constants');
 module.exports = args => {
   let outputScript = args.output_script;
 
+  if (!args.lnd || !args.lnd.chain) {
+    throw new Error('ExpectedLndGrpcApiToSubscribeToChainTransaction');
+  }
+
+  if (!args.min_height) {
+    throw new Error('ExpectedMinHeightToSubscribeToChainAddress');
+  }
+
   if (!args.output_script) {
     if (!args.bech32_address && !args.p2sh_address && !args.p2pkh_address) {
       throw new Error('ExpectedChainAddressToSubscribeForConfirmationEvents');
@@ -56,15 +66,11 @@ module.exports = args => {
     outputScript = script;
   }
 
-  if (!args.lnd || !args.lnd.chain) {
-    throw new Error('ExpectedLndGrpcApiToSubscribeToChainTransaction');
-  }
-
   const eventEmitter = new EventEmitter();
 
   const sub = args.lnd.chain.registerConfirmationsNtfn({
-    height_hint: args.min_height || 0,
-    num_confs: args.min_confirmations || 1,
+    height_hint: args.min_height,
+    num_confs: args.min_confirmations || defaultMinConfirmations,
     script: Buffer.from(outputScript, 'hex'),
     txid: Buffer.from(args.transaction_id || dummyTxId, 'hex'),
   });

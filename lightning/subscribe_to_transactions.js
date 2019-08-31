@@ -25,7 +25,7 @@ const msPerSec = 1e3;
     address: <address>
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Transaction Outbound Bool>
-    output_addresses: [<Chain Address String>]
+    [output_addresses]: [<Chain Address String>]
     tokens: <Tokens Number>
   }
 */

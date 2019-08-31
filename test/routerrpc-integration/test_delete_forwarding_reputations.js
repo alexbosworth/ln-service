@@ -1,5 +1,3 @@
-const {once} = require('events');
-
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
@@ -7,20 +5,12 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
 const {delay} = require('./../macros');
-const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
-const {getRoutes} = require('./../../');
-const {openChannel} = require('./../../');
-const {payViaRoutes} = require('./../../');
+const {payViaPaymentRequest} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
-const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
 const tokens = 1e6 / 2;
 
 // Probing for a route should return a route
@@ -28,73 +18,39 @@ test('Probe for route', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
+  const {remote} = cluster;
 
-  // Create a channel from the control to the target node
-  const controlToTargetChannel = await openChannel({
+  const controlToTargetChan = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens * 2,
-    partner_public_key: cluster.target_node_public_key,
-    socket: cluster.target.socket,
-  });
-
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  const controlToTargetChan = await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
   const [controlChannel] = (await getChannels({lnd})).channels;
 
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: Math.round(channelCapacityTokens / 2),
+  const targetToRemoteChan = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: cluster.remote.socket,
+    to: cluster.remote,
   });
 
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
+  await addPeer({lnd, public_key: remote.public_key, socket: remote.socket});
 
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  const targetToRemoteChan = await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await addPeer({
-    lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
-  });
-
-  const {channels} = await getChannels({lnd: cluster.remote.lnd});
-
-  await createInvoice({tokens, lnd: cluster.remote.lnd});
-
-  await delay(1000);
+  const {request} = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
   try {
-    await probeForRoute({lnd, tokens, destination: cluster.remote.public_key});
+    await payViaPaymentRequest({lnd, request});
+  } catch (err) {
+    equal(err, null, 'Expected no error paying payment request');
+  }
+
+  try {
+    await probeForRoute({lnd, tokens, destination: remote.public_key});
   } catch (err) {}
 
   {
     const {nodes} = await getForwardingReputations({lnd});
-
-    equal(nodes.length, [tokens].length, 'Reputation should be generated');
   }
 
   await deleteForwardingReputations({lnd});

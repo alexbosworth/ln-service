@@ -13,6 +13,7 @@ const {getForwardingReputations} = require('./../../');
 const {getPaymentOdds} = require('./../../');
 const {getRoutes} = require('./../../');
 const {openChannel} = require('./../../');
+const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {waitForChannel} = require('./../macros');
@@ -78,25 +79,22 @@ test('Probe for route', async ({deepIs, end, equal}) => {
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket
   });
 
-  const {channels} = await getChannels({lnd: cluster.remote.lnd});
-
-  await createInvoice({tokens, lnd: cluster.remote.lnd});
-
-  await delay(1000);
-
   try {
-    await probeForRoute({lnd, tokens, destination: cluster.remote.public_key});
+    await probeForRoute({
+      lnd,
+      tokens,
+      is_ignoring_past_failures: true,
+      destination: cluster.remote.public_key,
+    });
   } catch (err) {}
 
-  {
-    const {nodes} = await getForwardingReputations({lnd});
+  const {nodes} = await getForwardingReputations({lnd});
 
-    equal(nodes.length, [tokens].length, 'Reputation should be generated');
-  }
+  equal(nodes.length, [tokens].length, 'Reputation should be generated');
 
   const destination = cluster.remote.public_key;
 

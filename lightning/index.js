@@ -29,6 +29,7 @@ const getUtxos = require('./get_utxos');
 const getWalletInfo = require('./get_wallet_info');
 const openChannel = require('./open_channel');
 const pay = require('./pay');
+const probe = require('./probe');
 const recoverFundsFromChannel = require('./recover_funds_from_channel');
 const recoverFundsFromChannels = require('./recover_funds_from_channels');
 const removePeer = require('./remove_peer');
@@ -78,6 +79,7 @@ module.exports = {
   getWalletInfo,
   openChannel,
   pay,
+  probe,
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,

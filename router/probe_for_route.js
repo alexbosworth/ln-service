@@ -10,7 +10,9 @@ const {isArray} = Array;
 
 /** Probe to find a successful route
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
+
+  `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
   {
     [cltv_delta]: <Final CLTV Delta Number>

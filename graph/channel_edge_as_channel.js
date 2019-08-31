@@ -169,9 +169,9 @@ module.exports = args => {
   node2Policy.public_key = args.node2_pub;
 
   return {
-    policies: [node1Policy, node2Policy],
     id: chanFormat({number: args.channel_id}).channel,
     capacity: parseInt(args.capacity, decBase),
+    policies: [node1Policy, node2Policy],
     transaction_id: transactionId,
     transaction_vout: parseInt(vout, decBase),
     updated_at: !updatedAt ? undefined : new Date(updatedAt).toISOString(),

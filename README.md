@@ -7,6 +7,11 @@
 The core of this project is a gRPC interface for node.js projects, available
 through npm.
 
+Supported LND versions:
+
+- v0.7.1-beta
+- v0.7.0-beta
+
 ## Installing LND
 
 There is a guide to installing LND on the LND repository:
@@ -154,7 +159,6 @@ for `unlocker` methods.
 - [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
 - [removePeer](#removePeer) - Disconnect from a connected peer
 - [routeFromChannels](#routeFromChannels) - Convert channel series to a route
-- [routeFromHops](#routeFromHops) - Convert hops to a payable route
 - [sendToChainAddress](#sendToChainAddress) - Send on-chain to an address
 - [sendToChainAddresses](#sendToChainAddresses) - Send on-chain to addresses
 - [setAutopilot](#setAutopilot) - Turn autopilot on and set autopilot scores
@@ -1563,6 +1567,8 @@ Get routes a payment can travel towards a destination
 When paying to a private route, make sure to pass the final destination in
 addition to routes.
 
+`is_adjusted_for_past_failures` will turn on LND 0.7.1+ past-fail pathfinding
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       [destination]: <Final Send Destination Hex Encoded Public Key String>
@@ -2130,9 +2136,9 @@ const {route} = await probe({lnd, routes});
 
 ### probeForRoute
 
-Probe to find a successful route
+Requires LND built with `routerrpc` build tag
 
-Requires lnd built with routerrpc build tag
+`is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2263,7 +2269,7 @@ Get a route from a sequence of channels
           public_key: <Node Public Key String>
         }]
       }]
-      [cltv]: <Final Cltv Delta Number>
+      [cltv_delta]: <Final Cltv Delta Number>
       destination: <Destination Public Key Hex String>
       height: <Current Block Height Number>
       mtokens: <Millitokens To Send String>
@@ -2300,63 +2306,11 @@ const {getChannel, getChannels, routeFromChannels} = require('ln-service');
 const {getWalletInfo} = require('ln-service');
 const [{id}] = await getChannels({lnd});
 const channels = [(await getChannel({lnd, id}))];
-const cltv = 40;
 const destination = 'destinationNodePublicKeyHexString';
 const height = (await getWalletInfo({lnd})).current_block_height;
 const mtokens = '1000';
-const res = routeFromChannels({channels, cltv, destination, height, mtokens});
+const res = routeFromChannels({channels, destination, height, mtokens});
 const {route} = res;
-```
-
-### routeFromHops
-
-Given hops to a destination, construct a payable route
-
-    {
-      [cltv]: <Final Cltv Delta Number>
-      height: <Current Block Height Number>
-      hops: [{
-        base_fee_mtokens: <Base Fee Millitokens String>
-        channel: <Standard Format Channel Id String>
-        [channel_capacity]: <Channel Capacity Tokens Number>
-        cltv_delta: <CLTV Delta Number>
-        fee_rate: <Fee Rate In Millitokens Per Million Number>
-        public_key: <Next Hop Public Key Hex String>
-      }]
-      mtokens: <Millitokens To Send String>
-    }
-
-    @throws
-    <Error>
-
-    @returns
-    {
-      fee: <Route Fee Tokens Number>
-      fee_mtokens: <Route Fee Millitokens String>
-      hops: [{
-        channel: <Standard Format Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
-        fee: <Fee Number>
-        fee_mtokens: <Fee Millitokens String>
-        forward: <Forward Tokens Number>
-        forward_mtokens: <Forward Millitokens String>
-        [public_key]: <Public Key Hex String>
-        timeout: <Timeout Block Height Number>
-      }]
-      mtokens: <Total Fee-Inclusive Millitokens String>
-      timeout: <Timeout Block Height Number>
-      tokens: <Total Fee-Inclusive Tokens Number>
-    }
-
-Example:
-
-```node
-const {calculateHops, getNetworkGraph, routeFromHops} = require('ln-service');
-const {channels} = await getNetworkGraph({lnd});
-const end = 'destinationPublicKeyHexString';
-const start = (await getWalletInfo({lnd})).public_key;
-const mtokens = '1000';
-const {hops} = calculateHops({channels, end, mtokens, start});
 ```
 
 ### sendToChainAddress
@@ -2617,7 +2571,7 @@ One and only one chain address or output script is required
       [bech32_address]: <Address String>
       lnd: <Chain RPC LND gRPC API Object>
       [min_confirmations]: <Minimum Confirmations Number>
-      [min_height]: <Minimum Transaction Inclusion Blockchain Height Number>
+      min_height: <Minimum Transaction Inclusion Blockchain Height Number>
       [output_script]: <Output Script Hex String>
       [p2pkh_address]: <Address String>
       [p2sh_address]: <Address String>
@@ -2653,17 +2607,17 @@ sub.on('confirmation', ({block}) => confirmationBlockHash = block);
 
 Subscribe to confirmations of a spend
 
-An lnd built with the chainrpc build tag is required
+An LND built with the `chainrpc` build tag is required
 
-A chain address is required
+A chain address or raw output script is required
 
     {
-      [bech32_address]: <Address String>
+      [bech32_address]: <Bech32 P2WPKH or P2WSH Address String>
       lnd: <Chain RPC LND gRPC API Object>
-      [min_height]: <Minimum Transaction Inclusion Blockchain Height Number>
-      [output_script]: <Output Script Hex String>
-      [p2pkh_address]: <Address String>
-      [p2sh_address]: <Address String>
+      min_height: <Minimum Transaction Inclusion Blockchain Height Number>
+      [output_script]: <Output Script AKA ScriptPub Hex String>
+      [p2pkh_address]: <Pay to Public Key Hash Address String>
+      [p2sh_address]: <Pay to Script Hash Address String>
       [transaction_id]: <Blockchain Transaction Id Hex String>
       [transaction_vout]: <Blockchain Transaction Output Index Number>
     }
@@ -3269,9 +3223,9 @@ const [success] = await once(sub, 'success');
 
 ### subscribeToProbe
 
-Subscribe to a probe attempt
+Requires LND built with `routerrpc` build tag
 
-Requires lnd built with routerrpc build tag
+`is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3417,7 +3371,7 @@ Subscribe to transactions
       id: <Transaction Id String>
       is_confirmed: <Is Confirmed Bool>
       is_outgoing: <Transaction Outbound Bool>
-      output_addresses: [<Chain Address String>]
+      [output_addresses]: [<Chain Address String>]
       tokens: <Tokens Number>
     }
 

@@ -57,13 +57,12 @@ const {pay} = require('./lightning');
 const {payViaPaymentDetails} = require('./router');
 const {payViaPaymentRequest} = require('./router');
 const {payViaRoutes} = require('./router');
-const {probe} = require('./routing');
+const {probe} = require('./lightning');
 const {probeForRoute} = require('./router');
 const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
 const {removePeer} = require('./lightning');
 const {routeFromChannels} = require('./routing');
-const {routeFromHops} = require('./routing');
 const {sendToChainAddress} = require('./lightning');
 const {sendToChainAddresses} = require('./lightning');
 const {setAutopilot} = require('./autopilot');
@@ -159,7 +158,6 @@ module.exports = {
   recoverFundsFromChannels,
   removePeer,
   routeFromChannels,
-  routeFromHops,
   sendToChainAddress,
   sendToChainAddresses,
   setAutopilot,

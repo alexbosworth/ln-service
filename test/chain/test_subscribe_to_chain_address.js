@@ -36,10 +36,31 @@ const tests = [
       transaction: (new Transaction()).toHex(),
     },
   },
+  {
+    args: {},
+    description: 'Lnd is required to subscribe',
+    error: 'ExpectedLndGrpcApiToSubscribeToChainTransaction',
+  },
+  {
+    args: {lnd: {chain: {}}},
+    description: 'Min height is required',
+    error: 'ExpectedMinHeightToSubscribeToChainAddress',
+  },
+  {
+    args: {lnd: {chain: {}}, min_height: 1},
+    description: 'An output to watch for is required',
+    error: 'ExpectedChainAddressToSubscribeForConfirmationEvents',
+  },
 ];
 
-tests.forEach(({args, description, emitter, expected}) => {
-  return test(description, ({end, equal}) => {
+tests.forEach(({args, description, emitter, error, expected}) => {
+  return test(description, ({end, equal, throws}) => {
+    if (!!error) {
+      throws(() => subscribeToChainAddress(args), new Error(error), 'Got err');
+
+      return end();
+    }
+
     args.lnd = {chain: {registerConfirmationsNtfn: ({}) => emitter}};
 
     const sub = subscribeToChainAddress(args);

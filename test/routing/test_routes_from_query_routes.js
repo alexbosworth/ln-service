@@ -27,7 +27,23 @@ const tests = [
     error: 'ExpectedValidRoutes',
     response: {routes: [{total_fees_msat: null, total_time_lock: 31337}]},
   },
-
+  {
+    description: 'Invalid timelock',
+    error: 'ExpectedValidRoutes',
+    response: {routes: [{total_fees_msat: '1', total_time_lock: null}]},
+  },
+  {
+    description: 'Invalid hops',
+    error: 'ExpectedValidRoutes',
+    response: {routes: [{total_fees_msat: '1', total_time_lock: 31337}]},
+  },
+  {
+    description: 'Invalid channel id',
+    error: 'ExpectedValidHopChannelIdsInRoutes',
+    response: {
+      routes: [{hops: [{}], total_fees_msat: '1', total_time_lock: 31337}],
+    },
+  },
   {
     description: 'Valid routes',
     expected: {

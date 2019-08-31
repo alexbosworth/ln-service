@@ -47,7 +47,11 @@ test(`Recover funds with backup`, async ({end, equal}) => {
 
   await stopDaemon({lnd});
 
-  await recoverFundsFromChannels({backup, lnd: clone.lnd});
+  try {
+    await recoverFundsFromChannels({backup, lnd: clone.lnd});
+  } catch (err) {
+    equal(err, null, 'An error is not expected');
+  }
 
   await delay(3000);
 

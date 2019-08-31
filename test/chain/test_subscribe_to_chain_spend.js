@@ -20,10 +20,31 @@ const tests = [
       vin: 0,
     },
   },
+  {
+    args: {},
+    description: 'An lnd is required',
+    error: 'ExpectedLndGrpcApiToSubscribeToSpendConfirmations',
+  },
+  {
+    args: {lnd: {chain: {registerSpendNtfn: () => {}}}},
+    description: 'Min height is required',
+    error: 'ExpectedMinHeightToSubscribeToChainSpend',
+  },
+  {
+    args: {lnd: {chain: {registerSpendNtfn: () => {}}}, min_height: 1},
+    description: 'An address or output script is required',
+    error: 'ExpectedRecognizedAddressFormatToWatchForSpend',
+  },
 ];
 
-tests.forEach(({args, description, expected}) => {
-  return test(description, ({end, equal}) => {
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({end, equal, throws}) => {
+    if (!!error) {
+      throws(() => subscribeToChainSpend(args), new Error(error), 'Got error');
+
+      return end();
+    }
+
     const emitter = new EventEmitter();
 
     args.lnd = {chain: {registerSpendNtfn: ({}) => emitter}};

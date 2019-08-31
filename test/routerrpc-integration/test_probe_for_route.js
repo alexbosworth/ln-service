@@ -90,6 +90,7 @@ test('Probe for route', async ({deepIs, end, equal}) => {
     await probeForRoute({
       lnd,
       destination: cluster.remote_node_public_key,
+      is_ignoring_past_failures: true,
       tokens: invoice.tokens,
     });
   } catch (err) {

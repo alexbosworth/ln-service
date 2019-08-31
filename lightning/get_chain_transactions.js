@@ -6,6 +6,7 @@ const {abs} = Math;
 const decBase = 10;
 const {isArray} = Array;
 const msPerSec = 1e3;
+const notFound = -1;
 
 /** Get chain transactions.
 
@@ -80,7 +81,7 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'ExpectedChainTransactionDestinationAddresses']);
           }
 
-          if (!!transaction.dest_addresses.find(n => !n)) {
+          if (transaction.dest_addresses.findIndex(n => !n) !== notFound) {
             return cbk([503, 'ExpectedDestinationAddressesInChainTx']);
           }
 

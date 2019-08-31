@@ -21,7 +21,7 @@ const {isArray} = Array;
         public_key: <Node Public Key String>
       }]
     }]
-    [cltv]: <Final CLTV Delta Number>
+    [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Destination Public Key Hex String>
     height: <Current Block Height Number>
     mtokens: <Millitokens To Send String>
@@ -51,24 +51,35 @@ const {isArray} = Array;
     }
   }
 */
-module.exports = ({channels, cltv, destination, height, mtokens}) => {
-  if (!isArray(channels) || !channels.length) {
+module.exports = args => {
+  if (!isArray(args.channels) || !args.channels.length) {
     throw new Error('ExpectedChannelsToFormRouteToDestination');
   }
 
-  if (!channels.slice().pop().destination && !destination) {
+  if (!args.channels.slice().pop().destination && !args.destination) {
     throw new Error('ExpectedDestinationForRouteToDestination');
   }
 
-  if (!height) {
+  if (!args.height) {
     throw new Error('ExpectedHeightToCalculateRouteToDestination');
   }
 
-  if (!mtokens) {
+  if (!args.mtokens) {
     throw new Error('ExpectedMillitokensToSendOnRouteToDestination');
   }
 
-  const {hops} = hopsFromChannels({channels, destination});
+  const path = hopsFromChannels({
+    channels: args.channels,
+    destination: args.destination,
+  });
 
-  return {route: routeFromHops({cltv, height, hops, mtokens})};
+  const route = routeFromHops({
+    cltv_delta: args.cltv_delta,
+    height: args.height,
+    hops: path.hops,
+    initial_cltv: path.initial_cltv,
+    mtokens: args.mtokens,
+  });
+
+  return {route};
 };

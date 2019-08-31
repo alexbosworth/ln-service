@@ -40,6 +40,7 @@ const tests = [
           public_key: 'e',
         },
       ],
+      initial_cltv: 40,
       mtokens: '1000000',
     },
     description: 'Varying fee rates returns computed fees',
@@ -95,7 +96,7 @@ const tests = [
   },
   {
     args: {
-      cltv: 143,
+      cltv_delta: 143,
       height: 550607,
       hops: [
         {
@@ -104,7 +105,7 @@ const tests = [
           channel_capacity: 8429350,
           cltv_delta: 144,
           fee_rate: 2500,
-          public_key: '03e50492eab4107a773141bb419e107bda3de3d55652e6e1a41225f06a0bbf2d56',
+          public_key: 'b',
         },
         {
           base_fee_mtokens: '0',
@@ -112,7 +113,7 @@ const tests = [
           channel_capacity: 2000000,
           cltv_delta: 144,
           fee_rate: 10,
-          public_key: '03bb88ccc444534da7b5b64b4f7b15e1eccb18e102db0e400d4b9cfe93763aa26d',
+          public_key: 'c',
         },
         {
           base_fee_mtokens: '1000',
@@ -120,7 +121,7 @@ const tests = [
           channel_capacity: 400000,
           cltv_delta: 144,
           fee_rate: 100,
-          public_key: '028dcc199be86786818c8c32bffe9db8855c5fca98951eec99d1fa335d841605c2',
+          public_key: 'd',
         },
         {
           base_fee_mtokens: '1000',
@@ -128,9 +129,10 @@ const tests = [
           channel_capacity: 364355,
           cltv_delta: 144,
           fee_rate: 1,
-          public_key: '03277a99c297a53859b42a9bb8cb2c5c17b9eaa44509bae150e2ea35ca5aa29bd9',
+          public_key: 'e',
         },
       ],
+      initial_cltv: 144,
       mtokens: '300000000',
     },
     description: 'Sending across multiple nodes',
@@ -145,7 +147,7 @@ const tests = [
           fee_mtokens: '3000',
           forward: 300032,
           forward_mtokens: '300032300',
-          public_key: '03e50492eab4107a773141bb419e107bda3de3d55652e6e1a41225f06a0bbf2d56',
+          public_key: 'b',
           timeout: 551038,
         },
         {
@@ -155,7 +157,7 @@ const tests = [
           fee_mtokens: '31000',
           forward: 300001,
           forward_mtokens: '300001300',
-          public_key: '03bb88ccc444534da7b5b64b4f7b15e1eccb18e102db0e400d4b9cfe93763aa26d',
+          public_key: 'c',
           timeout: 550894,
         },
         {
@@ -165,7 +167,7 @@ const tests = [
           fee_mtokens: '1300',
           forward: 300000,
           forward_mtokens: '300000000',
-          public_key: '028dcc199be86786818c8c32bffe9db8855c5fca98951eec99d1fa335d841605c2',
+          public_key: 'd',
           timeout: 550750,
         },
         {
@@ -175,7 +177,7 @@ const tests = [
           fee_mtokens: '0',
           forward: 300000,
           forward_mtokens: '300000000',
-          public_key: '03277a99c297a53859b42a9bb8cb2c5c17b9eaa44509bae150e2ea35ca5aa29bd9',
+          public_key: 'e',
           timeout: 550750,
         },
       ],
@@ -213,6 +215,7 @@ const tests = [
           public_key: 'd',
         },
       ],
+      initial_cltv: 144,
       mtokens: '2000000000',
     },
     description: 'Sending across a node adds fees',
@@ -256,13 +259,92 @@ const tests = [
       tokens: 2000015,
     },
   },
+  {
+    args: {},
+    description: 'The current height is required',
+    error: 'ExpectedChainHeightForRoute',
+  },
+  {
+    args: {height: 1},
+    description: 'Hops array is required',
+    error: 'ExpectedHopsToConstructRouteFrom',
+  },
+  {
+    args: {height: 1, hops: []},
+    description: 'Hops are required',
+    error: 'ExpectedHopsToConstructRouteFrom',
+  },
+  {
+    args: {height: 1, hops: [{}]},
+    description: 'Initial cltv is required',
+    error: 'ExpectedInitialCltvDeltaToConstructRouteFromHops',
+  },
+  {
+    args: {height: 1, hops: [{}], initial_cltv: 1},
+    description: 'Millitokens to route is required',
+    error: 'ExpectedMillitokensToSendAcrossHops',
+  },
+  {
+    args: {height: 1, hops: [{}], initial_cltv: 1, mtokens: '1'},
+    description: 'Hops must have a base fee',
+    error: 'ExpectedHopBaseFeeMillitokensForRouteConstruction',
+  },
+  {
+    args: {
+      height: 1,
+      hops: [{base_fee_mtokens: '1'}],
+      initial_cltv: 1,
+      mtokens: '1',
+    },
+    description: 'Hops must have a channel id',
+    error: 'ExpectedHopChannelIdForRouteConstruction',
+  },
+  {
+    args: {
+      height: 1,
+      hops: [{base_fee_mtokens: '1', channel: '1x1x1'}],
+      initial_cltv: 1,
+      mtokens: '1',
+    },
+    description: 'Hops must have a cltv delta',
+    error: 'ExpectedHopCltvForRouteConstruction',
+  },
+  {
+    args: {
+      height: 1,
+      hops: [{base_fee_mtokens: '1', channel: '1x1x1', cltv_delta: 1}],
+      initial_cltv: 1,
+      mtokens: '1',
+    },
+    description: 'Hops must have a fee rate',
+    error: 'ExpectedHopFeeRateForRouteConstruction',
+  },
+  {
+    args: {
+      height: 1,
+      hops: [{
+        base_fee_mtokens: '1',
+        channel: '1x1x1',
+        cltv_delta: 1,
+        fee_rate: 1,
+      }],
+      initial_cltv: 1,
+      mtokens: '1',
+    },
+    description: 'Hops must have a next node public key',
+    error: 'ExpectedHopNextPublicKeyForRouteConstruction',
+  },
 ];
 
-tests.forEach(({args, description, expected}) => {
-  return test(description, ({deepIs, end}) => {
-    const route = routeFromHops(args);
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({deepIs, end, throws}) => {
+    if (!!error) {
+      throws(() => routeFromHops(args), new Error(error), 'Got expected err');
+    } else {
+      const route = routeFromHops(args);
 
-    deepIs(route, expected, 'Route is constructed as expected');
+      deepIs(route, expected, 'Route is constructed as expected');
+    }
 
     return end();
   });

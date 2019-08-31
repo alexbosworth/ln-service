@@ -77,7 +77,12 @@ test('Payment errors', async ({end, equal}) => {
 
     const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
 
-    const route = routeFromHops({height, hops, mtokens});
+    const route = routeFromHops({
+      height,
+      hops,
+      mtokens,
+      initial_cltv: 40,
+    });
 
     route.hops[0].fee = 0;
     route.hops[0].fee_mtokens = '0';

@@ -33,6 +33,8 @@ const pathNotFoundErrors = [
   When paying to a private route, make sure to pass the final destination in
   addition to routes.
 
+  `is_adjusted_for_past_failures` will turn on LND 0.7.1+ past-fail pathfinding
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Final Send Destination Hex Encoded Public Key String>
@@ -320,9 +322,10 @@ module.exports = (args, cbk) => {
               id: n.channel,
               policies: [
                 {
+                  cltv_delta: n.cltv_delta,
                   base_fee_mtokens: n.base_fee_mtokens,
                   fee_rate: n.fee_rate,
-                  public_key: pkCursor,
+                  public_key: pkCursor || source,
                 },
                 {
                   cltv_delta: n.cltv_delta,
@@ -421,7 +424,7 @@ module.exports = (args, cbk) => {
                   const {route} = routeFromChannels({
                     destination,
                     channels: [].concat(getOutgoing.channels).concat(channels),
-                    cltv: (args.cltv_delta || defaultFinalCltvDelta),
+                    cltv_delta: (args.cltv_delta || defaultFinalCltvDelta),
                     height: res.current_block_height,
                     mtokens: tokensAsMtokens(args.tokens || defaultTokens),
                   });

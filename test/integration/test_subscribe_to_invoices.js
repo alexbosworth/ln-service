@@ -137,7 +137,12 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
   const {id} = invoice;
 
-  const routes = [routeFromHops({height, hops, mtokens})];
+  const routes = [routeFromHops({
+    height,
+    hops,
+    mtokens,
+    initial_cltv: 40,
+  })];
 
   const selfPay = await pay({lnd, path: {id, routes}});
 

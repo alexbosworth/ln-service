@@ -130,7 +130,7 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
 
   const failChannel = await getChannel({lnd, id: tempChanFail.channel});
 
-  equal(tempChanFail.channel, targetToRemoteChan.id, 'Fail at remote chan');
+  equal(tempChanFail.channel, targetToRemoteChan.id, 'Fail at target chan');
 
   const failPolicy = failChannel.policies
     .find(n => n.public_key === cluster.target_node_public_key);
@@ -139,9 +139,8 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   equal(tempChanFail.policy.cltv_delta, failPolicy.cltv_delta, 'Poilcy cltv');
   equal(tempChanFail.policy.fee_rate, failPolicy.fee_rate, 'Fail fee rate');
   equal(tempChanFail.policy.is_disabled, failPolicy.is_disabled, 'Disabled');
-  equal(tempChanFail.policy.max_htlc_mtokens, failPolicy.max_htlc_mtokens);
   equal(tempChanFail.policy.min_htlc_mtokens, failPolicy.min_htlc_mtokens);
-  equal(tempChanFail.policy.updated_at, failChannel.updated_at, 'Update at');
+  equal(!!tempChanFail.policy.updated_at, !!failChannel.updated_at, 'Updated');
   equal(tempChanFail.public_key, cluster.target_node_public_key, 'To key');
   equal(tempChanFail.reason, 'TemporaryChannelFailure', 'Failure reason');
   deepIs(tempChanFail.route, route, 'Failure on route');
@@ -185,11 +184,6 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
 
   const [success] = await once(subSuccess, 'probe_success');
 
-  equal(success.channel, undefined, 'No channel failed');
-  equal(success.failed, undefined, 'No failed channel');
-  equal(success.policy, undefined, 'No policy returned');
-  equal(success.public_key, cluster.remote_node_public_key, 'Got final key');
-  equal(success.reason, 'UnknownPaymentHash', 'Failure is an unknown hash');
   equal(success.route.fee, 1, 'Successful route fee');
   equal(success.route.fee_mtokens, '1500', 'Successful route fee mtokens');
   deepIs(success.route.hops.length, 2, 'Successful route returned');

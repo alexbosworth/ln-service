@@ -5,6 +5,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
 /** Derive payment failure from raw API failure
 
   {
+    [channel]: <Failure Source Channel Id String>
     failure: {
       [chan_id]: <Numeric Channel Id String>
       [channel_update]: {
@@ -54,7 +55,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
     message: <Error Message String>
   }
 */
-module.exports = ({failure, keys}) => {
+module.exports = ({channel, failure, keys}) => {
   if (!failure) {
     return {code: 500, message: 'ExpectedFailureToDerivePaymentFailure'};
   }
@@ -65,16 +66,18 @@ module.exports = ({failure, keys}) => {
   if (!!update) {
     try {
       policyFromChannelUpdate({key, keys, update});
+
+      chanFormat({number: update.chan_id});
     } catch (err) {
       return {code: 500, message: 'ExpectedValidChannelUpdateToDeriveFailure'};
     }
   }
 
-  const {channel} = !update ? {} : chanFormat({number: update.chan_id});
+  const failChan = !update ? {channel} : chanFormat({number: update.chan_id});
   const hasMtokens = !!failure.htlc_msat && failure.htlc_msat !== '0';
 
   const details = {
-    channel,
+    channel: !!channel ? channel : failChan.channel,
     mtokens: !hasMtokens ? undefined : failure.htlc_msat,
     policy: !update ? null : policyFromChannelUpdate({key, keys, update}),
     public_key: !key ? undefined : key.toString('hex'),

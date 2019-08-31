@@ -6,6 +6,7 @@ const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
+const {getWalletInfo} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {subscribeToChainAddress} = require('./../../');
@@ -29,6 +30,8 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
   const {lnd} = node;
   const user = node.chain_rpc_user;
 
+  const startHeight = (await getWalletInfo({lnd})).current_block_height;
+
   const {address} = await createChainAddress({format, lnd});
 
   // Generate some funds for LND
@@ -47,7 +50,11 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
     spend_vout: defaultVout,
   });
 
-  const sub = subscribeToChainAddress({lnd, p2sh_address: address});
+  const sub = subscribeToChainAddress({
+    lnd,
+    min_height: startHeight,
+    p2sh_address: address,
+  });
 
   sub.on('confirmation', conf => {
     equal(conf.block.length, 64, 'Confirmation block hash is returned');
@@ -66,6 +73,7 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
   const sub2 = subscribeToChainAddress({
     lnd,
     min_confirmations: 6,
+    min_height: startHeight,
     p2sh_address: address,
   });
 

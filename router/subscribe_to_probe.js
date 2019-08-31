@@ -17,7 +17,9 @@ const {isArray} = Array;
 
 /** Subscribe to a probe attempt
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
+
+  `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -280,7 +282,12 @@ module.exports = args => {
               });
             });
 
-            emitter.emit(isFinalNode ? 'probe_success' : 'routing_failure', {
+            // Exit early when the probe found a completed route
+            if (!!isFinalNode) {
+              return emitter.emit('probe_success', {route: failure.route});
+            }
+
+            emitter.emit('routing_failure', {
               channel: failure.channel,
               mtokens: failure.mtokens,
               policy: failure.policy || undefined,
