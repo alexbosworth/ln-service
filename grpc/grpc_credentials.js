@@ -30,7 +30,7 @@ module.exports = ({cert, macaroon}) => {
 
   if (isHex(macaroon)) {
     macaroonData = macaroon;
-  } else if (isBase64(macaroon)) {
+  } else if (!!macaroon && isBase64(macaroon)) {
     macaroonData = Buffer.from(macaroon, 'base64').toString('hex');
   } else {
     throw new Error('ExpectedBase64OrHexEncodedMacaroonToCreateCredentials');

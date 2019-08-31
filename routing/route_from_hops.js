@@ -128,6 +128,10 @@ module.exports = args => {
 
   const totalMtokens = totalFeeMtokens + BigInt(mtokens);
 
+  if (hops.length === 1) {
+    timeoutHeight -= args.initial_cltv;
+  }
+
   return {
     fee: asTokens({mtokens: totalFeeMtokens}).tokens,
     fee_mtokens: totalFeeMtokens.toString(),

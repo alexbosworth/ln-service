@@ -61,7 +61,7 @@ const tests = [
           timeout: 101,
        }],
        mtokens: '100000',
-       timeout: 102,
+       timeout: 101,
        tokens: 100,
       },
     },
