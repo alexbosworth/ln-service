@@ -182,7 +182,7 @@ for `unlocker` methods.
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
-- [updateConnectedWatchtower] (#updateConnectedWatchtower) - Update watchtower details
+- [updateConnectedWatchtower](#updateConnectedWatchtower) - Update watchtower details
 - [updateRoutingFees](#updateRoutingFees) - Change routing fees
 - [verifyBackup](#verifyBackup) - Verify a channel backup
 - [verifyBackups](#verifyBackups) - Verify a set of channel backups
