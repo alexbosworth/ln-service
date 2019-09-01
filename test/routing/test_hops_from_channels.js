@@ -15,7 +15,6 @@ const tests = [
           policies: [
             {
               base_fee_mtokens: '1000',
-              cltv_delta: 40,
               fee_rate: 5000,
               is_disabled: false,
               min_htlc_mtokens: '1000',
@@ -23,7 +22,6 @@ const tests = [
             },
             {
               base_fee_mtokens: '1000',
-              cltv_delta: 40,
               fee_rate: 2500,
               is_disabled: false,
               min_htlc_mtokens: '1000',
