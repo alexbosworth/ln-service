@@ -5,7 +5,7 @@
 - `getRoutes` Improve route construction correctness
 - `routeFromChannels`, `routeFromHops`, standardize `cltv` argument as `cltv_delta`
 
-### Breaking Changs
+### Breaking Changes
 
 - `routeFromChannels` argument `cltv` is renamed `cltv_delta`
 - `routeFromHops` method removed, use `routeFromChannels` instead
