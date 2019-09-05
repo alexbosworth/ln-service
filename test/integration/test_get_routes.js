@@ -16,6 +16,7 @@ const {pay} = require('./../../');
 const {routeFromHops} = require('./../../routing');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
+const {waitForRoute} = require('./../macros');
 
 const buffer = 6;
 const channelCapacityTokens = 1e6;
@@ -37,7 +38,7 @@ test(`Get routes`, async ({end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({
@@ -60,7 +61,7 @@ test(`Get routes`, async ({end, equal}) => {
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    socket: cluster.remote.socket,
   });
 
   await waitForPendingChannel({
@@ -80,7 +81,7 @@ test(`Get routes`, async ({end, equal}) => {
   await addPeer({
     lnd,
     public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    socket: cluster.remote.socket,
   });
 
   const {request} = await createInvoice({tokens, lnd: cluster.remote.lnd});
@@ -91,9 +92,7 @@ test(`Get routes`, async ({end, equal}) => {
 
   await cluster.generate({count: confirmationCount});
 
-  await delay(5000);
-
-  const {routes} = await getRoutes({destination, lnd, tokens});
+  const {routes} = await waitForRoute({destination, lnd, tokens});
 
   const backwardsRoutes = await getRoutes({
     lnd,

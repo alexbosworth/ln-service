@@ -10,6 +10,7 @@ const {getForwardingReputations} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {setupChannel} = require('./../macros');
+const {waitForRoute} = require('./../macros');
 
 const tokens = 1e6 / 2;
 
@@ -37,7 +38,13 @@ test('Probe for route', async ({deepIs, end, equal}) => {
 
   await addPeer({lnd, public_key: remote.public_key, socket: remote.socket});
 
-  const {request} = await createInvoice({tokens, lnd: cluster.remote.lnd});
+  const {id, request} = await createInvoice({tokens, lnd: cluster.remote.lnd});
+
+  await waitForRoute({
+    lnd,
+    tokens,
+    destination: cluster.remote.public_key,
+  });
 
   try {
     await payViaPaymentRequest({lnd, request});

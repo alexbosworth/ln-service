@@ -78,7 +78,11 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(waitClose.pending_balance, 980950, 'Tokens return to local wallet');
   equal(waitClose.received, 0, 'Nothing received');
   equal(waitClose.recovered_tokens, undefined, 'Funds not recovered yet');
-  equal(waitClose.remote_balance, 0, 'Remote tokens not in channel');
+
+  if (!!waitClose.remote_balance) {
+    equal(waitClose.remote_balance, giftTokens, 'Remote tokens represented');
+  }
+
   equal(waitClose.sent, 0, 'Channel never sent funds');
   equal(waitClose.timelock_expiration, undefined, 'Not timelocked yet');
   equal(waitClose.transaction_id, channelOpen.transaction_id, 'Chan txid');

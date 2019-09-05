@@ -8,13 +8,12 @@ const {getPeers} = require('./../../');
 test('Get peers', async ({end, equal}) => {
   const cluster = await createCluster({});
 
-  const bSocket = `${cluster.target.listen_ip}:${cluster.target.listen_port}`;
   const {lnd} = cluster.control;
 
   await addPeer({
     lnd,
     public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    socket: cluster.remote.socket,
   });
 
   const [peer] = (await getPeers({lnd})).peers;

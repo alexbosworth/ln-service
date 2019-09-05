@@ -312,29 +312,33 @@ module.exports = (args, cbk) => {
         const source = getWallet.public_key;
 
         (args.routes || []).forEach(route => {
-          return route.forEach(n => {
-            if (!n.channel) {
+          return route.forEach((hop, i, hops) => {
+            if (!hop.channel) {
               return;
             }
 
-            channels[n.channel] = {
+            const prevHop = hops[i - 1];
+
+            channels[hop.channel] = {
               capacity: args.tokens,
-              id: n.channel,
+              id: hop.channel,
               policies: [
                 {
-                  cltv_delta: n.cltv_delta,
-                  base_fee_mtokens: n.base_fee_mtokens,
-                  fee_rate: n.fee_rate,
+                  cltv_delta: hop.cltv_delta,
+                  base_fee_mtokens: hop.base_fee_mtokens,
+                  fee_rate: hop.fee_rate,
                   public_key: pkCursor || source,
                 },
                 {
-                  cltv_delta: n.cltv_delta,
-                  public_key: n.public_key,
+                  base_fee_mtokens: hop.base_fee_mtokens,
+                  cltv_delta: hop.cltv_delta,
+                  fee_rate: hop.fee_rate,
+                  public_key: !!prevHop ? prevHop.public_key : hop.public_key,
                 },
               ],
             };
 
-            pkCursor = n.public_key;
+            pkCursor = hop.public_key;
 
             return;
           });

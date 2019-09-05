@@ -43,6 +43,10 @@ test(`Recover funds with backup`, async ({end, equal}) => {
     lnd: cluster.target.lnd,
   });
 
+  await cluster.generate({count: confirmationCount});
+
+  await delay(3000);
+
   const {backup} = await getBackups({lnd});
 
   await stopDaemon({lnd});

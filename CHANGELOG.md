@@ -1,6 +1,6 @@
 # Versions
 
-## 44.0.2
+## 44.0.3
 
 - `getRoutes` Improve route construction correctness
 - `routeFromChannels`, `routeFromHops`, standardize `cltv` argument as `cltv_delta`

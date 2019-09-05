@@ -24,11 +24,14 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   const sub = subscribeToChannels({lnd});
 
   sub.on('channel_active_changed', update => deepIs(update, expected.shift()));
-  sub.on('channel_closed', update => deepIs(update, expected.shift()));
   sub.on('channel_opened', update => deepIs(update, expected.shift()));
   sub.on('end', () => {});
   sub.on('error', err => {});
   sub.on('status', () => {});
+
+  sub.on('channel_closed', update => {
+    return deepIs(update, expected.shift(), 'Close channel details');
+  });
 
   // Create a channel from the control to the target node
   const channelOpen = await openChannel({

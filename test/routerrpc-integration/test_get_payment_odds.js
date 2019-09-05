@@ -18,6 +18,7 @@ const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
+const {waitForRoute} = require('./../macros');
 
 const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const channelCapacityTokens = 1e6;
@@ -83,28 +84,35 @@ test('Probe for route', async ({deepIs, end, equal}) => {
     socket: cluster.remote.socket
   });
 
+  const destination = cluster.remote.public_key;
+
+  // Allow time for graph sync to complete
+  await waitForRoute({destination, lnd, tokens});
+
   try {
     await probeForRoute({
+      destination,
       lnd,
       tokens,
       is_ignoring_past_failures: true,
-      destination: cluster.remote.public_key,
     });
   } catch (err) {}
 
   const {nodes} = await getForwardingReputations({lnd});
 
-  equal(nodes.length, [tokens].length, 'Reputation should be generated');
-
-  const destination = cluster.remote.public_key;
+  equal(nodes.length > 0, true, 'Reputation should be generated');
 
   const {routes} = await getRoutes({destination, lnd, tokens});
 
-  const [{hops}] = routes;
+  equal(routes.length, 1, 'There should be a route');
 
-  const odds = (await getPaymentOdds({lnd, hops})).success_odds;
+  if (!!routes.length) {
+    const [{hops}] = routes;
 
-  equal((odds / 1e6) < 0.1, true, 'Due to failure, odds of success are low');
+    const odds = (await getPaymentOdds({lnd, hops})).success_odds;
+
+    equal((odds / 1e6) < 0.1, true, 'Due to failure, odds of success are low');
+  }
 
   await cluster.kill({});
 

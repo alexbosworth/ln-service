@@ -58,11 +58,14 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(channel.pending_balance, 980950, 'Waiting on balance');
   equal(channel.received, 0, 'Never received');
   equal(channel.recovered_tokens, undefined, 'Nothing to recover in sweep');
-  equal(channel.remote_balance, 0, 'Opposing channel balance nil');
   equal(channel.sent, 0, 'Never sent anything');
   equal(channel.timelock_expiration, undefined, 'No timelock in coop mode');
   equal(channel.transaction_id, coopChan.transaction_id, 'funding tx id');
   equal(channel.transaction_vout, coopChan.transaction_vout, 'funding vout');
+
+  if (!!channel.remote_balance) {
+    equal(channel.remote_balance, giftTokens, 'Opposing channel balance');
+  }
 
   await cluster.kill({});
 

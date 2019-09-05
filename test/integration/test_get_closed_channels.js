@@ -51,20 +51,22 @@ test(`Close channel`, async ({end, equal}) => {
 
   equal(channels.length, [channelOpen].length, 'Channel close listed');
 
-  equal(channel.capacity, maxChanTokens, 'Channel capacity reflected');
-  equal(!!channel.close_confirm_height, true, 'Channel close height');
-  equal(channel.close_transaction_id, closing.transaction_id, 'Close tx id');
-  equal(maxChanTokens - channel.final_local_balance, 9050, 'Final balance');
-  equal(channel.final_time_locked_balance, 0, 'Final locked balance');
-  equal(!!channel.id, true, 'Channel id');
-  equal(channel.is_breach_close, false, 'Not breach close');
-  equal(channel.is_cooperative_close, true, 'Is cooperative close');
-  equal(channel.is_funding_cancel, false, 'Not funding cancel');
-  equal(channel.is_local_force_close, false, 'Not local force close');
-  equal(channel.is_remote_force_close, false, 'Not remote force close');
-  equal(channel.partner_public_key, cluster.target_node_public_key, 'Pubkey');
-  equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
-  equal(channel.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
+  if (!!channel) {
+    equal(channel.capacity, maxChanTokens, 'Channel capacity reflected');
+    equal(!!channel.close_confirm_height, true, 'Channel close height');
+    equal(channel.close_transaction_id, closing.transaction_id, 'Close tx id');
+    equal(maxChanTokens - channel.final_local_balance, 9050, 'Final balance');
+    equal(channel.final_time_locked_balance, 0, 'Final locked balance');
+    equal(!!channel.id, true, 'Channel id');
+    equal(channel.is_breach_close, false, 'Not breach close');
+    equal(channel.is_cooperative_close, true, 'Is cooperative close');
+    equal(channel.is_funding_cancel, false, 'Not funding cancel');
+    equal(channel.is_local_force_close, false, 'Not local force close');
+    equal(channel.is_remote_force_close, false, 'Not remote force close');
+    equal(channel.partner_public_key, cluster.target_node_public_key, 'Pubkey');
+    equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
+    equal(channel.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
+  }
 
   await cluster.kill({});
 
