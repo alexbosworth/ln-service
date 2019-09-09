@@ -1,9 +1,13 @@
 const EventEmitter = require('events');
 
+const {htlcAsPayment} = require('./../invoices');
+
 const decBase = 10;
 const msPerSec = 1e3;
 
 /** Subscribe to invoices
+
+  The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -27,6 +31,18 @@ const msPerSec = 1e3;
     id: <Invoice Payment Hash Hex String>
     is_confirmed: <Invoice is Confirmed Bool>
     is_outgoing: <Invoice is Outgoing Bool>
+    payments: [{
+      [confirmed_at]: <Payment Settled At ISO 8601 Date String>
+      created_at: <Payment Held Since ISO 860 Date String>
+      created_height: <Payment Held Since Block Height Number>
+      in_channel: <Incoming Payment Through Channel Id String>
+      is_canceled: <Payment is Canceled Bool>
+      is_confirmed: <Payment is Confirmed Bool>
+      is_held: <Payment is Held Bool>
+      mtokens: <Incoming Payment Millitokens String>
+      [pending_index]: <Pending Payment Channel HTLC Index Number>
+      tokens: <Payment TOkens Number>
+    }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
     request: <BOLT 11 Payment Request String>
@@ -69,6 +85,12 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedDescriptionHash'));
     }
 
+    try {
+      invoice.htlcs.forEach(htlc => htlcAsPayment(htlc));
+    } catch (err) {
+      return eventEmitter.emit('error', err);
+    }
+
     if (invoice.settled !== true && invoice.settled !== false) {
       return eventEmitter.emit('error', new Error('ExpectedInvoiceSettled'));
     }
@@ -106,6 +128,7 @@ module.exports = ({lnd}) => {
       id: invoice.r_hash.toString('hex'),
       is_confirmed: invoice.settled,
       is_outgoing: false,
+      payments: invoice.htlcs.map(htlcAsPayment),
       received: parseInt(invoice.amt_paid_sat, decBase),
       received_mtokens: invoice.amt_paid_msat,
       request: invoice.payment_request,

@@ -70,6 +70,24 @@ test(`Subscribe to canceled invoice`, async ({deepIs, end, equal}) => {
   equal(!!currentInvoice.is_confirmed, false, 'Invoice is not confirmed yet');
 
   setTimeout(async () => {
+    if (!!currentInvoice.payments.length) {
+      equal(currentInvoice.payments.length, [invoice].length, 'Invoice paid');
+
+      const [payment] = currentInvoice.payments;
+
+      equal(payment.canceled_at, undefined, 'Payment not canceled');
+      equal(payment.confirmed_at, undefined, 'Payment not confirmed');
+      equal(!!payment.created_at, true, 'Payment held at time');
+      equal(!!payment.created_height, true, 'Payment creation height');
+      equal(payment.in_channel, '443x1x0', 'Payment in channel');
+      equal(payment.is_canceled, false, 'Payment not canceled');
+      equal(payment.is_confirmed, false, 'Payment not confirmed');
+      equal(payment.is_held, true, 'Payment is held');
+      equal(payment.mtokens, '100000', 'Payment holding mtokens');
+      equal(payment.pending_index, 0, 'Payment HTLC index returned');
+      equal(payment.tokens, 100, 'Payment tokens held');
+    }
+
     equal(!!currentInvoice.is_held, true, 'Invoice is not held yet');
     equal(!!currentInvoice.is_canceled, false, 'Invoice is not canceled yet');
     equal(!!currentInvoice.is_confirmed, false, 'Invoice is confirmed');
@@ -80,6 +98,24 @@ test(`Subscribe to canceled invoice`, async ({deepIs, end, equal}) => {
     });
 
     await delay(1000);
+
+    if (!!currentInvoice.payments.length) {
+      equal(currentInvoice.payments.length, [invoice].length, 'Invoice paid');
+
+      const [payment] = currentInvoice.payments;
+
+      equal(!!payment.canceled_at, true, 'Payment canceled');
+      equal(payment.confirmed_at, undefined, 'Payment not confirmed');
+      equal(!!payment.created_at, true, 'Payment held at time');
+      equal(!!payment.created_height, true, 'Payment creation height');
+      equal(payment.in_channel, '443x1x0', 'Payment in channel');
+      equal(payment.is_canceled, true, 'Payment canceled');
+      equal(payment.is_confirmed, false, 'Payment not confirmed');
+      equal(payment.is_held, false, 'Payment is not held');
+      equal(payment.mtokens, '100000', 'Payment holding mtokens');
+      equal(payment.pending_index, undefined, 'Payment HTLC is gone');
+      equal(payment.tokens, 100, 'Payment tokens held');
+    }
 
     equal(!!currentInvoice.is_held, false, 'Invoice is not held yet');
     equal(!!currentInvoice.is_canceled, true, 'Invoice is canceled');

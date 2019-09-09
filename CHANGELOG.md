@@ -1,5 +1,16 @@
 # Versions
 
+## 45.0.0
+
+- `getInvoice`: Added `payments` to show HTLC payments to the invoice
+- `getInvoices`: Added `payments`
+- `subscribeToInvoice`: Added `payments`
+- `subscribeToInvoices`: Added `payments`
+
+### Breaking Changes
+
+- `getInvoices`: Remove attribute `routes`. To get private routes decode the payment request
+
 ## 44.0.3
 
 - `getRoutes` Improve route construction correctness

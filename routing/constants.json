@@ -1,0 +1,17 @@
+{
+  "blocksBuffer": 6,
+  "defaultCltv": 40,
+  "defaultTokens": 0,
+  "pathNotFoundErrors": [
+    "ErrNoPathFound",
+    "ErrNoRouteFound",
+    "ErrInsufficientCapacity",
+    "ErrMaxHopsExceeded",
+    "ErrTargetNotInNetwork",
+    "ErrOutdated",
+    "ErrIgnored",
+    "ErrRejected",
+    "ErrPaymentAttemptTimeout",
+    "ErrFeeLimitExceeded"
+  ]
+}

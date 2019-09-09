@@ -9,6 +9,8 @@ const {isString} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
 
+const {htlcAsPayment} = require('./../invoices');
+
 const acceptedState = 'ACCEPTED';
 const canceledState = 'CANCELED';
 const decBase = 10;
@@ -23,6 +25,8 @@ const {stringify} = JSON;
 /** Get all created invoices.
 
   If a next token is returned, pass it to get another page of invoices.
+
+  The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
     [limit]: <Page Result Limit Number>
@@ -46,16 +50,21 @@ const {stringify} = JSON;
       [is_held]: <HTLC is Held Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      payments: [{
+        [confirmed_at]: <Payment Settled At ISO 8601 Date String>
+        created_at: <Payment Held Since ISO 860 Date String>
+        created_height: <Payment Held Since Block Height Number>
+        in_channel: <Incoming Payment Through Channel Id String>
+        is_canceled: <Payment is Canceled Bool>
+        is_confirmed: <Payment is Confirmed Bool>
+        is_held: <Payment is Held Bool>
+        mtokens: <Incoming Payment Millitokens String>
+        [pending_index]: <Pending Payment Channel HTLC Index Number>
+        tokens: <Payment TOkens Number>
+      }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
-      routes: [[{
-        base_fee_mtokens: <Base Routing Fee In Millitokens Number>
-        channel: <Standard Format Channel Id String>
-        cltv_delta: <CLTV Blocks Delta Number>
-        fee_rate: <Fee Rate In Millitokens Per Million Number>
-        public_key: <Public Key Hex String>
-      }]]
       secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
     }]
@@ -155,6 +164,12 @@ module.exports = ({limit, lnd, token}, cbk) => {
             return cbk([503, 'ExpectedDescriptionHashBuffer']);
           }
 
+          try {
+            invoice.htlcs.map(htlcAsPayment);
+          } catch (err) {
+            return cbk([503, 'UnexpectedIssueWithInvoiceHtlcs', {err}]);
+          }
+
           if (invoice.private === undefined) {
             return cbk([503, 'ExpectedInvoicePrivateStatus']);
           }
@@ -182,52 +197,9 @@ module.exports = ({limit, lnd, token}, cbk) => {
           }
 
           const createTimeMs = creationEpochDate * msPerSec;
-          let routes;
-
-          try {
-            routes = invoice.route_hints.map(route => {
-              if (!isArray(route.hop_hints)) {
-                throw new Error('ExpectedRouteHopHints');
-              }
-
-              return route.hop_hints.map(hop => {
-                if (!hop.chan_id) {
-                  throw new Error('ExpectedRouteHopChannelId');
-                }
-
-                if (hop.cltv_expiry_delta === undefined) {
-                  throw new Error('ExpectedRouteHopCltvExpiryDelta');
-                }
-
-                if (!`${hop.fee_base_msat}`) {
-                  throw new Error('ExpectedRouteHopBaseFee');
-                }
-
-                if (hop.fee_proportional_millionths === undefined) {
-                  throw new Error('ExpectedRouteHopFeeRate');
-                }
-
-                if (!hop.node_id) {
-                  throw new Error('ExpectedRouteHopPublicKey');
-                }
-
-                return {
-                  base_fee_mtokens: hop.fee_base_msat,
-                  channel: chanFormat({number: hop.chan_id}).channel,
-                  cltv_delta: hop.cltv_expiry_delta,
-                  fee_rate: hop.fee_proportional_millionths,
-                  public_key: hop.node_id,
-                };
-              });
-            });
-          } catch (err) {
-            return cbk([503, err.message]);
-          }
-
           const memoHash = !descHash.length ? null : descHash.toString('hex');
 
           return cbk(null, {
-            routes,
             chain_address: invoice.fallback_addr || undefined,
             cltv_delta: parseInt(invoice.cltv_expiry, decBase),
             confirmed_at: !!invoice.settled ? settledDate : undefined,
@@ -241,6 +213,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             is_held: invoice.state === acceptedState || undefined,
             is_private: !!invoice.private,
             mtokens: (BigInt(invoice.value) * mtokensPerToken).toString(),
+            payments: invoice.htlcs.map(htlcAsPayment),
             received: parseInt(invoice.amt_paid_sat, decBase),
             received_mtokens: invoice.amt_paid_msat,
             request: invoice.payment_request,

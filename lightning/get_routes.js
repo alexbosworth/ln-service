@@ -3,30 +3,20 @@ const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
 const {flatten} = require('lodash');
 const {returnResult} = require('asyncjs-util');
+const {sortBy} = require('lodash');
 
 const getChannel = require('./get_channel');
+const {getIgnoredEdges} = require('./../routing');
 const getWalletInfo = require('./get_wallet_info');
 const {ignoreAsIgnoredEdges} = require('./../routing');
-const {ignoreAsIgnoredNodes} = require('./../routing');
+const {queryRoutes} = require('./../routing');
 const {routeFromChannels} = require('./../routing');
-const {routeFromHops} = require('./../routing');
-const {routesFromQueryRoutes} = require('./../routing');
 
-const blocksBuffer = 6;
 const defaultFinalCltvDelta = 40;
 const defaultTokens = 0;
-const isArray = Array;
-const mtokBuffer = '000';
+const {isArray} = Array;
 const notFoundCode = 404;
 const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
-
-const pathNotFoundErrors = [
-  'noPathFound',
-  'noRouteFound',
-  'insufficientCapacity',
-  'maxHopsExceeded',
-  'targetNotInNetwork',
-];
 
 /** Get routes a payment can travel towards a destination
 
@@ -34,6 +24,8 @@ const pathNotFoundErrors = [
   addition to routes.
 
   `is_adjusted_for_past_failures` will turn on LND 0.7.1+ past-fail pathfinding
+
+  Setting both `start` and `outgoing_channel` is not supported
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -48,7 +40,7 @@ const pathNotFoundErrors = [
     [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
-    [outgoing_channel]: [Outgoing Channel Id String>]
+    [outgoing_channel]: <Outgoing Channel Id String>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
       [channel]: <Standard Format Channel Id String>
@@ -118,64 +110,19 @@ module.exports = (args, cbk) => {
         return cbk();
       },
 
-      // Get ignored edges
+      // Get ignored edges with filled in public keys if any are missing
       getIgnoredEdges: ['validate', ({}, cbk) => {
-        return asyncMap(args.ignore || [], (ignore, cbk) => {
-          // Exit early when there is no channel specified
-          if (!ignore.channel) {
-            return cbk(null, ignore);
-          }
-
-          // Exit early when this is a node ignore
-          if (!ignore.from_public_key && !ignore.to_public_key) {
-            return cbk(null, ignore);
-          }
-
-          // Exit early when this is a full edge ignore
-          if (!!ignore.from_public_key && !!ignore.to_public_key) {
-            return cbk(null, ignore);
-          }
-
-          return getChannel({
-            id: ignore.channel,
-            lnd: args.lnd,
-          },
-          (err, res) => {
-            // Exit early when this channel is unknown
-            if (!!err || !res || res.policies.length !== 2) {
-              return cbk();
-            }
-
-            const fromKey = ignore.from_public_key;
-            const toKey = ignore.to_public_key;
-
-            const from = res.policies
-              .find(n => n.public_key === fromKey || n.public_key !== toKey);
-
-            const to = res.policies
-              .find(n => n.public_key === toKey || n.public_key !== fromKey);
-
-            return cbk(null, {
-              channel: ignore.channel,
-              from_public_key: from.public_key,
-              to_public_key: to.public_key,
-            });
-          });
+        return getIgnoredEdges({
+          ignores: args.ignore || [],
+          lnd: args.lnd,
         },
         cbk);
       }],
 
       // Get the wallet public key
-      getInfo: ['validate', ({}, cbk) => {
-        // Wallet info is only necessary for outgoing channel construction
-        if (!args.outgoing_channel) {
-          return cbk();
-        }
+      getInfo: ['validate', ({}, cbk) => getWalletInfo({lnd: args.lnd}, cbk)],
 
-        return getWalletInfo({lnd: args.lnd}, cbk);
-      }],
-
-      // Get the source key
+      // Get the source key for the outgoing channel constraint
       getOutgoing: ['getInfo', ({getInfo}, cbk) => {
         // The source key can be set discretely
         if (!!args.start) {
@@ -212,96 +159,31 @@ module.exports = (args, cbk) => {
         'getOutgoing',
         ({getIgnoredEdges, getOutgoing}, cbk) =>
       {
-        const stubDestination = [[{public_key: args.destination}]];
-        const hasRoutes = !!args.routes && !!args.routes.length;
-        const strict = !!args.is_strict_hints;
-
-        const ignore = getIgnoredEdges
-          .filter(n => !!n)
-          .filter(edge => {
-            if (!args.outgoing_channel || !!edge.channel) {
-              return true;
-            }
-
-            // When specifying an outgoing source, don't ever ignore it
-            return edge.to_public_key !== getOutgoing.source_key;
-          });
-
-        const destination = !args.destination || strict ? [] : stubDestination;
-
-        const collectivePaths = [].concat(args.routes).concat(destination);
-
-        const routesToDestination = !hasRoutes ? destination : collectivePaths;
-
-        return asyncMap(routesToDestination, (route, cbk) => {
-          const extended = route.slice([args.destination].length);
-          const [firstHop] = route;
-
-          if (!firstHop.public_key) {
-            return cbk([400, 'ExpectedPublicKeyInExtendedRoute']);
-          }
-
-          if (extended.length > [args.destination].length) {
-            return cbk([400, 'ExpectedOnlyLastHopRouteExtension']);
-          }
-
-          if (!!firstHop.channel) {
-            return cbk(null, {extended, routes: []});
-          }
-
-          const finalCltv = (args.cltv_delta || defaultFinalCltvDelta);
-
-          return args.lnd.default.queryRoutes({
-            amt: args.tokens || defaultTokens,
-            fee_limit: !args.max_fee ? undefined : {fee_limit: args.max_fee},
-            final_cltv_delta: finalCltv + blocksBuffer,
-            ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,
-            ignored_nodes: ignoreAsIgnoredNodes({ignore}).ignored,
-            pub_key: firstHop.public_key,
-            source_pub_key: getOutgoing.source_key,
-            use_mission_control: args.is_adjusted_for_past_failures,
-          },
-          (err, response) => {
-            // Exit early when an error indicates that no routes are possible
-            if (!!err && !!err.code && !!pathNotFoundErrors[err.code]) {
-              return cbk(null, {routes: []});
-            }
-
-            if (!!err) {
-              return cbk([503, 'UnexpectedQueryRoutesError', {err}]);
-            }
-
-            try {
-              const {routes} = routesFromQueryRoutes({response});
-
-              return cbk(null, {extended, routes});
-            } catch (err) {
-              return cbk([503, 'InvalidGetRoutesResponse', {err}]);
-            }
-          });
+        return queryRoutes({
+          destination: args.destination,
+          ignores: getIgnoredEdges.ignores,
+          is_adjusted_for_past_failures: args.is_adjusted_for_past_failures,
+          is_strict_hints: args.is_strict_hints,
+          lnd: args.lnd,
+          max_fee: args.max_fee,
+          outgoing_channel: args.outgoing_channel,
+          routes: args.routes,
+          start_public_key: getOutgoing.source_key,
+          tokens: args.tokens,
         },
         cbk);
       }],
 
-      // Get the current block height if necessary for route assembly
-      getWallet: ['getRoutes', ({}, cbk) => {
-        if (!args.routes && !args.outgoing_channel) {
-          return cbk();
-        }
-
-        return getWalletInfo({lnd: args.lnd}, cbk);
-      }],
-
       // Assemble the final routes
       assemble: [
+        'getInfo',
         'getOutgoing',
         'getRoutes',
-        'getWallet',
-        ({getOutgoing, getRoutes, getWallet}, cbk) =>
+        ({getInfo, getOutgoing, getRoutes}, cbk) =>
       {
         // Exit early when no route extensions are specified
         if (!args.routes && !args.outgoing_channel) {
-          const [standardRoute] = getRoutes;
+          const [standardRoute] = getRoutes.results;
 
           return cbk(null, standardRoute.routes);
         }
@@ -309,7 +191,7 @@ module.exports = (args, cbk) => {
         const channels = {};
         const gotChannels = {};
         let pkCursor;
-        const source = getWallet.public_key;
+        const source = getInfo.public_key;
 
         (args.routes || []).forEach(route => {
           return route.forEach((hop, i, hops) => {
@@ -317,7 +199,7 @@ module.exports = (args, cbk) => {
               return;
             }
 
-            const prevHop = hops[i - 1];
+            const prevHop = hops[i - [hop].length];
 
             channels[hop.channel] = {
               capacity: args.tokens,
@@ -344,7 +226,7 @@ module.exports = (args, cbk) => {
           });
         });
 
-        return asyncMapSeries(getRoutes, ({extended, routes}, cbk) => {
+        return asyncMapSeries(getRoutes.results, ({extended, routes}, cbk) => {
           if (!routes.length && !args.outgoing_channel) {
             return cbk(null, []);
           }
@@ -455,9 +337,7 @@ module.exports = (args, cbk) => {
           return true;
         });
 
-        routes.sort((a, b) => a.fee < b.fee ? -1 : 1);
-
-        return cbk(null, {routes});
+        return cbk(null, {routes: sortBy(routes, 'fee')});
       }],
     },
     returnResult({reject, resolve, of: 'assembledRoutes'}, cbk));

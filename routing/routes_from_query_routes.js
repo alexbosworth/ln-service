@@ -17,6 +17,7 @@ const mtokensPerToken = BigInt(1e3);
           expiry: <Expiration Height Number>
           fee: <Fee Tokens String>
           fee_msat: <Fee Millitokens String>
+          pub_key: <Public Key Hex String>
         }]
         total_amt: <Total Tokens Number>
         total_amt_msat: <Route Total Millitokens String>

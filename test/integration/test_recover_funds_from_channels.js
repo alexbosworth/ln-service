@@ -8,6 +8,7 @@ const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {recoverFundsFromChannels} = require('./../../');
 const {spawnLnd} = require('./../macros');
+const {setupChannel} = require('./../macros');
 const {stopDaemon} = require('./../../');
 const {waitForPendingChannel} = require('./../macros');
 const {waitForTermination} = require('./../macros');
@@ -29,23 +30,13 @@ test(`Recover funds with backup`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
+  const channelOpen = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: giftTokens,
     lnd: cluster.target.lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
+    to: cluster.control,
   });
-
-  await waitForPendingChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount});
-
-  await delay(3000);
 
   const {backup} = await getBackups({lnd});
 
@@ -56,6 +47,14 @@ test(`Recover funds with backup`, async ({end, equal}) => {
   } catch (err) {
     equal(err, null, 'An error is not expected');
   }
+
+  await cluster.generate({count: confirmationCount, node: clone});
+
+  await waitForPendingChannel({
+    id: channelOpen.transaction_id,
+    is_recovering: true,
+    lnd: clone.lnd,
+  });
 
   await delay(3000);
 

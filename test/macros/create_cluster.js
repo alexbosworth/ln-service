@@ -45,7 +45,7 @@ const tokens = 50e8;
       lnd: <Authenticated LND gRPC Object>
     }
     generate: <Generate Function> ({node, count}) -> (err) -> ()
-    kill: <Kill Nodes Function>
+    kill: <Kill Nodes Promise Function>
     [remote]: {
       kill: <Kill Function>
       lnd: <Authenticated LND gRPC Object>

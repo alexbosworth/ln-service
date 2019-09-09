@@ -97,6 +97,10 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     equal(invoice.is_confirmed, false, 'HTLC has not yet been settled');
     equal(invoice.is_held, true, 'HTLC is locked in place');
 
+    const [held] = (await getInvoices({lnd})).invoices;
+
+    deepIs(invoice, held, 'Invoice is held');
+
     const {secret} = await pay({lnd, request, timeout, tokens});
 
     await settleHodlInvoice({secret, lnd: cluster.target.lnd});

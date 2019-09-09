@@ -2,12 +2,16 @@ const EventEmitter = require('events');
 
 const isHex = require('is-hex');
 
+const htlcAsPayment = require('./htlc_as_payment');
+
 const decBase = 10;
 const msPerSec = 1e3;
 
 /** Subscribe to an invoice
 
   Lnd built with invoicesrpc tag is required
+
+  The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
     id: <Invoice Payment Preimage Hash Hex String>
@@ -34,6 +38,18 @@ const msPerSec = 1e3;
     [is_held]: <HTLC is Held Bool>
     is_outgoing: <Invoice is Outgoing Bool>
     is_private: <Invoice is Private Bool>
+    [payments]: [{
+      [confirmed_at]: <Payment Settled At ISO 8601 Date String>
+      created_at: <Payment Held Since ISO 860 Date String>
+      created_height: <Payment Held Since Block Height Number>
+      in_channel: <Incoming Payment Through Channel Id String>
+      is_canceled: <Payment is Canceled Bool>
+      is_confirmed: <Payment is Confirmed Bool>
+      is_held: <Payment is Held Bool>
+      mtokens: <Incoming Payment Millitokens String>
+      [pending_index]: <Pending Payment Channel HTLC Index Number>
+      tokens: <Payment TOkens Number>
+    }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
     request: <Bolt 11 Invoice String>
@@ -128,6 +144,7 @@ module.exports = ({id, lnd}) => {
       is_held: invoice.state === 'ACCEPTED' || undefined,
       is_outgoing: false,
       is_private: invoice.private,
+      payments: invoice.htlcs.map(htlcAsPayment),
       secret: invoice.r_preimage.toString('hex'),
       tokens: parseInt(invoice.value, decBase),
       received: parseInt(invoice.amt_paid_sat, decBase),

@@ -15,7 +15,7 @@ const chanSplit = /[\:x\,]/;
 const decBase = 10;
 const defaultMaxFee = Number.MAX_SAFE_INTEGER;
 const flatten = arr => [].concat(...arr);
-const isArray = Array;
+const {isArray} = Array;
 const noRoutesProvidedError = 'unable to send, no routes provided';
 const {now} = Date;
 const preimageLength = 32;

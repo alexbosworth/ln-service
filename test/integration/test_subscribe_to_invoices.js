@@ -53,7 +53,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   await cluster.generate({count: confirmationCount, node: cluster.control});
   await cluster.generate({count: confirmationCount, node: cluster.target});
 
-  await waitForChannel({
+  const channel = await waitForChannel({
     lnd,
     id: controlToTargetChannel.transaction_id,
   });
@@ -65,7 +65,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
     partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
+    socket: cluster.control.socket,
   });
 
   await waitForPendingChannel({
@@ -84,9 +84,10 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
   let gotUnconfirmedInvoice = false;
   let invoice;
+  const mtokens = `${tokens + overPay}${mtok}`;
   const sub = subscribeToInvoices({lnd});
 
-  sub.on('invoice_updated', invoice => {
+  sub.on('invoice_updated', async invoice => {
     equal(!!invoice.created_at, true, 'Invoice created at');
     equal(invoice.description, description, 'Invoice description');
     equal(!!invoice.expires_at, true, 'Invoice has expiration date');
@@ -94,6 +95,26 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     equal(invoice.is_outgoing, false, 'Invoice is incoming');
     equal(invoice.secret, secret, 'Invoice secret');
     equal(invoice.tokens, tokens, 'Invoice tokens');
+
+    if (invoice.payments.length) {
+      equal(invoice.payments.length, [invoice].length, 'Invoice was paid');
+
+      const [payment] = invoice.payments;
+
+      const currentHeight = (await getWalletInfo({lnd})).current_block_height;
+
+      equal(payment.canceled_at, undefined, 'Payment was not canceled');
+      equal(!!payment.confirmed_at, true, 'Payment settle date returned');
+      equal(!!payment.created_at, true, 'Payment first held date returned');
+      equal(payment.created_height, currentHeight, 'Payment height recorded');
+      equal(!!payment.in_channel, true, 'Payment channel id returned');
+      equal(payment.is_canceled, false, 'Payment not canceled');
+      equal(payment.is_confirmed, true, 'Payment was settled');
+      equal(payment.is_held, false, 'Payment is no longer held');
+      equal(payment.mtokens, mtokens, 'Mtokens received');
+      equal(payment.pending_index, undefined, 'Pending index not defined');
+      equal(payment.tokens, tokens + overPay, 'Payment tokens returned');
+    }
 
     if (invoice.is_confirmed && !gotUnconfirmedInvoice) {
       fail('Expected unconfirmed invoice before confirmed invoice');
@@ -118,7 +139,6 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
   const height = (await getWalletInfo({lnd})).current_block_height;
   invoice = await createInvoice({description, lnd, secret, tokens});
-  const mtokens = `${tokens + overPay}${mtok}`;
 
   const inChanId = (await getChannels({lnd})).channels
     .find(n => n.transaction_id === controlToTargetChannel.transaction_id).id;

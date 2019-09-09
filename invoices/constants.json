@@ -1,0 +1,7 @@
+{
+  "htlcStates": {
+    "accepted": "ACCEPTED",
+    "canceled": "CANCELLED",
+    "received": "SETTLED"
+  }
+}

@@ -1180,6 +1180,8 @@ Lookup a channel invoice.
 The received value and the invoiced value may differ as invoices may be
 over-paid.
 
+The `payments` array of HTLCs is only populated on LND versions after 0.7.1
+
     {
       id: <Payment Hash Id Hex String>
       lnd: <Authenticated LND gRPC API Object>
@@ -1191,7 +1193,7 @@ over-paid.
       [confirmed_at]: <Settled at ISO 8601 Date String>
       created_at: <ISO 8601 Date String>
       description: <Description String>
-      description_hash: <Description Hash Hex String>
+      [description_hash]: <Description Hash Hex String>
       expires_at: <ISO 8601 Date String>
       id: <Payment Hash String>
       [is_canceled]: <Invoice is Canceled Bool>
@@ -1199,6 +1201,18 @@ over-paid.
       [is_held]: <HTLC is Held Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      payments: [{
+        [confirmed_at]: <Payment Settled At ISO 8601 Date String>
+        created_at: <Payment Held Since ISO 860 Date String>
+        created_height: <Payment Held Since Block Height Number>
+        in_channel: <Incoming Payment Through Channel Id String>
+        is_canceled: <Payment is Canceled Bool>
+        is_confirmed: <Payment is Confirmed Bool>
+        is_held: <Payment is Held Bool>
+        mtokens: <Incoming Payment Millitokens String>
+        [pending_index]: <Pending Payment Channel HTLC Index Number>
+        tokens: <Payment TOkens Number>
+      }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
@@ -1218,6 +1232,8 @@ const invoiceDetails = await getInvoice({id, lnd});
 Get all created invoices.
 
 If a next token is returned, pass it to get another page of invoices.
+
+The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     {
       [limit]: <Page Result Limit Number>
@@ -1240,16 +1256,21 @@ If a next token is returned, pass it to get another page of invoices.
         [is_held]: <HTLC is Held Bool>
         is_outgoing: <Invoice is Outgoing Bool>
         is_private: <Invoice is Private Bool>
+        payments: [{
+          [confirmed_at]: <Payment Settled At ISO 8601 Date String>
+          created_at: <Payment Held Since ISO 860 Date String>
+          created_height: <Payment Held Since Block Height Number>
+          in_channel: <Incoming Payment Through Channel Id String>
+          is_canceled: <Payment is Canceled Bool>
+          is_confirmed: <Payment is Confirmed Bool>
+          is_held: <Payment is Held Bool>
+          mtokens: <Incoming Payment Millitokens String>
+          [pending_index]: <Pending Payment Channel HTLC Index Number>
+          tokens: <Payment TOkens Number>
+        }]
         received: <Received Tokens Number>
         received_mtokens: <Received Millitokens String>
         request: <Bolt 11 Invoice String>
-        routes: [[{
-          base_fee_mtokens: <Base Routing Fee In Millitokens Number>
-          channel: <Standard Format Channel Id String>
-          cltv_delta: <CLTV Blocks Delta Number>
-          fee_rate: <Fee Rate In Millitokens Per Million Number>
-          public_key: <Public Key Hex String>
-        }]]
         secret: <Secret Preimage Hex String>
         tokens: <Tokens Number>
       }]
@@ -1569,6 +1590,8 @@ addition to routes.
 
 `is_adjusted_for_past_failures` will turn on LND 0.7.1+ past-fail pathfinding
 
+Setting both `start` and `outgoing_channel` is not supported
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       [destination]: <Final Send Destination Hex Encoded Public Key String>
@@ -1582,7 +1605,7 @@ addition to routes.
       [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
-      [outgoing_channel]: [Outgoing Channel Id String>]
+      [outgoing_channel]: <Outgoing Channel Id String>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
@@ -2785,6 +2808,8 @@ Subscribe to an invoice
 
 Lnd built with invoicesrpc tag is required
 
+The `payments` array of HTLCs is only populated on LND versions after 0.7.1
+
     {
       id: <Invoice Payment Hash Hex String>
       lnd: <Authenticated LND gRPC API Object>
@@ -2810,6 +2835,18 @@ Lnd built with invoicesrpc tag is required
       [is_held]: <HTLC is Held Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      payments: [{
+        [confirmed_at]: <Payment Settled At ISO 8601 Date String>
+        created_at: <Payment Held Since ISO 860 Date String>
+        created_height: <Payment Held Since Block Height Number>
+        in_channel: <Incoming Payment Through Channel Id String>
+        is_canceled: <Payment is Canceled Bool>
+        is_confirmed: <Payment is Confirmed Bool>
+        is_held: <Payment is Held Bool>
+        mtokens: <Incoming Payment Millitokens String>
+        [pending_index]: <Pending Payment Channel HTLC Index Number>
+        tokens: <Payment TOkens Number>
+      }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
@@ -2838,6 +2875,8 @@ const [invoice] = await once(sub, 'invoice_updated');
 
 Subscribe to invoices
 
+The `payments` array of HTLCs is only populated on LND versions after 0.7.1
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -2860,6 +2899,18 @@ Subscribe to invoices
       id: <Invoice Payment Hash Hex String>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
+      payments: [{
+        [confirmed_at]: <Payment Settled At ISO 8601 Date String>
+        created_at: <Payment Held Since ISO 860 Date String>
+        created_height: <Payment Held Since Block Height Number>
+        in_channel: <Incoming Payment Through Channel Id String>
+        is_canceled: <Payment is Canceled Bool>
+        is_confirmed: <Payment is Confirmed Bool>
+        is_held: <Payment is Held Bool>
+        mtokens: <Incoming Payment Millitokens String>
+        [pending_index]: <Pending Payment Channel HTLC Index Number>
+        tokens: <Payment TOkens Number>
+      }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
       request: <BOLT 11 Payment Request String>

@@ -10,6 +10,7 @@ const times = 20;
   {
     id: <Channel Transaction Id Hex String>
     [is_closing]: <Is Closing Bool>
+    [is_recovering]: <Is Recovering Funds Bool>
     lnd: <Authenticated LND gRPC API Object>
   }
 */
@@ -34,6 +35,10 @@ module.exports = (args, cbk) => {
 
       if (!channel) {
         return cbk([503, 'FailedToFindPendingChannelWithTransactionId']);
+      }
+
+      if (!!args.is_recovering && !!channel.is_closing) {
+        return cbk(null, {channel});
       }
 
       if (!!args.is_closing && !channel.close_transaction_id) {

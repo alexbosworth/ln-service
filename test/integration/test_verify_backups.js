@@ -6,10 +6,11 @@ const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {verifyBackups} = require('./../../');
+const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
 const giftTokens = 1e5;
 
@@ -29,6 +30,13 @@ test(`Test verify backups`, async ({end, equal}) => {
   });
 
   await waitForPendingChannel({
+    id: channelOpen.transaction_id,
+    lnd: cluster.target.lnd,
+  });
+
+  await cluster.generate({count: confirmationCount, node: cluster.target});
+
+  await waitForChannel({
     id: channelOpen.transaction_id,
     lnd: cluster.target.lnd,
   });

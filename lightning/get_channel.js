@@ -26,6 +26,7 @@ const edgeNotFoundErrorMessage = 'edge not found';
       [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
       [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
       public_key: <Node Public Key String>
+      [updated_at]: <Edge Last Updated At ISO 8601 Date String>
     }]
     transaction_id: <Transaction Id Hex String>
     transaction_vout: <Transaction Output Index Number>
