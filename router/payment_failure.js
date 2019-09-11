@@ -22,6 +22,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
         timestamp: <Update Epoch Time Seconds Number>
       }
       code: <Failure Code String>
+      [failure_source_index]: <Failed Hop Index Number>
       failure_source_pubkey: <Public Key Buffer Object>
       htlc_msat: <HTLC Millitokens String>
     }
@@ -33,6 +34,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
     code: <Error Type Code Number>
     [details]: {
       [channel]: <Standard Format Channel Id String>
+      [index]: <Failed Hop Index Number>
       [mtokens]: <Error Millitokens String>
       [policy]: {
         base_fee_mtokens: <Base Fee Millitokens String>
@@ -55,7 +57,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
     message: <Error Message String>
   }
 */
-module.exports = ({channel, failure, keys}) => {
+module.exports = ({channel, failure, index, keys}) => {
   if (!failure) {
     return {code: 500, message: 'ExpectedFailureToDerivePaymentFailure'};
   }
@@ -78,6 +80,7 @@ module.exports = ({channel, failure, keys}) => {
 
   const details = {
     channel: !!channel ? channel : failChan.channel,
+    index: failure.failure_source_index,
     mtokens: !hasMtokens ? undefined : failure.htlc_msat,
     policy: !update ? null : policyFromChannelUpdate({key, keys, update}),
     public_key: !key ? undefined : key.toString('hex'),

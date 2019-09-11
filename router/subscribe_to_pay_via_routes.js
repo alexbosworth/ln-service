@@ -61,6 +61,7 @@ const unknownWireError = 'unknown wire error';
       <Failure Message String>
       {
         channel: <Standard Format Channel Id String>
+        [index]: <Failure Hop Index Number>
         [mtokens]: <Millitokens String>
         [policy]: {
           base_fee_mtokens: <Base Fee Millitokens String>
@@ -106,6 +107,7 @@ const unknownWireError = 'unknown wire error';
   @event 'routing_failure'
   {
     [channel]: <Standard Format Channel Id String>
+    [index]: <Failure Hop Index Number>
     [mtokens]: <Failure Related Millitokens String>
     [policy]: {
       base_fee_mtokens: <Base Fee Millitokens String>
@@ -379,6 +381,7 @@ module.exports = args => {
           emitter.emit('routing_failure', {
             route,
             channel: failure.details.channel,
+            index: failure.details.index,
             mtokens: failure.details.mtokens,
             policy: failure.details.policy,
             public_key: failure.details.public_key,

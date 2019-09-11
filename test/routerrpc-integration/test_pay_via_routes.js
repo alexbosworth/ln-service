@@ -155,6 +155,10 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
       flags = !flags ? 1 : 0;
     }
 
+    if (details.index !== undefined) {
+      equal(details.index, 1, 'Failure index returned');
+    }
+
     equal(lowFeeErrCode, 503, 'Low fee returns low fee error code');
     equal(details.channel, toRemote.id, 'Fwd channel id returned');
     equal(details.policy.base_fee_mtokens, '1000', 'Base fee');

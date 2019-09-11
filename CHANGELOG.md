@@ -1,5 +1,9 @@
 # Versions
 
+## 45.1.0
+
+- `subscribeToPayViaRoutes`: Added `index` to `routing_failure` indicating which hop failed
+
 ## 45.0.0
 
 - `getInvoice`: Added `payments` to show HTLC payments to the invoice

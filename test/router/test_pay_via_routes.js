@@ -90,6 +90,7 @@ const tests = [
                   timestamp: 1231006505,
                 },
                 code: 'FEE_INSUFFICIENT',
+                failure_source_index: 1,
                 failure_source_pubkey: Buffer.from('00', 'hex'),
                 htlc_msat: '1',
               },
@@ -136,6 +137,7 @@ const tests = [
           code: 503,
           details: {
             channel: '0x116x52145',
+            index: 1,
             mtokens: '1',
             policy: {
               base_fee_mtokens: '1000',

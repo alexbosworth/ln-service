@@ -3188,6 +3188,7 @@ Requires lnd built with routerrpc build tag
     @event 'routing_failure'
     {
       [channel]: <Standard Format Channel Id String>
+      [index]: <Failure Hop Index Number>
       [mtokens]: <Failure Related Millitokens String>
       [policy]: {
         base_fee_mtokens: <Base Fee Millitokens String>
