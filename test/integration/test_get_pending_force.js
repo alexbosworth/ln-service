@@ -29,8 +29,8 @@ test(`Get pending channels`, async ({end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     give_tokens: giftTokens,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await getPendingChannels({lnd, id: channelOpen.transaction_id});
@@ -42,15 +42,20 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(pendingOpen.is_closing, false, 'Not closing yet');
   equal(pendingOpen.is_opening, true, 'Channel is opening');
   equal(pendingOpen.local_balance, 980950, 'Local balance minus gift, fee');
+  equal(pendingOpen.local_reserve, 10000, 'Local reserve amount');
   equal(pendingOpen.partner_public_key, cluster.target_node_public_key, 'Key');
   equal(pendingOpen.pending_balance, undefined, 'No pending chain balance');
+  equal(pendingOpen.pending_payments, undefined, 'No pending payments');
   equal(pendingOpen.received, 0, 'Nothing received');
   equal(pendingOpen.recovered_tokens, undefined, 'Nothing recovered');
   equal(pendingOpen.remote_balance, giftTokens, 'Tokens gifted');
+  equal(pendingOpen.remote_reserve, 10000, 'Remote reserve amount');
   equal(pendingOpen.sent, 0, 'Nothing sent');
   equal(pendingOpen.timelock_expiration, undefined, 'Not timelocked');
+  equal(pendingOpen.transaction_fee, 9050, 'Transaction fee tokens');
   equal(pendingOpen.transaction_id, channelOpen.transaction_id, 'Open tx id');
   equal(pendingOpen.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
+  equal(pendingOpen.transaction_weight, 724, 'Channel tx weight');
 
   await cluster.generate({count: confirmationCount});
 
@@ -69,6 +74,12 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const [waitClose] = (await getPendingChannels({lnd})).pending_channels;
 
+  // LND 0.7.1 did not populate reserve values
+  if (!!waitClose.local_reserve) {
+    equal(waitClose.local_reserve, 10000, 'Local reserve of closing channel');
+    equal(waitClose.remote_reserve, 10000, 'Remote reserve');
+  }
+
   equal(waitClose.close_transaction_id, undefined, 'Waiting for close tx');
   equal(waitClose.is_active, false, 'Not active yet');
   equal(waitClose.is_closing, true, 'Channel is closing');
@@ -76,8 +87,15 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(waitClose.local_balance, 980950, 'Local balance of channel');
   equal(waitClose.partner_public_key, cluster.target_node_public_key, 'Pkey');
   equal(waitClose.pending_balance, 980950, 'Tokens return to local wallet');
+  equal(waitClose.pending_payments, undefined, 'No pending payments data');
   equal(waitClose.received, 0, 'Nothing received');
   equal(waitClose.recovered_tokens, undefined, 'Funds not recovered yet');
+  equal(waitClose.sent, 0, 'No sent tokens');
+  equal(waitClose.timelock_expiration, undefined, 'No timelock data');
+  equal(waitClose.transaction_fee, null, 'No tx fee data');
+  equal(waitClose.transaction_id, channelOpen.transaction_id, 'Funding tx id');
+  equal(waitClose.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
+  equal(waitClose.transaction_weight, null, 'No funding tx weight data');
 
   if (!!waitClose.remote_balance) {
     equal(waitClose.remote_balance, giftTokens, 'Remote tokens represented');

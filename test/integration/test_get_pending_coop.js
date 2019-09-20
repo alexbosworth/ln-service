@@ -2,18 +2,11 @@ const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
-const {getChannels} = require('./../../');
-const {getPendingChannels} = require('./../../');
-const {openChannel} = require('./../../');
-const {waitForChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
 const defaultFee = 1e3;
-const defaultVout = 0;
 const giftTokens = 1e4;
-const spendableRatio = 0.99;
 
 // Getting pending channels should show pending channels
 test(`Get pending channels`, async ({end, equal}) => {
@@ -21,25 +14,17 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const coopChan = await openChannel({
+  const coopChan = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    generate: cluster.generate,
+    give: giftTokens,
+    to: cluster.target,
   });
-
-  await waitForPendingChannel({lnd, id: coopChan.transaction_id});
-
-  await cluster.generate({count: confirmationCount});
-
-  await waitForChannel({lnd, id: coopChan.transaction_id});
 
   const niceClose = await closeChannel({
     lnd: cluster.target.lnd,
-    public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
     tokens_per_vbyte: defaultFee,
     transaction_id: coopChan.transaction_id,
     transaction_vout: coopChan.transaction_vout,
@@ -50,18 +35,28 @@ test(`Get pending channels`, async ({end, equal}) => {
     id: coopChan.transaction_id,
   });
 
+  equal(channel.close_transaction_id, undefined, 'No close tx id');
   equal(channel.is_active, false, 'Ended');
   equal(channel.is_closing, true, 'Closing');
   equal(channel.is_opening, false, 'Not Opening');
   equal(channel.local_balance, 980950, 'Original balance');
-  equal(channel.partner_public_key, cluster.target_node_public_key, 'pubk');
+  equal(channel.partner_public_key, cluster.target.public_key, 'target pubk');
   equal(channel.pending_balance, 980950, 'Waiting on balance');
+  equal(channel.pending_payments, undefined, 'No pending payments');
   equal(channel.received, 0, 'Never received');
   equal(channel.recovered_tokens, undefined, 'Nothing to recover in sweep');
   equal(channel.sent, 0, 'Never sent anything');
   equal(channel.timelock_expiration, undefined, 'No timelock in coop mode');
+  equal(channel.transaction_fee, null, 'No transaction fee data');
   equal(channel.transaction_id, coopChan.transaction_id, 'funding tx id');
   equal(channel.transaction_vout, coopChan.transaction_vout, 'funding vout');
+  equal(channel.transaction_weight, null, 'No funding tx weight data');
+
+  // LND 0.7.1 and lower did not populate reserve values
+  if (!!channel.local_reserve) {
+    equal(channel.local_reserve, 10000, 'Local reserve');
+    equal(channel.remote_reserve, 10000, 'Remote reserve');
+  }
 
   if (!!channel.remote_balance) {
     equal(channel.remote_balance, giftTokens, 'Opposing channel balance');

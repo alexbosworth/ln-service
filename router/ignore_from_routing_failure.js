@@ -8,7 +8,7 @@ const {isArray} = Array;
       channel: <Standard Format Channel Id String>
       public_key: <Paying Towards Public Key Hex String>
     }]
-    public_key: <Failure Source Public Key Hex String>
+    index: <Failure At Hop Index Number>
     reason: <Routing Failure Reason String>
   }
 
@@ -34,27 +34,30 @@ module.exports = args => {
     throw new Error('ExpectedArrayOfHopsWithChannelsAndKeysToDeriveIgnores');
   }
 
-  if (!args.public_key) {
-    throw new Error('ExpectedPublicKeyOfFailureToDeriveIgnores');
+  if (args.index === undefined) {
+    throw new Error('ExpectedIndexOfFailureToDeriveIgnores');
   }
 
   if (!args.reason) {
     throw new Error('ExpectedReasonForFailureToDeriveIgnores');
   }
 
-  const [ultimateHop] = args.hops.slice().reverse();
+  // Exit early when no forwarding node failed
+  if (args.index === args.hops.length) {
+    return {ignore: []};
+  }
+
+  if (!args.hops[args.index]) {
+    throw new Error('ExpectedHopDetailsAtFailureIndex');
+  }
 
   const failIndex = args.hops.findIndex(n => n.channel === args.channel);
   const finalIndex = args.hops.length - 1;
   const ignore = [];
-
-  // Exit early when there were no failures
-  if (args.public_key === ultimateHop.public_key) {
-    return {ignore};
-  }
+  const toPublicKey = args.hops[args.index].public_key;
 
   if (!args.channel && args.reason === 'UnknownNextPeer') {
-    ignore.push({reason: args.reason, to_public_key: args.public_key});
+    ignore.push({reason: args.reason, to_public_key: toPublicKey});
 
     return {ignore};
   }
@@ -93,7 +96,7 @@ module.exports = args => {
 
   // A node failure implies that the node itself is having issues
   case 'TemporaryNodeFailure':
-    ignore.push({reason: args.reason, to_public_key: args.public_key});
+    ignore.push({reason: args.reason, to_public_key: toPublicKey});
     break;
 
   case 'UnknownNextPeer':

@@ -16,6 +16,7 @@ const rpcRouteFromRoute = require('./rpc_route_from_route');
 
 const {isArray} = Array;
 const {nextTick} = process;
+const notFoundIndex = -1;
 const {now} = Date;
 const payHashLength = Buffer.alloc(32).length;
 const timeoutError = 'payment attempt not completed before timeout';
@@ -107,6 +108,7 @@ const unknownWireError = 'unknown wire error';
   @event 'routing_failure'
   {
     [channel]: <Standard Format Channel Id String>
+    [height]: <Failure Height Context Number>
     [index]: <Failure Hop Index Number>
     [mtokens]: <Failure Related Millitokens String>
     [policy]: {
@@ -258,35 +260,11 @@ module.exports = args => {
             return cbk([503, 'ExpectedResponseFromLndWhenPayingViaRoute']);
           }
 
-          const failure = res.failure;
-
-          const failKey = !failure ? undefined : failure.failure_source_pubkey;
-
-          // When the source pubkey is populated it means fail index is invalid
-          if (!!res.failure && !!res.failure.failure_source_pubkey.length) {
-            delete failure.failure_source_index;
-          }
-
-          const failAt = !failure ? undefined : failure.failure_source_index;
-
-          // When the fail index exists, populate the source pubkey
-          if (!!failKey && !failKey.length && failAt !== undefined) {
-            const failureSource = !failAt ? getInfo : route.hops[failAt - 1];
-
-            const failHopKey = failureSource.public_key;
-
-            res.failure.failure_source_pubkey = Buffer.from(failHopKey, 'hex');
-          }
-
-          if (!!res.failure && !res.failure.failure_source_pubkey) {
-            return cbk([503, 'ExpectedFailureSourcePublicKeyInFailDetails']);
-          }
-
           return cbk(null, {failure: res.failure, preimage: res.preimage});
         });
       }],
 
-      // Public keys associated
+      // Public keys associated with a failure
       keys: ['attempt', ({attempt}, cbk) => {
         if (!attempt.failure || !attempt.failure.channel_update) {
           return cbk();
@@ -303,7 +281,7 @@ module.exports = args => {
 
           const hopIndex = route.hops.findIndex(n => n.channel === channel);
 
-          if (!hopIndex || hopIndex === -1) {
+          if (!hopIndex || hopIndex === notFoundIndex) {
             return cbk();
           }
 
@@ -321,24 +299,24 @@ module.exports = args => {
           return cbk();
         }
 
-        let channel;
-        const failKey = attempt.failure.failure_source_pubkey;
         const {failure} = attempt;
-        const {hops} = route;
 
-        // A fail index indicates the hop channel that failed
-        if (failure.failure_source_index !== undefined) {
-          channel = (hops[failure.failure_source_index] || {}).channel;
-        } else if (!!failKey) {
-          const key = failKey.toString('hex');
+        const {channel} = (route.hops[failure.failure_source_index] || {});
+        const from = route.hops[failure.failure_source_index - 1] || {};
 
-          const failIndex = hops.findIndex(n => n.public_key === key);
+        const key = !from ? undefined : from.public_key;
 
-          // A fail key can be used to find the channel within the route
-          channel = (hops[failIndex - [key].length] || {}).channel;
+        try {
+          return cbk(null, paymentFailure({
+            channel,
+            failure,
+            key,
+            keys,
+            index: failure.failure_source_index,
+          }));
+        } catch (err) {
+          return cbk([503, 'UnexpectedErrParsingPaymentFailure', {err}]);
         }
-
-        return cbk(null, paymentFailure({channel, failure, keys}));
       }],
 
       // Attempt success
@@ -350,6 +328,8 @@ module.exports = args => {
         if (!Buffer.isBuffer(attempt.preimage)) {
           return cbk([503, 'UnexpectedResultWhenPayingViaSendToRouteSync']);
         }
+
+        isPayDone = true;
 
         return cbk(null, {
           fee: route.fee,
@@ -368,19 +348,16 @@ module.exports = args => {
           return cbk();
         }
 
-        const [finalHop] = route.hops.slice().reverse();
-        const hasDetails = !!failure && !!failure.details;
-
-        // Failures from the final hop are definitive
-        if (hasDetails && failure.details.public_key === finalHop.public_key) {
-          isPayDone = !!failure;
+        if (!!failure && failure.index === route.hops.length) {
+          isPayDone = true;
         }
 
         // A routing failure was encountered
-        if (hasDetails) {
+        if (!!failure && !!failure.details) {
           emitter.emit('routing_failure', {
             route,
             channel: failure.details.channel,
+            height: failure.details.height,
             index: failure.details.index,
             mtokens: failure.details.mtokens,
             policy: failure.details.policy,
@@ -402,7 +379,6 @@ module.exports = args => {
           return cbk();
         }
 
-        isPayDone = !!success;
         payResult = success;
 
         emitter.emit('success', {

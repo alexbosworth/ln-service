@@ -9,6 +9,7 @@ const {broadcastResponse} = require('./../push');
 
 const decBase = 10;
 const {isArray} = Array;
+const millitokensAsTokens = n => Number(BigInt(n) / BigInt(1e3));
 const sha256 = preimage => createHash('sha256').update(preimage).digest('hex');
 
 /** Send a channel payment.
@@ -117,10 +118,6 @@ module.exports = (args, cbk) => {
             return cbk([503, 'ExpectedPaymentRouteHops']);
           }
 
-          if (res.payment_route.total_fees === undefined) {
-            return cbk([503, 'ExpectedPaymentFeesPaid']);
-          }
-
           if (res.payment_route.total_fees_msat === undefined) {
             return cbk([503, 'ExpectedPaymentFeesPaidInMillitokens']);
           }
@@ -134,7 +131,7 @@ module.exports = (args, cbk) => {
           }
 
           const row = {
-            fee: parseInt(res.payment_route.total_fees, decBase),
+            fee: millitokensAsTokens(res.payment_route.total_fees_msat),
             fee_mtokens: res.payment_route.total_fees_msat,
             hops: hops.map(hop => {
               return {
@@ -150,7 +147,7 @@ module.exports = (args, cbk) => {
             is_outgoing: true,
             mtokens: res.payment_route.total_amt_msat,
             secret: res.payment_preimage.toString('hex'),
-            tokens: parseInt(res.payment_route.total_amt, decBase),
+            tokens: millitokensAsTokens(res.payment_route.total_amt_msat),
           };
 
           if (!!args.wss) {

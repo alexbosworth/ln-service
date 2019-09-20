@@ -2,6 +2,8 @@ const asyncAuto = require('async/auto');
 const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
+const {channelEdgeAsChannel} = require('./../graph');
+
 const countGroupingFactor = 3;
 const decBase = 10;
 const {isArray} = Array;
@@ -27,10 +29,11 @@ const outpointSeparatorChar = ':';
         [max_htlc_mtokens]: <Maximum HTLC Millitokens String>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
         public_key: <Public Key String>
+        [updated_at]: <Last Update Epoch ISO 8601 Date String>
       }]
       transaction_id: <Funding Transaction Id String>
       transaction_vout: <Funding Transaction Output Index Number>
-      updated_at: <Last Update Epoch ISO 8601 Date String>
+      [updated_at]: <Last Update Epoch ISO 8601 Date String>
     }]
     nodes: [{
       alias: <Name String>
@@ -78,49 +81,27 @@ module.exports = ({lnd}, cbk) => {
 
       // Network graph
       graph: ['getGraph', ({getGraph}, cbk) => {
+        let channels;
         const hasChannel = {};
 
         try {
-          getGraph.edges.map(n => chanFormat({number: n.channel_id}));
-        } catch (err) {
-          return cbk([503, 'ExpectedValidNumericChannelId', err]);
-        }
+          channels = getGraph.edges.map(n => {
+            hasChannel[n.node1_pub] = true;
+            hasChannel[n.node2_pub] = true;
 
-        const channels = getGraph.edges.map(n => {
-          const [txId, vout] = n.chan_point.split(outpointSeparatorChar);
-
-          const policies = [n.node1_policy, n.node2_policy].map(policy => {
-            if (!policy) {
-              return {};
-            }
-
-            return {
-              base_fee_mtokens: policy.fee_base_msat,
-              cltv_delta: policy.time_lock_delta,
-              fee_rate: parseInt(policy.fee_rate_milli_msat, decBase),
-              is_disabled: !!policy.disabled,
-              max_htlc_mtokens: policy.max_htlc_msat,
-              min_htlc_mtokens: policy.min_htlc,
-            };
+            return channelEdgeAsChannel({
+              capacity: n.capacity,
+              chan_point: n.chan_point,
+              channel_id: n.channel_id,
+              node1_policy: n.node1_policy,
+              node1_pub: n.node1_pub,
+              node2_policy: n.node2_policy,
+              node2_pub: n.node2_pub,
+            });
           });
-
-          const [node1Policy, node2Policy] = policies;
-
-          hasChannel[n.node1_pub] = true;
-          hasChannel[n.node2_pub] = true;
-
-          node1Policy.public_key = n.node1_pub;
-          node2Policy.public_key = n.node2_pub;
-
-          return {
-            policies,
-            capacity: parseInt(n.capacity, decBase),
-            id: chanFormat({number: n.channel_id}).channel,
-            transaction_id: txId,
-            transaction_vout: parseInt(vout, decBase),
-            updated_at: new Date(n.last_update * msPerSec).toISOString(),
-          };
-        });
+        } catch (err) {
+          return cbk([503, 'UnexpectedErrorParsingChannelsInGraph', {err}]);
+        }
 
         const nodes = getGraph.nodes.filter(n => !!n.last_update).map(n => {
           return {

@@ -1,5 +1,7 @@
 const {chanNumber} = require('bolt07');
 
+const millitokensAsTokens = n => Number(BigInt(n) / BigInt(1e3));
+
 /** Get a hop formatted as a RPC hop
 
   {
@@ -30,12 +32,12 @@ const {chanNumber} = require('bolt07');
 */
 module.exports = args => {
   return {
-    amt_to_forward: args.forward.toString(),
+    amt_to_forward: millitokensAsTokens(args.forward_mtokens).toString(),
     amt_to_forward_msat: args.forward_mtokens,
     chan_id: chanNumber({channel: args.channel}).number,
     chan_capacity: args.channel_capacity.toString(),
     expiry: args.timeout,
-    fee: args.fee.toString(),
+    fee: millitokensAsTokens(args.fee_mtokens).toString(),
     fee_msat: args.fee_mtokens,
     pub_key: args.public_key || undefined,
   };

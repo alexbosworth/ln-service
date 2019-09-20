@@ -8,8 +8,6 @@ const {isArray} = Array;
 
 /** Get channels
 
-  Note: is_partner_initiated will be undefined if it is unknown or true.
-
   {
     [is_active]: <Limit Results To Only Active Channels Bool> // false
     [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -28,10 +26,10 @@ const {isArray} = Array;
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
-      is_partner_initiated: <Channel Partner Opened Channel>
+      is_partner_initiated: <Channel Partner Opened Channel Bool>
       is_private: <Channel Is Private Bool>
       local_balance: <Local Balance Tokens Number>
-      [local_reserve]: <Local Reserved Tokens Number>
+      local_reserve: <Local Reserved Tokens Number>
       partner_public_key: <Channel Partner Public Key String>
       pending_payments: [{
         id: <Payment Preimage Hash Hex String>
@@ -41,7 +39,7 @@ const {isArray} = Array;
       }]
       received: <Received Tokens Number>
       remote_balance: <Remote Balance Tokens Number>
-      [remote_reserve]: <Remote Reserved Tokens Number>
+      remote_reserve: <Remote Reserved Tokens Number>
       sent: <Sent Tokens Number>
       transaction_id: <Blockchain Transaction Id String>
       transaction_vout: <Blockchain Transaction Vout Number>
@@ -127,6 +125,10 @@ module.exports = (args, cbk) => {
             return cbk([503, 'ExpectedLocalBalance']);
           }
 
+          if (!channel.local_chan_reserve_sat) {
+            return cbk([503, 'ExpectedLocalChannelReserveAmountInChannel']);
+          }
+
           if (channel.num_updates === undefined) {
             return cbk([503, 'ExpectedNumUpdates']);
           }
@@ -141,6 +143,10 @@ module.exports = (args, cbk) => {
 
           if (channel.remote_balance === undefined) {
             return cbk([503, 'ExpectedRemoteBalance']);
+          }
+
+          if (!channel.remote_chan_reserve_sat) {
+            return cbk([503, 'ExpectedRemoteChannelReserveAmount']);
           }
 
           if (!channel.remote_pubkey) {
@@ -160,13 +166,11 @@ module.exports = (args, cbk) => {
           }
 
           const commitWeight = parseInt(channel.commit_weight, decBase);
-          const {initiator} = channel;
-          const localReserve = channel.local_chan_reserve_sat || '0';
-          const remoteReserve = channel.remote_chan_reserve_sat || '0';
+          const localReserve = channel.local_chan_reserve_sat;
+          const remoteReserve = channel.remote_chan_reserve_sat;
           const [transactionId, vout] = channel.channel_point.split(':');
 
           const localReserveTokens = parseInt(localReserve, decBase);
-          const notInitiator = initiator === false ? undefined : !initiator;
           const remoteReserveTokens = parseInt(remoteReserve, decBase);
 
           return cbk(null, {
@@ -177,7 +181,7 @@ module.exports = (args, cbk) => {
             is_active: channel.active,
             is_closing: false,
             is_opening: false,
-            is_partner_initiated: notInitiator,
+            is_partner_initiated: !!channel.initiator,
             is_private: channel.private,
             local_balance: parseInt(channel.local_balance, decBase),
             local_reserve: localReserveTokens || undefined,

@@ -124,7 +124,6 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
 
     equal(failCode, 404, 'No known entity');
     equal(failMessage, 'UnknownPaymentHash', 'This is an unknown hash');
-    equal(failDetails.public_key, destination, 'Failure source is end');
   }
 
   const toRemote = await getChannel({
@@ -167,7 +166,6 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     equal(details.policy.is_disabled, false, 'Channel is enabled');
     equal(details.policy.min_htlc_mtokens, '1000', 'Min HTLC tokens');
     equal(!!details.policy.updated_at, true, 'Updated at returned');
-    equal(details.public_key, targetPubKey, 'Low fee for pubkey');
     equal(details.update.chain, regtestChain, 'Chain is returned');
     equal(details.update.channel_flags, flags, 'Channel flags');
     equal(details.update.extra_opaque_data, '', 'Opaque data');

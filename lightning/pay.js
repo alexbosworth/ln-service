@@ -20,6 +20,7 @@ const noRoutesProvidedError = 'unable to send, no routes provided';
 const {now} = Date;
 const preimageLength = 32;
 const sha256 = buffer => createHash('sha256').update(buffer).digest('hex');
+const tokensFromMtok = n => Number(BigInt(n) / BigInt(1e3));
 
 /** Make a payment.
 
@@ -344,16 +345,8 @@ module.exports = (args, cbk) => {
                 return cbk([503, 'ExpectedPaymentRouteHops']);
               }
 
-              if (attempt.payment_route.total_amt === undefined) {
-                return cbk([503, 'ExpectedPaymentTotalSentAmount']);
-              }
-
               if (attempt.payment_route.total_amt_msat === undefined) {
                 return cbk([503, 'ExpectedPaymentTotalMillitokensSentAmount']);
-              }
-
-              if (attempt.payment_route.total_fees === undefined) {
-                return cbk([503, 'ExpectedRouteFeesPaidValue']);
               }
 
               if (attempt.payment_route.total_fees_msat === undefined) {
@@ -386,7 +379,7 @@ module.exports = (args, cbk) => {
                 is_outgoing: true,
                 mtokens: attempt.payment_route.total_amt_msat,
                 secret: attempt.payment_preimage.toString('hex'),
-                tokens: parseInt(attempt.payment_route.total_amt, decBase),
+                tokens: tokensFromMtok(attempt.payment_route.total_amt_msat),
               };
 
               return cbk(null, {row});

@@ -1,15 +1,19 @@
 const EventEmitter = require('events');
 const {readFileSync} = require('fs');
 
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
+const {getWalletInfo} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
+const interval = retryCount => 50 * Math.pow(2, retryCount);
+const times = 15;
 
 // Subscribers to blocks should receive block notifications
 test(`Subscribe to blocks`, async ({end, equal, fail}) => {
@@ -19,6 +23,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
   const {kill, lnd} = spawned;
 
   const sub = subscribeToBlocks({lnd});
+  const startHeight = (await getWalletInfo({lnd})).current_block_height;
 
   sub.on('end', () => {});
   sub.on('error', err => {});
@@ -34,7 +39,18 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
       return;
     }
 
-    await delay(3000);
+    // Wait for generation to be over
+    await asyncRetry({interval, times}, async () => {
+      const currentHeight = (await getWalletInfo({lnd})).current_block_height;
+
+      if (currentHeight - startHeight !== confirmationCount) {
+        throw new Error('ExpectedEndOfGeneration');
+      }
+
+      return;
+    });
+
+    await delay(2000);
 
     kill();
 

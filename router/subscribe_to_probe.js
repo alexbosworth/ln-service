@@ -89,6 +89,7 @@ const {isArray} = Array;
         public_key: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
       }]
+      index: <Failure Index Number>
       mtokens: <Total Millitokens To Pay String>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
@@ -262,17 +263,24 @@ module.exports = args => {
 
           sub.on('routing_failure', failure => {
             const [finalHop] = failure.route.hops.slice().reverse();
+            let toIgnore;
 
             failures.push(failure);
 
-            const isFinalNode = failure.public_key === finalHop.public_key;
+            if (failure.index === failure.route.hops.length) {
+              isFinal = true;
+            }
 
-            const toIgnore = ignoreFromRoutingFailure({
-              channel: failure.channel,
-              hops: failure.route.hops,
-              public_key: failure.public_key,
-              reason: failure.reason,
-            });
+            try {
+              toIgnore = ignoreFromRoutingFailure({
+                channel: failure.channel,
+                hops: failure.route.hops,
+                index: failure.index,
+                reason: failure.reason,
+              });
+            } catch (err) {
+              return cbk([500, 'UnexpectedErrorDerivingProbeIgnore', {err}]);
+            }
 
             toIgnore.ignore.forEach(edge => {
               return ignore.push({
@@ -283,12 +291,13 @@ module.exports = args => {
             });
 
             // Exit early when the probe found a completed route
-            if (!!isFinalNode) {
+            if (!!isFinal) {
               return emitter.emit('probe_success', {route: failure.route});
             }
 
             emitter.emit('routing_failure', {
               channel: failure.channel,
+              index: failure.index,
               mtokens: failure.mtokens,
               policy: failure.policy || undefined,
               public_key: failure.public_key,
@@ -331,10 +340,6 @@ module.exports = args => {
           }));
 
         if (!res.getNextRoute.routes.length) {
-          isFinal = true;
-        }
-
-        if (!!failures.find(n => n.public_key === args.destination)) {
           isFinal = true;
         }
 

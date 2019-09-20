@@ -129,7 +129,6 @@ const tests = [
           queryRoutes: ({}, cbk) => cbk(null, {
             routes: [{
               hops: [{
-                amt_to_forward: '1',
                 amt_to_forward_msat: '1',
                 chan_capacity: 1,
                 chan_id: '1',
@@ -160,7 +159,7 @@ const tests = [
             channel_capacity: 1,
             fee: 0,
             fee_mtokens: '1',
-            forward: 1,
+            forward: 0,
             forward_mtokens: '1',
             public_key: 'b',
             timeout: 1,

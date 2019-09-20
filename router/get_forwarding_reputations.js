@@ -16,6 +16,8 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
   Requires LND built with routerrpc build tag
 
+  In LND v0.7.1 channels reputations are returned. Later, peers reputations.
+
   {
     lnd: <Authenticated LND gRPC API Object>
     [probability]: <Ignore Reputations Higher than N out of 1 Million Number>

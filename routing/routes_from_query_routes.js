@@ -3,6 +3,7 @@ const {chanFormat} = require('bolt07');
 const decBase = 10;
 const {isArray} = Array;
 const mtokensPerToken = BigInt(1e3);
+const millitokensToTokens = n => Number(BigInt(n) / BigInt(1e3));
 
 /** Routes from raw lnd query routes gRPC response
 
@@ -10,12 +11,10 @@ const mtokensPerToken = BigInt(1e3);
     response: {
       routes: [{
         hops: [{
-          amt_to_forward: <Amount to Forward Tokens String>
           amt_to_forward_msat: <Amount to Forward Millitokens String>
           chan_capacity: <Channel Capacity Tokens String>
           chan_id: <Numeric Format Channel Id String>
           expiry: <Expiration Height Number>
-          fee: <Fee Tokens String>
           fee_msat: <Fee Millitokens String>
           pub_key: <Public Key Hex String>
         }]
@@ -101,15 +100,15 @@ module.exports = ({response}) => {
       const totalAmtMtok = BigInt(route.total_amt_msat);
 
       return {
-        fee: Number(totalFeesMtok / mtokensPerToken),
+        fee: millitokensToTokens(route.total_fees_msat),
         fee_mtokens: route.total_fees_msat,
         hops: route.hops.map(h => {
           return {
             channel: chanFormat({number: h.chan_id}).channel,
             channel_capacity: parseInt(h.chan_capacity, decBase),
-            fee: parseInt(h.fee, decBase),
+            fee: millitokensToTokens(h.fee_msat),
             fee_mtokens: h.fee_msat,
-            forward: parseInt(h.amt_to_forward, decBase),
+            forward: millitokensToTokens(h.amt_to_forward_msat),
             forward_mtokens: h.amt_to_forward_msat,
             public_key: h.pub_key,
             timeout: h.expiry,
@@ -117,7 +116,7 @@ module.exports = ({response}) => {
         }),
         mtokens: route.total_amt_msat,
         timeout: route.total_time_lock,
-        tokens: Number(totalAmtMtok / mtokensPerToken),
+        tokens: millitokensToTokens(route.total_amt_msat),
       };
     }),
   };

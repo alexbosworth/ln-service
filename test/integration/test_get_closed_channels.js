@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
@@ -8,20 +9,24 @@ const {openChannel} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
+const interval = retryCount => 10 * Math.pow(2, retryCount);
 const maxChanTokens = Math.pow(2, 24) - 1;
+const times = 20;
 
 // Getting closed channels should return closed channels
 test(`Close channel`, async ({end, equal}) => {
   const cluster = await createCluster({});
 
+  const {lnd} = cluster.control;
+
   const channelOpen = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
     local_tokens: maxChanTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({
@@ -44,6 +49,15 @@ test(`Close channel`, async ({end, equal}) => {
   });
 
   await cluster.generate({count: confirmationCount});
+
+  // Wait for channel to close
+  await asyncRetry({interval, times}, async () => {
+    const {channels} = await getClosedChannels({lnd});
+
+    if (!channels.length) {
+      throw new Error('ExpectedClosedChannel');
+    }
+  });
 
   const {channels} = await getClosedChannels({lnd: cluster.control.lnd});
 

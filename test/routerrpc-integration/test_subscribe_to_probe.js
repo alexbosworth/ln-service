@@ -140,8 +140,7 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   equal(tempChanFail.policy.fee_rate, failPolicy.fee_rate, 'Fail fee rate');
   equal(tempChanFail.policy.is_disabled, failPolicy.is_disabled, 'Disabled');
   equal(tempChanFail.policy.min_htlc_mtokens, failPolicy.min_htlc_mtokens);
-  equal(!!tempChanFail.policy.updated_at, !!failChannel.updated_at, 'Updated');
-  equal(tempChanFail.public_key, cluster.target_node_public_key, 'To key');
+  equal(!!tempChanFail.policy.updated_at, true, 'Updated');
   equal(tempChanFail.reason, 'TemporaryChannelFailure', 'Failure reason');
   deepIs(tempChanFail.route, route, 'Failure on route');
   equal(tempChanFail.update.chain, chain, 'Failure in chain');

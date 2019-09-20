@@ -19,7 +19,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
-  const socket = `${cluster.target.listen_ip}:${cluster.target.listen_port}`;
+  const socket = cluster.target.socket;
 
   const sub = subscribeToChannels({lnd});
 

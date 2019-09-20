@@ -5,7 +5,7 @@ const msPerSec = 1e3;
 /** Policy from channel update
 
   {
-    [key]: <Public Key Buffer Object>
+    [key]: <Public Key Hex String>
     [keys]: [<Public Key Hex String>]
     update: {
       base_fee: <Base Fee Millitokens Number>
@@ -29,13 +29,11 @@ const msPerSec = 1e3;
     [is_disabled]: <Channel Is Disabled Bool>
     max_htlc_mtokens: <Maximum HTLC Millitokens Value String>
     min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+    public_key: <Public Key Hex String>
+    updatd_at: <Updated At ISO 8601 Date String>
   }
 */
 module.exports = ({key, keys, update}) => {
-  if (!!key && !Buffer.isBuffer(key)) {
-    throw new Error('ExpectedKeyBufferWhenDerivingPolicy');
-  }
-
   if (!update) {
     throw new Error('ExpectedChannelUpdateToDerivePolicy');
   }
@@ -71,7 +69,7 @@ module.exports = ({key, keys, update}) => {
 
     const [first] = keys.sort();
 
-    isDisabled = first === key.toString('hex') ? flag : !flag;
+    isDisabled = first === key ? flag : !flag;
   }
 
   return {
@@ -81,6 +79,7 @@ module.exports = ({key, keys, update}) => {
     is_disabled: isDisabled === null ? undefined : isDisabled,
     max_htlc_mtokens: update.htlc_maximum_msat,
     min_htlc_mtokens: update.htlc_minimum_msat,
+    public_key: key,
     updated_at: new Date(update.timestamp * msPerSec).toISOString(),
   };
 };

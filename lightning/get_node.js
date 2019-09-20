@@ -36,10 +36,11 @@ const msPerSec = 1e3;
         [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
         public_key: <Node Public Key String>
+        [updated_at]: <Policy Last Updated At ISO 8601 Date String>
       }]
       transaction_id: <Transaction Id Hex String>
       transaction_vout: <Transaction Output Index Number>
-      [updated_at]: <Channel Last Updated At ISO 8601 Date String>
+      [updated_at]: <Policy Last Updated At ISO 8601 Date String>
     }]
     color: <RGB Hex Color String>
     sockets: [{

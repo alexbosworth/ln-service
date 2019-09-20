@@ -23,9 +23,11 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
       }
       code: <Failure Code String>
       [failure_source_index]: <Failed Hop Index Number>
-      failure_source_pubkey: <Public Key Buffer Object>
+      height: <Height Number>
       htlc_msat: <HTLC Millitokens String>
     }
+    index: <Failure Index Number>
+    [key]: <From Public Key Hex String>
     [keys]: [<Public Key Hex String>]
   }
 
@@ -34,6 +36,7 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
     code: <Error Type Code Number>
     [details]: {
       [channel]: <Standard Format Channel Id String>
+      [height]: <Error Associated Block Height Number>
       [index]: <Failed Hop Index Number>
       [mtokens]: <Error Millitokens String>
       [policy]: {
@@ -43,8 +46,8 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
         [is_disabled]: <Channel is Disabled Bool>
         max_htlc_mtokens: <Maximum HLTC Millitokens value String>
         min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+        updated_at: <Updated At ISO 8601 Date String>
       }
-      public_key: <Public Key Hex String>
       [timeout_height]: <Error CLTV Timeout Height Number>
       [update]: {
         chain: <Chain Id Hex String>
@@ -57,12 +60,11 @@ const policyFromChannelUpdate = require('./policy_from_channel_update');
     message: <Error Message String>
   }
 */
-module.exports = ({channel, failure, index, keys}) => {
+module.exports = ({channel, failure, index, key, keys}) => {
   if (!failure) {
     return {code: 500, message: 'ExpectedFailureToDerivePaymentFailure'};
   }
 
-  const key = failure.failure_source_pubkey;
   const update = failure.channel_update;
 
   if (!!update) {
@@ -80,10 +82,10 @@ module.exports = ({channel, failure, index, keys}) => {
 
   const details = {
     channel: !!channel ? channel : failChan.channel,
+    height: failure.height || undefined,
     index: failure.failure_source_index,
     mtokens: !hasMtokens ? undefined : failure.htlc_msat,
     policy: !update ? null : policyFromChannelUpdate({key, keys, update}),
-    public_key: !key ? undefined : key.toString('hex'),
     timeout_height: failure.cltv_expiry || undefined,
     update: !update ? undefined : {
       chain: update.chain_hash.reverse().toString('hex'),
@@ -95,11 +97,20 @@ module.exports = ({channel, failure, index, keys}) => {
   };
 
   switch (failure.code) {
-  case 'UNKNOWN_PAYMENT_HASH':
-    return {details, code: 404, message: 'UnknownPaymentHash'};
+  case 'AMOUNT_BELOW_MINIMUM':
+    return {details, code: 503, message: 'AmountBelowMinimum'};
 
-  case 'INCORRECT_PAYMENT_AMOUNT':
-    return {details, code: 404, message: 'IncorrectPaymentAmount'};
+  case 'CHANNEL_DISABLED':
+    return {details, code: 503, message: 'ChannelDisabled'};
+
+  case 'EXPIRY_TOO_SOON':
+    return {details, code: 503, message: 'ExpiryTooSoon'};
+
+  case 'FEE_INSUFFICIENT':
+    return {details, code: 503, message: 'FeeInsufficient'};
+
+  case 'FINAL_EXPIRY_TOO_SOON':
+    return {details, code: 404, message: 'FinalExpiryTooSoon'};
 
   case 'FINAL_INCORRECT_CLTV_EXPIRY':
     return {details, code: 404, message: 'FinalIncorrectCltvExpiry'};
@@ -107,17 +118,11 @@ module.exports = ({channel, failure, index, keys}) => {
   case 'FINAL_INCORRECT_HTLC_AMOUNT':
     return {details, code: 404, message: 'FinalIncorrectHtlcAmount'};
 
-  case 'FINAL_EXPIRY_TOO_SOON':
-    return {details, code: 404, message: 'FinalExpiryTooSoon'};
+  case 'INCORRECT_CLTV_EXPIRY':
+    return {details, code: 503, message: 'IncorrectCltvExpiry'};
 
-  case 'INVALID_REALM':
-    return {details, code: 503, message: 'InvalidRealm'};
-
-  case 'EXPIRY_TOO_SOON':
-    return {details, code: 503, message: 'ExpiryTooSoon'};
-
-  case 'INVALID_ONION_VERSION':
-    return {details, code: 503, message: 'InvalidOnionVersion'};
+  case 'INCORRECT_PAYMENT_AMOUNT':
+    return {details, code: 404, message: 'IncorrectPaymentAmount'};
 
   case 'INVALID_ONION_HMAC':
     return {details, code: 503, message: 'InvalidOnionHmac'};
@@ -125,38 +130,35 @@ module.exports = ({channel, failure, index, keys}) => {
   case 'INVALID_ONION_KEY':
     return {details, code: 503, message: 'InvalidOnionKey'};
 
-  case 'AMOUNT_BELOW_MINIMUM':
-    return {details, code: 503, message: 'AmountBelowMinimum'};
+  case 'INVALID_ONION_VERSION':
+    return {details, code: 503, message: 'InvalidOnionVersion'};
 
-  case 'FEE_INSUFFICIENT':
-    return {details, code: 503, message: 'FeeInsufficient'};
+  case 'INVALID_REALM':
+    return {details, code: 503, message: 'InvalidRealm'};
 
-  case 'INCORRECT_CLTV_EXPIRY':
-    return {details, code: 503, message: 'IncorrectCltvExpiry'};
-
-  case 'CHANNEL_DISABLED':
-    return {details, code: 503, message: 'ChannelDisabled'};
-
-  case 'TEMPORARY_CHANNEL_FAILURE':
-    return {details, code: 503, message: 'TemporaryChannelFailure'};
-
-  case 'REQUIRED_NODE_FEATURE_MISSING':
-    return {details, code: 503, message: 'RequiredNodeFeatureMissing'};
-
-  case 'REQUIRED_CHANNEL_FEATURE_MISSING':
-    return {details, code: 503, message: 'RequiredChannelFeatureMissing'};
-
-  case 'UNKNOWN_NEXT_PEER':
-    return {details, code: 503, message: 'UnknownNextPeer'};
-
-  case 'TEMPORARY_NODE_FAILURE':
-    return {details, code: 503, message: 'TemporaryNodeFailure'};
+  case 'PERMANENT_CHANNEL_FAILURE':
+    return {details, code: 503, message: 'PermanentChannelFailure'};
 
   case 'PERMANENT_NODE_FAILURE':
     return {details, code: 503, message: 'PermanentNodeFailure'};
 
-  case 'PERMANENT_CHANNEL_FAILURE':
-    return {details, code: 503, message: 'PermanentChannelFailure'};
+  case 'REQUIRED_CHANNEL_FEATURE_MISSING':
+    return {details, code: 503, message: 'RequiredChannelFeatureMissing'};
+
+  case 'REQUIRED_NODE_FEATURE_MISSING':
+    return {details, code: 503, message: 'RequiredNodeFeatureMissing'};
+
+  case 'TEMPORARY_CHANNEL_FAILURE':
+    return {details, code: 503, message: 'TemporaryChannelFailure'};
+
+  case 'TEMPORARY_NODE_FAILURE':
+    return {details, code: 503, message: 'TemporaryNodeFailure'};
+
+  case 'UNKNOWN_NEXT_PEER':
+    return {details, code: 503, message: 'UnknownNextPeer'};
+
+  case 'UNKNOWN_PAYMENT_HASH':
+    return {details, code: 404, message: 'UnknownPaymentHash'};
 
   default:
     return {details, code: 500, message: 'UnexpectedPayViaRoutesFailure'};

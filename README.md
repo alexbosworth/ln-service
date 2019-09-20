@@ -7,10 +7,9 @@
 The core of this project is a gRPC interface for node.js projects, available
 through npm.
 
-Supported LND versions:
+Supported LND version:
 
 - v0.7.1-beta
-- v0.7.0-beta
 
 ## Installing LND
 
@@ -290,6 +289,7 @@ Calculate hops between start and end nodes
           cltv_delta: <CLTV Delta Number>
           fee_rate: <Fee Rate Number>
           is_disabled: <Channel is Disabled Bool>
+          max_htlc_mtokens: <Maximum HTLC Millitokens String>
           min_htlc_mtokens: <Minimum HTLC Millitokens String>
           public_key: <Public Key Hex String>
         }]
@@ -341,6 +341,7 @@ Calculate multiple routes to a destination
           cltv_delta: <CLTV Delta Number>
           fee_rate: <Fee Rate Number>
           is_disabled: <Channel is Disabled Bool>
+          max_htlc_mtokens: <Maximum HTLC Millitokens String>
           min_htlc_mtokens: <Minimum HTLC Millitokens String>
           public_key: <Public Key Hex String>
         }]
@@ -923,10 +924,11 @@ Get graph information about a channel on the network
         [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
         public_key: <Node Public Key String>
+        [updated_at]: <Policy Last Updated At ISO 8601 Date String>
       }]
       transaction_id: <Transaction Id Hex String>
       transaction_vout: <Transaction Output Index Number>
-      [updated_at]: <Channel Last Updated At ISO 8601 Date String>
+      [updated_at]: <Last Update Epoch ISO 8601 Date String>
     }
 
 Example:
@@ -940,8 +942,6 @@ const channelDetails = await getChannel({id, lnd});
 ### getChannels
 
 Get channels
-
-Note: `is_partner_initiated` will be undefined if it is unknown or true.
 
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
@@ -961,7 +961,7 @@ Note: `is_partner_initiated` will be undefined if it is unknown or true.
         is_active: <Channel Active Bool>
         is_closing: <Channel Is Closing Bool>
         is_opening: <Channel Is Opening Bool>
-        is_partner_initiated: <Channel Partner Opened Channel>
+        is_partner_initiated: <Channel Partner Opened Channel Bool>
         is_private: <Channel Is Private Bool>
         local_balance: <Local Balance Tokens Number>
         [local_reserve]: <Local Reserved Tokens Number>
@@ -1103,6 +1103,8 @@ const {channels} = await getFeeRates({lnd});
 Get the set of forwarding reputations
 
 Requires LND built with routerrpc build tag
+
+In LND v0.7.1 channels reputations are returned. Later, peers reputations.
 
     {
       lnd: <Authenticated LND gRPC API Object>
@@ -1305,10 +1307,11 @@ Get the network graph
           [max_htlc_mtokens]: <Maximum HTLC Millitokens String>
           [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
           public_key: <Public Key String>
+          [updated_at]: <Last Update Epoch ISO 8601 Date String>
         }]
         transaction_id: <Funding Transaction Id String>
         transaction_vout: <Funding Transaction Output Index Number>
-        updated_at: <Last Update Epoch ISO 8601 Date String>
+        [updated_at]: <Last Update Epoch ISO 8601 Date String>
       }]
       nodes: [{
         alias: <Name String>
@@ -1339,9 +1342,10 @@ Get network info
       average_channel_size: <Tokens Number>
       channel_count: <Channels Count Number>
       max_channel_size: <Tokens Number>
-      [median_channel_size]: <Median Channel Tokens Number>
+      median_channel_size: <Median Channel Tokens Number>
       min_channel_size: <Tokens Number>
       node_count: <Node Count Number>
+      not_recently_updated_policy_count: <Channel Edge Count Number>
       total_capacity: <Total Capacity Number>
     }
 
@@ -1357,6 +1361,7 @@ const {networkDetails} = await getNetworkInfo({lnd});
 Get information about a node
 
     {
+      [is_omitting_channels]: <Omit Channels from Node Bool>
       lnd: <Authenticated LND gRPC API Object>
       public_key: <Node Public Key Hex String>
     }
@@ -1377,6 +1382,7 @@ Get information about a node
           [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
           [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
           public_key: <Node Public Key String>
+          [updated_at]: <Policy Last Updated At ISO 8601 Date String>
         }]
         transaction_id: <Transaction Id Hex String>
         transaction_vout: <Transaction Output Index Number>
@@ -1553,6 +1559,7 @@ channel may be opening, closing, or active.
         is_closing: <Channel Is Closing Bool>
         is_opening: <Channel Is Opening Bool>
         local_balance: <Channel Local Tokens Balance Number>
+        local_reserve: <Channel Local Reserved Tokens Number>
         partner_public_key: <Channel Peer Public Key String>
         [pending_balance]: <Tokens Pending Recovery Number>
         [pending_payments]: [{
@@ -1565,6 +1572,7 @@ channel may be opening, closing, or active.
         received: <Tokens Received Number>
         [recovered_tokens]: <Tokens Recovered From Close Number>
         remote_balance: <Remote Tokens Balance Number>
+        remote_reserve: <Channel Remote Reserved Tokens Number>
         sent: <Send Tokens Number>
         [timelock_expiration]: <Pending Tokens Block Height Timelock Number>
         [transaction_fee]: <Funding Transaction Fee Tokens Number>
@@ -1588,7 +1596,7 @@ Get routes a payment can travel towards a destination
 When paying to a private route, make sure to pass the final destination in
 addition to routes.
 
-`is_adjusted_for_past_failures` will turn on LND 0.7.1+ past-fail pathfinding
+`is_adjusted_for_past_failures` will turn on past-fail adjusted pathfinding
 
 Setting both `start` and `outgoing_channel` is not supported
 
@@ -1714,8 +1722,8 @@ Get overall wallet info.
     {
       active_channels_count: <Active Channels Count Number>
       alias: <Node Alias String>
-      [chains]: [<Chain Id Hex String>]
-      [color]: <Node Color String>
+      chains: [<Chain Id Hex String>]
+      color: <Node Color String>
       current_block_hash: <Best Chain Hash Hex String>
       current_block_height: <Best Chain Height Number>
       is_synced_to_chain: <Is Synced To Chain Bool>

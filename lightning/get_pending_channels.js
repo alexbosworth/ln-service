@@ -24,7 +24,7 @@ const outpointSeparator = ':';
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
       local_balance: <Channel Local Tokens Balance Number>
-      [local_reserve]: <Channel Local Reserved Tokens Number>
+      local_reserve: <Channel Local Reserved Tokens Number>
       partner_public_key: <Channel Peer Public Key String>
       [pending_balance]: <Tokens Pending Recovery Number>
       [pending_payments]: [{
@@ -37,7 +37,7 @@ const outpointSeparator = ':';
       received: <Tokens Received Number>
       [recovered_tokens]: <Tokens Recovered From Close Number>
       remote_balance: <Remote Tokens Balance Number>
-      [remote_reserve]: <Channel Remote Reserved Tokens Number>
+      remote_reserve: <Channel Remote Reserved Tokens Number>
       sent: <Send Tokens Number>
       [timelock_expiration]: <Pending Tokens Block Height Timelock Number>
       [transaction_fee]: <Funding Transaction Fee Tokens Number>
@@ -182,12 +182,14 @@ module.exports = ({lnd}, cbk) => {
             is_closing: !chanOpen,
             is_opening: !!chanOpen,
             local_balance: parseInt(channel.local_balance, decBase),
+            local_reserve: parseInt(channel.local_chan_reserve_sat, decBase),
             partner_public_key: channel.remote_node_pub,
             pending_balance: pendingTokens || undefined,
             pending_payments: forced.pending_payments || undefined,
             received: 0,
             recovered_tokens: forced.recovered_tokens || undefined,
             remote_balance: parseInt(channel.remote_balance, decBase),
+            remote_reserve: parseInt(channel.remote_chan_reserve_sat, decBase),
             sent: 0,
             timelock_expiration: forced.timelock_expiration || undefined,
             transaction_fee: !chanOpen ? null : chanOpen.transaction_fee,

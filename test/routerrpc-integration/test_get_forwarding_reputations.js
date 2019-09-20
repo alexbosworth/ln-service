@@ -24,8 +24,8 @@ const defaultFee = 1e3;
 const defaultOdds = 950000;
 const tokens = 1e6 / 2;
 
-// Probing for a route should return a route
-test('Probe for route', async ({deepIs, end, equal}) => {
+// Getting forwarding reputations should return reputations
+test('Get forwarding reputations', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

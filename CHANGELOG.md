@@ -1,5 +1,11 @@
 # Versions
 
+## 46.0.0
+
+### Breaking Changes
+
+- Support for `lnd-v0.7.0` is removed.
+
 ## 45.1.0
 
 - `subscribeToPayViaRoutes`: Added `index` to `routing_failure` indicating which hop failed

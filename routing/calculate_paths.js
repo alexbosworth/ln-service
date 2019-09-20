@@ -16,6 +16,7 @@ const defaultLimit = 20;
         cltv_delta: <CLTV Delta Number>
         fee_rate: <Fee Rate Number>
         is_disabled: <Channel is Disabled Bool>
+        max_htlc_mtokens: <Maximum HTLC Millitokens String>
         min_htlc_mtokens: <Minimum HTLC Millitokens String>
         public_key: <Public Key Hex String>
       }]

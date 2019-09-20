@@ -56,7 +56,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   if (!!nodeDetails && !!nodeDetails.channels.length) {
     const [chan] = nodeDetails.channels;
 
-    chan.policies.forEach(policy => delete policy.updated_at);
+    // chan.policies.forEach(policy => delete policy.updated_at);
 
     deepIs(chan, channel, 'Graph channel matches node details channel');
   }
@@ -75,6 +75,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     equal(policy.max_htlc_mtokens, `${ceil(channel.capacity * 0.99)}000`);
     equal(policy.min_htlc_mtokens, '1000', 'Default min htlc value');
     equal(!!policy.public_key, true, 'Policy has public key');
+    equal(new Date() - new Date(policy.updated_at) < 9999, true, 'Updated at');
 
     return;
   });
@@ -83,7 +84,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   equal(channel.id, expectedChannel.id, 'Channel id');
   equal(channel.transaction_id, expectedChannel.transaction_id, 'Chan tx id');
   equal(channel.transaction_vout, expectedChannel.transaction_vout, 'Tx Vout');
-  equal(new Date() - new Date(channel.updated_at) < 9999, true, 'Chan update');
+  equal(new Date() - new Date(channel.updated_at) < 9999, true, 'Updated at');
 
   await cluster.kill({});
 

@@ -210,7 +210,7 @@ message Failure {
     /// Failure code as defined in the Lightning spec
     FailureCode code = 1;
 
-    bytes failure_source_pubkey = 2;
+    reserved 2;
 
     /// An optional channel update message.
     ChannelUpdate channel_update = 3;
@@ -232,8 +232,10 @@ message Failure {
     the failure message. Position zero is the sender node.
     **/
     uint32 failure_source_index = 8;
-}
 
+    /// A failure type-dependent block height.
+    uint32 height = 9;
+}
 
 message ChannelUpdate {
     /**

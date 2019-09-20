@@ -10,11 +10,14 @@ const getInfo = ({}, cbk) => {
     best_header_timestamp: Math.round(Date.now() / 1000),
     block_hash: Buffer.alloc(32).toString('hex'),
     block_height: 100,
+    chains: [],
+    color: '#000000',
     identity_pubkey: Buffer.alloc(33).toString('hex'),
     num_active_channels: 1,
     num_peers: 1,
     num_pending_channels: 1,
     synced_to_chain: true,
+    uris: [],
     version: 'version',
   });
 };
@@ -29,7 +32,7 @@ const tests = [
             return cbk(null, {
               failure: {
                 code: 'UNKNOWN_PAYMENT_HASH',
-                failure_source_pubkey: Buffer.alloc(33),
+                failure_source_index: 1,
               },
             });
           },
@@ -62,7 +65,6 @@ const tests = [
           channel: undefined,
           mtokens: undefined,
           policy: undefined,
-          public_key: Buffer.alloc(33).toString('hex'),
         }],
       },
     ],
@@ -91,7 +93,6 @@ const tests = [
                 },
                 code: 'FEE_INSUFFICIENT',
                 failure_source_index: 1,
-                failure_source_pubkey: Buffer.from('00', 'hex'),
                 htlc_msat: '1',
               },
             });
@@ -148,7 +149,6 @@ const tests = [
               min_htlc_mtokens: '1000',
               updated_at: '2009-01-03T18:15:05.000Z',
             },
-            public_key: 'a',
             update: {
               chain: '0000000000000000000000000000000000000000000000000000000000000000',
               channel_flags: 0,

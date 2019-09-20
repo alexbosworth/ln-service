@@ -68,7 +68,7 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'ExpectedCreationDateInListPaymentsResponse']);
           }
 
-          if (typeof payment.fee !== 'string') {
+          if (typeof payment.fee_sat !== 'string') {
             return cbk([503, 'ExpectedPaymentFeeInListPaymentsResponse']);
           }
 
@@ -106,7 +106,7 @@ module.exports = ({lnd}, cbk) => {
           return cbk(null, {
             destination,
             created_at: new Date(creationDate * msPerSecond).toISOString(),
-            fee: parseInt(payment.fee || payment.fee_sat, decBase),
+            fee: parseInt(payment.fee_sat, decBase),
             fee_mtokens: !payment.fee_msat ? undefined : payment.fee_msat,
             hops: hops.reverse(),
             id: payment.payment_hash,

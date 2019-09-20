@@ -23,7 +23,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
   When paying to a private route, make sure to pass the final destination in
   addition to routes.
 
-  `is_adjusted_for_past_failures` will turn on LND 0.7.1+ past-fail pathfinding
+  `is_adjusted_for_past_failures` will turn on past-fail adjusted pathfinding
 
   Setting both `start` and `outgoing_channel` is not supported
 

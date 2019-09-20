@@ -31,12 +31,13 @@ const tests = [
     },
     description: 'When a failure public key is absent, an error is thrown',
     expected: {
-      err: new Error('ExpectedPublicKeyOfFailureToDeriveIgnores'),
+      err: new Error('ExpectedIndexOfFailureToDeriveIgnores'),
     },
   },
   {
     args: {
       hops: [{channel: '0x0x0', public_key: makeKey()}],
+      index: 0,
       public_key: makeKey(),
     },
     description: 'When a failure reason is absent, an error is thrown',
@@ -45,7 +46,7 @@ const tests = [
   {
     args: {
       hops: [{channel: '0x0x0', public_key: makeKey()}],
-      public_key: makeKey(),
+      index: 0,
       reason: 'UnknownPaymentHash',
     },
     description: 'On a successful hit of the final node, nothing is ignored',
@@ -54,12 +55,12 @@ const tests = [
   {
     args: {
       hops: [{channel: '0x0x0', public_key: makeKey(1)}],
-      public_key: makeKey(),
+      index: 0,
       reason: 'UnknownNextPeer',
     },
     description: 'Ignore reporting peers when a channel id is not provided',
     expected: {
-      ignore: [{reason: 'UnknownNextPeer', to_public_key: makeKey()}],
+      ignore: [{reason: 'UnknownNextPeer', to_public_key: makeKey(1)}],
     },
   },
   {
@@ -69,7 +70,7 @@ const tests = [
         {channel: '1x1x1', public_key: makeKey(1)},
         {channel: '2x2x2', public_key: makeKey(2)},
       ],
-      public_key: makeKey(),
+      index: 0,
       reason: 'IncorrectCltvExpiry',
     },
     description: 'Ignore the forwarding hop on a CLTV expiry failure',
@@ -95,7 +96,7 @@ const tests = [
         {channel: '1x1x1', public_key: makeKey(1)},
         {channel: '2x2x2', public_key: makeKey(2)},
       ],
-      public_key: makeKey(1),
+      index: 0,
       reason: 'TemporaryNodeFailure',
     },
     description: 'Ignore a node that reports a temporary node failure',
@@ -121,7 +122,7 @@ const tests = [
         {channel: '1x1x1', public_key: makeKey(1)},
         {channel: '2x2x2', public_key: makeKey(2)},
       ],
-      public_key: makeKey(1),
+      index: 0,
       reason: 'UnknownNextPeer',
     },
     description: 'Ignore the next hop on unknown next peer fail',

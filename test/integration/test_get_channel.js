@@ -19,8 +19,8 @@ test(`Get channel`, async ({end, equal}) => {
   const controlToTarget = await openChannel({
     lnd,
     local_tokens: 1e6,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({lnd, id: controlToTarget.transaction_id});
@@ -48,12 +48,14 @@ test(`Get channel`, async ({end, equal}) => {
     equal(policy.max_htlc_mtokens, `${ceil(details.capacity * 0.99)}000`);
     equal(policy.min_htlc_mtokens, '1000', 'Min HTLC value');
     equal(policy.public_key.length, 66, 'Policy public key');
+    equal(Date.now() - new Date(policy.updated_at) < 1e5, true, 'Updated at');
 
     return;
   });
 
   equal(details.transaction_id, channel.transaction_id, 'Funding tx id');
   equal(details.transaction_vout, channel.transaction_vout, 'Funding tx vout');
+
   equal(Date.now() - new Date(details.updated_at) < 1e5, true, 'Updated at');
 
   await cluster.kill({});

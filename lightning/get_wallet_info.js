@@ -8,6 +8,7 @@ const {chainId} = require('./../bolt02');
 const cannotConnectMessage = 'failed to connect to all addresses';
 const connectFailMessage = '14 UNAVAILABLE: channel is in state TRANSIENT_FAILURE';
 const connectionFailureLndErrorMessage = 'Connect Failed';
+const {isArray} = Array;
 const lockedLndErrorMessage = 'unknown service lnrpc.Lightning';
 const msPerSec = 1e3;
 
@@ -21,8 +22,8 @@ const msPerSec = 1e3;
   {
     active_channels_count: <Active Channels Count Number>
     alias: <Node Alias String>
-    [chains]: [<Chain Id Hex String>]
-    [color]: <Node Color String>
+    chains: [<Chain Id Hex String>]
+    color: <Node Color String>
     current_block_hash: <Best Chain Hash Hex String>
     current_block_height: <Best Chain Height Number>
     is_synced_to_chain: <Is Synced To Chain Bool>
@@ -90,6 +91,14 @@ module.exports = ({lnd}, cbk) => {
             return cbk([500, 'ExpectedBlockHeight']);
           }
 
+          if (!isArray(res.chains)) {
+            return cbk([503, 'ExpectedChainsAssociatedWithWallet']);
+          }
+
+          if (!res.color) {
+            return cbk([503, 'ExpectedWalletColorInWalletInfoResponse']);
+          }
+
           if (!res.identity_pubkey) {
             return cbk([503, 'ExpectedIdentityPubkey']);
           }
@@ -107,14 +116,18 @@ module.exports = ({lnd}, cbk) => {
           }
 
           if (!isBoolean(res.synced_to_chain)) {
-            return cbk([400, 'ExpectedSyncedToChainStatus']);
+            return cbk([503, 'ExpectedSyncedToChainStatus']);
+          }
+
+          if (!isArray(res.uris)) {
+            return cbk([503, 'ExpectedArrayOfUrisInWalletInfoResponse']);
           }
 
           if (typeof res.version !== 'string') {
             return cbk([503, 'ExpectedWalletLndVersion']);
           }
 
-          const chains = (res.chains || [])
+          const chains = res.chains
             .map(({chain, network}) => chainId({chain, network}).chain)
             .filter(n => !!n);
 
@@ -133,7 +146,7 @@ module.exports = ({lnd}, cbk) => {
             peers_count: res.num_peers,
             pending_channels_count: res.num_pending_channels,
             public_key: res.identity_pubkey,
-            uris: res.uris || undefined,
+            uris: res.uris,
             version: res.version,
           });
         });
