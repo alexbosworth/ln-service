@@ -6,7 +6,6 @@ const asyncWhilst = require('async/whilst');
 const {flatten} = require('lodash');
 const isHex = require('is-hex');
 
-const getForwardingReputations = require('./get_forwarding_reputations');
 const {getChannel} = require('./../lightning');
 const {getRoutes} = require('./../lightning');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
@@ -169,42 +168,20 @@ module.exports = args => {
     cbk => cbk(null, !isFinal),
     cbk => {
       return asyncAuto({
-        // Get mission control likely-failure edges
-        getReputations: cbk => {
-          // Exit early when mission control is not to be consulted
-          if (!args.ignore_probability_below) {
-            return cbk(null, {nodes: []});
-          }
-
-          return getForwardingReputations({
-            lnd: args.lnd,
-            probability: args.ignore_probability_below,
-            tokens: args.tokens,
-          },
-          cbk);
-        },
-
         // Get the next route
-        getNextRoute: ['getReputations', ({getReputations}, cbk) => {
+        getNextRoute: cbk => {
+          const directIgnores = args.ignore || [];
           const isIgnoringFailures = !!args.is_ignoring_past_failures;
           const isOutConstrained = !!args.outgoing_channel;
 
-          const likelyFailures = getReputations.nodes.map(node => {
-            return node.channels.map(n => ({
-              channel: n.id,
-              from_public_key: node.public_key,
-              to_public_key: n.to_public_key,
-            }));
-          });
+          const isNotConstrained = !isIgnoringFailures && !isOutConstrained;
 
-          const allIgnores = []
-            .concat(flatten(likelyFailures))
-            .concat(ignore.slice());
+          const allIgnores = [].concat(directIgnores).concat(ignore.slice());
 
           return getRoutes({
             cltv_delta: args.cltv_delta,
             destination: args.destination,
-            ignore: !isIgnoringFailures && !isOutConstrained ? [] : allIgnores,
+            ignore: isNotConstrained ? directIgnores : allIgnores,
             is_adjusted_for_past_failures: !args.is_ignoring_past_failures,
             is_strict_hints: args.is_strict_hints,
             lnd: args.lnd,
@@ -214,7 +191,7 @@ module.exports = args => {
             tokens: args.tokens,
           },
           cbk);
-        }],
+        },
 
         // Attempt paying the route
         attemptRoute: ['getNextRoute', ({getNextRoute}, cbk) => {
