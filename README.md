@@ -943,6 +943,8 @@ const channelDetails = await getChannel({id, lnd});
 
 Get channels
 
+`is_static_remote_key` will be undefined on LND 0.7.1 and below
+
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
       [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -963,8 +965,9 @@ Get channels
         is_opening: <Channel Is Opening Bool>
         is_partner_initiated: <Channel Partner Opened Channel Bool>
         is_private: <Channel Is Private Bool>
+        [is_static_remote_key]: <Remote Key Is Static Bool>
         local_balance: <Local Balance Tokens Number>
-        [local_reserve]: <Local Reserved Tokens Number>
+        local_reserve: <Local Reserved Tokens Number>
         partner_public_key: <Channel Partner Public Key String>
         pending_payments: [{
           id: <Payment Preimage Hash Hex String>
@@ -974,7 +977,7 @@ Get channels
         }]
         received: <Received Tokens Number>
         remote_balance: <Remote Balance Tokens Number>
-        [remote_reserve]: <Remote Reserved Tokens Number>
+        remote_reserve: <Remote Reserved Tokens Number>
         sent: <Sent Tokens Number>
         transaction_id: <Blockchain Transaction Id String>
         transaction_vout: <Blockchain Transaction Vout Number>
@@ -1538,6 +1541,26 @@ Example:
 ```node
 const {getPeers} = require('ln-service');
 const {peers} = await getPeers({lnd});
+```
+
+### getPendingChainBalance
+
+Get pending chain balance in unconfirmed outputs and in channel limbo.
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      pending_chain_balance: <Pending Chain Balance Tokens Number>
+    }
+
+Example:
+
+```node
+const {getPendingChainBalance} = require('ln-service');
+const totalPending = (await getPendingChainBalance({lnd})).pending_chain_balance;
 ```
 
 ### getPendingChannels
@@ -2933,6 +2956,60 @@ const {once} = require('events');
 const {subscribeToInvoices} = require('ln-service');
 const sub = subscribeToInvoices({lnd});
 const [lastUpdatedInvoice] = await once(sub, 'invoice_updated');
+```
+
+### subscribeToOpenRequests
+
+Subscribe to inbound channel open requests
+
+Note: LND 0.7.1 and lower do not support interactive channel acceptance.
+
+Note: listening to inbound channel requests will automatically fail all
+channel requests after a short delay.
+
+To return to default behavior of accepting all channel requests, remove all
+listeners to `channel_request`
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    <EventEmitter Object>
+
+    @event 'channel_request'
+    {
+      accept: <Accept Request Function>
+      capacity: <Capacity Tokens Number>
+      chain: <Chain Id Hex String>
+      commit_fee_tokens_per_vbyte: <Commitment Transaction Fee Number>
+      csv_delay: <CSV Delay Blocks Number>
+      id: <Request Id Hex String>
+      local_balance: <Channel Local Tokens Balance Number>
+      local_reserve: <Channel Local Reserve Tokens Number>
+      max_pending_mtokens: <Maximum Millitokens Pending In Channel String>
+      max_pending_payments: <Maximum Pending Payments Number>
+      min_chain_output: <Minimum Chain Output Tokens Number>
+      min_htlc_mtokens: <Minimum HTLC Millitokens String>
+      partner_public_key: <Peer Public Key Hex String>
+      reject: <Reject Request Function>
+    }
+
+    @event 'error'
+    <Error Object>
+
+Example:
+
+```node
+const {subscribeToOpenRequests} = require('ln-service');
+const sub = subscribeToOpenRequests({lnd});
+sub.on('channel_request', channel => {
+  // Reject small channels
+  return (channel.capacity < 1000000) ? request.reject() : request.accept();
+});
 ```
 
 ### subscribeToPastPayment

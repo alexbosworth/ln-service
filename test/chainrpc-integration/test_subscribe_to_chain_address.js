@@ -1,5 +1,6 @@
 const {readFileSync} = require('fs');
 
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
@@ -16,6 +17,8 @@ const count = 100;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const format = 'np2wpkh';
+const interval = retryCount => 50 * Math.pow(2, retryCount);
+const times = 15;
 const tokens = 1e8;
 
 // Subscribing to chain transaction confirmations should trigger events
@@ -56,19 +59,27 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
     p2sh_address: address,
   });
 
-  sub.on('confirmation', conf => {
-    equal(conf.block.length, 64, 'Confirmation block hash is returned');
-    equal(conf.height, 102, 'Confirmation block height is returned');
-    equal(conf.transaction, transaction, 'Confirmation raw tx is returned');
-  });
+  let firstConf;
 
+  sub.on('confirmation', conf => firstConf = conf);
   sub.on('error', err => {});
 
-  await delay(2000);
+  // Wait for generation to be over
+  await asyncRetry({interval, times}, async () => {
+    await mineTransaction({cert, host, pass, port, transaction, user});
 
-  await mineTransaction({cert, host, pass, port, transaction, user});
+    if (!firstConf) {
+      throw new Error('ExpectedSubscribeToChainAddressSeesConfirmation');
+    }
 
-  await delay(2000);
+    equal(firstConf.block.length, 64, 'Confirmation block hash is returned');
+    equal(firstConf.height, 102, 'Confirmation block height is returned');
+    equal(firstConf.transaction, transaction, 'Confirmation raw tx returned');
+
+    return;
+  });
+
+  let secondConf;
 
   const sub2 = subscribeToChainAddress({
     lnd,
@@ -79,19 +90,26 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
 
   sub2.on('error', () => {});
 
-  sub2.on('confirmation', async conf => {
-    equal(conf.block.length, 64, 'Confirmation block hash is returned');
-    equal(conf.height, 102, 'Confirmation block height is returned');
-    equal(conf.transaction, transaction, 'Confirmation raw tx is returned');
+  sub2.on('confirmation', conf => secondConf = conf);
 
-    kill();
+  // Wait for generation to be over
+  await asyncRetry({interval, times}, async () => {
+    await mineTransaction({cert, host, pass, port, transaction, user});
 
-    await waitForTermination({lnd});
+    if (!secondConf) {
+      throw new Error('ExpectedSubscribeToChainAddressSeesMultiConfirmation');
+    }
 
-    return end();
+    equal(secondConf.block.length, 64, 'Confirmation block hash is returned');
+    equal(secondConf.height, 102, 'Confirmation block height is returned');
+    equal(secondConf.transaction, transaction, 'Confirmation raw tx returned');
+
+    return;
   });
 
-  await delay(1000);
+  kill();
 
-  return;
+  await waitForTermination({lnd});
+
+  return end();
 });

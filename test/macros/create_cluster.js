@@ -19,7 +19,7 @@ const defaultFee = 1e3;
 const defaultVout = 0;
 const format = 'np2wpkh';
 const maturityBlockCount = 429;
-const retryMs = 200;
+const retryMs = 20;
 const retryTimes = 50;
 const seed = 'abandon tank dose ripple foil subway close flock laptop cabbage primary silent plastic unhappy west weird panda plastic brave prefer diesel glad jazz isolate';
 const tokens = 50e8;
@@ -195,7 +195,7 @@ module.exports = (args, cbk) => {
         return addPeer({
           lnd: control.lnd,
           public_key: targetNode.public_key,
-          socket: `${target.listen_ip}:${target.listen_port}`,
+          socket: target.socket,
         },
         cbk);
       },
@@ -302,7 +302,7 @@ module.exports = (args, cbk) => {
         return addPeer({
           lnd: target.lnd,
           public_key: remoteNode.public_key,
-          socket: `${remote.listen_ip}:${remote.listen_port}`,
+          socket: remote.socket,
         },
         cbk);
       },
@@ -346,7 +346,7 @@ module.exports = (args, cbk) => {
     const generate = promisify((args, cbk) => {
       return generateBlocks({
         cert: readFileSync((args.node || control).chain_rpc_cert),
-        count: args.count,
+        count: args.count || 1,
         host: (args.node || control).listen_ip,
         pass: (args.node || control).chain_rpc_pass,
         port: (args.node || control).chain_rpc_port,

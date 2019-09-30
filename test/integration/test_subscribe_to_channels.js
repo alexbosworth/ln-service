@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
@@ -12,26 +13,26 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const giveTokens = 1e5;
+const interval = retryCount => 10 * Math.pow(2, retryCount);
+const times = 20;
 
 // Subscribing to channels should trigger channel events
 test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
-  const expected = [];
+  const activeChanged = [];
+  const channelClosed = [];
+  const channelOpened = [];
   const cluster = await createCluster({is_remote_skipped: true});
+  const errors = [];
 
   const {lnd} = cluster.control;
-  const socket = cluster.target.socket;
+  const {socket} = cluster.target;
 
   const sub = subscribeToChannels({lnd});
 
-  sub.on('channel_active_changed', update => deepIs(update, expected.shift()));
-  sub.on('channel_opened', update => deepIs(update, expected.shift()));
-  sub.on('end', () => {});
-  sub.on('error', err => {});
-  sub.on('status', () => {});
-
-  sub.on('channel_closed', update => {
-    return deepIs(update, expected.shift(), 'Close channel details');
-  });
+  sub.on('channel_active_changed', update => activeChanged.push(update));
+  sub.on('channel_closed', update => channelClosed.push(update));
+  sub.on('channel_opened', update => channelOpened.push(update));
+  sub.on('err', err => errors.push(err));
 
   // Create a channel from the control to the target node
   const channelOpen = await openChannel({
@@ -43,91 +44,88 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     partner_public_key: cluster.target_node_public_key,
   });
 
-  expected.push({
-    capacity: channelCapacityTokens,
-    commit_transaction_fee: 9050,
-    commit_transaction_weight: 724,
-    is_active: true,
-    is_closing: false,
-    is_opening: false,
-    is_partner_initiated: false,
-    is_private: false,
-    local_balance: 890950,
-    partner_public_key: cluster.target_node_public_key,
-    pending_payments: [],
-    received: 0,
-    remote_balance: giveTokens,
-    sent: 0,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-    unsettled_balance: 0,
+  // Wait for the channel to confirm
+  await asyncRetry({interval, times}, async () => {
+    // Generate to confirm the tx
+    await cluster.generate({count: 1, node: cluster.control});
+
+    if (!channelOpened.length) {
+      throw new Error('ExpectedChannelOpened');
+    }
+
+    return;
   });
 
-  expected.push({
-    is_active: true,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
+  const openEvent = channelOpened.pop();
+
+  equal(openEvent.capacity, channelCapacityTokens, 'Channel open capacity');
+  equal(openEvent.commit_transaction_fee, 9050, 'Channel commit tx fee');
+  equal(openEvent.commit_transaction_weight, 724, 'Commit tx weight');
+  equal(openEvent.is_active, true, 'Channel is active');
+  equal(openEvent.is_closing, false, 'Channel is not inactive');
+  equal(openEvent.is_opening, false, 'Channel is no longer opening');
+  equal(openEvent.is_partner_initiated, false, 'Channel was locally made');
+  equal(openEvent.is_private, false, 'Channel is not private by default');
+  equal(openEvent.local_balance, 890950, 'Channel local balance returned');
+  equal(openEvent.partner_public_key, cluster.target.public_key, 'Peer pk');
+  equal(openEvent.pending_payments.length, [].length, 'No pending payments');
+  equal(openEvent.received, 0, 'Not received anything yet');
+  equal(openEvent.remote_balance, giveTokens, 'Gift tokens is remote balance');
+  equal(openEvent.sent, 0, 'No tokens sent yet');
+  equal(openEvent.transaction_id, channelOpen.transaction_id, 'Funding tx id');
+  equal(openEvent.transaction_vout, channelOpen.transaction_vout, 'Fund vout');
+  equal(openEvent.unsettled_balance, 0, 'No unsettled balance');
+
+  // Wait for the channel close to confirm
+  await asyncRetry({interval, times}, async () => {
+    try {
+      // Close the channel
+      const channelClose = await closeChannel({
+        lnd: cluster.control.lnd,
+        tokens_per_vbyte: defaultFee,
+        transaction_id: channelOpen.transaction_id,
+        transaction_vout: channelOpen.transaction_vout,
+      });
+    } catch (err) {}
+
+    // Generate to confirm the close
+    await cluster.generate({count: 1, node: cluster.control});
+
+    if (!channelClosed.length) {
+      throw new Error('ExpectedChannelClosed');
+    }
+
+    return;
   });
 
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+  const closeEvent = channelClosed.pop();
 
-  expected.push({
-    is_active: false,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-  });
+  equal(closeEvent.capacity, channelCapacityTokens, 'Channel close capacity');
+  equal(!!closeEvent.close_confirm_height, true, 'Close confirm height');
+  equal(!!closeEvent.close_transaction_id, true, 'Tx id');
+  equal(closeEvent.final_local_balance, 890950, 'Close final local balance');
+  equal(closeEvent.final_time_locked_balance, 0, 'Close final locked balance');
+  equal(closeEvent.id, '443x1x0', 'Close channel id');
+  equal(closeEvent.is_breach_close, false, 'Not breach close');
+  equal(closeEvent.is_cooperative_close, true, 'Cooperative close');
+  equal(closeEvent.is_funding_cancel, false, 'Not funding cancel');
+  equal(closeEvent.is_local_force_close, false, 'Not local force close');
+  equal(closeEvent.is_remote_force_close, false, 'Not remote force close');
+  equal(closeEvent.partner_public_key, cluster.target_node_public_key, 'Pk');
+  equal(closeEvent.transaction_id, channelOpen.transaction_id, 'Chan tx id');
+  equal(closeEvent.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
-  // Disconnect, reconnect the channel
-  await removePeer({lnd, public_key: cluster.target_node_public_key});
+  equal(errors.length, [].length, 'No errors encountered');
 
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+  const [activated, deactivated] = activeChanged;
 
-  expected.push({
-    is_active: true,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-  });
+  equal(activated.is_active, true, 'Channel was activated');
+  equal(activated.transaction_id, channelOpen.transaction_id, 'Chan tx id');
+  equal(activated.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
 
-  await addPeer({lnd, socket, public_key: cluster.target_node_public_key});
-
-  await delay(3000);
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  expected.push({
-    is_active: false,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-  });
-
-  // Close the channel
-  const channelClose = await closeChannel({
-    lnd: cluster.control.lnd,
-    tokens_per_vbyte: defaultFee,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-  });
-
-  expected.push({
-    capacity: channelCapacityTokens,
-    close_confirm_height: 503,
-    close_transaction_id: channelClose.transaction_id,
-    final_local_balance: 890950,
-    final_time_locked_balance: 0,
-    id: '443x1x0',
-    is_breach_close: false,
-    is_cooperative_close: true,
-    is_funding_cancel: false,
-    is_local_force_close: false,
-    is_remote_force_close: false,
-    partner_public_key: cluster.target_node_public_key,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+  equal(deactivated.is_active, false, 'Channel was de-activated');
+  equal(deactivated.transaction_id, channelOpen.transaction_id, 'Chan tx id');
+  equal(deactivated.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
   await cluster.kill({});
 

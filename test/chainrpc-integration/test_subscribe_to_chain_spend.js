@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {createChainAddress} = require('./../../');
@@ -9,8 +10,10 @@ const {getWalletInfo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 const {subscribeToChainSpend} = require('./../../');
 
-const confirmationCount = 20;
+const confirmationCount = 6;
 const format = 'p2wpkh';
+const interval = retryCount => 50 * Math.pow(2, retryCount);
+const times = 15;
 const tokens = 1e6;
 
 // Subscribing to chain spend should push events on spend confirmations
@@ -59,14 +62,19 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
     is_send_all: true,
   });
 
-  await delay(2000);
+  // Wait for generation to be over
+  await asyncRetry({interval, times}, async () => {
+    // Generate to confirm the tx
+    await cluster.generate({count: 1, node: cluster.control});
 
-  // Generate to confirm the tx
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+    if (!gotAddressConf) {
+      throw new Error('ExpectedSubscribeToAddressSeesConfirmation');
+    }
+
+    return;
+  });
 
   await cluster.kill({});
-
-  await delay(2000);
 
   equal(gotAddressConf, true, 'Subscribe to address sees confirmation');
 

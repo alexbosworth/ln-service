@@ -28,25 +28,6 @@ module.exports = args => {
     return {};
   }
 
-  if (!!args.bech32_address) {
-    try {
-      const {data} = fromBech32(args.bech32_address);
-
-      switch (data.length) {
-      case p2wpkhAddressLength:
-        return {script: p2wpkh({hash: data}).output.toString('hex')};
-
-      case p2wshAddressLength:
-        return {script: p2wsh({hash: data}).output.toString('hex')};
-
-      default:
-        return {};
-      }
-    } catch (err) {
-      return {};
-    }
-  }
-
   if (!!args.p2pkh_address) {
     try {
       const {hash} = fromBase58Check(args.p2pkh_address);
@@ -65,6 +46,23 @@ module.exports = args => {
     } catch (err) {
       return {};
     }
+  }
+
+  try {
+    const {data} = fromBech32(args.bech32_address);
+
+    switch (data.length) {
+    case p2wpkhAddressLength:
+      return {script: p2wpkh({hash: data}).output.toString('hex')};
+
+    case p2wshAddressLength:
+      return {script: p2wsh({hash: data}).output.toString('hex')};
+
+    default:
+      break;
+    }
+  } catch (err) {
+    // Ignore errors
   }
 
   return {};

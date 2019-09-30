@@ -6,7 +6,7 @@ const waitForChannel = require('./wait_for_channel');
 const waitForPendingChannel = require('./wait_for_pending_channel');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
+const confirmationCount = 6;
 const defaultFee = 1e3;
 
 /** Setup channel

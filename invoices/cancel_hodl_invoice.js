@@ -23,7 +23,7 @@ module.exports = ({id, lnd}, cbk) => {
       // Check arguments
       validate: cbk => {
         if (!id || !isHex(id)) {
-          return cbk([400, 'ExpectedIdOfHodlInvoiceToCancel']);
+          return cbk([400, 'ExpectedIdOfInvoiceToCancel']);
         }
 
         if (!lnd || !lnd.invoices || !lnd.invoices.cancelInvoice) {

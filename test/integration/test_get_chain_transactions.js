@@ -1,5 +1,6 @@
 const {readFileSync} = require('fs');
 
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
@@ -18,6 +19,8 @@ const defaultFee = 1e3;
 const defaultVout = 0;
 const emptyChainBalance = 0;
 const format = 'np2wpkh';
+const interval = retryCount => 10 * Math.pow(2, retryCount);
+const times = 20;
 const tokens = 1e8;
 
 // Getting chain transactions should list out the chain transactions
@@ -50,9 +53,21 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
     spend_vout: defaultVout,
   });
 
-  await mineTransaction({cert, host, pass, port, transaction, user});
+  // Wait for generation to be over
+  await asyncRetry({interval, times}, async () => {
+    // Generate to confirm the tx
+    await mineTransaction({cert, host, pass, port, transaction, user});
 
-  await waitForUtxo({lnd, transaction});
+    const {transactions} = await getChainTransactions({lnd});
+
+    const [tx] = transactions;
+
+    if (!tx.is_confirmed) {
+      throw new Error('ExpectedTransactionConfirmed');
+    }
+
+    return;
+  });
 
   const {transactions} = await getChainTransactions({lnd});
 

@@ -78,6 +78,7 @@ const {subscribeToChannels} = require('./lightning');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoice} = require('./invoices');
 const {subscribeToInvoices} = require('./lightning');
+const {subscribeToOpenRequests} = require('./lightning');
 const {subscribeToPastPayment} = require('./router');
 const {subscribeToPayViaDetails} = require('./router');
 const {subscribeToPayViaRequest} = require('./router');
@@ -173,6 +174,7 @@ module.exports = {
   subscribeToGraph,
   subscribeToInvoice,
   subscribeToInvoices,
+  subscribeToOpenRequests,
   subscribeToPastPayment,
   subscribeToPayViaDetails,
   subscribeToPayViaRequest,

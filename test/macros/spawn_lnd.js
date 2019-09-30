@@ -69,6 +69,7 @@ const times = 20;
     mining_key: <Mining Rewards Private Key WIF Encoded String>
     public_key: <Node Public Key Hex String>
     seed: <Node Seed Phrase String>
+    socket: <LND RPC Network Socket String>
   }
 */
 module.exports = ({seed, tower, watchers}, cbk) => {

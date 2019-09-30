@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
@@ -10,7 +11,9 @@ const {sendToChainAddress} = require('./../../');
 const chainAddressRowType = 'chain_address';
 const confirmationCount = 6;
 const format = 'p2wpkh';
+const interval = retryCount => 10 * Math.pow(2, retryCount);
 const regtestBech32AddressHrp = 'bcrt';
+const times = 20;
 const tokens = 1e6;
 const txIdHexByteLength = 64;
 
@@ -35,8 +38,21 @@ test(`Send to chain address`, async ({end, equal}) => {
   equal(sent.is_outgoing, true, 'Transaction is outgoing');
   equal(sent.tokens, tokens, 'Tokens amount matches tokens sent');
 
-  // Generate to confirm the tx
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+  // Wait for generation to be over
+  await asyncRetry({interval, times}, async () => {
+    // Generate to confirm the tx
+    await cluster.generate({});
+
+    const endBalance = await getChainBalance({lnd});
+
+    const adjustment = endBalance.chain_balance - startBalance.chain_balance;
+
+    if (adjustment !== tokens) {
+      throw new Error('BalanceNotYetShifted');
+    }
+
+    return;
+  });
 
   const endBalance = await getChainBalance({lnd});
 

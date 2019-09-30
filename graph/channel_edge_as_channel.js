@@ -53,7 +53,7 @@ const separatorChar = ':';
     }]
     transaction_id: <Transaction Id Hex String>
     transaction_vout: <Transaction Output Index Number>
-    updated_at: <Channel Last Updated At ISO 8601 Date String>
+    [updated_at]: <Channel Last Updated At ISO 8601 Date String>
   }
 */
 module.exports = args => {

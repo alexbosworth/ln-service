@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
@@ -16,7 +17,9 @@ const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const giftTokens = 1e4;
+const interval = retryCount => 10 * Math.pow(2, retryCount);
 const spendableRatio = 0.99;
+const times = 20;
 
 // Getting pending channels should show pending channels
 test(`Get pending channels`, async ({end, equal}) => {
@@ -106,13 +109,25 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(waitClose.transaction_id, channelOpen.transaction_id, 'Chan txid');
   equal(waitClose.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
 
-  await cluster.generate({count: confirmationCount});
+  // Wait for generation to be over
+  await asyncRetry({interval, times}, async () => {
+    // Generate to confirm the tx
+    await cluster.generate({});
 
-  await delay(3000);
+    const [forceClose] = (await getPendingChannels({lnd})).pending_channels;
+
+    if (!forceClose.close_transaction_id) {
+      throw new Error('ExpectedCloseTransactionId');
+    }
+
+    if (!forceClose.timelock_expiration) {
+      throw new Error('ExpectedTimelockExpiration');
+    }
+
+    return;
+  });
 
   const [forceClose] = (await getPendingChannels({lnd})).pending_channels;
-
-  await waitForUtxo({lnd, id: forceClose.transaction_id});
 
   equal(forceClose.close_transaction_id, channelClose.transaction_id, 'Txid');
   equal(forceClose.is_active, false, 'Not active anymore');

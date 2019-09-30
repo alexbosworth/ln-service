@@ -2,8 +2,8 @@ const asyncAuto = require('async/auto');
 const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
-const {broadcastResponse} = require('./../push');
-const {createChainAddress} = require('./../lightning');
+const broadcastResponse = require('./../push/broadcast_response');
+const createChainAddress = require('./../lightning/create_chain_address');
 
 const {isArray} = Array;
 const msPerSec = 1e3;
@@ -136,7 +136,7 @@ module.exports = (args, cbk) => {
           return cbk();
         }
 
-        broadcastResponse({log: args.log, row: res.invoice, wss: args.wss});
+        broadcastResponse({log: args.log, row: invoice, wss: args.wss});
 
         return cbk();
       }],

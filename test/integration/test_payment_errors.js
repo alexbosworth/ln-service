@@ -6,17 +6,12 @@ const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
-const {getPendingChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {routeFromHops} = require('./../../routing');
-const {waitForChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
 const mtok = '000';
 const tokens = 1e3;
 
@@ -27,39 +22,23 @@ test('Payment errors', async ({end, equal}) => {
   const {lnd} = cluster.control;
 
   // Create a channel from the control to the target node
-  const controlToTargetChannel = await openChannel({
+  const controlToTargetChannel = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    generate: cluster.generate,
+    to: cluster.target,
   });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
 
   // Create a channel from the target back to the control
-  const targetToControlChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  const targetToControlChannel = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: targetToControlChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    to: cluster.control,
   });
 
   const height = (await getWalletInfo({lnd})).current_block_height;
   const invoice = await createInvoice({lnd, tokens});
   const mtokens = `${tokens}${mtok}`;
-
-  await delay(1000);
 
   const {channels} = await getChannels({lnd});
   const {id} = invoice;
@@ -75,7 +54,10 @@ test('Payment errors', async ({end, equal}) => {
     inChan.id = inChanId;
     outChan.id = outChanId;
 
-    const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
+    const {hops} = hopsFromChannels({
+      destination,
+      channels: [inChan, outChan],
+    });
 
     const route = routeFromHops({
       height,

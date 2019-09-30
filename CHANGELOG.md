@@ -1,5 +1,10 @@
 # Versions
 
+## 46.1.0
+
+- `getChannels`: `is_static_remote_key` added  to indicate static remote keys
+- `subscribeToOpenRequests`: Added method to listen and accept/reject open channel requests
+
 ## 46.0.1
 
 ### Breaking Changes

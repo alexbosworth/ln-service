@@ -25,14 +25,9 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
   const sub = subscribeToBlocks({lnd});
   const startHeight = (await getWalletInfo({lnd})).current_block_height;
 
-  sub.on('end', () => {});
   sub.on('error', err => {});
-  sub.on('status', () => {});
 
   sub.on('block', async data => {
-    equal(data.id.length, 64, 'Block id emitted');
-    equal(!!data.height, true, 'Block height emitted');
-
     confs--;
 
     if (!!confs) {
@@ -50,7 +45,13 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
       return;
     });
 
-    await delay(2000);
+    if (data.id.length !== 64) {
+      throw new Error('ExpectedBlockIdEmitted');
+    }
+
+    if (!data.height) {
+      throw new Error('ExpectedBlockHeightEmitted');
+    }
 
     kill();
 

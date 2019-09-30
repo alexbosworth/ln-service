@@ -8,6 +8,8 @@ const {isArray} = Array;
 
 /** Get channels
 
+  `is_static_remote_key` will be undefined on LND 0.7.1 and below
+
   {
     [is_active]: <Limit Results To Only Active Channels Bool> // false
     [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -28,6 +30,7 @@ const {isArray} = Array;
       is_opening: <Channel Is Opening Bool>
       is_partner_initiated: <Channel Partner Opened Channel Bool>
       is_private: <Channel Is Private Bool>
+      [is_static_remote_key]: <Remote Key Is Static Bool>
       local_balance: <Local Balance Tokens Number>
       local_reserve: <Local Reserved Tokens Number>
       partner_public_key: <Channel Partner Public Key String>
@@ -183,6 +186,7 @@ module.exports = (args, cbk) => {
             is_opening: false,
             is_partner_initiated: !!channel.initiator,
             is_private: channel.private,
+            is_static_remote_key: channel.static_remote_key || undefined,
             local_balance: parseInt(channel.local_balance, decBase),
             local_reserve: localReserveTokens || undefined,
             partner_public_key: channel.remote_pubkey,
