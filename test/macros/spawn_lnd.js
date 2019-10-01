@@ -22,7 +22,6 @@ const adminMacaroonFileName = 'admin.macaroon';
 const chainPass = 'pass';
 const chainRpcCertName = 'rpc.cert';
 const chainUser = 'user';
-const delayAfterSpawnMs = 3000;
 const grpcs = ['', 'Autopilot', 'Chain', 'Invoices', 'Signer', 'Wallet'];
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const invoiceMacaroonFileName = 'invoice.macaroon';

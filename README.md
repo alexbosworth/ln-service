@@ -141,6 +141,7 @@ for `unlocker` methods.
 - [getPendingChainBalance](#getPendingChainBalance) - Get pending chain balance
 - [getPendingChannels](#getPendingChannels) - Get channels in pending states
 - [getPublicKey](#getPublicKey) - Get a public key out of the seed
+- [getRouteThroughHops](#getRouteThroughHops) - Get a route through given set of public keys
 - [getRoutes](#getRoutes) - Find payable routes to a target destination
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about the running tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
@@ -173,6 +174,7 @@ for `unlocker` methods.
 - [subscribeToGraph](#subscribeToGraph) - Subscribe to network graph updates
 - [subscribeToInvoice](#subscribeToInvoice) - Subscribe to invoice updates
 - [subscribeToInvoices](#subscribeToInvoices) - Subscribe to all invoices
+- [subscribeToOpenRequests](#subscribeToOpenRequests) - Subscribe to channel open requests
 - [subscribeToPastPayment](#subscribeToPastPayment) - Subscribe to a payment
 - [subscribeToPayViaDetails](#subscribeToPayViaDetails) - Pay using details
 - [subscribeToPayViaRequest](#subscribeToPayViaRequest) - Pay using a request
@@ -1610,6 +1612,54 @@ Example:
 ```node
 const {getPendingChannels} = require('ln-service');
 const pendingChannels = (await getPendingChannels({lnd})).pending_channels;
+```
+
+### getRouteThroughHops
+
+/** Get an outbound route that goes through specific hops
+
+  Requires LND built with `routerrpc` build tag
+
+  This method is not supported by LND v0.7.1 or below LNDs
+
+  {
+    [cltv_delta]: <Final CLTV Delta Number>
+    lnd: <Authenticated LND gRPC API Object>
+    [mtokens]: <Millitokens to Send String>
+    [outgoing_channel]: <Outgoing Channel Id String>
+    public_keys: [<Public Key Hex String>]
+  }
+
+  @returns via cbk or Promise
+  {
+    route: {
+      fee: <Route Fee Tokens Number>
+      fee_mtokens: <Route Fee Millitokens String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Fee Number>
+        fee_mtokens: <Fee Millitokens String>
+        forward: <Forward Tokens Number>
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Forward Edge Public Key Hex String>
+        timeout: <Timeout Block Height Number>
+      }]
+      mtokens: <Total Fee-Inclusive Millitokens String>
+      timeout: <Route Timeout Height Number>
+      tokens: <Total Fee-Inclusive Tokens Number>
+    }
+  }
+
+Example:
+
+```node
+const {getRouteThroughHops, payViaRoutes} = require('ln-service');
+const destination = 'destinationPublicKeyHexString';
+const mtokens = 1000;
+const peer = 'peerPublicKeyHexString';
+const {route} = await getRouteThroughHops({lnd, public_keys: [peer, destination]});
+await payViaRoutes({lnd, routes: [route]});
 ```
 
 ### getRoutes

@@ -1,5 +1,9 @@
 # Versions
 
+## 46.2.0
+
+- `getRouteThroughHops`: Added method to convert a set of public keys to a full route
+
 ## 46.1.0
 
 - `getChannels`: `is_static_remote_key` added  to indicate static remote keys

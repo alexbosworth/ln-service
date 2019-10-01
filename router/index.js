@@ -2,6 +2,7 @@ const deleteForwardingReputations = require('./delete_forwarding_reputations');
 const getForwardingReputations = require('./get_forwarding_reputations');
 const getPayment = require('./get_payment');
 const getPaymentOdds = require('./get_payment_odds');
+const getRouteThroughHops = require('./get_route_through_hops');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const isDestinationPayable = require('./is_destination_payable');
 const payViaPaymentDetails = require('./pay_via_payment_details');
@@ -19,6 +20,7 @@ module.exports = {
   getForwardingReputations,
   getPayment,
   getPaymentOdds,
+  getRouteThroughHops,
   ignoreFromRoutingFailure,
   isDestinationPayable,
   payViaPaymentDetails,

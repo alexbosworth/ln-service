@@ -45,6 +45,7 @@ const {getPeers} = require('./lightning');
 const {getPendingChainBalance} = require('./lightning');
 const {getPendingChannels} = require('./lightning');
 const {getPublicKey} = require('./wallet');
+const {getRouteThroughHops} = require('./router');
 const {getRoutes} = require('./lightning');
 const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('./lightning');
@@ -141,6 +142,7 @@ module.exports = {
   getPendingChainBalance,
   getPendingChannels,
   getPublicKey,
+  getRouteThroughHops,
   getRoutes,
   getTowerServerInfo,
   getUtxos,
