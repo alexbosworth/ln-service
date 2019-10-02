@@ -203,6 +203,7 @@ Add a peer if possible (not self, or already connected)
       [is_temporary]: <Add Peer as Temporary Peer Bool> // Default: false
       lnd: <Authenticated LND gRPC API Object>
       public_key: <Public Key Hex String>
+      [retry_count]: <Retry Count Number>
       socket: <Host Network Address And Optional Port String> // ip:port
     }
 
@@ -3554,6 +3555,7 @@ Subscribe to transactions
     {
       [block_id]: <Block Hash String>
       confirmation_count: <Confirmation Count Number>
+      [confirmation_height]: <Block Best Chain Tip Height Number>
       fee: <Fees Paid Tokens Number>
       id: <Transaction Id String>
       is_confirmed: <Is Confirmed Bool>

@@ -1,8 +1,8 @@
 # Versions
 
-## 46.3.0
+## 46.3.1
 
-- `subscribeToTransactions`: Added attribute `block_height` to `chain_transaction` event
+- `subscribeToTransactions`: Added attribute `confirmation_height` to `chain_transaction`
 - `updateRoutingFees`: add support for adjusting `max_htlc_mtokens`
 
 ## 46.2.0

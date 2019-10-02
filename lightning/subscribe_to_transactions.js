@@ -20,9 +20,9 @@ const msPerSec = 1e3;
 
   @event 'chain_transaction'
   {
-    [block_height]: <Block Best Chain Tip Height Number>
     [block_id]: <Block Hash String>
     confirmation_count: <Confirmation Count Number>
+    [confirmation_height]: <Block Best Chain Tip Height Number>
     fee: <Fees Paid Tokens Number>
     id: <Transaction Id String>
     address: <address>
@@ -56,9 +56,9 @@ module.exports = ({lnd}) => {
     const createdAt = parseInt(tx.time_stamp, decBase);
 
     return eventEmitter.emit('chain_transaction', {
-      block_height: tx.block_height || undefined,
       block_id: tx.block_hash || undefined,
       confirmation_count: tx.num_confirmations,
+      confirmation_height: tx.block_height || undefined,
       created_at: new Date(createdAt * msPerSec).toISOString(),
       fee: parseInt(tx.total_fees, decBase),
       id: tx.tx_hash,

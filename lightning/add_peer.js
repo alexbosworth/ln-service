@@ -6,11 +6,11 @@ const {returnResult} = require('asyncjs-util');
 const getPeers = require('./get_peers');
 
 const connectedErrMsg = /already.connected.to/;
+const defaultRetries = 10;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const publicKeyHexStringLength = 33 * 2;
 const notSyncedError = 'chain backend is still syncing, server not active yet';
 const selfKeyErrMsg = /connection.to.self/;
-const times = 10;
 
 /** Add a peer if possible (not self, or already connected)
 
@@ -18,6 +18,7 @@ const times = 10;
     [is_temporary]: <Add Peer as Temporary Peer Bool> // Default: false
     lnd: <Authenticated LND gRPC API Object>
     public_key: <Public Key Hex String>
+    [retry_count]: <Retry Count Number>
     socket: <Host Network Address And Optional Port String> // ip:port
   }
 
@@ -50,6 +51,9 @@ module.exports = (args, cbk) => {
       // Add Peer
       add: ['validate', ({}, cbk) => {
         const pubkey = args.public_key;
+        const retryCount = args.retry_count;
+
+        const times = retryCount !== undefined ? retryCount : defaultRetries;
 
         return asyncRetry({interval, times}, cbk => {
           return args.lnd.default.connectPeer({

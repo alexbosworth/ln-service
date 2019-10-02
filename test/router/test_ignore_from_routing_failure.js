@@ -54,6 +54,50 @@ const tests = [
   },
   {
     args: {
+      hops: [{channel: '0x0x0', public_key: makeKey()}],
+      index: 1,
+      reason: 'UnknownPaymentHash',
+    },
+    description: 'On a successful hit of the final node, nothing is ignored',
+    expected: {ignore: []},
+  },
+  {
+    args: {
+      hops: [{channel: '0x0x0', public_key: makeKey()}],
+      index: 2,
+      reason: 'UnknownPaymentHash',
+    },
+    description: 'Hop details are expected at failure index',
+    expected: {err: new Error('ExpectedHopDetailsAtFailureIndex')},
+  },
+  {
+    args: {
+      hops: [{channel: '0x0x0', public_key: makeKey()}],
+      index: 0,
+      reason: 'FeeInsufficient',
+    },
+    description: 'Local failure does not ignore local peer',
+    expected: {ignore: []},
+  },
+  {
+    args: {
+      channel: '0x0x0',
+      hops: [{channel: '0x0x0', public_key: makeKey()}],
+      index: 0,
+      reason: 'UnknownNextPeer',
+    },
+    description: 'Unknown next peer does not ignore final peer',
+    expected: {
+      ignore: [{
+        channel: '0x0x0',
+        from_public_key: undefined,
+        reason: 'UnknownNextPeer',
+        to_public_key: makeKey(),
+      }],
+    },
+  },
+  {
+    args: {
       hops: [{channel: '0x0x0', public_key: makeKey(1)}],
       index: 0,
       reason: 'UnknownNextPeer',
