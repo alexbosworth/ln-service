@@ -1,5 +1,10 @@
 # Versions
 
+## 46.3.0
+
+- `subscribeToTransactions`: Added attribute `block_height` to `chain_transaction` event
+- `updateRoutingFees`: add support for adjusting `max_htlc_mtokens`
+
 ## 46.2.0
 
 - `getRouteThroughHops`: Added method to convert a set of public keys to a full route

@@ -3650,11 +3650,14 @@ await updateConnectedWatchtower({
 
 Update routing fees on a single channel or on all channels
 
+Updating the maximum htlc size is not supported on LND 0.7.1 and below
+
     {
       [base_fee_tokens]: <Base Fee Tokens Charged Number>
       [cltv_delta]: <HTLC CLTV Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       lnd: <Authenticated LND gRPC API Object>
+      [max_htlc_mtokens]: <Maximum HTLC Mtokens to Forward String>
       [transaction_id]: <Channel Funding Transaction Id String>
       [transaction_vout]: <Channel Funding Transaction Output Index Number>
     }

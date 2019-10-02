@@ -3,10 +3,8 @@ const {test} = require('tap');
 const {delay} = require('./../macros');
 const {createCluster} = require('./../macros');
 const {getChannel} = require('./../../');
-const {openChannel} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {updateRoutingFees} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
 const baseFeeTokens = 9;
 const channelCapacityTokens = 1e6;
@@ -24,28 +22,20 @@ test(`Update routing fees`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
+  const channelOpen = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({lnd, id: channelOpen.transaction_id});
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  const {id} = await waitForChannel({lnd, id: channelOpen.transaction_id});
-
-  await delay(3000);
+  const {id} = channelOpen;
 
   await updateRoutingFees({
     lnd,
     base_fee_tokens: baseFeeTokens,
     cltv_delta: cltvDelta,
     fee_rate: feeRate,
+    max_htlc_mtokens: '10000',
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
   });
@@ -57,6 +47,11 @@ test(`Update routing fees`, async ({end, equal}) => {
   equal(policy.base_fee_mtokens, `${baseFeeTokens * mtokPerTok}`, 'Base fee');
   equal(policy.cltv_delta, cltvDelta, 'CLTV delta updated');
   equal(policy.fee_rate, feeRate, 'Fee rate updated');
+
+  // LND 0.7.1 and below do not support updating max htlc mtokens
+  if (policy.max_htlc_mtokens !== '990000000') {
+    equal(policy.max_htlc_mtokens, '10000', 'Max HTLC tokens updated');
+  }
 
   {
     const lnd = cluster.target.lnd;

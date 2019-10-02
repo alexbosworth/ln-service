@@ -64,8 +64,8 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   equal(node.alias, expectedNode.public_key.slice(0, 20), 'Node alias is own');
   equal(node.color, '#3399ff', 'Node color is default');
   equal(node.public_key, expectedNode.public_key, 'Node pubkey is own');
-  deepIs(node.sockets, [`${control.listen_ip}:${control.listen_port}`], 'ip');
-  equal(new Date() - new Date(node.updated_at) < 10000, true, 'Recent update');
+  deepIs(node.sockets, [control.socket], 'Node socket returned');
+  equal(new Date() - new Date(node.updated_at) < 1e5, true, 'Recent update');
 
   channel.policies.forEach(policy => {
     equal(policy.base_fee_mtokens, '1000', 'Default channel base fee');
@@ -75,7 +75,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     equal(policy.max_htlc_mtokens, `${ceil(channel.capacity * 0.99)}000`);
     equal(policy.min_htlc_mtokens, '1000', 'Default min htlc value');
     equal(!!policy.public_key, true, 'Policy has public key');
-    equal(new Date() - new Date(policy.updated_at) < 9999, true, 'Updated at');
+    equal(new Date() - new Date(policy.updated_at) < 1e5, true, 'Updated at');
 
     return;
   });
@@ -84,7 +84,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   equal(channel.id, expectedChannel.id, 'Channel id');
   equal(channel.transaction_id, expectedChannel.transaction_id, 'Chan tx id');
   equal(channel.transaction_vout, expectedChannel.transaction_vout, 'Tx Vout');
-  equal(new Date() - new Date(channel.updated_at) < 9999, true, 'Updated at');
+  equal(new Date() - new Date(channel.updated_at) < 1e5, true, 'Updated at');
 
   await cluster.kill({});
 

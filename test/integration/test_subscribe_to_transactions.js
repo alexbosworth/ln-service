@@ -56,6 +56,11 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
     equal(!!tx.block_id, true, 'Tx is confirmed in a block');
     equal(tx.confirmation_count, [tx].length, 'Tx has a confirmation');
 
+    // On LND 0.7.1 block height is not returned
+    if (!!tx.block_height){
+      equal(tx.block_height, 443, 'Block height is returned');
+    }
+
     return end();
   });
 

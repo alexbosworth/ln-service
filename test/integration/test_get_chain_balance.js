@@ -1,5 +1,6 @@
 const {readFileSync} = require('fs');
 
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {chainSendTransaction} = require('./../macros');
@@ -16,6 +17,8 @@ const defaultFee = 1e3;
 const defaultVout = 0;
 const emptyChainBalance = 0;
 const format = 'np2wpkh';
+const interval = retryCount => 50 * Math.pow(2, retryCount);
+const times = 15;
 const tokens = 1e8;
 
 // Getting chain balance should result in a chain balance
@@ -55,9 +58,16 @@ test(`Get the chain balance`, async ({end, equal}) => {
     spend_vout: defaultVout,
   });
 
-  await mineTransaction({cert, host, pass, port, transaction, user});
+  // Wait for generation to be over
+  await asyncRetry({interval, times}, async () => {
+    await mineTransaction({cert, host, pass, port, transaction, user});
 
-  await waitForUtxo({lnd, transaction});
+    if (!(await getChainBalance({lnd})).chain_balance) {
+      throw new Error('ExpectedChainBalanceReflected');
+    }
+
+    return;
+  });
 
   // Check that the balance is updated
   const postDeposit = await getChainBalance({lnd});

@@ -6,6 +6,8 @@ const msPerSec = 1e3;
 
 /** Subscribe to transactions
 
+  In LND 0.7.1 `block_height` is not supported
+
   {
     lnd: <Authenticated LND gRPC API Object>
   }
@@ -18,6 +20,7 @@ const msPerSec = 1e3;
 
   @event 'chain_transaction'
   {
+    [block_height]: <Block Best Chain Tip Height Number>
     [block_id]: <Block Hash String>
     confirmation_count: <Confirmation Count Number>
     fee: <Fees Paid Tokens Number>
@@ -53,6 +56,7 @@ module.exports = ({lnd}) => {
     const createdAt = parseInt(tx.time_stamp, decBase);
 
     return eventEmitter.emit('chain_transaction', {
+      block_height: tx.block_height || undefined,
       block_id: tx.block_hash || undefined,
       confirmation_count: tx.num_confirmations,
       created_at: new Date(createdAt * msPerSec).toISOString(),

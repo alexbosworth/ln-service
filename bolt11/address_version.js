@@ -5,10 +5,12 @@ const {p2sh} = require('./conf/address_versions');
 
 /** Address version
 
+  Either a prefix or a network and version is required
+
   {
-    network: <Network Name String>
+    [network]: <Network Name String>
     [prefix]: <Bech32 Prefix String>
-    version: <Bitcoinjs-lib Chain Address Version Number>
+    [version]: <Bitcoinjs-lib Chain Address Version Number>
   }
 
   @throws
@@ -22,6 +24,18 @@ const {p2sh} = require('./conf/address_versions');
 module.exports = ({network, prefix, version}) => {
   if (!!prefix) {
     return {version};
+  }
+
+  if (!network) {
+    throw new Error('ExpectedNetworkToDeriveAddressVersion');
+  }
+
+  if (!networks[network]) {
+    throw new Error('UnexpectedNetworkToDeriveAddressVersion');
+  }
+
+  if (version === undefined) {
+    throw new Error('ExpectedVersionToDeriveAddressVersion');
   }
 
   switch (version) {
