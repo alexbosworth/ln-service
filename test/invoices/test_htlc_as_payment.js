@@ -100,7 +100,7 @@ const tests = [
       expiry_height: 1,
       htlc_index: '1',
       resolve_time: '1',
-      state: 'CANCELLED',
+      state: 'CANCELED',
     },
     description: 'Canceled HTLC mapped to payment',
     expected: {

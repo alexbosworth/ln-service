@@ -178,8 +178,6 @@ module.exports = args => {
 
           const allIgnores = [].concat(directIgnores).concat(ignore.slice());
 
-          console.log("GET ROUTES");
-
           return getRoutes({
             cltv_delta: args.cltv_delta,
             destination: args.destination,
@@ -197,8 +195,6 @@ module.exports = args => {
 
         // Attempt paying the route
         attemptRoute: ['getNextRoute', ({getNextRoute}, cbk) => {
-          console.log("GOT NEXT ROUTE", getNextRoute);
-
           const failures = [];
           const maxCltv = args.max_timeout_height;
           const {routes} = getNextRoute;
