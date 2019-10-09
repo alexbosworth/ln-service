@@ -113,6 +113,7 @@ for `unlocker` methods.
 - [createWallet](#createWallet) - Make a new wallet
 - [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
+- [deletePayments](#deletePayments) - Delete entire history of past payments
 - [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
 - [getAutopilot](#getAutopilot) - Get autopilot status or node scores
 - [getBackup](#getBackup) - Get a backup of a channel
@@ -675,9 +676,27 @@ Requires LND built with routerrpc build tag
 
     @returns via cbk or Promise
 
+Example:
+
 ```node
 const {deleteForwardingReputations} = require('ln-service');
 await deleteForwardingReputations({});
+```
+
+### deletePayments
+
+Delete all records of payments
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+```node
+const {deletePayments} = require('ln-service');
+await deletePayments({lnd});
 ```
 
 ### disconnectWatchtower

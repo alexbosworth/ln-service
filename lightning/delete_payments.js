@@ -6,6 +6,8 @@ const {returnResult} = require('asyncjs-util');
   {
     lnd: <Authenticated LND gRPC API Object>
   }
+
+  @returns via cbk or Promise
 */
 module.exports = ({lnd}, cbk) => {
   return new Promise((resolve, reject) => {

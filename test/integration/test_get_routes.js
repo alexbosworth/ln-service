@@ -1,31 +1,23 @@
-const {randomBytes} = require('crypto');
-
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {decodePaymentRequest} = require('./../../');
 const {getChannels} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {routeFromHops} = require('./../../routing');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const buffer = 6;
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
-const defaultVout = 0;
-const mtokPadding = '000';
+const interval = retryCount => 50 * Math.pow(2, retryCount);
+const times = 15;
 const tokens = 100;
-const txIdHexLength = 32 * 2;
 
 // Getting routes to a destination should return routes to the destination
 test(`Get routes`, async ({end, equal}) => {
@@ -33,54 +25,23 @@ test(`Get routes`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
-    lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: cluster.target.socket,
-  });
-
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
   const [channel] = (await getChannels({lnd})).channels;
 
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: Math.round(channelCapacityTokens / 2),
+  await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: Math.round(1e6 / 2),
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: cluster.remote.socket,
-  });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    to: cluster.remote,
   });
 
   const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
+    public_key: cluster.remote.public_key,
     socket: cluster.remote.socket,
   });
 
@@ -90,15 +51,29 @@ test(`Get routes`, async ({end, equal}) => {
 
   const {destination} = decodedRequest;
 
-  await cluster.generate({count: confirmationCount});
-
   const {routes} = await waitForRoute({destination, lnd, tokens});
+
+  // Wait for backwards route
+  await asyncRetry({interval, times}, async () => {
+    const backwardsRoutes = await getRoutes({
+      lnd,
+      tokens,
+      destination: cluster.control.public_key,
+      start: cluster.remote.public_key,
+    });
+
+    if (backwardsRoutes.routes.length !== 1) {
+      throw new Error('WaitingForRouteToExist');
+    }
+
+    return;
+  });
 
   const backwardsRoutes = await getRoutes({
     lnd,
     tokens,
-    destination: (await getWalletInfo({lnd})).public_key,
-    start: cluster.remote_node_public_key,
+    destination: cluster.control.public_key,
+    start: cluster.remote.public_key,
   });
 
   equal(backwardsRoutes.routes.length, 1, 'Route can be calculated backwards');
@@ -109,8 +84,8 @@ test(`Get routes`, async ({end, equal}) => {
     tokens,
     ignore: [{
       channel: remoteChan.id,
-      from_public_key: cluster.target_node_public_key,
-      to_public_key: cluster.remote_node_public_key,
+      from_public_key: cluster.target.public_key,
+      to_public_key: cluster.remote.public_key,
     }],
   });
 
@@ -120,7 +95,7 @@ test(`Get routes`, async ({end, equal}) => {
     destination,
     lnd,
     tokens,
-    ignore: [{from_public_key: cluster.target_node_public_key}],
+    ignore: [{from_public_key: cluster.target.public_key}],
   });
 
   equal(ignoreNodes.routes.length, [].length, 'Ignore nodes ignores nodes');
@@ -135,7 +110,7 @@ test(`Get routes`, async ({end, equal}) => {
     lnd,
     routes: [[
       {
-        public_key: cluster.target_node_public_key,
+        public_key: cluster.target.public_key,
       },
       {
         base_fee_mtokens: '1000',
@@ -143,7 +118,7 @@ test(`Get routes`, async ({end, equal}) => {
         channel_capacity: remoteChannel.capacity,
         cltv_delta: 40,
         fee_rate: 1,
-        public_key: cluster.remote_node_public_key,
+        public_key: cluster.remote.public_key,
       },
     ]],
     tokens: decodedRequest.tokens,
@@ -169,11 +144,11 @@ test(`Get routes`, async ({end, equal}) => {
         channel_capacity: remoteChannel.capacity,
         cltv_delta: 40,
         fee_rate: 1,
-        public_key: cluster.remote_node_public_key,
+        public_key: cluster.remote.public_key,
       },
     ],
     initial_cltv: 40,
-    mtokens: `${tokens}${mtokPadding}`,
+    mtokens: (BigInt(tokens) * BigInt(1e3)).toString(),
   });
 
   const [direct] = routes;

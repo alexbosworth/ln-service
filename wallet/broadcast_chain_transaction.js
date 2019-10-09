@@ -1,7 +1,9 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 const {Transaction} = require('bitcoinjs-lib');
+
+const {isLnd} = require('./../grpc');
+const {isTransaction} = require('./../chain');
 
 /** Publish a raw blockchain transaction to Blockchain network peers
 
@@ -22,18 +24,12 @@ module.exports = ({lnd, transaction}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.wallet || !lnd.wallet.publishTransaction) {
+        if (!isLnd({lnd, method: 'publishTransaction', type: 'wallet'})) {
           return cbk([400, 'ExpectedWalletRpcLndToSendRawTransaction']);
         }
 
-        if (!transaction || !isHex(transaction)) {
-          return cbk([400, 'ExpectedRawTransactionToBroadcastToPeers']);
-        }
-
-        try {
-          Transaction.fromHex(transaction);
-        } catch (err) {
-          return cbk([400, 'ExpectedValidTransactionToBroadcastToPeers']);
+        if (!isTransaction({transaction})) {
+          return cbk([400, 'ExpectedTransactionHexStringToBroadcastToPeers']);
         }
 
         return cbk();

@@ -54,7 +54,7 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
-    "all-integration-tests": "tap -j 1 -t 120 test/autopilot/*.js test/autopilotrpc-integration/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/chainrpc-integration/*.js test/graph/*.js test/grpc/*.js test/grpc-integration/*.js test/integration/*.js test/invoices/*.js test/invoicesrpc-integration/*.js test/router/*.js test/routerrpc-integration/*.js test/routing/*.js test/signerrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js",
+    "all-integration-tests": "tap -j 1 -t 120 test/autopilot/*.js test/autopilotrpc-integration/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/chainrpc-integration/*.js test/graph/*.js test/grpc/*.js test/grpc-integration/*.js test/integration/*.js test/invoices/*.js test/invoicesrpc-integration/*.js test/router/*.js test/routerrpc-integration/*.js test/routing/*.js test/signerrpc-integration/*.js test/tower_serverrpc-integration/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js test/walletrpc-integration/*.js",
     "autopilot-integration-tests": "tap --no-coverage -t 90 test/autopilotrpc-integration/*.js",
     "chain-integration-tests": "tap --no-coverage -t 90 test/chainrpc-integration/*.js",
     "integration-tests": "tap --no-coverage -t 90 test/grpc-integration/*.js test/integration/*.js",
@@ -62,7 +62,7 @@
     "router-integration-tests": "tap --no-coverage -j 2 -t 90 test/routerrpc-integration/*.js",
     "signer-integration-tests": "tap --no-coverage test/signerrpc-integration/*.js",
     "start": "node server.js",
-    "test": "tap test/autopilot/*.js test/backups/*.js test/bolt02/*.js test/bolt11/*.js test/chain/*.js test/graph/*.js test/grpc/*.js test/invoices/*.js test/router/*.js test/routing/*.js",
+    "test": "tap test/autopilot/*.js test/backups/*.js test/bolt02/*.js test/bolt11/*.js test/chain/*.js test/graph/*.js test/grpc/*.js test/invoices/*.js test/router/*.js test/routing/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js",
     "tower_client-integration-tests": "tap --no-coverage test/tower_clientrpc-integration/*.js",
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"

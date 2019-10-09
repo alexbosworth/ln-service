@@ -88,8 +88,62 @@ const tests = [
       retry_count: 0,
       socket: 'socket',
     },
-    description: 'Still syncing returns known error',
+    description: 'Random error returns error',
     error: [503, 'UnexpectedErrorAddingPeer', {err: 'e'}],
+  },
+  {
+    args: {
+      lnd: {
+        default: {
+          connectPeer: ({}, cbk) => cbk(null, {}),
+          listPeers: ({}, cbk) => cbk('err'),
+        },
+      },
+      public_key: Buffer.alloc(33).toString('hex'),
+      retry_count: 0,
+      socket: 'socket',
+    },
+    description: 'List peers error returns error',
+    error: [503, 'UnexpectedGetPeersError', {err: 'err'}],
+  },
+  {
+    args: {
+      lnd: {
+        default: {
+          connectPeer: ({}, cbk) => cbk(null, {}),
+          listPeers: ({}, cbk) => cbk(null, {peers: []}),
+        },
+      },
+      public_key: Buffer.alloc(33).toString('hex'),
+      retry_count: 0,
+      socket: 'socket',
+    },
+    description: 'List peers error returns error',
+    error: [503, 'FailedToSuccessfullyConnectToRemotePeer'],
+  },
+  {
+    args: {
+      lnd: {
+        default: {
+          connectPeer: ({}, cbk) => cbk(null, {}),
+          listPeers: ({}, cbk) => cbk(null, {peers: [{
+            address: 'address',
+            bytes_recv: '0',
+            bytes_sent: '0',
+            inbound: false,
+            ping_time: '0',
+            pub_key: Buffer.alloc(33).toString('hex'),
+            sat_recv: '0',
+            sat_sent: '0',
+            sync_type: 'ACTIVE_SYNC',
+          }]}),
+        },
+      },
+      public_key: Buffer.alloc(33).toString('hex'),
+      retry_count: 0,
+      socket: 'socket',
+    },
+    description: 'List peers error returns error',
   },
 ];
 

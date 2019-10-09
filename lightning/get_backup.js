@@ -1,6 +1,7 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
+
+const {isHash} = require('./../chain');
 
 /** Get the static channel backup for a channel
 
@@ -24,7 +25,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedGrpcApiConnectionToGetChannelBackup']);
         }
 
-        if (!args.transaction_id || !isHex(args.transaction_id)) {
+        if (!isHash({hash: args.transaction_id}).is_hash) {
           return cbk([400, 'ExpectedTxIdOfChannelToGetChannelBackup']);
         }
 

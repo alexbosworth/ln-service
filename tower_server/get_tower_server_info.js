@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const inactiveTowerErr = '2 UNKNOWN: watchtower not active';
 const {isArray} = Array;
 const {isBuffer} = Buffer;
@@ -26,7 +28,7 @@ module.exports = ({lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.tower_server || !lnd.tower_server.getInfo) {
+        if (!isLnd({lnd, method: 'getInfo', type: 'tower_server'})) {
           return cbk([400, 'ExpectedAuthedLndGrpcToGetWatchtowerServerInfo']);
         }
 

@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const invalidPasswordError = 'invalid passphrase for master public key';
 
 /** Unlock the wallet
@@ -17,7 +19,7 @@ module.exports = ({lnd, password}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.unlocker || !lnd.unlocker.unlockWallet) {
+        if (!isLnd({lnd, method: 'unlockWallet', type: 'unlocker'})) {
           return cbk([400, 'ExpectedLndWhenUnlockingWallet']);
         }
 

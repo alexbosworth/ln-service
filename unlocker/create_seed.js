@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const connectionFailure = '14 UNAVAILABLE: Connect Failed';
 const expectedMnemonicLength = 24;
 const {isArray} = Array;
@@ -24,7 +26,7 @@ module.exports = ({lnd, passphrase}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.unlocker || !lnd.unlocker.genSeed) {
+        if (!isLnd({lnd, method: 'genSeed', type: 'unlocker'})) {
           return cbk([400, 'ExpectedNonAuthenticatedLndForSeedCreation']);
         }
 
@@ -41,7 +43,7 @@ module.exports = ({lnd, passphrase}, cbk) => {
           }
 
           if (!!err) {
-            return cbk([503, 'UnexpectedCreateSeedError', err]);
+            return cbk([503, 'UnexpectedCreateSeedError', {err}]);
           }
 
           if (!res) {
@@ -49,11 +51,11 @@ module.exports = ({lnd, passphrase}, cbk) => {
           }
 
           if (!isArray(res.cipher_seed_mnemonic)) {
-            return cbk([503, 'ExpectedCipherSeedMnemonic', res]);
+            return cbk([503, 'ExpectedCipherSeedMnemonic']);
           }
 
           if (res.cipher_seed_mnemonic.length !== expectedMnemonicLength) {
-            return cbk([503, 'UnexpectedCipherSeedMnemonicLength', res]);
+            return cbk([503, 'UnexpectedCipherSeedMnemonicLength']);
           }
 
           return cbk(null, {seed: res.cipher_seed_mnemonic.join(' ')});

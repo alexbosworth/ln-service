@@ -38,7 +38,11 @@ test(`Recover funds with backup`, async ({end, equal}) => {
     to: cluster.control,
   });
 
+  await delay(3000);
+
   const {backup} = await getBackups({lnd});
+
+  await delay(3000);
 
   await stopDaemon({lnd});
 

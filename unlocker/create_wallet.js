@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const utf8 = 'utf8';
 
 /** Create a wallet
@@ -21,7 +23,7 @@ module.exports = ({lnd, passphrase, password, seed}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.unlocker || !lnd.unlocker.initWallet) {
+        if (!isLnd({lnd, method: 'initWallet', type: 'unlocker'})) {
           return cbk([400, 'ExpectedLndForWalletCreation']);
         }
 

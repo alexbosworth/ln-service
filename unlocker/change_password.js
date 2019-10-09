@@ -1,6 +1,9 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
+const method = 'changePassword';
 const utf8 = 'utf8';
 
 /** Change password
@@ -24,7 +27,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedCurrentPasswordToChangePassword']);
         }
 
-        if (!args.lnd || !args.lnd.unlocker) {
+        if (!isLnd({method, lnd: args.lnd, type: 'unlocker'})) {
           return cbk([400, 'ExpectedUnauthenticatedLndGrpcToChangePassword']);
         }
 

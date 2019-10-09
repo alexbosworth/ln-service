@@ -17,8 +17,10 @@ const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {routeFromHops} = require('./../../routing');
+const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
+const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
@@ -37,22 +39,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   const {id} = invoice;
 
-  const controlToTargetChannel = await openChannel({
-    lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: cluster.target.socket,
-  });
-
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({lnd, id: controlToTargetChannel.transaction_id});
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
   rejects(getPayment({lnd, id}), [404, 'SentPaymentNotFound'], 'Not found');
 
@@ -70,24 +57,11 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   const [channel] = (await getChannels({lnd})).channels;
 
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  await setupChannel({
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    generate: cluster.generate,
+    generator: cluster.target,
+    to: cluster.remote,
   });
 
   const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
@@ -98,7 +72,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
     socket: cluster.remote.socket,
   });
 
-  await delay(3000);
+  await waitForRoute({lnd, tokens, destination: cluster.remote.public_key});
 
   await payViaPaymentRequest({lnd, request: invoice.request});
 
