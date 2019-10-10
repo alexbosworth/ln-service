@@ -157,6 +157,9 @@ module.exports = ({channel, failure, index, key, keys}) => {
   case 'UNKNOWN_NEXT_PEER':
     return {details, code: 503, message: 'UnknownNextPeer'};
 
+  case 'UNKNOWN_FAILURE':
+    return {details, code: 503, message: 'UnknownFailure'};
+
   case 'UNKNOWN_PAYMENT_HASH':
     return {details, code: 404, message: 'UnknownPaymentHash'};
 
