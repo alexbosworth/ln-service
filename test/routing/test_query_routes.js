@@ -143,6 +143,7 @@ const tests = [
               total_fees_msat: '1',
               total_time_lock: 1,
             }],
+            success_prob: 0.000001,
           }),
         },
       },
@@ -152,6 +153,7 @@ const tests = [
       results: [{
         extended: [],
         routes: [{
+          confidence: 1,
           fee: 0,
           fee_mtokens: '1',
           hops: [{

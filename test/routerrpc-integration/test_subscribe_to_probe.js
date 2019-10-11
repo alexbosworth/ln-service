@@ -96,6 +96,9 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
 
   const [{route}] = await once(sub, 'probing');
 
+  // On 0.7.1 confidence is not supported
+  delete route.confidence;
+
   deepIs(route, {
     fee: 1,
     fee_mtokens: '1500',

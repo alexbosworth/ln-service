@@ -94,6 +94,9 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
       public_keys: route.hops.map(n => n.public_key),
     });
 
+    delete res.route.confidence;
+    delete route.confidence;
+
     deepIs(res.route, route, 'Constructed route to destination');
   } catch (err) {
     deepIs(err, [501, 'ExpectedRouterRpcWithGetRouteMethod'], 'Unimplemented');

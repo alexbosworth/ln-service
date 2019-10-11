@@ -1693,6 +1693,8 @@ addition to routes.
 
 Setting both `start` and `outgoing_channel` is not supported
 
+`confidence` is not supported in LND 0.7.1
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       [destination]: <Final Send Destination Hex Encoded Public Key String>
@@ -1722,6 +1724,7 @@ Setting both `start` and `outgoing_channel` is not supported
     @returns via cbk or Promise
     {
       routes: [{
+        [confidence]: <Route Confidence Score Out Of One Million Number>
         fee: <Route Fee Tokens Number>
         fee_mtokens: <Route Fee Millitokens String>
         hops: [{
@@ -3434,6 +3437,8 @@ Requires LND built with `routerrpc` build tag
 
 `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
+`confidence` is not supported in LND 0.7.1
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key Hex String>
@@ -3467,6 +3472,7 @@ Requires LND built with `routerrpc` build tag
     @event 'probe_success'
     {
       route: {
+        [confidence]: <Route Confidence Score Out Of One Million Number>
         fee: <Total Fee Tokens To Pay Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{

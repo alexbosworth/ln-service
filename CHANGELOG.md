@@ -1,8 +1,14 @@
 # Versions
 
+## 46.4.0
+
+- `getRoutes` add `confidence` score to indicate quality of route result
+- `subscribeToProbe` add `confidence` to `probing` event
+
 ## 46.3.3
 
-- `subscribeToTransactions`: Added attribute `confirmation_height` to `chain_transaction`
+- `subscribeToTransactions`: Added attribute `confirmation_height` to
+    `chain_transaction` event
 - `updateRoutingFees`: add support for adjusting `max_htlc_mtokens`
 
 ## 46.2.0

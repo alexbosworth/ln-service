@@ -20,6 +20,8 @@ const {isArray} = Array;
 
   `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
+  `confidence` is not supported in LND 0.7.1
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Destination Public Key Hex String>
@@ -76,6 +78,7 @@ const {isArray} = Array;
   @event 'probing'
   {
     route: {
+      [confidence]: <Route Confidence Score Out Of One Million Number>
       fee: <Total Fee Tokens To Pay Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
       hops: [{

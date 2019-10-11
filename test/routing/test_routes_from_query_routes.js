@@ -48,6 +48,7 @@ const tests = [
     description: 'Valid routes',
     expected: {
       routes: [{
+        confidence: 1,
         fee: 1,
         fee_mtokens: '1000',
         hops: [{
@@ -80,8 +81,9 @@ const tests = [
           fee: '1',
           fee_msat: '1000',
         }],
-      },
-    ]},
+      }],
+      success_prob: 0.000001,
+    },
   },
 ];
 

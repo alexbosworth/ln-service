@@ -96,6 +96,7 @@ const tests = [
     description: 'A valid route response is expected',
     expected: {
       route: {
+        confidence: undefined,
         fee: 0,
         fee_mtokens: '1',
         hops: [{
@@ -165,6 +166,7 @@ const tests = [
     description: 'A valid route response is expected',
     expected: {
       route: {
+        confidence: undefined,
         fee: 0,
         fee_mtokens: '1',
         hops: [{

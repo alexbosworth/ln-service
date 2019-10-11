@@ -4,6 +4,8 @@ const decBase = 10;
 const {isArray} = Array;
 const mtokensPerToken = BigInt(1e3);
 const millitokensToTokens = n => Number(BigInt(n) / BigInt(1e3));
+const {round} = Math;
+const successDenominator = 1e6;
 
 /** Routes from raw lnd query routes gRPC response
 
@@ -24,6 +26,7 @@ const millitokensToTokens = n => Number(BigInt(n) / BigInt(1e3));
         total_fees_msat: <Route Total Fees Millitokens String>
         total_time_lock: <Route Total Timelock Number>
       }]
+      success_prob: <Success Probability Ratio Number>
     }
   }
 
@@ -33,6 +36,7 @@ const millitokensToTokens = n => Number(BigInt(n) / BigInt(1e3));
   @returns
   {
     routes: [{
+      [confidence]: <Confidence In Success Score Out Of One Million Number>
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
       hops: [{
@@ -57,6 +61,8 @@ module.exports = ({response}) => {
   }
 
   const {routes} = response;
+
+  const confidence = round(response.success_prob * successDenominator);
 
   if (!isArray(routes)) {
     throw new Error('ExpectedRoutes');
@@ -100,6 +106,7 @@ module.exports = ({response}) => {
       const totalAmtMtok = BigInt(route.total_amt_msat);
 
       return {
+        confidence: confidence || undefined,
         fee: millitokensToTokens(route.total_fees_msat),
         fee_mtokens: route.total_fees_msat,
         hops: route.hops.map(h => {

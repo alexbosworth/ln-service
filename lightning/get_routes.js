@@ -27,6 +27,8 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
 
   Setting both `start` and `outgoing_channel` is not supported
 
+  `confidence` is not supported in LND 0.7.1
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Final Send Destination Hex Encoded Public Key String>
@@ -56,6 +58,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
   @returns via cbk or Promise
   {
     routes: [{
+      [confidence]: <Route Confidence Score Out Of One Million Number>
       fee: <Route Fee Tokens Number>
       fee_mtokens: <Route Fee Millitokens String>
       hops: [{
@@ -235,13 +238,16 @@ module.exports = (args, cbk) => {
             return {channel: hop.channel, destination: hop.public_key};
           });
 
-          const baseRoutes = routes.map(({hops}) => {
-            return hops.map(hop => {
-              return {channel: hop.channel, destination: hop.public_key};
-            });
+          const baseRoutes = routes.map(({confidence, hops}) => {
+            return {
+              confidence,
+              baseHops: hops.map(hop => {
+                return {channel: hop.channel, destination: hop.public_key};
+              }),
+            };
           });
 
-          return asyncMapSeries(baseRoutes, (baseHops, cbk) => {
+          return asyncMapSeries(baseRoutes, ({baseHops, confidence}, cbk) => {
             const completeHops = [].concat(baseHops).concat(extendedHops);
 
             return asyncMapSeries(completeHops, (hop, cbk) => {
@@ -315,7 +321,15 @@ module.exports = (args, cbk) => {
                     mtokens: tokensAsMtokens(args.tokens || defaultTokens),
                   });
 
-                  return cbk(null, route);
+                  return cbk(null, {
+                    confidence,
+                    fee: route.fee,
+                    fee_mtokens: route.fee_mtokens,
+                    hops: route.hops,
+                    mtokens: route.mtokens,
+                    timeout: route.timeout,
+                    tokens: route.tokens,
+                  });
                 } catch (err) {
                   return cbk([500, 'UnexpectedRouteFromChannelsErr', {err}]);
                 }
