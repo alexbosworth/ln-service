@@ -3,6 +3,7 @@ const {returnResult} = require('asyncjs-util');
 
 const subscribeToPayViaRequest = require('./subscribe_to_pay_via_request');
 
+const defaultMaxHeight = 1000;
 const {isArray} = Array;
 
 /** Pay via payment request
@@ -60,7 +61,7 @@ module.exports = (args, cbk) => {
         const sub = subscribeToPayViaRequest({
           lnd: args.lnd,
           max_fee: args.max_fee,
-          max_timeout_height: args.max_timeout_height,
+          max_timeout_height: args.max_timeout_height || defaultMaxHeight,
           outgoing_channel: args.outgoing_channel,
           pathfinding_timeout: args.pathfinding_timeout,
           request: args.request,

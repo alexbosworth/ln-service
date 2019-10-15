@@ -15,6 +15,8 @@ const isPathNotFoundCode = code => !!pathNotFoundErrors[code];
 
 /** Query for routes
 
+  `max_timeout_height` is not supported in LND 0.7.1
+
   {
     [destination]: <Destination Public Key Hex String>
     [ignores]: [{
@@ -26,6 +28,7 @@ const isPathNotFoundCode = code => !!pathNotFoundErrors[code];
     [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
+    [max_timeout_height]: <Max CLTV Timeout Number>
     [outgoing_channel]: <Outgoing Channel Id String>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
@@ -139,6 +142,7 @@ module.exports = (args, cbk) => {
 
           return args.lnd.default.queryRoutes({
             amt: args.tokens || defaultTokens,
+            cltv_limit: args.max_timeout_height || undefined,
             fee_limit: !args.max_fee ? undefined : {fee_limit: args.max_fee},
             final_cltv_delta: (args.cltv_delta || defaultCltv) + blocksBuffer,
             ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,

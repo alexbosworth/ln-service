@@ -1,9 +1,14 @@
 # Versions
 
+## 46.5.0
+
+- `getRoutes`:  add `max_timeout_height` to limit the maximum CLTV height when
+    pathfinding.
+
 ## 46.4.0
 
-- `getRoutes` add `confidence` score to indicate quality of route result
-- `subscribeToProbe` add `confidence` to `probing` event
+- `getRoutes`: add `confidence` score to indicate quality of route result
+- `subscribeToProbe`: add `confidence` to `probing` event
 
 ## 46.3.3
 

@@ -70,7 +70,7 @@ module.exports = ({id, lnd}, cbk) => {
           }
 
           if (!!err) {
-            return cbk([503, 'UnexpectedGetChannelInfoError', err]);
+            return cbk([503, 'UnexpectedGetChannelInfoError', {err}]);
           }
 
           if (!response) {

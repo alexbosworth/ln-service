@@ -6,7 +6,6 @@ const asyncWhilst = require('async/whilst');
 const {flatten} = require('lodash');
 const isHex = require('is-hex');
 
-const {getChannel} = require('./../lightning');
 const {getRoutes} = require('./../lightning');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
@@ -30,7 +29,7 @@ const {isArray} = Array;
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
-    [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
+    [is_ignoring_past_failures]: <Ignore Past Failures When Finding Path Bool>
     [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
@@ -189,6 +188,7 @@ module.exports = args => {
             is_strict_hints: args.is_strict_hints,
             lnd: args.lnd,
             max_fee: args.max_fee,
+            max_timeout_height: args.max_timeout_height,
             outgoing_channel: args.outgoing_channel,
             routes: args.routes,
             tokens: args.tokens,

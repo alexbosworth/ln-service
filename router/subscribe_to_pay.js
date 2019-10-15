@@ -12,7 +12,6 @@ const defaultCltvDelta = 43;
 const defaultTimeoutSeconds = 20;
 const hexToBuf = hex => Buffer.from(hex, 'hex');
 const {isArray} = Array;
-const maxCltv = Number.MAX_SAFE_INTEGER;
 const maxTokens = '4294967296';
 const msPerSec = 1000;
 const {round} = Math;
@@ -125,7 +124,7 @@ module.exports = args => {
 
   const sub = args.lnd.router.sendPayment({
     amt: !args.tokens ? undefined : args.tokens,
-    cltv_limit: !args.timeout_height ? maxCltv : args.timeout_height,
+    cltv_limit: args.timeout_height || undefined,
     dest: !args.destination ? undefined : hexToBuf(args.destination),
     fee_limit_sat: maxFee,
     final_cltv_delta: !args.request ? finalCltv : undefined,

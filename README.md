@@ -1694,6 +1694,7 @@ addition to routes.
 Setting both `start` and `outgoing_channel` is not supported
 
 `confidence` is not supported in LND 0.7.1
+`max_timeout_height` is not supported in LND 0.7.1
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -1708,6 +1709,7 @@ Setting both `start` and `outgoing_channel` is not supported
       [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
+      [max_timeout_height]: <Max CLTV Timeout Number>
       [outgoing_channel]: <Outgoing Channel Id String>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
@@ -3447,7 +3449,7 @@ Requires LND built with `routerrpc` build tag
         from_public_key: <Public Key Hex String>
         [to_public_key]: <To Public Key Hex String>
       }]
-      [is_ignoring_past_failures]: <Adjust as Default For Past Failures Bool>
+      [is_ignoring_past_failures]: <Ignore Past Failures When Finding Path Bool>
       [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>

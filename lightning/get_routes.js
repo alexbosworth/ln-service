@@ -28,6 +28,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
   Setting both `start` and `outgoing_channel` is not supported
 
   `confidence` is not supported in LND 0.7.1
+  `max_timeout_height` is not supported in LND 0.7.1
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -42,6 +43,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
     [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
+    [max_timeout_height]: <Max CLTV Timeout Number>
     [outgoing_channel]: <Outgoing Channel Id String>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
@@ -169,6 +171,7 @@ module.exports = (args, cbk) => {
           is_strict_hints: args.is_strict_hints,
           lnd: args.lnd,
           max_fee: args.max_fee,
+          max_timeout_height: args.max_timeout_height,
           outgoing_channel: args.outgoing_channel,
           routes: args.routes,
           start_public_key: getOutgoing.source_key,
