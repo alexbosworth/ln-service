@@ -351,6 +351,12 @@ module.exports = (args, cbk) => {
             return false;
           }
 
+          const maxCltv = args.max_timeout_height;
+
+          if (!!maxCltv && route.timeout > maxCltv) {
+            return false;
+          }
+
           return true;
         });
 
