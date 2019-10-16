@@ -7,9 +7,10 @@
 The core of this project is a gRPC interface for node.js projects, available
 through npm.
 
-Supported LND version:
+Supported LND versions:
 
 - v0.7.1-beta
+- v0.8.0-beta
 
 ## Installing LND
 
