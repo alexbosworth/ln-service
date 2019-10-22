@@ -1173,6 +1173,8 @@ When using an "after" date a "before" date is required.
 
 If a next token is returned, pass it to get additional page of results.
 
+`mtokens` is not supported on LND v0.8.0 or lower
+
     {
       [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
       [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>
@@ -1188,8 +1190,9 @@ If a next token is returned, pass it to get additional page of results.
         fee: <Fee Tokens Charged Number>
         fee_mtokens: <Approximated Fee Millitokens Charged String>
         incoming_channel: <Incoming Standard Format Channel Id String>
+        [mtokens]: <Forwarded Millitokens String>
         outgoing_channel: <Outgoing Standard Format Channel Id String>
-        tokens: <Forwarded Tokens String>
+        tokens: <Forwarded Tokens Number>
       }]
       [next]: <Contine With Opaque Paging Token String>
     }

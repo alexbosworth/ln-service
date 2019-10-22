@@ -61,10 +61,14 @@ test(`Send to chain address`, async ({end, equal}) => {
   equal(adjustment, tokens, 'Transaction balance is shifted');
 
   try {
-    await sendToChainAddress({
-      address,
-      is_send_all: true,
-      lnd: cluster.control.lnd,
+    await asyncRetry({interval, times}, async () => {
+      await sendToChainAddress({
+        address,
+        is_send_all: true,
+        lnd: cluster.control.lnd,
+      });
+
+      return;
     });
 
     const controlFunds = await getChainBalance({lnd: cluster.control.lnd});

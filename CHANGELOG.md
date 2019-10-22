@@ -1,5 +1,9 @@
 # Versions
 
+## 46.5.1
+
+- `getForwards`: add `mtokens` to show forwarded millitokens for a forward.
+
 ## 46.5.0
 
 - `getRoutes`:  add `max_timeout_height` to limit the maximum CLTV height when
