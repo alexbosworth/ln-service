@@ -5,6 +5,7 @@ const {returnResult} = require('asyncjs-util');
 const {blocksBuffer} = require('./constants');
 const {defaultCltv} = require('./constants');
 const {defaultTokens} = require('./constants');
+const getWalletInfo = require('./../lightning/get_wallet_info');
 const ignoreAsIgnoredEdges = require('./ignore_as_ignored_edges');
 const ignoreAsIgnoredNodes = require('./ignore_as_ignored_nodes');
 const {pathNotFoundErrors} = require('./constants');
@@ -91,6 +92,21 @@ module.exports = (args, cbk) => {
         return cbk();
       },
 
+      // Get the cltv limit
+      getCltvLimit: ['validate', ({}, cbk) => {
+        if (!args.max_timeout_height) {
+          return cbk();
+        }
+
+        return getWalletInfo({lnd: args.lnd}, (err, res) => {
+          if (!!err) {
+            return cbk(err);
+          }
+
+          return cbk(null, args.max_timeout_height - res.current_block_height);
+        });
+      }],
+
       // Assemble routes to destination
       routesToDestination: ['validate', ({}, cbk) => {
         const hasRoutes = !!args.routes && !!args.routes.length;
@@ -120,7 +136,11 @@ module.exports = (args, cbk) => {
       }],
 
       // Execute the query for routes
-      query: ['routesToDestination', ({routesToDestination}, cbk) => {
+      query: [
+        'getCltvLimit',
+        'routesToDestination',
+        ({getCltvLimit, routesToDestination}, cbk) =>
+      {
         return asyncMap(routesToDestination.routes, (route, cbk) => {
           if (!isArray(route)) {
             return cbk([400, 'ExpectedArrayOfExtendedHopsWhenQueryingRoutes']);
@@ -142,7 +162,7 @@ module.exports = (args, cbk) => {
 
           return args.lnd.default.queryRoutes({
             amt: args.tokens || defaultTokens,
-            cltv_limit: args.max_timeout_height || undefined,
+            cltv_limit: getCltvLimit,
             fee_limit: !args.max_fee ? undefined : {fee_limit: args.max_fee},
             final_cltv_delta: (args.cltv_delta || defaultCltv) + blocksBuffer,
             ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,
