@@ -16,7 +16,9 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
   Requires LND built with routerrpc build tag
 
-  In LND v0.7.1 channels reputations are returned. Later, peers reputations.
+  Note: In LND v0.7.1 channels reputations are returned.
+  Note: In LND v0.8.0 peers reputations are returned.
+  Note: after LND v0.8.0 success_odds are not returned.
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -39,7 +41,7 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
       peers: [{
         last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
         min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
-        success_odds: <Odds of Success Out of 1 Million Number>
+        [success_odds]: <Odds of Success Out of 1 Million Number>
         to_public_key: <To Public Key Hex String>
       }]
       public_key: <Node Identity Public Key Hex String>

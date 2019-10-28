@@ -1,5 +1,10 @@
 # Versions
 
+## 46.6.0
+
+- `getChannels`: add `time_offline` and `time_online` to show channel liveness
+- `grantAccess`: add method to create authorization macaroons
+
 ## 46.5.2
 
 - `getRoutes`: correct issues in route finding with CLTV values

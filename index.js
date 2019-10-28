@@ -50,6 +50,7 @@ const {getRoutes} = require('./lightning');
 const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
+const {grantAccess} = require('./macaroons');
 const {isDestinationPayable} = require('./router');
 const localLnd = require('./service/local_lnd');
 const {openChannel} = require('./lightning');
@@ -147,6 +148,7 @@ module.exports = {
   getTowerServerInfo,
   getUtxos,
   getWalletInfo,
+  grantAccess,
   isDestinationPayable,
   localLnd,
   openChannel,

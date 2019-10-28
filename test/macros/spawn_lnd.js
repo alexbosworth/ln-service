@@ -243,7 +243,7 @@ module.exports = ({seed, tower, watchers}, cbk) => {
       try {
         return cbk(null, unauthenticatedLndGrpc({cert, socket}).lnd);
       } catch (err) {
-        return cbk([503, 'FailedToInstantiateNonAuthentictedLnd', {err}]);
+        return cbk([503, 'FailedToInstantiateNonAuthenticatedLnd', {err}]);
       }
     }],
 

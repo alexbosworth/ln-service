@@ -17,7 +17,7 @@ const outpointSeparator = ':';
     [is_cooperative_close]: <Only Return Cooperative Close Channels Bool>
     [is_funding_cancel]: <Only Return Funding Canceled Channels Bool>
     [is_local_force_close]: <Only Return Local Force Close Channels Bool>
-    [is_remote_force_close]: <Only Return Remote Force Close CHannels Bool>
+    [is_remote_force_close]: <Only Return Remote Force Close Channels Bool>
     lnd: <Authenticated LND gRPC API Object>
   }
 

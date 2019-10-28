@@ -148,6 +148,7 @@ for `unlocker` methods.
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about the running tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
+- [grantAccess](#grantAccess) - Grant an access credential macaroon
 - [isDestinationPayable](#isDestinationPayable) - Check if a destination or pay req is payable
 - [openChannel](#openChannel) - Open a new channel
 - [parsePaymentRequest](#parsePaymentRequest) - Parse a BOLT11 Payment Request
@@ -968,6 +969,8 @@ Get channels
 
 `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
+`time_offline` and `time_online` will be undefined on 0.8.0 and below
+
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
       [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -1002,6 +1005,8 @@ Get channels
         remote_balance: <Remote Balance Tokens Number>
         remote_reserve: <Remote Reserved Tokens Number>
         sent: <Sent Tokens Number>
+        [time_offline]: <Monitoring Uptime Channel Down Milliseconds Number>
+        [time_online]: <Monitoring Uptime Channel Up Milliseconds Number>
         transaction_id: <Blockchain Transaction Id String>
         transaction_vout: <Blockchain Transaction Vout Number>
         unsettled_balance: <Unsettled Balance Tokens Number>
@@ -1012,6 +1017,8 @@ Example:
 
 ```node
 const {getChannels} = require('ln-service');
+
+// Get the channels and count how many there are
 const channelsCount = (await getChannels({lnd})).length;
 ```
 
@@ -1026,7 +1033,7 @@ Multiple close type flags are supported.
       [is_cooperative_close]: <Only Return Cooperative Close Channels Bool>
       [is_funding_cancel]: <Only Return Funding Canceled Channels Bool>
       [is_local_force_close]: <Only Return Local Force Close Channels Bool>
-      [is_remote_force_close]: <Only Return Remote Force Close CHannels Bool>
+      [is_remote_force_close]: <Only Return Remote Force Close Channels Bool>
       lnd: <Authenticated LND gRPC API Object>
     }
 
@@ -1842,6 +1849,50 @@ const {getWalletInfo} = require('ln-service');
 const walletInfo = await getWalletInfo({lnd});
 ```
 
+### grantAccess
+
+Give access to the node by making a macaroon access credential
+
+Note: granting access is not supported in LND versions 0.8.0 and below
+
+Note: access once given cannot be revoked
+
+    {
+      [is_ok_to_create_chain_addresses]: <Can Make New Addresses Bool>
+      [is_ok_to_create_invoices]: <Can Create Lightning Invoices Bool>
+      [is_ok_to_create_macaroons]: <Can Create Macaroons Bool>
+      [is_ok_to_adjust_peers]: <Can Add or Remove Peers Bool>
+      [is_ok_to_get_chain_transactions]: <Can See Chain Transactions Bool>
+      [is_ok_to_get_invoices]: <Can See Invoices Bool>
+      [is_ok_to_get_wallet_info]: <Can General Graph and Wallet Information Bool>
+      [is_ok_to_get_payments]: <Can Get Historical Lightning Transactions Bool>
+      [is_ok_to_get_peers]: <Can Get Node Peers Information Bool>
+      [is_ok_to_pay]: <Can Send Funds or Edit Lightning Payments Bool>
+      [is_ok_to_send_to_chain_addresses]: <Can Send Coins On Chain Bool>
+      [is_ok_to_sign_messages]: <Can Sign Messages From Node Key Bool>
+      [is_ok_to_stop_daemon]: <Can Terminate Node or Change Operation Mode Bool>
+      [is_ok_to_verify_messages]: <Can Verify Messages From Node Keys Bool>
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      macaroon: <Base64 Encoded Macaroon String>
+    }
+
+```node
+const {createInvoice, grantAccess} = require('ln-service');
+
+// Make a macaroon that can only create invoices
+const {macaroon} = await grantAccess({lnd, is_ok_to_create_invoices: true});
+
+// LND connection using the node cert and socket, with the restricted macaroon
+const createInvoices = authenticatedLndGrpc({cert, macaroon, socket});
+
+// Payment requests can be made with this special limited LND connection
+const {request} = await createInvoice({lnd: createInvoices.lnd, tokens: 1});
+```
+
 ### isDestinationPayable
 
 Determine if a payment destination is actually payable by probing it
@@ -2202,6 +2253,9 @@ const preimage = (await payViaRoutes({lnd, routes})).secret;
 ### probe
 
 Probe routes to find a successful route
+
+It's better to use `probeForRoute` instead of this method, but this method
+does not require the `routerrpc` build tag.
 
     {
       [limit]: <Simultaneous Attempt Limit Number>

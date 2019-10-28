@@ -5,10 +5,13 @@ const {returnResult} = require('asyncjs-util');
 
 const decBase = 10;
 const {isArray} = Array;
+const msPerSec = 1e3;
 
 /** Get channels
 
   `is_static_remote_key` will be undefined on LND 0.7.1 and below
+
+  `time_offline` and `time_online` will be undefined on 0.8.0 and below
 
   {
     [is_active]: <Limit Results To Only Active Channels Bool> // false
@@ -44,6 +47,8 @@ const {isArray} = Array;
       remote_balance: <Remote Balance Tokens Number>
       remote_reserve: <Remote Reserved Tokens Number>
       sent: <Sent Tokens Number>
+      [time_offline]: <Monitoring Uptime Channel Down Milliseconds Number>
+      [time_online]: <Monitoring Uptime Channel Up Milliseconds Number>
       transaction_id: <Blockchain Transaction Id String>
       transaction_vout: <Blockchain Transaction Vout Number>
       unsettled_balance: <Unsettled Balance Tokens Number>
@@ -176,6 +181,10 @@ module.exports = (args, cbk) => {
           const localReserveTokens = parseInt(localReserve, decBase);
           const remoteReserveTokens = parseInt(remoteReserve, decBase);
 
+          const uptime = Number(channel.uptime) * msPerSec;
+
+          const downtime = Number(channel.lifetime) * msPerSec - uptime;
+
           return cbk(null, {
             capacity: parseInt(channel.capacity, decBase),
             commit_transaction_fee: parseInt(channel.commit_fee, decBase),
@@ -200,6 +209,8 @@ module.exports = (args, cbk) => {
             remote_balance: parseInt(channel.remote_balance, decBase),
             remote_reserve: remoteReserveTokens || undefined,
             sent: parseInt(channel.total_satoshis_sent, decBase),
+            time_offline: downtime || undefined,
+            time_online: uptime || undefined,
             transaction_id: transactionId,
             transaction_vout: parseInt(vout, decBase),
             unsettled_balance: parseInt(channel.unsettled_balance, decBase),

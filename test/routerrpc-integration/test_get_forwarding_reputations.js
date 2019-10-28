@@ -120,7 +120,6 @@ test('Get forwarding reputations', async ({deepIs, end, equal}) => {
     const [peer] = node.peers;
 
     equal(!!peer.last_failed_forward_at, true, 'Last fail time returned');
-    equal(!!peer.success_odds, true, 'Peer success odds returned');
     equal(!!peer.to_public_key, true, 'Got peer pub key');
   }
 

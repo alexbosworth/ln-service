@@ -18,6 +18,9 @@ const tempChanFailType = 'temporary_channel_failure';
 
 /** Probe routes to find a successful route
 
+  It's better to use `probeForRoute` instead of this method, but this method
+  does not require the `routerrpc` build tag.
+
   {
     [limit]: <Simultaneous Attempt Limit Number>
     lnd: <Authenticated LND gRPC API Object>

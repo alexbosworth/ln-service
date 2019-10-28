@@ -777,6 +777,18 @@ service Lightning {
     */
     rpc SubscribeChannelBackups(ChannelBackupSubscription) returns (stream ChanBackupSnapshot) {
     };
+
+    /** lncli: `bakemacaroon`
+    BakeMacaroon allows the creation of a new macaroon with custom read and
+    write permissions. No first-party caveats are added since this can be done
+    offline.
+    */
+    rpc BakeMacaroon(BakeMacaroonRequest) returns (BakeMacaroonResponse) {
+        option (google.api.http) = {
+            post: "/v1/macaroon"
+            body: "*"
+        };
+    };
 }
 
 message Utxo {
@@ -1241,6 +1253,19 @@ message Channel {
     directly to that key.
     */
     bool static_remote_key = 22 [json_name = "static_remote_key"];
+
+    /**
+    The number of seconds that the channel has been monitored by the channel
+    scoring system. Scores are currently not persisted, so this value may be
+    less than the lifetime of the channel [EXPERIMENTAL].
+    */
+    int64 lifetime = 23 [json_name = "lifetime"];
+
+    /**
+    The number of seconds that the remote peer has been observed as being online
+    by the channel scoring system over the lifetime of the channel [EXPERIMENTAL].
+    */
+    int64 uptime = 24 [json_name = "uptime"];
 }
 
 message ListChannelsRequest {
@@ -2557,4 +2582,21 @@ message RestoreBackupResponse {}
 message ChannelBackupSubscription {}
 
 message VerifyChanBackupResponse {
+    message MacaroonPermission {
+        /// The entity a permission grants access to.
+        string entity = 1 [json_name = "entity"];
+
+        /// The action that is granted.
+        string action = 2 [json_name = "action"];
+    }
+}
+
+message BakeMacaroonRequest {
+    /// The list of permissions the new macaroon should grant.
+    repeated MacaroonPermission permissions = 1 [json_name = "permissions"];
+}
+
+message BakeMacaroonResponse {
+    /// The hex encoded macaroon, serialized in binary format.
+    string macaroon = 1 [json_name = "macaroon"];
 }
