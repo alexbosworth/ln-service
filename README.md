@@ -1656,6 +1656,32 @@ const {getPendingChannels} = require('ln-service');
 const pendingChannels = (await getPendingChannels({lnd})).pending_channels;
 ```
 
+### getPublicKey
+
+Get a public key in the seed
+
+Requires LND compiled with `walletrpc` build tag
+
+    {
+      family: <Key Family Number>
+      index: <Key Index Number>
+      lnd: <Authenticated gRPC API LND Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      public_key: <Public Key Hex String>
+    }
+
+Example:
+
+```node
+const {getPublicKey} = require('ln-service');
+
+// Get the public version of a key in the LND wallet HD seed
+const publicKey = (await getPublicKey({family: 1, index: 1, lnd}).public_key);
+```
+
 ### getRouteConfidence
 
 Get routing confidence of successfully routing a payment to a destination

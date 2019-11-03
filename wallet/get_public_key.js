@@ -3,7 +3,7 @@ const {returnResult} = require('asyncjs-util');
 
 /** Get a public key in the seed
 
-  Requires walletrpc tag compiled lnd
+  Requires LND compiled with `walletrpc` build tag
 
   {
     family: <Key Family Number>
