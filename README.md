@@ -1716,11 +1716,11 @@ const {confidence} = (await getRouteConfidence({hops, lnd}));
 
 ### getRouteThroughHops
 
-/** Get an outbound route that goes through specific hops
+Get an outbound route that goes through specific hops
 
-  Requires LND built with `routerrpc` build tag
+Requires LND built with `routerrpc` build tag
 
-  This method is not supported by LND v0.7.1 or below LNDs
+This method is not supported by LND v0.7.1
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -1756,7 +1756,7 @@ Example:
 ```node
 const {getRouteThroughHops, payViaRoutes} = require('ln-service');
 const destination = 'destinationPublicKeyHexString';
-const mtokens = 1000;
+const mtokens = '1000';
 const peer = 'peerPublicKeyHexString';
 const {route} = await getRouteThroughHops({lnd, public_keys: [peer, destination]});
 await payViaRoutes({lnd, routes: [route]});
