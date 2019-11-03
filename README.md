@@ -129,6 +129,7 @@ for `unlocker` methods.
 - [getClosedChannels](#getClosedChannels) - Get previously open channels
 - [getConnectedWatchtowers](#getConnectedWatchtowers) - Get connected towers
 - [getFeeRates](#getFeeRates) - Get current routing fee rates
+- [getForwardingConfidence](#getForwardingConfidence) - Get pairwise confidence
 - [getForwardingReputations](#getForwardingReputations) - Get graph reputations
 - [getForwards](#getForwards) - Get forwarded routed payments
 - [getInvoice](#getInvoice) - Get a previously created invoice
@@ -1131,6 +1132,41 @@ Example:
 ```node
 const {getFeeRates} = require('ln-service');
 const {channels} = await getFeeRates({lnd});
+```
+
+### getForwardingConfidence
+
+Get the confidence in being able to send between a direct pair of nodes
+
+Requires LND built with `routerrpc` build tag
+
+Note: this method is not supported in LND 0.8.0 and below.
+
+    {
+      from: <From Public Key Hex String>
+      lnd: <Authenticated LND gRPC API Object>
+      mtokens: <Millitokens To Send String>
+      to: <To Public Key Hex String>
+    }
+
+    @returns via cbk or Promise
+    {
+      confidence: <Success Confidence Score Out Of One Million Number>
+      [past_failure_at]: <Past Failure At ISO 8601 Date String>
+      [past_failure_tokens]: <Smallest Tokens That Historically Failed Number>
+      [past_success_at]: <Past Success At ISO 8601 Date String>
+    }
+
+Example:
+
+```node
+const {getForwardingConfidence} = require('ln-service');
+const from = nodeAPublicKey;
+const mtokens = '10000';
+const to = nodeBPublicKey;
+
+// Given two nodes, get confidence score out of 1,000,000 in forwarding success
+const {confidence} = await getForwardingConfidence({from, lnd, mtokens, to});
 ```
 
 ### getForwardingReputations

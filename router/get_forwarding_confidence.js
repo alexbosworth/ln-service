@@ -10,6 +10,8 @@ const unimplementedError = 'unknown service routerrpc.Router';
 
 /** Get the confidence in being able to send between a direct pair of nodes
 
+  Requires LND built with `routerrpc` build tag
+
   Note: this method is not supported in LND 0.8.0 and below.
 
   {
