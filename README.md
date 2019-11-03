@@ -127,7 +127,7 @@ for `unlocker` methods.
 - [getChannelBalance](#getChannelBalance) - Get the balance of channel funds
 - [getChannels](#getChannels) - Get all open channels
 - [getClosedChannels](#getClosedChannels) - Get previously open channels
-- [getConnectedWatchtowers](#getConnectedWatchtowers) - Get connected watchtower details
+- [getConnectedWatchtowers](#getConnectedWatchtowers) - Get connected towers
 - [getFeeRates](#getFeeRates) - Get current routing fee rates
 - [getForwardingReputations](#getForwardingReputations) - Get graph reputations
 - [getForwards](#getForwards) - Get forwarded routed payments
@@ -137,19 +137,19 @@ for `unlocker` methods.
 - [getNetworkInfo](#getNetworkInfo) - Get high-level graph info
 - [getNode](#getNode) - Get graph info about a single node and its channels
 - [getPayment](#getPayment) - Get a past payment
-- [getPaymentOdds](#getPaymentOdds) - Estimate odds a payment will succeed
 - [getPayments](#getPayments) - Get all past payments
 - [getPeers](#getPeers) - Get all connected peers
 - [getPendingChainBalance](#getPendingChainBalance) - Get pending chain balance
 - [getPendingChannels](#getPendingChannels) - Get channels in pending states
 - [getPublicKey](#getPublicKey) - Get a public key out of the seed
-- [getRouteThroughHops](#getRouteThroughHops) - Get a route through given set of public keys
+- [getRouteConfidence](#getRouteConfidence) - Get confidence in a route
+- [getRouteThroughHops](#getRouteThroughHops) - Get a route through ndoes
 - [getRoutes](#getRoutes) - Find payable routes to a target destination
-- [getTowerServerInfo](#getTowerServerInfo) - Get information about the running tower server
+- [getTowerServerInfo](#getTowerServerInfo) - Get information about tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
 - [grantAccess](#grantAccess) - Grant an access credential macaroon
-- [isDestinationPayable](#isDestinationPayable) - Check if a destination or pay req is payable
+- [isDestinationPayable](#isDestinationPayable) - Check can pay to destination
 - [openChannel](#openChannel) - Open a new channel
 - [parsePaymentRequest](#parsePaymentRequest) - Parse a BOLT11 Payment Request
 - [pay](#pay) - Send a payment
@@ -177,7 +177,7 @@ for `unlocker` methods.
 - [subscribeToGraph](#subscribeToGraph) - Subscribe to network graph updates
 - [subscribeToInvoice](#subscribeToInvoice) - Subscribe to invoice updates
 - [subscribeToInvoices](#subscribeToInvoices) - Subscribe to all invoices
-- [subscribeToOpenRequests](#subscribeToOpenRequests) - Subscribe to channel open requests
+- [subscribeToOpenRequests](#subscribeToOpenRequests) - Approve open requests
 - [subscribeToPastPayment](#subscribeToPastPayment) - Subscribe to a payment
 - [subscribeToPayViaDetails](#subscribeToPayViaDetails) - Pay using details
 - [subscribeToPayViaRequest](#subscribeToPayViaRequest) - Pay using a request
@@ -186,7 +186,7 @@ for `unlocker` methods.
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
-- [updateConnectedWatchtower](#updateConnectedWatchtower) - Update watchtower details
+- [updateConnectedWatchtower](#updateConnectedWatchtower) - Update watchtower
 - [updateRoutingFees](#updateRoutingFees) - Change routing fees
 - [verifyBackup](#verifyBackup) - Verify a channel backup
 - [verifyBackups](#verifyBackups) - Verify a set of channel backups
@@ -279,6 +279,8 @@ Example:
 ```node
 const {broadcastChainTransaction} = require('ln-service');
 const transaction = hexEncodedTransactionString;
+
+// Broadcast transaction to the p2p network
 const {id} = await broadcastChainTransaction({lnd, transaction});
 ```
 
@@ -1135,13 +1137,15 @@ const {channels} = await getFeeRates({lnd});
 
 Get the set of forwarding reputations
 
-Requires LND built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
 
-In LND v0.7.1 channels reputations are returned. Later, peers reputations.
+Note: In LND v0.7.1 channels reputations are returned.
+Note: In LND v0.8.0 peers reputations are returned.
+Note: after LND v0.8.0 confidence is not returned per peer.
 
     {
+      [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
       lnd: <Authenticated LND gRPC API Object>
-      [probability]: <Ignore Reputations Higher than N out of 1 Million Number>
       [tokens]: <Reputation Against Forwarding Tokens Number>
     }
 
@@ -1149,18 +1153,18 @@ In LND v0.7.1 channels reputations are returned. Later, peers reputations.
     {
       nodes: [{
         channels: [{
+          confidence: <Forwarding Confidence Out of 1 Million Number>
           id: <Standard Format Channel Id String>
           last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
           min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
-          success_odds: <Odds of Success Out of 1 Million Number>
           [to_public_key]: <To Public Key Hex String>
         }]
-        [general_success_odds]: <Non-Channel-Specific Odds Out of 1 Million Number>
+        [confidence]: <Non-Channel-Specific Confidence Number>
         [last_failed_forward_at]: <Last Failed Forward Time ISO-8601 Date String>
         peers: [{
+          [confidence]: <Forwarding Confidence Out of One Million Number>
           last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
           min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
-          success_odds: <Odds of Success Out of 1 Million Number>
           to_public_key: <To Public Key Hex String>
         }]
         public_key: <Node Identity Public Key Hex String>
@@ -1484,35 +1488,6 @@ const id = 'paymentHashHexString';
 const payment = await getPayment({id, lnd});
 ```
 
-### getPaymentOdds
-
-Get routing odds of successfully routing a payment to a destination
-
-Requires lnd built with routerrpc build tag
-
-    {
-      hops: [{
-        channel: <Standard Format Channel Id String>
-        forward_mtokens: <Forward Millitokens String>
-        public_key: <Forward Edge Public Key Hex String>
-      }]
-      lnd: <Authenticated LND gRPC API Object>
-    }
-
-    @returns via cbk or Promise
-    {
-      success_odds: <Odds of Success Out Of 1 Million Number>
-    }
-
-Example:
-
-```node
-const {getPaymentOdds, getRoutes} = require('ln-service');
-const destination = 'destinationPublicKeyHexString';
-const [{hops}] = await getRoutes({destination, lnd, tokens: 80085});
-const oddsOfSuccess = (await getPaymentOdds({hops, lnd})).success_odds / 1e6;
-```
-
 ### getPayments
 
 Get payments made through channels.
@@ -1643,6 +1618,38 @@ Example:
 ```node
 const {getPendingChannels} = require('ln-service');
 const pendingChannels = (await getPendingChannels({lnd})).pending_channels;
+```
+
+### getRouteConfidence
+
+Get routing confidence of successfully routing a payment to a destination
+
+Requires LND built with `routerrpc` build tag
+
+If `from` is not set, self is default
+
+    {
+      [from]: <Starting Hex Serialized Public Key>
+      hops: [{
+        forward_mtokens: <Forward Millitokens String>
+        public_key: <Forward Edge Public Key Hex String>
+      }]
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      confidence: <Confidence Score Out Of One Million Number>
+    }
+
+Example:
+
+```node
+const {getRouteConfidence, getRoutes} = require('ln-service');
+const destination = 'destinationPublicKeyHexString';
+const [{hops}] = await getRoutes({destination, lnd, tokens: 80085});
+// Confidence in payment success
+const {confidence} = (await getRouteConfidence({hops, lnd}));
 ```
 
 ### getRouteThroughHops

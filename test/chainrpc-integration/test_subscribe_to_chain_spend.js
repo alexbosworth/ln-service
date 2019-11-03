@@ -56,14 +56,16 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
 
   const toTarget = await createChainAddress({format, lnd: cluster.target.lnd});
 
-  await sendToChainAddress({
-    lnd,
-    address: toTarget.address,
-    is_send_all: true,
-  });
-
   // Wait for generation to be over
   await asyncRetry({interval, times}, async () => {
+    try {
+      await sendToChainAddress({
+        lnd,
+        address: toTarget.address,
+        is_send_all: true,
+      });
+    } catch (err) {}
+
     // Generate to confirm the tx
     await cluster.generate({count: 1, node: cluster.control});
 

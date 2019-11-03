@@ -1,7 +1,8 @@
 const deleteForwardingReputations = require('./delete_forwarding_reputations');
+const getForwardingConfidence = require('./get_forwarding_confidence');
 const getForwardingReputations = require('./get_forwarding_reputations');
 const getPayment = require('./get_payment');
-const getPaymentOdds = require('./get_payment_odds');
+const getRouteConfidence = require('./get_route_confidence');
 const getRouteThroughHops = require('./get_route_through_hops');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const isDestinationPayable = require('./is_destination_payable');
@@ -17,9 +18,10 @@ const subscribeToProbe = require('./subscribe_to_probe');
 
 module.exports = {
   deleteForwardingReputations,
+  getForwardingConfidence,
   getForwardingReputations,
   getPayment,
-  getPaymentOdds,
+  getRouteConfidence,
   getRouteThroughHops,
   ignoreFromRoutingFailure,
   isDestinationPayable,

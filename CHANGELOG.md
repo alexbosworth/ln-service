@@ -1,5 +1,18 @@
 # Versions
 
+## 47.0.0
+
+- `getForwardingConfidence`: Add method to get forwarding confidence of
+    forwarding between two peers
+
+### Breaking Changes
+
+- `getPaymentOdds`: Rename to `getRouteConfidence`
+- `getForwardingReputations`: Rename "odds" to "confidence"
+    `probability` attribute changes to `confidence`
+    `general_success_odds`attribute to `confidence`
+    `success_odds` attribute changes to `confidence`
+
 ## 46.6.0
 
 - `getChannels`: add `time_offline` and `time_online` to show channel liveness

@@ -10,8 +10,10 @@ const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
+const {getRouteConfidence} = require('./../../');
 const {getRoutes} = require('./../../');
 const {openChannel} = require('./../../');
+const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {waitForChannel} = require('./../macros');
@@ -22,11 +24,10 @@ const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206'
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
-const defaultOdds = 950000;
 const tokens = 1e6 / 2;
 
-// Getting forwarding reputations should return reputations
-test('Get forwarding reputations', async ({deepIs, end, equal}) => {
+// Getting route confidence should return confidence in a route
+test('Get route confidence', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -80,47 +81,37 @@ test('Get forwarding reputations', async ({deepIs, end, equal}) => {
   await addPeer({
     lnd,
     public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
+    socket: cluster.remote.socket
   });
 
-  const {channels} = await getChannels({lnd: cluster.remote.lnd});
+  const destination = cluster.remote.public_key;
 
-  await createInvoice({tokens, lnd: cluster.remote.lnd});
-
-  await waitForRoute({lnd, tokens, destination: cluster.remote.public_key});
+  // Allow time for graph sync to complete
+  await waitForRoute({destination, lnd, tokens});
 
   try {
-    const res = await probeForRoute({
+    await probeForRoute({
+      destination,
       lnd,
       tokens,
-      destination: cluster.remote.public_key,
       is_ignoring_past_failures: true,
     });
-  } catch (err) {
-    equal(err, null, 'Expected no error probing');
-  }
+  } catch (err) {}
 
   const {nodes} = await getForwardingReputations({lnd});
 
-  const [node] = nodes;
+  equal(nodes.length > 0, true, 'Reputation should be generated');
 
-  equal(!!node.public_key, true, 'Temp fail node added');
+  const {routes} = await getRoutes({destination, lnd, tokens});
 
-  if (!!node.channels.length) {
-    const [channel] = node.channels;
+  equal(routes.length, 1, 'There should be a route');
 
-    equal(node.confidence, defaultOdds, 'Node odds are default');
-    equal(node.last_failed_forward_at, undefined, 'No last forward set');
+  if (!!routes.length) {
+    const [{hops}] = routes;
 
-    equal(channel.id, targetToRemoteChan.id, 'Fail channel id returned');
-    equal(!!channel.last_failed_forward_at, true, 'Last fail time returned');
-    equal(channel.min_relevant_tokens, tokens, 'Min relevant tokens set');
-    equal(channel.confidence < 1000, true, 'Success odds returned');
-  } else {
-    const [peer] = node.peers;
+    const odds = (await getRouteConfidence({lnd, hops})).confidence;
 
-    equal(!!peer.last_failed_forward_at, true, 'Last fail time returned');
-    equal(!!peer.to_public_key, true, 'Got peer pub key');
+    equal((odds / 1e6) < 0.1, true, 'Due to failure, odds of success are low');
   }
 
   await cluster.kill({});

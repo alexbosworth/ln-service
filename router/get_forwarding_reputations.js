@@ -9,20 +9,21 @@ const decBase = 10;
 const {isArray} = Array;
 const msPerSec = 1e3;
 const oddsDenominator = 1e6;
+const probabilityAsConfidence = n => round(parseFloat(n) * 1e6);
 const {round} = Math;
 const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
 /** Get the set of forwarding reputations
 
-  Requires LND built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
 
   Note: In LND v0.7.1 channels reputations are returned.
   Note: In LND v0.8.0 peers reputations are returned.
-  Note: after LND v0.8.0 success_odds are not returned.
+  Note: after LND v0.8.0 confidence is not returned per peer.
 
   {
+    [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
     lnd: <Authenticated LND gRPC API Object>
-    [probability]: <Ignore Reputations Higher than N out of 1 Million Number>
     [tokens]: <Reputation Against Forwarding Tokens Number>
   }
 
@@ -30,25 +31,25 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
   {
     nodes: [{
       channels: [{
+        confidence: <Forwarding Confidence Out of 1 Million Number>
         id: <Standard Format Channel Id String>
         last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
         min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
-        success_odds: <Odds of Success Out of 1 Million Number>
         [to_public_key]: <To Public Key Hex String>
       }]
-      [general_success_odds]: <Non-Channel-Specific Odds Out of 1 Million Number>
+      [confidence]: <Non-Channel-Specific Confidence Number>
       [last_failed_forward_at]: <Last Failed Forward Time ISO-8601 Date String>
       peers: [{
+        [confidence]: <Forwarding Confidence Out of One Million Number>
         last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
         min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
-        [success_odds]: <Odds of Success Out of 1 Million Number>
         to_public_key: <To Public Key Hex String>
       }]
       public_key: <Node Identity Public Key Hex String>
     }]
   }
 */
-module.exports = ({lnd, probability, tokens}, cbk) => {
+module.exports = ({confidence, lnd, tokens}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Check arguments
@@ -153,7 +154,7 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
             }
 
             // Exit early when the odds of this channel are too good
-            if (!!probability && successOdds > probability) {
+            if (!!confidence && successOdds > confidence) {
               return cbk();
             }
 
@@ -163,10 +164,10 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
               const peer = policies.find(n => n.public_key !== publicKey);
 
               return cbk(null, {
+                confidence: successOdds,
                 id: channelId,
                 last_failed_forward_at: new Date(fail).toISOString(),
                 min_relevant_tokens: minTokens,
-                success_odds: successOdds,
                 to_public_key: (peer || {}).public_key,
               });
             });
@@ -178,7 +179,7 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
 
             return cbk(null, {
               channels: channels.filter(n => !!n),
-              general_success_odds: round(generalOdds * oddsDenominator),
+              confidence: round(generalOdds * oddsDenominator),
               last_failed_forward_at: lastFail || undefined,
               public_key: publicKey,
             });
@@ -211,13 +212,32 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
           return cbk([503, 'ExpectedSuccessProbInReputationResponse']);
         }
 
-        return cbk(null, pairs.map(n => ({
-          last_failed_forward_at: timeAsDate(n.last_fail_time),
-          min_relevant_tokens: parseInt(n.min_penalize_amt_sat, decBase),
-          public_key: n.node_from.toString('hex'),
-          success_odds: round(parseFloat(n.success_prob) * oddsDenominator),
-          to_public_key: n.node_to.toString('hex'),
-        })));
+        return cbk(null, pairs.map(pair => {
+          const confidence = probabilityAsConfidence(pair.success_prob);
+
+          // Only after LND 0.8.0 there is history for pairs
+          if (!pair.history || !Number(pair.history.timestamp)) {
+            return {
+              confidence: confidence || undefined,
+              last_failed_forward_at: timeAsDate(pair.last_fail_time),
+              min_relevant_tokens: Number(pair.min_penalize_amt_sat),
+              public_key: pair.node_from.toString('hex'),
+              to_public_key: pair.node_to.toString('hex'),
+            };
+          }
+
+          const isFail = !pair.history.last_attempt_successful;
+
+          const lastFailAt = !isFail ? null : Number(pair.history.timestamp);
+
+          return {
+            confidence: confidence || undefined,
+            last_failed_forward_at: !isFail ? null : timeAsDate(lastFailAt),
+            min_relevant_tokens: Number(pair.history.min_penalize_amt_sat),
+            public_key: pair.node_from.toString('hex'),
+            to_public_key: pair.node_to.toString('hex'),
+          };
+        }));
       }],
 
       // Final set of reputations
@@ -237,12 +257,12 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
 
           return {
             channels: node.channels || [],
-            general_success_odds: node.general_success_odds || undefined,
+            confidence: node.confidence || undefined,
             last_failed_forward_at: node.last_failed_forward_at || undefined,
             peers: peers.filter(n => n.public_key === publicKey).map(n => ({
+              confidence: n.confidence,
               last_failed_forward_at: n.last_failed_forward_at,
               min_relevant_tokens: n.min_relevant_tokens,
-              success_odds: n.success_odds,
               to_public_key: n.to_public_key,
             })),
             public_key: publicKey,
@@ -250,7 +270,7 @@ module.exports = ({lnd, probability, tokens}, cbk) => {
         });
 
         return cbk(null, {nodes: nodesWithPeers});
-      }]
+      }],
     },
     returnResult({reject, resolve, of: 'reputations'}, cbk));
   });

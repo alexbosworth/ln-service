@@ -31,6 +31,7 @@ const {getChannels} = require('./lightning');
 const {getClosedChannels} = require('./lightning');
 const {getConnectedWatchtowers} = require('./tower_client');
 const {getFeeRates} = require('./lightning');
+const {getForwardingConfidence} = require('./router');
 const {getForwardingReputations} = require('./router');
 const {getForwards} = require('./lightning');
 const {getInvoice} = require('./lightning');
@@ -39,12 +40,12 @@ const {getNetworkGraph} = require('./lightning');
 const {getNetworkInfo} = require('./lightning');
 const {getNode} = require('./lightning');
 const {getPayment} = require('./router');
-const {getPaymentOdds} = require('./router');
 const {getPayments} = require('./lightning');
 const {getPeers} = require('./lightning');
 const {getPendingChainBalance} = require('./lightning');
 const {getPendingChannels} = require('./lightning');
 const {getPublicKey} = require('./wallet');
+const {getRouteConfidence} = require('./router');
 const {getRouteThroughHops} = require('./router');
 const {getRoutes} = require('./lightning');
 const {getTowerServerInfo} = require('./tower_server');
@@ -129,6 +130,7 @@ module.exports = {
   getClosedChannels,
   getConnectedWatchtowers,
   getFeeRates,
+  getForwardingConfidence,
   getForwardingReputations,
   getForwards,
   getInvoice,
@@ -137,12 +139,12 @@ module.exports = {
   getNetworkInfo,
   getNode,
   getPayment,
-  getPaymentOdds,
   getPayments,
   getPeers,
   getPendingChainBalance,
   getPendingChannels,
   getPublicKey,
+  getRouteConfidence,
   getRouteThroughHops,
   getRoutes,
   getTowerServerInfo,

@@ -9,8 +9,9 @@ const {deleteForwardingReputations} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
+const {getForwardingConfidence} = require('./../../');
 const {getForwardingReputations} = require('./../../');
-const {getPaymentOdds} = require('./../../');
+const {getRouteConfidence} = require('./../../');
 const {getRoutes} = require('./../../');
 const {openChannel} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
@@ -26,8 +27,8 @@ const confirmationCount = 20;
 const defaultFee = 1e3;
 const tokens = 1e6 / 2;
 
-// Probing for a route should return a route
-test('Probe for route', async ({deepIs, end, equal}) => {
+// Getting forwarding confidence should return confidence score
+test('Get forwarding confidence', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -53,6 +54,23 @@ test('Probe for route', async ({deepIs, end, equal}) => {
     lnd,
     id: controlToTargetChannel.transaction_id,
   });
+
+  try {
+    await getForwardingConfidence({
+      lnd,
+      from: cluster.target.public_key,
+      mtokens: '1',
+      to: cluster.remote.public_key,
+    });
+  } catch (err) {
+    const [, code] = err;
+
+    equal(code, 'QueryProbabilityNotImplemented', 'Not implemented error');
+
+    await cluster.kill({});
+
+    return end();
+  }
 
   const [controlChannel] = (await getChannels({lnd})).channels;
 
@@ -109,9 +127,28 @@ test('Probe for route', async ({deepIs, end, equal}) => {
   if (!!routes.length) {
     const [{hops}] = routes;
 
-    const odds = (await getPaymentOdds({lnd, hops})).success_odds;
+    const [from, to] = hops;
 
-    equal((odds / 1e6) < 0.1, true, 'Due to failure, odds of success are low');
+    const successHop = await getForwardingConfidence({
+      lnd,
+      from: cluster.control.public_key,
+      mtokens: '1',
+      to: cluster.target.public_key,
+    });
+
+    equal(successHop.confidence, 950000, 'High confidence in A -> B');
+    equal(!!successHop.past_success_at, true, 'Past success date returned');
+
+    const failedHop = await getForwardingConfidence({
+      lnd,
+      from: cluster.target.public_key,
+      mtokens: from.forward_mtokens,
+      to: cluster.remote.public_key,
+    });
+
+    equal(failedHop.confidence < 1e3, true, 'Low confidence in B -> C');
+    equal(!!failedHop.past_failure_at, true, 'Past failure date returned');
+    equal(failedHop.past_failure_tokens, 500000, 'Past failed tokens');
   }
 
   await cluster.kill({});
