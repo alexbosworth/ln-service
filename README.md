@@ -1,6 +1,8 @@
 # Lightning Network Service
 
 [![npm version](https://badge.fury.io/js/ln-service.svg)](https://badge.fury.io/js/ln-service)
+[![Coverage Status](https://coveralls.io/repos/github/alexbosworth/ln-service/badge.svg?branch=master)](https://coveralls.io/github/alexbosworth/ln-service?branch=master)
+[![Build Status](https://travis-ci.org/alexbosworth/ln-service.svg?branch=master)](https://travis-ci.org/alexbosworth/ln-service)
 
 ## Overview
 
