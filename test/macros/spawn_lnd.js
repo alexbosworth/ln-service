@@ -200,6 +200,13 @@ module.exports = ({seed, tower, watchers}, cbk) => {
 
       let isReady = false;
 
+      daemon.stderr.on('data', data => {
+        daemon.kill();
+        spawnChainDaemon.daemon.kill();
+
+        return cbk([503, 'FailedToStartDaemon', `${data}`.trim().split('\n')]);
+      });
+
       daemon.stdout.on('data', data => {
         if (!isReady && /gRPC.proxy.started/.test(data+'')) {
           isReady = true;

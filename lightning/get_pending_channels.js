@@ -65,16 +65,16 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'UnexpectedPendingChannelsErr', {err}]);
           }
 
-          if (!res || !isArray(res.pending_open_channels)) {
-            return cbk([503, 'ExpectedPendingOpenChannels']);
-          }
-
           if (!res || !isArray(res.pending_closing_channels)) {
             return cbk([503, 'ExpectedPendingClosingChannels']);
           }
 
           if (!res || !isArray(res.pending_force_closing_channels)) {
             return cbk([503, 'ExpectedPendingForceCloseChannels']);
+          }
+
+          if (!res || !isArray(res.pending_open_channels)) {
+            return cbk([503, 'ExpectedPendingOpenChannels']);
           }
 
           const forceClosing = {};

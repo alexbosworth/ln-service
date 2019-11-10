@@ -194,6 +194,19 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   equal(success.route.tokens, 500001, 'Successful route tokens');
   equal(success.update, undefined, 'Success extra update info');
 
+  // Check that the probe failure timeout will apply
+  const subTimeout = subscribeToProbe({
+    lnd,
+    destination: cluster.remote_node_public_key,
+    probe_timeout_ms: 100,
+    tokens: invoice.tokens,
+  });
+
+  const [[timeoutCode, timeoutMessage]] = await once(subTimeout, 'error');
+
+  equal(timeoutCode, 503, 'Timeout code received');
+  equal(timeoutMessage, 'ProbeTimeout', 'Timeout message received');
+
   await cluster.kill({});
 
   return end();

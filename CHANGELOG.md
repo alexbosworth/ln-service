@@ -1,5 +1,21 @@
 # Versions
 
+## 47.1.0
+
+- Add support for future TLV payment id and amount fields in routes
+- Improve robustness of invoices subscription.
+
+- `getRoutes`: Add args `payment` and `total_mtokens`
+- `payViaRoutes`: Add args `payment` and `total_mtokens`
+- `subscribeToInvoices`: Add `added_after` arg to specify minimum invoice index
+- `subscribeToInvoices`: Add `confirmed_after` arg to specify min confirm index
+- `subscribeToInvoices`: add support for add and confirm indexes
+- `subscribeToInvoices`: now restarts automatically on failure
+- `subscribeToInvoices`: new arg `restart_delay_ms` to specify restart delay
+- `subscribeToPayViaRoutes`: Add args `payment` and `total_mtokens`
+- `subscribeToProbe`:  Add args `payment` and `total_mtokens`
+- `routeFromChannels`:  Add args `payment` and `total_mtokens`
+
 ## 47.0.0
 
 - `getForwardingConfidence`: Add method to get forwarding confidence of

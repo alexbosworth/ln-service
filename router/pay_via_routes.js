@@ -8,7 +8,7 @@ const {isArray} = Array;
 
 /** Make a payment via a specified route
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
 
   If no id is specified, a random id will be used
 
@@ -30,8 +30,10 @@ const {isArray} = Array;
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Millitokens To Pay String>
+      [payment]: <Payment Identifier Hex String>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
+      [total_mtokens]: <Total Millitokens String>
     }]
   }
 

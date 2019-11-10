@@ -21,6 +21,8 @@ const minFee = 0;
     }]
     initial_cltv: <Initial CLTV Delta Number>
     mtokens: <Millitokens To Send String>
+    [payment]: <Payment Identification Value Hex String>
+    [total_mtokens]: <Total Millitokens For Sharded Payments String>
   }
 
   @throws
@@ -41,8 +43,10 @@ const minFee = 0;
       timeout: <Timeout Block Height Number>
     }]
     mtokens: <Total Fee-Inclusive Millitokens String>
+    [payment]: <Payment Identification Value Hex String>
     timeout: <Timeout Block Height Number>
     tokens: <Total Fee-Inclusive Tokens Number>
+    [total_mtokens]: <Sharded Payments Total Millitokens String>
   }
 */
 module.exports = args => {
@@ -137,7 +141,9 @@ module.exports = args => {
     fee_mtokens: totalFeeMtokens.toString(),
     hops: backwardsPath.slice().reverse(),
     mtokens: totalMtokens.toString(),
+    payment: args.payment,
     timeout: timeoutHeight + args.initial_cltv,
     tokens: asTokens({mtokens: totalMtokens}).tokens,
+    total_mtokens: args.total_mtokens,
   };
 };

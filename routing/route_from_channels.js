@@ -25,6 +25,8 @@ const {isArray} = Array;
     [destination]: <Destination Public Key Hex String>
     height: <Current Block Height Number>
     mtokens: <Millitokens To Send String>
+    [payment]: <Payment Identification Value Hex String>
+    [total_mtokens]: <Sum of Shards Millitokens String>
   }
 
   @throws
@@ -46,8 +48,10 @@ const {isArray} = Array;
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
+      [payment]: <Payment Identification Value Hex String>
       timeout: <Timeout Block Height Number>
       tokens: <Total Fee-Inclusive Tokens Number>
+      [total_mtokens]: <Sum of Shards Millitokens String>
     }
   }
 */
@@ -79,6 +83,8 @@ module.exports = args => {
     hops: path.hops,
     initial_cltv: path.initial_cltv,
     mtokens: args.mtokens,
+    payment: args.payment,
+    total_mtokens: args.total_mtokens,
   });
 
   return {route};

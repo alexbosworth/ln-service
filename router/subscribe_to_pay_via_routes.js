@@ -44,8 +44,10 @@ const unknownWireError = 'unknown wire error';
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Millitokens To Pay String>
+      [payment]: <Payment Identifier Hex String>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
+      [total_mtokens]: <Total Millitokens String>
     }]
   }
 

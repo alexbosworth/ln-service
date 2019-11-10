@@ -11,7 +11,22 @@ const nodes = [{watchers: true}, {tower: true}];
 
 // Connecting to a watchtower should add a watchtower
 test(`Connect watchtower`, async ({end, equal, match}) => {
-  const [client, tower] = await all(nodes.map(n => spawnLnd(n)));
+  let client;
+  let tower;
+
+  try {
+    client = await spawnLnd({watchers: true});
+    tower = await spawnLnd({tower: true});
+  } catch (err) {
+    const [,, failDetails] = err;
+
+    const [failMessage] = failDetails;
+
+    // LND 0.7.1 does not support wtclient
+    if (failMessage === "unknown flag `wtclient.active'") {
+      return end();
+    }
+  }
 
   const info = (await getTowerServerInfo({lnd: tower.lnd})).tower;
   const {lnd} = client;

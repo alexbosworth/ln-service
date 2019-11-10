@@ -1,0 +1,240 @@
+const {test} = require('tap');
+
+const {invoiceFromRpcInvoice} = require('./../../invoices');
+
+const tests = [
+  {
+    args: '',
+    description: 'Invoice is required',
+    error: 'ExpectedInvoice',
+  },
+  {
+    args: {},
+    description: 'Invoice add index is required',
+    error: 'ExpectedInvoiceAddIndex',
+  },
+  {
+    args: {add_index: '1'},
+    description: 'Invoice amount paid msat required',
+    error: 'ExpectedInvoicePaidMsat',
+  },
+  {
+    args: {add_index: '1', amt_paid_msat: '1'},
+    description: 'Invoice amount paid sat required',
+    error: 'ExpectedInvoicePaidSat',
+  },
+  {
+    args: {add_index: '1', amt_paid_msat: '1', amt_paid_sat: '1'},
+    description: 'Invoice cltv delta required',
+    error: 'ExpectedInvoiceCltvExpiry',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+    },
+    description: 'Invoice creation date required',
+    error: 'ExpectedInvoiceCreationDate',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+    },
+    description: 'Invoice description hash required',
+    error: 'ExpectedInvoiceDescriptionHash',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: 'foo',
+    },
+    description: 'Invoice description hash buffer required',
+    error: 'ExpectedInvoiceDescriptionHash',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+    },
+    description: 'Invoice htlcs required',
+    error: 'ExpectedInvoiceHtlcs',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+      htlcs: [],
+    },
+    description: 'Payment preimage hash required',
+    error: 'ExpectedInvoiceHash',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+      htlcs: [],
+      r_hash: Buffer.alloc(0),
+    },
+    description: 'Invoice preimage required',
+    error: 'ExpectedInvoicePreimage',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+      htlcs: [],
+      r_hash: Buffer.alloc(0),
+      r_preimage: Buffer.alloc(0),
+    },
+    description: 'Invoice settlement status required',
+    error: 'ExpectedInvoiceSettled',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+      htlcs: [],
+      r_hash: Buffer.alloc(0),
+      r_preimage: Buffer.alloc(0),
+      settled: true,
+    },
+    description: 'Invoice settlement index required',
+    error: 'ExpectedIndexOfInvoiceSettlement',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+      htlcs: [],
+      r_hash: Buffer.alloc(0),
+      r_preimage: Buffer.alloc(0),
+      settled: true,
+      settle_index: '0',
+    },
+    description: 'Invoice value required',
+    error: 'ExpectedInvoiceValue',
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+      htlcs: [],
+      r_hash: Buffer.alloc(0),
+      r_preimage: Buffer.alloc(0),
+      settled: false,
+      settle_index: '0',
+      value: '0',
+    },
+    description: 'Invoice mapped',
+    expected: {
+      chain_address: null,
+      cltv_delta: 1,
+      confirmed_at: null,
+      confirmed_index: null,
+      created_at: '1970-01-01T00:00:01.000Z',
+      description: '',
+      description_hash: null,
+      expires_at: '1970-01-01T01:00:01.000Z',
+      id: '',
+      index: 1,
+      is_confirmed: false,
+      is_outgoing: false,
+      mtokens: '0',
+      payments: [],
+      received: 1,
+      received_mtokens: 1,
+      request: null,
+      secret: '',
+      tokens: 0,
+    },
+  },
+  {
+    args: {
+      add_index: '1',
+      amt_paid_msat: '1',
+      amt_paid_sat: '1',
+      cltv_expiry: '1',
+      creation_date: '1',
+      description_hash: Buffer.alloc(0),
+      htlcs: [],
+      r_hash: Buffer.alloc(0),
+      r_preimage: Buffer.alloc(0),
+      settled: true,
+      settle_date: '1',
+      settle_index: '1',
+      value: '0',
+    },
+    description: 'Invoice mapped',
+    expected: {
+      chain_address: null,
+      cltv_delta: 1,
+      confirmed_at: '1970-01-01T00:00:01.000Z',
+      confirmed_index: 1,
+      created_at: '1970-01-01T00:00:01.000Z',
+      description: '',
+      description_hash: null,
+      expires_at: '1970-01-01T01:00:01.000Z',
+      id: '',
+      index: 1,
+      is_confirmed: true,
+      is_outgoing: false,
+      mtokens: '0',
+      payments: [],
+      received: 1,
+      received_mtokens: 1,
+      request: null,
+      secret: '',
+      tokens: 0,
+    },
+  },
+];
+
+tests.forEach(({args, description, error, expected}) => {
+  return test(description, ({deepEqual, end, throws}) => {
+    if (!!error) {
+      throws(() => invoiceFromRpcInvoice(args), new Error(error), 'Got err');
+    } else {
+      deepEqual(invoiceFromRpcInvoice(args), expected, 'Got expected invoice');
+    }
+
+    return end();
+  });
+});

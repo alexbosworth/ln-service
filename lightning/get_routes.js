@@ -30,6 +30,8 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
   `confidence` is not supported in LND 0.7.1
   `max_timeout_height` is not supported in LND 0.7.1
 
+  Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.0, lower
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Final Send Destination Hex Encoded Public Key String>
@@ -45,6 +47,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
     [max_fee]: <Maximum Fee Tokens Number>
     [max_timeout_height]: <Max CLTV Timeout Number>
     [outgoing_channel]: <Outgoing Channel Id String>
+    [payment]: <Payment Identifier Hex Strimng>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
       [channel]: <Standard Format Channel Id String>
@@ -55,6 +58,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
     }]]
     [start]: <Starting Node Public Key Hex String>
     [tokens]: <Tokens to Send Number>
+    [total_mtokens]: <Total Millitokens of Shards String>
   }
 
   @returns via cbk or Promise
@@ -74,8 +78,10 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
+      [payment]: <Payment Identifier Hex String>
       timeout: <Route Timeout Height Number>
       tokens: <Total Fee-Inclusive Tokens Number>
+      [total_mtokens]: <Total Millitokens String>
     }]
   }
 */
@@ -322,6 +328,8 @@ module.exports = (args, cbk) => {
                     cltv_delta: (args.cltv_delta || defaultFinalCltvDelta),
                     height: res.current_block_height,
                     mtokens: tokensAsMtokens(args.tokens || defaultTokens),
+                    payment: args.payment,
+                    total_mtokens: args.total_mtokens,
                   });
 
                   return cbk(null, {
@@ -330,8 +338,10 @@ module.exports = (args, cbk) => {
                     fee_mtokens: route.fee_mtokens,
                     hops: route.hops,
                     mtokens: route.mtokens,
+                    payment: route.payment,
                     timeout: route.timeout,
                     tokens: route.tokens,
+                    total_mtokens: route.total_mtokens,
                   });
                 } catch (err) {
                   return cbk([500, 'UnexpectedRouteFromChannelsErr', {err}]);

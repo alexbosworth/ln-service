@@ -85,13 +85,14 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   let gotUnconfirmedInvoice = false;
   let invoice;
   const mtokens = `${tokens + overPay}${mtok}`;
-  const sub = subscribeToInvoices({lnd});
+  const sub = subscribeToInvoices({lnd, restart_delay_ms: 100});
 
   sub.on('invoice_updated', async invoice => {
     equal(!!invoice.created_at, true, 'Invoice created at');
     equal(invoice.description, description, 'Invoice description');
     equal(!!invoice.expires_at, true, 'Invoice has expiration date');
     equal(invoice.id, invoiceId, 'Invoice has id');
+    equal(invoice.index, [invoice].length, 'Invoice index is returned');
     equal(invoice.is_outgoing, false, 'Invoice is incoming');
     equal(invoice.secret, secret, 'Invoice secret');
     equal(invoice.tokens, tokens, 'Invoice tokens');
@@ -122,6 +123,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
     if (invoice.is_confirmed) {
       equal(!!invoice.confirmed_at, true, 'Invoice confirmed at date')
+      equal(invoice.confirmed_index, 1, 'Confirmation index is returned');
       equal(invoice.received, tokens + overPay, 'Invoice tokens received');
       equal(invoice.received_mtokens, `${tokens + overPay}${mtok}`, 'Mtokens');
 
@@ -165,6 +167,8 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
   })];
 
   const selfPay = await pay({lnd, path: {id, routes}});
+
+  sub.removeAllListeners();
 
   await cluster.kill({});
 

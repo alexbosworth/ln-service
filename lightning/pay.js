@@ -188,7 +188,6 @@ module.exports = (args, cbk) => {
               return args.lnd.default.sendToRouteSync({
                 route,
                 payment_hash: Buffer.from(args.path.id, 'hex'),
-                payment_hash_string: args.path.id,
               },
               (err, res) => {
                 // Exit early when this result is garbage due to arg failure
@@ -213,7 +212,6 @@ module.exports = (args, cbk) => {
 
               return args.lnd.default.sendToRouteSync({
                 payment_hash: Buffer.from(args.path.id, 'hex'),
-                payment_hash_string: args.path.id,
                 routes: [route],
               },
               (err, res) => {

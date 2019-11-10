@@ -95,7 +95,11 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     });
 
     delete res.route.confidence;
+    delete res.route.payment;
+    delete res.route.total_mtokens;
     delete route.confidence;
+    delete route.payment;
+    delete route.total_mtokens;
 
     deepIs(res.route, route, 'Constructed route to destination');
   } catch (err) {

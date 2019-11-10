@@ -895,9 +895,12 @@ tests.forEach(({args, description, error, expected}) => {
     if (!!error) {
       throws(() => routeFromChannels(args), new Error(error), 'Got error');
     } else {
-      const route = routeFromChannels(args);
+      const {route} = routeFromChannels(args);
 
-      deepIs(route, expected, 'Route is constructed as expected');
+      delete route.payment;
+      delete route.total_mtokens;
+
+      deepIs(route, expected.route, 'Route is constructed as expected');
     }
 
     return end();

@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@datastructures-js/priority-queue": "1.0.2",
-    "@grpc/proto-loader": "0.5.2",
+    "@grpc/proto-loader": "0.5.3",
     "async": "3.1.0",
     "asyncjs-util": "1.1.2",
     "basicauth-middleware": "3.1.0",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "portfinder": "1.0.25",
     "rimraf": "3.0.0",
-    "tap": "14.9.1",
+    "tap": "14.9.2",
     "uuid": "3.3.3",
     "varuint-bitcoin": "1.1.2"
   },
@@ -54,7 +54,7 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
-    "all-integration-tests": "tap -j 1 -t 120 test/autopilot/*.js test/autopilotrpc-integration/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/chainrpc-integration/*.js test/graph/*.js test/grpc/*.js test/grpc-integration/*.js test/integration/*.js test/invoices/*.js test/invoicesrpc-integration/*.js test/macaroons/*.js test/router/*.js test/routerrpc-integration/*.js test/routing/*.js test/signerrpc-integration/*.js test/tower_serverrpc-integration/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js test/walletrpc-integration/*.js",
+    "all-integration-tests": "tap -j 1 -t 120 test/autopilot/*.js test/autopilotrpc-integration/*.js test/backups/*.js test/chain/*.js test/bolt02/*.js test/bolt11/*.js test/chainrpc-integration/*.js test/graph/*.js test/grpc/*.js test/grpc-integration/*.js test/integration/*.js test/invoices/*.js test/invoicesrpc-integration/*.js test/macaroons/*.js test/router/*.js test/routerrpc-integration/*.js test/routing/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js test/walletrpc-integration/*.js",
     "autopilot-integration-tests": "tap --no-coverage -t 90 test/autopilotrpc-integration/*.js",
     "chain-integration-tests": "tap --no-coverage -t 90 test/chainrpc-integration/*.js",
     "integration-tests": "tap --no-coverage -t 90 test/grpc-integration/*.js test/integration/*.js",
@@ -67,5 +67,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.0.0"
+  "version": "47.1.0"
 }

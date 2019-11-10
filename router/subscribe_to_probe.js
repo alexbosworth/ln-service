@@ -11,6 +11,7 @@ const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
 
 const defaultPathTimeoutMs = 1000 * 60;
+const defaultProbeTimeoutMs = 1000 * 60 * 60 * 24;
 const {isArray} = Array;
 
 /** Subscribe to a probe attempt
@@ -33,9 +34,10 @@ const {isArray} = Array;
     [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
-    [max_timeout_height]: <Maximum CLTV Timeout Height>
+    [max_timeout_height]: <Maximum CLTV Timeout Height Number>
     [outgoing_channel]: <Outgoing Channel Id String>
     [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
+    [probe_timeout_ms]: <Fail Probe After Milliseconds Number>
     [routes]: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
       [channel_capacity]: <Channel Capacity Tokens Number>
@@ -157,6 +159,7 @@ module.exports = args => {
   const emitter = new EventEmitter();
   const ignore = [];
   let isFinal = false;
+  let isTimedOut = false;
 
   (args.ignore || []).forEach(n => {
     return ignore.push({
@@ -165,6 +168,18 @@ module.exports = args => {
       to_public_key: n.to_public_key,
     });
   });
+
+  const probeTimeout = setTimeout(() => {
+    isFinal = true;
+    isTimedOut = true;
+
+    emitter.emit('error', [503, 'ProbeTimeout']);
+
+    emitter.emit('end');
+
+    return;
+  },
+  args.probe_timeout_ms || defaultProbeTimeoutMs);
 
   asyncWhilst(
     cbk => cbk(null, !isFinal),
@@ -218,6 +233,10 @@ module.exports = args => {
           sub.on('paying', ({route}) => {
             currentRoute = route;
 
+            if (!!isTimedOut) {
+              return;
+            }
+
             return emitter.emit('probing', {route})
           });
 
@@ -270,6 +289,11 @@ module.exports = args => {
               });
             });
 
+            // Exit early when the probe timed out
+            if (!!isTimedOut) {
+              return;
+            }
+
             // Exit early when the probe found a completed route
             if (!!isFinal) {
               return emitter.emit('probe_success', {route: failure.route});
@@ -296,7 +320,15 @@ module.exports = args => {
             return next();
           });
 
-          sub.on('error', err => emitter.emit('error', err));
+          sub.on('error', err => {
+            if (!!isTimedOut) {
+              return;
+            }
+
+            emitter.emit('error', err);
+
+            return;
+          });
 
           return;
         }],
@@ -327,6 +359,13 @@ module.exports = args => {
       });
     },
     err => {
+      // Exit early when the probe timed out
+      if (!!isTimedOut) {
+        return;
+      }
+
+      clearTimeout(probeTimeout);
+
       if (!!err) {
         emitter.emit('error', err);
       }

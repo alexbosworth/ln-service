@@ -343,6 +343,9 @@ tests.forEach(({args, description, error, expected}) => {
     } else {
       const route = routeFromHops(args);
 
+      delete route.payment;
+      delete route.total_mtokens;
+
       deepIs(route, expected, 'Route is constructed as expected');
     }
 

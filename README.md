@@ -2529,6 +2529,8 @@ Get a route from a sequence of channels
       destination: <Destination Public Key Hex String>
       height: <Current Block Height Number>
       mtokens: <Millitokens To Send String>
+      [payment]: <Payment Identification Value Hex String>
+      [total_mtokens]: <Sum of Shards Millitokens String>
     }
 
     @throws
@@ -2550,8 +2552,10 @@ Get a route from a sequence of channels
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Fee-Inclusive Millitokens String>
+        [payment]: <Payment Identification Value Hex String>
         timeout: <Timeout Block Height Number>
         tokens: <Total Fee-Inclusive Tokens Number>
+        [total_mtokens]: <Sum of Shards Millitokens String>
       }
     }
 
@@ -3562,6 +3566,8 @@ const [success] = await once(sub, 'success');
 
 ### subscribeToProbe
 
+Subscribe to a probe attempt
+
 Requires LND built with `routerrpc` build tag
 
 `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
@@ -3580,7 +3586,10 @@ Requires LND built with `routerrpc` build tag
       [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
-      [max_timeout_height]: <Maximum CLTV Timeout Height>
+      [max_timeout_height]: <Maximum CLTV Timeout Height Number>
+      [outgoing_channel]: <Outgoing Channel Id String>
+      [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
+      [probe_timeout_ms]: <Fail Probe After Milliseconds Number>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
         [channel_capacity]: <Channel Capacity Tokens Number>

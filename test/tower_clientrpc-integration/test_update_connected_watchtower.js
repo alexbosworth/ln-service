@@ -14,7 +14,22 @@ const nodes = [{watchers: true}, {tower: true}];
 
 // Updating a connected watchtower should update the watchtower
 test(`Update connected watchtower`, async ({end, equal, match}) => {
-  const [client, tower] = await all(nodes.map(n => spawnLnd(n)));
+  let client;
+  let tower;
+
+  try {
+    client = await spawnLnd({watchers: true});
+    tower = await spawnLnd({tower: true});
+  } catch (err) {
+    const [,, failDetails] = err;
+
+    const [failMessage] = failDetails;
+
+    // LND 0.7.1 does not support wtclient
+    if (failMessage === "unknown flag `wtclient.active'") {
+      return end();
+    }
+  }
 
   const info = (await getTowerServerInfo({lnd: tower.lnd})).tower;
   const {lnd} = client;

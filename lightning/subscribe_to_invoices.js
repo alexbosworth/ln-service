@@ -1,16 +1,25 @@
 const EventEmitter = require('events');
 
-const {htlcAsPayment} = require('./../invoices');
+const asyncDoUntil = require('async/doUntil');
 
+const {htlcAsPayment} = require('./../invoices');
+const {invoiceFromRpcInvoice} = require('./../invoices');
+const {isLnd} = require('./../grpc');
+
+const connectionFailureMessage = 'failed to connect to all addresses';
 const decBase = 10;
 const msPerSec = 1e3;
+const restartSubscriptionMs = 1000 * 30;
 
 /** Subscribe to invoices
 
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
+    [added_after]: <Invoice Added After Index Number>
+    [confirmed_after]: <Invoice Confirmed After Index Number>
     lnd: <Authenticated LND gRPC API Object>
+    [restart_delay_ms]: <Restart Subscription Delay Milliseconds Number>
   }
 
   @throws
@@ -24,11 +33,13 @@ const msPerSec = 1e3;
     [chain_address]: <Fallback Chain Address String>
     cltv_delta: <Final CLTV Delta Number>
     [confirmed_at]: <Confirmed At ISO 8601 Date String>
+    [confirmed_index]: <Confirmed Index Number>
     created_at: <Created At ISO 8601 Date String>
     description: <Description String>
     description_hash: <Description Hash Hex String>
     expires_at: <Expires At ISO 8601 Date String>
     id: <Invoice Payment Hash Hex String>
+    index: <Invoice Index Number>
     is_confirmed: <Invoice is Confirmed Bool>
     is_outgoing: <Invoice is Outgoing Bool>
     payments: [{
@@ -50,96 +61,93 @@ const msPerSec = 1e3;
     tokens: <Invoiced Tokens Number>
   }
 */
-module.exports = ({lnd}) => {
-  if (!lnd || !lnd.default || !lnd.default.subscribeInvoices) {
+module.exports = args => {
+  if (!isLnd({lnd: args.lnd, method: 'subscribeInvoices', type: 'default'})) {
     throw new Error('ExpectedAuthenticatedLndToSubscribeInvoices');
   }
 
+  let addIndex = args.added_after;
+  let confirmedAfter = args.confirmed_after;
   const eventEmitter = new EventEmitter();
-  const subscription = lnd.default.subscribeInvoices({});
 
-  subscription.on('data', invoice => {
-    if (!invoice) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoice'));
-    }
+  asyncDoUntil(cbk => {
+    // Safeguard the callback from being fired multiple times
+    let isFinished = false;
 
-    if (!invoice.amt_paid_msat) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoicePaidMsat'));
-    }
-
-    if (!invoice.amt_paid_sat) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoicePaidSat'));
-    }
-
-    if (!invoice.creation_date) {
-      return eventEmitter.emit('error', new Error('ExpectedCreationDate'));
-    }
-
-    if (!invoice.description_hash) {
-      return eventEmitter.emit('error', new Error('ExpectedDescriptionHash'));
-    }
-
-    const descriptionHash = invoice.description_hash;
-
-    if (!!descriptionHash.length && !Buffer.isBuffer(descriptionHash)) {
-      return eventEmitter.emit('error', new Error('ExpectedDescriptionHash'));
-    }
-
-    try {
-      invoice.htlcs.forEach(htlc => htlcAsPayment(htlc));
-    } catch (err) {
-      return eventEmitter.emit('error', err);
-    }
-
-    if (invoice.settled !== true && invoice.settled !== false) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoiceSettled'));
-    }
-
-    if (!Buffer.isBuffer(invoice.r_hash)) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoiceHash'));
-    }
-
-    if (!Buffer.isBuffer(invoice.r_preimage)) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoicePreimage'));
-    }
-
-    if (!!invoice.receipt.length && !Buffer.isBuffer(invoice.receipt)) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoiceReceipt'));
-    }
-
-    if (!invoice.value) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoiceValue'));
-    }
-
-    const confirmedAt = parseInt(invoice.settle_date, decBase) * msPerSec;
-    const createdAt = parseInt(invoice.creation_date, decBase);
-
-    const confirmed = new Date(confirmedAt).toISOString();
-    const expiresAt = createdAt + parseInt(invoice.expiry);
-
-    return eventEmitter.emit('invoice_updated', {
-      chain_address: invoice.fallback_addr || undefined,
-      cltv_delta: parseInt(invoice.cltv_expiry, decBase),
-      confirmed_at: !invoice.settled ? undefined : confirmed,
-      created_at: new Date(createdAt * msPerSec).toISOString(),
-      description: invoice.memo || '',
-      description_hash: descriptionHash.toString('hex') || undefined,
-      expires_at: new Date(expiresAt * msPerSec).toISOString(),
-      id: invoice.r_hash.toString('hex'),
-      is_confirmed: invoice.settled,
-      is_outgoing: false,
-      payments: invoice.htlcs.map(htlcAsPayment),
-      received: parseInt(invoice.amt_paid_sat, decBase),
-      received_mtokens: invoice.amt_paid_msat,
-      request: invoice.payment_request,
-      secret: invoice.r_preimage.toString('hex'),
-      tokens: parseInt(invoice.value, decBase),
+    // Start the subscription to invoices
+    const subscription = args.lnd.default.subscribeInvoices({
+      add_index: !!addIndex ? addIndex.toString() : undefined,
+      settle_index: !!confirmedAfter ? confirmedAfter.toString() : undefined,
     });
-  });
 
-  subscription.on('end', () => eventEmitter.emit('end'));
-  subscription.on('error', err => eventEmitter.emit('error', err));
-  subscription.on('status', status => eventEmitter.emit('status', status));
+    // Subscription finished callback
+    const finished = err => {
+      if (!!eventEmitter.listenerCount('error')) {
+        eventEmitter.emit('error', err);
+      }
+
+      // Exit early when this subscription is already over
+      if (!!isFinished) {
+        return;
+      }
+
+      isFinished = true;
+
+      return setTimeout(() => {
+        return cbk(null, {
+          listener_count: eventEmitter.listenerCount('invoice_updated'),
+        });
+      },
+      args.restart_delay_ms || restartSubscriptionMs);
+    };
+
+    // Relay invoice updates to the emitter
+    subscription.on('data', invoice => {
+      try {
+        const updated = invoiceFromRpcInvoice(invoice);
+
+        eventEmitter.emit('invoice_updated', updated);
+
+        // Update cursors for possible restart of subscription
+        addIndex = updated.index;
+        confirmedAfter = updated.confirmed_index;
+
+        return;
+      } catch (err) {
+        return finished([503, 'UnexpectedErrorParsingInvoice', {err}]);
+      }
+    });
+
+    // Subscription finished will trigger a re-subscribe
+    subscription.on('end', () => finished());
+
+    // Subscription errors fail the subscription, trigger subscription restart
+    subscription.on('error', err => {
+      if (err.details === connectionFailureMessage) {
+        return finished([503, 'FailedToConnectToLndToSubscribeToInvoices']);
+      }
+
+      return finished([503, 'UnexpectedInvoiceSubscriptionError', {err}]);
+    });
+
+    // Relay status messages
+    subscription.on('status', n => eventEmitter.emit('status', n));
+
+    return;
+  },
+  (res, cbk) => {
+    // Terminate the subscription when there are no listeners
+    return cbk(null, res.listener_count === 0);
+  },
+  err => {
+    if (!!err) {
+      eventEmitter.emit('error', err);
+    }
+
+    eventEmitter.emit('end');
+
+    return;
+  });
 
   return eventEmitter;
 };

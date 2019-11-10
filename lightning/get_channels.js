@@ -91,10 +91,6 @@ module.exports = (args, cbk) => {
       // Map channel response to channels list
       mappedChannels: ['getChannels', ({getChannels}, cbk) => {
         return asyncMap(getChannels, (channel, cbk) => {
-          if (!isArray(channel.pending_htlcs)) {
-            return cbk([503, 'ExpectedPendingHtlcs']);
-          }
-
           if (channel.active === undefined) {
             return cbk([503, 'ExpectedChannelActiveState']);
           }

@@ -861,7 +861,7 @@ message SendRequest {
     bytes dest = 1;
 
     /// The hex-encoded identity pubkey of the payment recipient
-    string dest_string = 2;
+    reserved 2;
 
     /// Number of satoshis to send.
     int64 amt = 3;
@@ -870,7 +870,7 @@ message SendRequest {
     bytes payment_hash = 4;
 
     /// The hex-encoded hash to use within the payment's HTLC
-    string payment_hash_string = 5;
+    reserved 5;
 
     /**
     A bare-bones invoice for a payment within the Lightning Network.  With the
@@ -918,7 +918,7 @@ message SendToRouteRequest {
     bytes payment_hash = 1;
 
     /// An optional hex-encoded payment hash to be used for the HTLC.
-    string payment_hash_string = 2;
+    reserved 2;
 
     reserved 3;
 
@@ -1499,8 +1499,7 @@ message OpenChannelRequest {
     /// The pubkey of the node to open a channel with
     bytes node_pubkey = 2 [json_name = "node_pubkey"];
 
-    /// The hex encoded pubkey of the node to open a channel with
-    string node_pubkey_string = 3 [json_name = "node_pubkey_string"];
+    reserved 3;
 
     /// The number of satoshis the wallet should commit to the channel
     int64 local_funding_amount = 4 [json_name = "local_funding_amount"];
@@ -1816,6 +1815,38 @@ message Hop {
     can be executed without relying on a copy of the channel graph.
     */
     string pub_key = 8 [json_name = "pub_key"];
+
+    /**
+    If set to true, then this hop will be encoded using the new variable length
+    TLV format.
+    */
+    bool tlv_payload = 9 [json_name = "tlv_payload"];
+
+    /**
+    An optional TLV record tha singals the use of an MPP payment. If present,
+    the receiver will enforce that that the same mpp_record is included in the
+    final hop payload of all non-zero payments in the HTLC set. If empty, a
+    regular single-shot payment is or was attempted.
+    */
+    MPPRecord mpp_record = 10 [json_name = "mpp_record"];
+}
+
+message MPPRecord {
+    /**
+    A unique, random identifier used to authenticate the sender as the intended
+    payer of a multi-path payment. The payment_addr must be the same for all
+    subpayments, and match the payment_addr provided in the receiver's invoice.
+    The same payment_addr must be used on all subpayments.
+    */
+    bytes payment_addr = 11 [json_name = "payment_addr"];
+
+    /**
+    The total amount in milli-satoshis being sent as part of a larger multi-path
+    payment. The caller is responsible for ensuring subpayments to the same node
+    and payment_hash sum exactly to total_amt_msat. The same
+    total_amt_msat must be used on all subpayments.
+    */
+    int64 total_amt_msat = 10 [json_name = "total_amt_msat"];
 }
 
 /**

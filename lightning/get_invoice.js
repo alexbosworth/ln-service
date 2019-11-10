@@ -30,7 +30,7 @@ const mtokensPerToken = BigInt('1000');
     description: <Description String>
     [description_hash]: <Description Hash Hex String>
     expires_at: <ISO 8601 Date String>
-    id: <Payment Hash String>
+    id: <Payment Hash Hex String>
     [is_canceled]: <Invoice is Canceled Bool>
     is_confirmed: <Invoice is Confirmed Bool>
     [is_held]: <HTLC is Held Bool>
@@ -73,7 +73,10 @@ module.exports = ({id, lnd}, cbk) => {
 
       // Get the invoice
       getInvoice: ['validate', ({}, cbk) => {
-        return lnd.default.lookupInvoice({r_hash_str: id}, (err, response) => {
+        return lnd.default.lookupInvoice({
+          r_hash: Buffer.from(id, 'hex'),
+        },
+        (err, response) => {
           if (!!err) {
             return cbk([503, 'UnexpectedLookupInvoiceErr', {err}]);
           }
