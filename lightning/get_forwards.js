@@ -165,7 +165,7 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
 
           const fee = new BN(forward.fee, decBase);
           const feeMsat = forward.fee_msat === '0' ? 0 : forward.fee_msat;
-          const hasOutMsat = forward.amt_out_msat === '0';
+          const hasOutMsat = forward.amt_out_msat !== '0';
 
           return cbk(null, {
             created_at: new Date(creationEpochDate * msPerSec).toISOString(),

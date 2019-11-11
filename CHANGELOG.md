@@ -1,5 +1,9 @@
 # Versions
 
+## 47.1.1
+
+- `getForwards`: Fix issue where new forward mtokens field was not included
+
 ## 47.1.0
 
 - Add support for future TLV payment id and amount fields in routes
