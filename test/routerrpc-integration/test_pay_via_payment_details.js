@@ -17,8 +17,10 @@ const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
 const {routeFromHops} = require('./../../routing');
+const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
+const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
@@ -29,51 +31,23 @@ const tokens = 100;
 const txIdHexLength = 32 * 2;
 
 // Paying an invoice should settle the invoice
-test(`Pay`, async ({deepIs, end, equal}) => {
+test(`Pay`, async ({deepIs, end, equal, rejects}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
+  const channel = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: cluster.target.socket,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({lnd, id: controlToTargetChannel.transaction_id});
-
-  const [channel] = (await getChannels({lnd})).channels;
-
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  const remoteChan = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    to: cluster.remote,
   });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
   await addPeer({
     lnd,
@@ -81,30 +55,8 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     socket: cluster.remote.socket,
   });
 
-  await delay(3000);
-
   const height = (await getWalletInfo({lnd})).current_block_height;
   const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
-
-  const paid = await payViaPaymentDetails({
-    lnd,
-    destination: cluster.remote.public_key,
-    id: invoice.id,
-    tokens: invoice.tokens,
-  });
-
-  equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
-  equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
-  equal(paid.mtokens, '101000', 'Paid mtokens');
-  equal(paid.secret, invoice.secret, 'Paid for invoice secret');
-
-  paid.hops.forEach(n => {
-    equal(n.timeout === height + 40 || n.timeout === height + 43, true);
-
-    delete n.timeout;
-
-    return;
-  });
 
   const expectedHops = [
     {
@@ -121,7 +73,96 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     },
   ];
 
-  deepIs(paid.hops, expectedHops, 'Hops are returned');
+  await waitForRoute({
+    lnd,
+    destination: cluster.remote.public_key,
+    tokens: invoice.tokens,
+  });
+
+  try {
+    const paid = await payViaPaymentDetails({
+      lnd,
+      destination: cluster.remote.public_key,
+      tokens: invoice.tokens,
+    });
+  } catch (err) {
+    deepIs(err, [
+      503,
+      'PaymentRejectedByDestination',
+      {
+        route: {
+          fee: 1,
+          fee_mtokens: '1000',
+          hops: [
+            {
+              channel: channel.id,
+              channel_capacity: 1000000,
+              fee: 1,
+              fee_mtokens: '1000',
+              forward: 100,
+              forward_mtokens: '100000',
+              public_key: cluster.target.public_key,
+              timeout: height + 43,
+            },
+            {
+              channel: remoteChan.id,
+              channel_capacity: 1000000,
+              fee: 0,
+              fee_mtokens: '0',
+              forward: 100,
+              forward_mtokens: '100000',
+              public_key: cluster.remote.public_key,
+              timeout: height + 43,
+            },
+          ],
+          mtokens: '101000',
+          timeout: height + 40 + 43,
+          tokens: invoice.tokens + 1,
+        },
+      },
+    ]);
+  }
+
+  try {
+    const tooSoonCltv = await payViaPaymentDetails({
+      lnd,
+      destination: cluster.remote.public_key,
+      id: invoice.id,
+      max_timeout_height: height + 43,
+      tokens: invoice.tokens,
+    });
+
+    equal(tooSoonCltv, null, 'Should not be able to pay a too soon CLTV');
+  } catch (err) {
+    deepIs(err, [503, 'FailedToFindPayableRouteToDestination'], 'Max cltv');
+  }
+
+  try {
+    const paid = await payViaPaymentDetails({
+      lnd,
+      destination: cluster.remote.public_key,
+      id: invoice.id,
+      max_timeout_height: height + 90,
+      tokens: invoice.tokens,
+    });
+
+    equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
+    equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
+    equal(paid.mtokens, '101000', 'Paid mtokens');
+    equal(paid.secret, invoice.secret, 'Paid for invoice secret');
+
+    paid.hops.forEach(n => {
+      equal(n.timeout === height + 40 || n.timeout === height + 43, true);
+
+      delete n.timeout;
+
+      return;
+    });
+
+    deepIs(paid.hops, expectedHops, 'Hops are returned');
+  } catch (err) {
+    equal(err, null, 'No error is thrown when payment is attempted');
+  }
 
   await cluster.kill({});
 

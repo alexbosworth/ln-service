@@ -6,6 +6,7 @@ const {broadcastResponse} = require('./../push');
 const createChainAddress = require('./create_chain_address');
 const getInvoice = require('./get_invoice');
 
+const invoiceExistsError = 'invoice with payment hash already exists';
 const {isArray} = Array;
 const msPerSec = 1e3;
 const {parse} = Date;
@@ -105,6 +106,10 @@ module.exports = (args, cbk) => {
           value: args.tokens || undefined,
         },
         (err, response) => {
+          if (!!err && err.details === invoiceExistsError) {
+            return cbk([409, 'InvoiceWithGivenHashAlreadyExists']);
+          }
+
           if (!!err) {
             return cbk([503, 'AddInvoiceError', err]);
           }

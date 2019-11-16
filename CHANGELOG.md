@@ -1,5 +1,16 @@
 # Versions
 
+## 47.2.0
+
+- `getPayment`: add `tokens` to indicate amount paid
+- `payViaPaymentDetails`: add `max_fee_mtokens`, `mtokens` to specify mtokens
+- `payViaPaymentRequest`: add `max_fee_mtokens`, `mtokens` to specify mtokens
+- `probeForRoute`: add `max_fee_mtokens`, `mtokens` to specify mtokens
+- `subscribeToPastPayment`:  add `tokens` to indicate amount paid
+- `subscribeToPayViaDetails`:  add `max_fee_mtokens`, `mtokens` for  mtokens
+- `subscribeToPayViaRequest`:  add `max_fee_mtokens`, `mtokens` for  mtokens
+- `subscribeToProbe`:  add `max_fee_mtokens`, `mtokens` to specify mtokens
+
 ## 47.1.1
 
 - `getForwards`: Fix issue where new forward mtokens field was not included

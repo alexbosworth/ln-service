@@ -1,13 +1,17 @@
 const subscribeToPay = require('./subscribe_to_pay');
 
-/** Subscribe to the flight of a payment request
+/** Initiate and subscribe to the outcome of a payment request
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
+
+  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
   {
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
-    [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+    [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+    [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+    [mtokens]: <Millitokens to Pay String>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     request: <BOLT 11 Payment Request String>
@@ -32,9 +36,10 @@ const subscribeToPay = require('./subscribe_to_pay');
       timeout: <Timeout Block Height Number>
     }]
     id: <Payment Hash Hex String>
-    mtokens: <Total Millitokens To Pay String>
+    mtokens: <Total Millitokens Paid String>
     secret: <Payment Preimage Hex String>
     timeout: <Expiration Block Height Number>
+    tokens: <Total Tokens Paid Number>
   }
 
   @event 'failed'
@@ -59,7 +64,9 @@ module.exports = args => {
   return subscribeToPay({
     lnd: args.lnd,
     max_fee: args.max_fee,
+    max_fee_mtokens: args.max_fee_mtokens,
     max_timeout_height: args.max_timeout_height,
+    mtokens: args.mtokens,
     outgoing_channel: args.outgoing_channel,
     pathfinding_timeout: args.pathfinding_timeout,
     request: args.request,

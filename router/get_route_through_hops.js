@@ -5,7 +5,9 @@ const {returnResult} = require('asyncjs-util');
 const {routesFromQueryRoutes} = require('./../routing');
 
 const defaultFinalCltvDelta = 40;
+const defaultMtokens = '1000000';
 const {isArray} = Array;
+const tokAsMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
 const unknownServiceMessage = 'unknown service routerrpc.Router';
 
 /** Get an outbound route that goes through specific hops
@@ -20,6 +22,7 @@ const unknownServiceMessage = 'unknown service routerrpc.Router';
     [mtokens]: <Millitokens to Send String>
     [outgoing_channel]: <Outgoing Channel Id String>
     public_keys: [<Public Key Hex String>]
+    [tokens]: <Tokens to Send Number>
   }
 
   @returns via cbk or Promise
@@ -52,8 +55,8 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedLndWithRouterToGetRouteThroughHops']);
         }
 
-        if (!!args.mtokens && args.mtokens === Number().toString()) {
-          return cbk([400, 'ExpectedNonZeroMillitokensToGetRoute']);
+        if (!!args.mtokens && !!args.tokens) {
+          return cbk([400, 'ExpectedEitherMtokensOrTokensNotBoth']);
         }
 
         if (!isArray(args.public_keys)) {
@@ -73,8 +76,10 @@ module.exports = (args, cbk) => {
 
         const outgoingId = !channel ? undefined : chanNumber({channel}).number;
 
+        const mtokenTokens = !args.tokens ? undefined : tokAsMtok(args.tokens);
+
         return args.lnd.router.buildRoute({
-          amt_msat: !args.mtokens ? Number().toString() : args.mtokens,
+          amt_msat: mtokenTokens || args.mtokens || defaultMtokens,
           final_cltv_delta: args.cltv_delta || defaultFinalCltvDelta,
           hop_pubkeys: args.public_keys.map(n => Buffer.from(n, 'hex')),
           outgoing_chan_id: outgoingId,
@@ -108,6 +113,6 @@ module.exports = (args, cbk) => {
         });
       }],
     },
-    returnResult({reject, resolve, of: 'getRoute'}));
+    returnResult({reject, resolve, of: 'getRoute'}, cbk));
   });
 };

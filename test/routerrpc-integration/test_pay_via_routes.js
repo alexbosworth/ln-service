@@ -19,6 +19,7 @@ const {routeFromChannels} = require('./../../routing');
 const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
+const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
@@ -38,21 +39,19 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
   const remoteLnd = cluster.remote.lnd;
   const targetPubKey = cluster.target_node_public_key;
 
-  const controlToTargetChan = await setupChannel({
+  const channel = await setupChannel({
     lnd,
     generate: cluster.generate,
     to: cluster.target,
   });
-
-  const [channel] = (await getChannels({lnd})).channels;
 
   const targetToRemoteChannel = await openChannel({
     chain_fee_tokens_per_vbyte: defaultFee,
     is_private: true,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    partner_public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await waitForPendingChannel({
@@ -71,8 +70,8 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await cluster.generate({count: confirmationCount, node: cluster.target});
@@ -87,6 +86,13 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
   const {request} = invoice;
 
   const decodedRequest = await decodePaymentRequest({lnd, request});
+
+  await waitForRoute({
+    lnd,
+    destination: decodedRequest.destination,
+    routes: decodedRequest.routes,
+    tokens: invoice.tokens,
+  });
 
   const {routes} = await getRoutes({
     lnd,
@@ -121,7 +127,7 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
   toRemote.policies.forEach(n => n.base_fee_mtokens = '0');
 
   const insufficientFeeRoute = routeFromChannels({
-    channels: [await getChannel({lnd, id: controlToTargetChan.id}), toRemote],
+    channels: [await getChannel({lnd, id: channel.id}), toRemote],
     cltv_delta: 40,
     destination: decodedRequest.destination,
     height: (await getWalletInfo({lnd})).current_block_height,

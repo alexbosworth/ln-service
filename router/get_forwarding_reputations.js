@@ -19,7 +19,7 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
   Note: In LND v0.7.1 channels reputations are returned.
   Note: In LND v0.8.0 peers reputations are returned.
-  Note: after LND v0.8.0 confidence is not returned per peer.
+  Note: after LND v0.8.1 confidence is not returned per peer.
 
   {
     [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
@@ -215,7 +215,7 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
         return cbk(null, pairs.map(pair => {
           const confidence = probabilityAsConfidence(pair.success_prob);
 
-          // Only after LND 0.8.0 there is history for pairs
+          // Only after LND 0.8.1 there is history for pairs
           if (!pair.history || !Number(pair.history.timestamp)) {
             return {
               confidence: confidence || undefined,

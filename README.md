@@ -13,6 +13,7 @@ Supported LND versions:
 
 - v0.7.1-beta
 - v0.8.0-beta
+- v0.8.1-beta
 
 ## Installing LND
 
@@ -675,7 +676,7 @@ const details = await decodePaymentRequest({lnd, request});
 
 Delete all forwarding reputations
 
-Requires LND built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
 
     {
       lnd: <Authenticated gRPC LND API Object>
@@ -687,6 +688,8 @@ Example:
 
 ```node
 const {deleteForwardingReputations} = require('ln-service');
+
+// Delete all routing reputations to clear pathfinding memory
 await deleteForwardingReputations({});
 ```
 
@@ -701,8 +704,11 @@ Delete all records of payments
     @returns via cbk or Promise
 
 Example:
+
 ```node
 const {deletePayments} = require('ln-service');
+
+// Eliminate all the records of past payments
 await deletePayments({lnd});
 ```
 
@@ -974,7 +980,7 @@ Get channels
 
 `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
-`time_offline` and `time_online` will be undefined on 0.8.0 and below
+`time_offline` and `time_online` will be undefined on 0.8.1 and below
 
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
@@ -1142,7 +1148,7 @@ Get the confidence in being able to send between a direct pair of nodes
 
 Requires LND built with `routerrpc` build tag
 
-Note: this method is not supported in LND 0.8.0 and below.
+Note: this method is not supported in LND 0.8.1 and below.
 
     {
       from: <From Public Key Hex String>
@@ -1179,7 +1185,7 @@ Requires LND built with `routerrpc` build tag
 
 Note: In LND v0.7.1 channels reputations are returned.
 Note: In LND v0.8.0 peers reputations are returned.
-Note: after LND v0.8.0 confidence is not returned per peer.
+Note: after LND v0.8.1 confidence is not returned per peer.
 
     {
       [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
@@ -1222,7 +1228,7 @@ When using an "after" date a "before" date is required.
 
 If a next token is returned, pass it to get additional page of results.
 
-`mtokens` is not supported on LND v0.8.0 or lower
+`mtokens` is not supported on LND v0.8.1 or lower
 
     {
       [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
@@ -1486,8 +1492,10 @@ const nodeDetails = await getNode({lnd, public_key: publicKey});
 
 Get the status of a past payment
 
+Requires LND compiled with `routerrpc` build tag
+
     {
-      id: <Payment Id Hex String>
+      id: <Payment Preimage Hash Hex String>
       lnd: <Authenticated LND gRPC API Object>
     }
 
@@ -1512,9 +1520,10 @@ Get the status of a past payment
           timeout: <Timeout Block Height Number>
         }]
         id: <Payment Hash Hex String>
-        mtokens: <Total Millitokens To Pay String>
+        mtokens: <Total Millitokens Paid String>
         secret: <Payment Preimage Hex String>
         timeout: <Expiration Block Height Number>
+        tokens: <Total Tokens Paid Number>
       }
     }
 
@@ -1924,7 +1933,7 @@ const walletInfo = await getWalletInfo({lnd});
 
 Give access to the node by making a macaroon access credential
 
-Note: granting access is not supported in LND versions 0.8.0 and below
+Note: granting access is not supported in LND versions 0.8.1 and below
 
 Note: access once given cannot be revoked
 
@@ -2398,6 +2407,8 @@ Requires LND built with `routerrpc` build tag
 
 `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key Hex String>
@@ -2410,6 +2421,9 @@ Requires LND built with `routerrpc` build tag
       [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+      [mtokens]: <Millitokens to Pay String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
@@ -3224,7 +3238,7 @@ sub.on('channel_request', channel => {
 
 Subscribe to the status of a past payment
 
-Requires lnd built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
 
     {
       [id]: <Payment Request Hash Hex String>
@@ -3249,9 +3263,10 @@ Requires lnd built with routerrpc build tag
         timeout: <Timeout Block Height Number>
       }]
       id: <Payment Hash Hex String>
-      mtokens: <Total Millitokens To Pay String>
+      mtokens: <Total Millitokens Paid String>
       secret: <Payment Preimage Hex String>
       timeout: <Expiration Block Height Number>
+      tokens: <Tokens Paid Number>
     }
 
     @event 'failed'
@@ -3278,7 +3293,9 @@ const {secret} = await once(sub, 'confirmed');
 
 Subscribe to the flight of a payment
 
-Requires lnd built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
+
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3286,10 +3303,12 @@ Requires lnd built with routerrpc build tag
       [id]: <Payment Request Hash Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
-      [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+      [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
-      tokens: <Tokens To Pay Number>
+      [tokens]: <Tokens to Pay Number>
     }
 
     @throws
@@ -3337,13 +3356,18 @@ const [paid] = await once(sub, 'confirmed');
 
 ### subscribeToPayViaRequest
 
-Subscribe to the flight of a payment request
+Initiate and subscribe to the outcome of a payment request
 
-Requires lnd built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
+
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
     {
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+      [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       request: <BOLT 11 Payment Request String>
@@ -3369,9 +3393,10 @@ Requires lnd built with routerrpc build tag
         timeout: <Timeout Block Height Number>
       }]
       id: <Payment Hash Hex String>
-      mtokens: <Total Millitokens To Pay String>
+      mtokens: <Total Millitokens Paid String>
       secret: <Payment Preimage Hex String>
       timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens Paid Number>
     }
 
     @event 'failed'
@@ -3587,8 +3612,9 @@ Requires LND built with `routerrpc` build tag
       [is_ignoring_past_failures]: <Ignore Past Failures When Finding Path Bool>
       [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND gRPC API Object>
-      [max_fee]: <Maximum Fee Tokens Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Probe String>
       [max_timeout_height]: <Maximum CLTV Timeout Height Number>
+      [mtokens]: <Millitokens to Probe String>
       [outgoing_channel]: <Outgoing Channel Id String>
       [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
       [probe_timeout_ms]: <Fail Probe After Milliseconds Number>

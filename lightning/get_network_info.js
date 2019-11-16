@@ -91,6 +91,6 @@ module.exports = ({lnd}, cbk) => {
         });
       }],
     },
-    returnResult({reject, resolve, of: 'getInfo'}));
+    returnResult({reject, resolve, of: 'getInfo'}, cbk));
   });
 };

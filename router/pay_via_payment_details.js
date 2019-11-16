@@ -5,7 +5,11 @@ const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
 
 /** Pay via payment details
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
+
+  If no id is specified, a random id will be used.
+
+  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -13,7 +17,9 @@ const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
     [id]: <Payment Request Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
-    [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+    [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+    [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+    [mtokens]: <Millitokens to Pay String>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     routes: [[{
@@ -38,8 +44,9 @@ const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
       timeout: <Timeout Block Height Number>
     }]
     [id]: <Payment Hash Hex String>
-    mtokens: <Total Millitokens To Pay String>
+    mtokens: <Total Millitokens Paid String>
     secret: <Payment Preimage Hex String>
+    tokens: <Tokens Paid Number>
   }
 */
 module.exports = (args, cbk) => {
@@ -70,7 +77,9 @@ module.exports = (args, cbk) => {
           id: args.id,
           lnd: args.lnd,
           max_fee: args.max_fee,
+          max_fee_mtokens: args.max_fee_mtokens,
           max_timeout_height: args.max_timeout_height,
+          mtokens: args.mtokens,
           outgoing_channel: args.outgoing_channel,
           pathfinding_timeout: args.pathfinding_timeout,
           routes: args.routes,
@@ -85,7 +94,9 @@ module.exports = (args, cbk) => {
           }
 
           if (!!res.failed && !!res.failed.is_invalid_payment) {
-            return cbk([503, 'PaymentRejectedByDestination']);
+            const {route} = res.failed;
+
+            return cbk([503, 'PaymentRejectedByDestination', {route}]);
           }
 
           if (!!res.failed && !!res.failed.is_pathfinding_timeout) {
@@ -106,6 +117,7 @@ module.exports = (args, cbk) => {
             id: res.confirmed.id,
             mtokens: res.confirmed.mtokens,
             secret: res.confirmed.secret,
+            tokens: res.confirmed.tokens,
           });
         };
 

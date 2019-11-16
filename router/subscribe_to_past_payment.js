@@ -8,11 +8,12 @@ const {states} = require('./payment_states');
 
 const decBase = 10;
 const hexToBuf = hex => Buffer.from(hex, 'hex');
+const mtokensPerToken = BigInt(1e3);
 const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
 /** Subscribe to the status of a past payment
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
 
   {
     [id]: <Payment Request Hash Hex String>
@@ -37,8 +38,9 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
       timeout: <Timeout Block Height Number>
     }]
     id: <Payment Hash Hex String>
-    mtokens: <Total Millitokens To Pay String>
+    mtokens: <Total Millitokens Paid String>
     secret: <Payment Preimage Hex String>
+    tokens: <Tokens Paid Number>
     timeout: <Expiration Block Height Number>
   }
 
@@ -79,6 +81,7 @@ module.exports = args => {
         id: sha256(data.preimage).toString('hex'),
         mtokens: data.route.total_amt_msat,
         secret: data.preimage.toString('hex'),
+        tokens: Number(BigInt(data.route.total_amt_msat) / mtokensPerToken),
       });
 
     case states.errored:

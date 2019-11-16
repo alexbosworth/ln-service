@@ -11,7 +11,7 @@ const notSupported = 'unknown service lnrpc.Lightning';
 
 /** Give access to the node by making a macaroon access credential
 
-  Note: granting access is not supported in LND versions 0.8.0 and below
+  Note: granting access is not supported in LND versions 0.8.1 and below
 
   Note: access once given cannot be revoked
 

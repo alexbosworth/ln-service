@@ -7,16 +7,20 @@ const defaultTokens = 1;
 
 /** Determine if a payment destination is actually payable by probing it
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
 
-  Note: on versions of lnd prior to 0.7.1, is_payable will always be false
+  Note: on versions of LND prior to 0.7.1, is_payable will always be false
+
+  `max_fee_mtokens` and `mtokens` are not supported on LND below 0.8.1
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Pay to Node with Public Key Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
-    [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+    [max_fee_mtokens]: <Maximum Fee Millitokens String>
+    [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+    [mtokens]: <Paying Millitokens String>
     [outgoing_channel]: <Pay Out of Outgoing Standard Format Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     [routes]: [[{
@@ -52,16 +56,20 @@ module.exports = (args, cbk) => {
 
       // Attempt payment
       probe: ['validate', ({}, cbk) => {
+        const tokens = !args.mtokens ? null : args.tokens || defaultTokens;
+
         const sub = subscribeToPayViaDetails({
           cltv_delta: args.cltv_delta,
           destination: args.destination,
           lnd: args.lnd,
           max_fee: args.max_fee,
+          max_fee_mtokens: args.max_fee_mtokens,
           max_timeout_height: args.max_timeout_height,
+          mtokens: args.mtokens,
           outgoing_channel: args.outgoing_channel,
           pathfinding_timeout: args.pathfinding_timeout,
           routes: args.routes,
-          tokens: args.tokens || defaultTokens,
+          tokens: tokens || undefined,
         });
 
         const finished = (err, res) => {

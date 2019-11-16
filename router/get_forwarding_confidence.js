@@ -12,7 +12,7 @@ const unimplementedError = 'unknown service routerrpc.Router';
 
   Requires LND built with `routerrpc` build tag
 
-  Note: this method is not supported in LND 0.8.0 and below.
+  Note: this method is not supported in LND 0.8.1 and below.
 
   {
     from: <From Public Key Hex String>

@@ -14,23 +14,19 @@ const tests = [
     error: [400, 'ExpectedLndWithRouterToGetRouteThroughHops'],
   },
   {
-    args: {lnd: {router: {}}, mtokens: '0'},
-    description: 'Millitokens cannot be zero',
-    error: [400, 'ExpectedNonZeroMillitokensToGetRoute'],
-  },
-  {
-    args: {lnd: {router: {}}},
+    args: {lnd: {router: {}}, mtokens: '1'},
     description: 'Public key hops are required for the route',
     error: [400, 'ExpectedPublicKeysToGetRouteThroughHops'],
   },
   {
-    args: {lnd: {router: {}}, public_keys: []},
+    args: {lnd: {router: {}}, mtokens: '1', public_keys: []},
     description: 'Public key hops are required for the route',
     error: [400, 'ExpectedPublicKeyToSentToInRouteThroughHops'],
   },
   {
     args: {
       lnd: {router: {buildRoute: ({}, cbk) => cbk('err')}},
+      mtokens: '1',
       public_keys: ['a'],
     },
     description: 'An unexpected error is returned',
@@ -39,6 +35,7 @@ const tests = [
   {
     args: {
       lnd: {router: {buildRoute: ({}, cbk) => cbk({details: 'unknown service routerrpc.Router'})}},
+      mtokens: '1',
       public_keys: ['a'],
     },
     description: 'An unimplemented error is returned',
@@ -47,6 +44,7 @@ const tests = [
   {
     args: {
       lnd: {router: {buildRoute: ({}, cbk) => cbk()}},
+      mtokens: '1',
       public_keys: ['a'],
     },
     description: 'A response is required',
@@ -55,6 +53,7 @@ const tests = [
   {
     args: {
       lnd: {router: {buildRoute: ({}, cbk) => cbk(null, {})}},
+      mtokens: '1',
       public_keys: ['a'],
     },
     description: 'A route in response is expected',
@@ -63,6 +62,7 @@ const tests = [
   {
     args: {
       lnd: {router: {buildRoute: ({}, cbk) => cbk(null, {route: {}})}},
+      mtokens: '1',
       public_keys: ['a'],
     },
     description: 'A valid route response is expected',
@@ -91,6 +91,7 @@ const tests = [
           }),
         },
       },
+      mtokens: '1',
       public_keys: ['a'],
     },
     description: 'A valid route response is expected',

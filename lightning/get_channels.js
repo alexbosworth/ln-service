@@ -11,7 +11,7 @@ const msPerSec = 1e3;
 
   `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
-  `time_offline` and `time_online` will be undefined on 0.8.0 and below
+  `time_offline` and `time_online` will be undefined on 0.8.1 and below
 
   {
     [is_active]: <Limit Results To Only Active Channels Bool> // false

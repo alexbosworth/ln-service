@@ -8,8 +8,10 @@ const paymentNotInitiatedErr = `payment isn't initiated`;
 
 /** Get the status of a past payment
 
+  Requires LND compiled with `routerrpc` build tag
+
   {
-    id: <Payment Id Hex String>
+    id: <Payment Preimage Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
   }
 
@@ -34,9 +36,10 @@ const paymentNotInitiatedErr = `payment isn't initiated`;
         timeout: <Timeout Block Height Number>
       }]
       id: <Payment Hash Hex String>
-      mtokens: <Total Millitokens To Pay String>
+      mtokens: <Total Millitokens Paid String>
       secret: <Payment Preimage Hex String>
       timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens Paid Number>
     }
   }
 */

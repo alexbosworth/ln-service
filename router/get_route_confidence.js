@@ -78,7 +78,7 @@ module.exports = ({from, hops, lnd}, cbk) => {
         return cbk(null, forwarding.filter(n => !!n.from_public_key));
       }],
 
-      // Get all confidence scores (only supported post LND 0.8.0)
+      // Get all confidence scores (only supported post LND 0.8.1)
       getScores: ['source', ({source}, cbk) => {
         const pairs = hops.slice().map((hop, i) => {
           return {
@@ -121,7 +121,7 @@ module.exports = ({from, hops, lnd}, cbk) => {
         'getScores',
         ({forwarding, getReputations, getScores}, cbk) =>
       {
-        // In 0.8.0 and before, there will be no scores
+        // In 0.8.1 and before, there will be no scores
         if (!!getScores) {
           return cbk(null, {confidence: getScores.confidence});
         }

@@ -34,7 +34,9 @@ const {isArray} = Array;
     [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
+    [max_fee_mtokens]: <Maximum Fee Millitokens to Probe String>
     [max_timeout_height]: <Maximum CLTV Timeout Height Number>
+    [mtokens]: <Millitokens to Probe String>
     [outgoing_channel]: <Outgoing Channel Id String>
     [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
     [probe_timeout_ms]: <Fail Probe After Milliseconds Number>
@@ -46,7 +48,7 @@ const {isArray} = Array;
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
-    tokens: <Tokens Number>
+    [tokens]: <Tokens to Probe Number>
   }
 
   @returns
@@ -152,8 +154,8 @@ module.exports = args => {
     throw new Error('ExpectedRouterRpcToSubscribeToProbe');
   }
 
-  if (!args.tokens) {
-    throw new Error('ExpectedTokensToSubscribeToProbe');
+  if (!args.tokens && !args.mtokens) {
+    throw new Error('ExpectedTokenAmountToSubscribeToProbe');
   }
 
   const emitter = new EventEmitter();
@@ -203,7 +205,9 @@ module.exports = args => {
             is_strict_hints: args.is_strict_hints,
             lnd: args.lnd,
             max_fee: args.max_fee,
+            max_fee_mtokens: args.max_fee_mtokens,
             max_timeout_height: args.max_timeout_height,
+            mtokens: args.mtokens,
             outgoing_channel: args.outgoing_channel,
             routes: args.routes,
             tokens: args.tokens,

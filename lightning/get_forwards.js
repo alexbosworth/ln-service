@@ -20,7 +20,7 @@ const {stringify} = JSON;
 
   If a next token is returned, pass it to get additional page of results.
 
-  `mtokens` is not supported on LND v0.8.0 or lower
+  `mtokens` is not supported on LND v0.8.1 or lower
 
   {
     [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>

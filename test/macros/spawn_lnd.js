@@ -164,7 +164,7 @@ module.exports = ({seed, tower, watchers}, cbk) => {
         '--btcd.rpcpass', chainPass,
         '--btcd.rpcuser', chainUser,
         '--datadir', dir,
-        '--debuglevel', 'debug',
+        '--debuglevel', 'trace',
         '--externalip', `${localhost}:${getPorts.listen}`,
         '--historicalsyncinterval', '1s',
         '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),

@@ -24,7 +24,7 @@ const unknownWireError = 'unknown wire error';
 
 /** Subscribe to the attempts of paying via specified routes
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
 
   {
     [id]: <Payment Hash Hex String>

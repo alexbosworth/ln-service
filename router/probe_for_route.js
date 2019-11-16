@@ -14,6 +14,8 @@ const {isArray} = Array;
 
   `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
+  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Destination Public Key Hex String>
@@ -26,6 +28,9 @@ const {isArray} = Array;
     [is_strict_hints]: <Only Route Through Specified Paths Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
+    [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+    [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+    [mtokens]: <Millitokens to Pay String>
     [outgoing_channel]: <Outgoing Channel Id String>
     [path_timeout_ms]: <Time to Spend On A Path Milliseconds Number>
     [probe_timeout_ms]: <Probe Timeout Milliseconds Number>
@@ -99,6 +104,9 @@ module.exports = (args, cbk) => {
           is_strict_hints: args.is_strict_hints,
           lnd: args.lnd,
           max_fee: args.max_fee,
+          max_fee_mtokens: args.max_fee_mtokens,
+          max_timeout_height: args.max_timeout_height,
+          mtokens: args.mtokens,
           outgoing_channel: args.outgoing_channel,
           path_timeout_ms: args.path_timeout_ms,
           routes: args.routes,

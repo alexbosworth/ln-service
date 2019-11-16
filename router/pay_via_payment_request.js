@@ -3,17 +3,20 @@ const {returnResult} = require('asyncjs-util');
 
 const subscribeToPayViaRequest = require('./subscribe_to_pay_via_request');
 
-const defaultMaxHeight = 1000;
 const {isArray} = Array;
 
 /** Pay via payment request
 
-  Requires lnd built with routerrpc build tag
+  Requires LND built with `routerrpc` build tag
+
+  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
   {
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
-    [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+    [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+    [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+    [mtokens]: <Millitokens to Pay String>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
     request: <BOLT 11 Payment Request String>
@@ -32,8 +35,9 @@ const {isArray} = Array;
       timeout: <Timeout Block Height Number>
     }]
     [id]: <Payment Hash Hex String>
-    mtokens: <Total Millitokens To Pay String>
+    mtokens: <Total Millitokens Paid String>
     secret: <Payment Preimage Hex String>
+    tokens: <Tokens Paid Number>
   }
 */
 module.exports = (args, cbk) => {
@@ -61,7 +65,9 @@ module.exports = (args, cbk) => {
         const sub = subscribeToPayViaRequest({
           lnd: args.lnd,
           max_fee: args.max_fee,
-          max_timeout_height: args.max_timeout_height || defaultMaxHeight,
+          max_fee_mtokens: args.max_fee_mtokens,
+          max_timeout_height: args.max_timeout_height,
+          mtokens: args.mtokens,
           outgoing_channel: args.outgoing_channel,
           pathfinding_timeout: args.pathfinding_timeout,
           request: args.request,
@@ -83,6 +89,10 @@ module.exports = (args, cbk) => {
             return cbk([503, 'PaymentAttemptsTimedOut']);
           }
 
+          if (!!res.failed && !!res.failed.is_route_not_found) {
+            return cbk([503, 'PaymentPathfindingFailedToFindPossibleRoute']);
+          }
+
           if (!!res.failed) {
             return cbk([503, 'FailedToFindPayableRouteToDestination']);
           }
@@ -97,6 +107,7 @@ module.exports = (args, cbk) => {
             id: res.confirmed.id,
             mtokens: res.confirmed.mtokens,
             secret: res.confirmed.secret,
+            tokens: res.confirmed.tokens,
           });
         };
 

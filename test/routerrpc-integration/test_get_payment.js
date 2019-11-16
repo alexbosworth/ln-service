@@ -46,7 +46,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
   try {
     await payViaPaymentRequest({lnd, request: invoice.request});
   } catch (err) {
-    deepIs(err, [503, 'FailedToFindPayableRouteToDestination']);
+    deepIs(err, [503, 'PaymentPathfindingFailedToFindPossibleRoute']);
   }
 
   const paymentStatus = await getPayment({id, lnd});

@@ -134,6 +134,10 @@ module.exports = (args, cbk) => {
             return cbk([503, 'ChainUnsupported']);
           }
 
+          if (/is.not.online/.test(n.details)) {
+            return cbk([503, 'PeerIsNotOnline']);
+          }
+
           switch (n.details) {
           case 'cannot open channel to self':
             return cbk([400, 'CannotOpenChannelToOwnNode']);

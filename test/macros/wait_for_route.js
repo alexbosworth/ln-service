@@ -3,13 +3,21 @@ const asyncRetry = require('async/retry');
 const {getRoutes} = require('./../../');
 
 const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 10;
+const times = 15;
 
 /** Wait for lnd to return a route
 
   {
     destination: <Destination Public Key Hex String>
     lnd: <Authenticated LND gRPC API Object>
+    [routes]: [[{
+      [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+      [channel]: <Standard Format Channel Id String>
+      [channel_capacity]: <Channel Capacity Tokens Number>
+      [cltv_delta]: <CLTV Delta Blocks Number>
+      [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      public_key: <Forward Edge Public Key Hex String>
+    }]]
     tokens: <Tokens to Send Number>
   }
 
@@ -34,7 +42,7 @@ const times = 10;
     }]
   }
 */
-module.exports = ({destination, lnd, tokens}, cbk) => {
+module.exports = ({destination, lnd, routes, tokens}, cbk) => {
   if (!destination) {
     return cbk([400, 'ExpectedDestinationToWaitForRoute']);
   }
@@ -48,7 +56,7 @@ module.exports = ({destination, lnd, tokens}, cbk) => {
   }
 
   return asyncRetry({interval, times}, cbk => {
-    return getRoutes({destination, lnd, tokens}, (err, res) => {
+    return getRoutes({destination, lnd, routes, tokens}, (err, res) => {
       if (!!err) {
         return cbk(err);
       }
