@@ -22,6 +22,22 @@ const tests = [
     request: 'lntb1500n1pdn4czkpp5ugdqer05qrrxuchrzkcue94th9w2xzasp9qm7d0yxcgp4uh4kn4qdpa2fjkzep6yprkcmmzv9kzqsmj09c8gmmrw4e8yetwvdujq5n9va6kcct5d9hkucqzysdlghdpua7uvjjkcfj49psxtlqzkp5pdncffdfk2cp3mp76thrl29qhqgzufm503pjj96586n5w6edgw3n66j4rxxs707y4zdjuhyt6qqe5weu4',
   },
   {
+    description: "Test capitalization",
+    expected: {
+      cltv_delta: 144,
+      created_at: '2018-07-03T02:32:54.000Z',
+      description: 'Read: Global Cryptocurrency Regulation',
+      destination: '02212d3ec887188b284dbb7b2e6eb40629a6e14fb049673f22d2a0aa05f902090e',
+      expires_at: '2018-07-03T03:32:54.000Z',
+      id: 'e21a0c8df400c66e62e315b1cc96abb95ca30bb00941bf35e436101af2f5b4ea',
+      is_expired: true,
+      mtokens: '150000',
+      network: 'testnet',
+      tokens: 150,
+    },
+    request: 'LNTB1500N1PDN4CZKPP5UGDQER05QRRXUCHRZKCUE94TH9W2XZASP9QM7D0YXCGP4UH4KN4QDPA2FJKZEP6YPRKCMMZV9KZQSMJ09C8GMMRW4E8YETWVDUJQ5N9VA6KCCT5D9HKUCQZYSDLGHDPUA7UVJJKCFJ49PSXTLQZKP5PDNCFFDFK2CP3MP76THRL29QHQGZUFM503PJJ96586N5W6EDGW3N66J4RXXS707Y4ZDJUHYT6QQE5WEU4',
+  },
+  {
     description: 'Please make a donation of any amount using payment_hash',
     expected: {
       cltv_delta: 9,

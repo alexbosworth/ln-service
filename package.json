@@ -67,5 +67,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.2.0"
+  "version": "47.2.1"
 }

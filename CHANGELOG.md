@@ -1,5 +1,9 @@
 # Versions
 
+## 47.2.1
+
+- `parsePaymentRequest`: allow uppercase payment requests
+
 ## 47.2.0
 
 - `getPayment`: add `tokens` to indicate amount paid
@@ -8,6 +12,7 @@
 - `probeForRoute`: add `max_fee_mtokens`, `mtokens` to specify mtokens
 - `subscribeToPastPayment`:  add `tokens` to indicate amount paid
 - `subscribeToPayViaDetails`:  add `max_fee_mtokens`, `mtokens` for  mtokens
+- `subscribeToPayViaRequest`:  add `max_fee_mtokens`, `mtokens` for  mtokens
 - `subscribeToPayViaRequest`:  add `max_fee_mtokens`, `mtokens` for  mtokens
 - `subscribeToProbe`:  add `max_fee_mtokens`, `mtokens` to specify mtokens
 

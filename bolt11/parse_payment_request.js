@@ -76,7 +76,7 @@ module.exports = ({request}) => {
     throw new Error('ExpectedPaymentRequest');
   }
 
-  if (request.slice(0, lnPrefix.length) !== lnPrefix) {
+  if (request.slice(0, lnPrefix.length).toLowerCase() !== lnPrefix) {
     throw new Error('ExpectedLnPrefix');
   }
 
