@@ -9,9 +9,11 @@ const msPerSec = 1e3;
 
 /** Subscribe to an invoice
 
-  Lnd built with invoicesrpc tag is required
+  LND built with `invoicesrpc` tag is required
 
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
+
+  The `mtokens` value is only supported on LND versions after 0.8.1
 
   {
     id: <Invoice Payment Preimage Hash Hex String>
@@ -38,6 +40,7 @@ const msPerSec = 1e3;
     [is_held]: <HTLC is Held Bool>
     is_outgoing: <Invoice is Outgoing Bool>
     is_private: <Invoice is Private Bool>
+    mtokens: <Invoiced Millitokens String>
     [payments]: [{
       [confirmed_at]: <Payment Settled At ISO 8601 Date String>
       created_at: <Payment Held Since ISO 860 Date String>
@@ -144,6 +147,7 @@ module.exports = ({id, lnd}) => {
       is_held: invoice.state === 'ACCEPTED' || undefined,
       is_outgoing: false,
       is_private: invoice.private,
+      mtokens: invoice.value_msat !== '0' ? invoice.value_msat : undefined,
       payments: invoice.htlcs.map(htlcAsPayment),
       secret: invoice.r_preimage.toString('hex'),
       tokens: parseInt(invoice.value, decBase),

@@ -1,8 +1,13 @@
 # Versions
 
+## 47.3.0
+
+- `createHodlInvoice`: Add support for `mtokens`
+- `subscribeToInvoice`: Add support `mtokens`
+
 ## 47.2.1
 
-- `parsePaymentRequest`: allow uppercase payment requests
+- `parsePaymentRequest`: support uppercase payment requests
 
 ## 47.2.0
 

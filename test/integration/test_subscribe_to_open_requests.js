@@ -81,7 +81,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
     equal(request.max_pending_mtokens, '990000000', 'Got max mtok in flight');
     equal(request.max_pending_payments, 483, 'Got max pending payments');
     equal(request.min_chain_output, dustLimit, 'Dust limit tokens returned');
-    equal(request.min_htlc_mtokens, '1000', 'Got min htlc amount');
+    equal(request.min_htlc_mtokens, '1', 'Got min htlc amount');
     equal(request.partner_public_key, cluster.target.public_key, 'Got pubkey');
 
     request.accept();

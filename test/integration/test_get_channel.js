@@ -46,7 +46,7 @@ test(`Get channel`, async ({end, equal}) => {
     equal(policy.fee_rate, 1, 'Fee rate');
     equal(policy.is_disabled, false, 'Disabled flag');
     equal(policy.max_htlc_mtokens, `${ceil(details.capacity * 0.99)}000`);
-    equal(policy.min_htlc_mtokens, '1000', 'Min HTLC value');
+    equal(policy.min_htlc_mtokens, '1', 'Min HTLC value');
     equal(policy.public_key.length, 66, 'Policy public key');
     equal(Date.now() - new Date(policy.updated_at) < 1e5, true, 'Updated at');
 

@@ -1,9 +1,9 @@
 const htlcAsPayment = require('./htlc_as_payment');
 
+const asMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
 const defaultExpirySeconds = 60 * 60;
 const {isArray} = Array;
 const msPerSec = 1e3;
-const mtokPerTok = BigInt(1e3);
 
 /** Invoice from RPC invoice
 
@@ -35,6 +35,7 @@ const mtokPerTok = BigInt(1e3);
     settled: <Is Settled Bool>
     state: <Invoice State String>
     value: <Tokens Value String>
+    value_msat: <Millitokens Value String>
   }
 
   @throws
@@ -136,6 +137,7 @@ module.exports = args => {
   }
 
   const createdAt = Number(args.creation_date);
+  const hasMsat = !!args.value_msat && args.value_msat !== '0';
   const isSettled = args.settled;
 
   const confirmedAt = !isSettled ? null : Number(args.settle_date) * msPerSec;
@@ -157,7 +159,7 @@ module.exports = args => {
     index: Number(args.add_index),
     is_confirmed: args.settled,
     is_outgoing: false,
-    mtokens: (BigInt(args.value) * mtokPerTok).toString(),
+    mtokens: hasMsat ? args.value_msat : asMtok(args.value),
     payments: args.htlcs.map(htlcAsPayment),
     received: Number(args.amt_paid_sat),
     received_mtokens: args.amt_paid_msat,

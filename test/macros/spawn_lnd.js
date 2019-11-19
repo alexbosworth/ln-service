@@ -156,6 +156,7 @@ module.exports = ({seed, tower, watchers}, cbk) => {
         '--autopilot.heuristic', 'preferential:0.5',
         '--bitcoin.active',
         '--bitcoin.chaindir', dir,
+        '--bitcoin.minhtlc', '1',
         '--bitcoin.node', 'btcd',
         '--bitcoin.regtest',
         '--btcd.dir', dir,
@@ -293,7 +294,13 @@ module.exports = ({seed, tower, watchers}, cbk) => {
 
       return asyncRetry({interval, times}, cbk => {
         try {
-          return cbk(null, readFileSync(macaroonPath).toString('base64'));
+          const macaroon = readFileSync(macaroonPath).toString('base64');
+
+          if (!macaroon) {
+            throw new Error('ExpectedMacaroonDataAtMacaroonPath');
+          }
+
+          return cbk(null, macaroon);
         } catch (err) {
           return cbk([503, 'FailedToGetAdminMacaroon', {err}]);
         }

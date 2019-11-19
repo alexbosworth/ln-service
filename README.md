@@ -518,7 +518,9 @@ const {address} = await createChainAddress({format, lnd});
 Create hodl invoice. This invoice will not settle automatically when an HTLC
 arrives. It must be settled separately with a preimage.
 
-Requires lnd built with invoicesrpc tag
+Requires LND built with `invoicesrpc` tag
+
+Setting `mtokens` will not work on LND versions 0.8.1 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -531,6 +533,7 @@ Requires lnd built with invoicesrpc tag
       [is_including_private_channels]: <Invoice Includes Private Channels Bool>
       lnd: <Authenticated LND gRPC API Object>
       [log]: <Log Function> // Required when WSS is passed
+      [mtokens]: <Millitokens String>
       [tokens]: <Tokens Number>
       [wss]: [<Web Socket Server Object>]
     }
@@ -3059,9 +3062,11 @@ const [closedChannel] = await once(sub, 'closed_channel');
 
 Subscribe to an invoice
 
-Lnd built with invoicesrpc tag is required
+LND built with `invoicesrpc` tag is required
 
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
+
+The `mtokens` value is only supported on LND versions after 0.8.1
 
     {
       id: <Invoice Payment Hash Hex String>
@@ -3088,6 +3093,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       [is_held]: <HTLC is Held Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      mtokens: <Invoiced Millitokens String>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>

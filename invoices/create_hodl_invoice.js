@@ -7,14 +7,18 @@ const createChainAddress = require('./../lightning/create_chain_address');
 
 const {isArray} = Array;
 const msPerSec = 1e3;
+const mtokensAsTokens = mtokens => Number(BigInt(mtokens) / BigInt(1e3));
 const noTokens = 0;
 const {parse} = Date;
 const {round} = Math;
+const tokensAsMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
 
-/** Create hodl invoice. This invoice will not settle automatically when an
-    HTLC arrives. It must be settled separately with a preimage.
+/** Create HODL invoice. This invoice will not settle automatically when an
+    HTLC arrives. It must be settled separately with the secret preimage.
 
-  Requires lnd built with invoicesrpc tag
+  Requires LND built with `invoicesrpc` tag
+
+  Setting `mtokens` will not work on LND versions 0.8.1 and below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -27,6 +31,7 @@ const {round} = Math;
     [is_including_private_channels]: <Invoice Includes Private Channels Bool>
     lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required when WSS is passed
+    [mtokens]: <Millitokens String>
     [tokens]: <Tokens Number>
     [wss]: [<Web Socket Server Object>]
   }
@@ -37,6 +42,7 @@ const {round} = Math;
     created_at: <ISO 8601 Date String>
     description: <Description String>
     id: <Payment Hash Hex String>
+    mtokens: <Millitokens Number>
     request: <BOLT 11 Encoded Payment Request String>
     secret: <Hex Encoded Payment Secret String>
     tokens: <Tokens Number>
@@ -83,6 +89,7 @@ module.exports = (args, cbk) => {
         const fallbackAddress = !addAddress ? undefined : addAddress.address;
         const createdAt = new Date();
         const expireAt = !args.expires_at ? null : parse(args.expires_at);
+        const mtokens = !args.tokens ? undefined : tokensAsMtok(args.tokens);
 
         const expiryMs = !expireAt ? null : expireAt - createdAt.getTime();
 
@@ -94,6 +101,7 @@ module.exports = (args, cbk) => {
           memo: args.description,
           private: !!args.is_including_private_channels,
           value: args.tokens || undefined,
+          value_msat: args.mtokens || undefined,
         },
         (err, response) => {
           if (!!err) {
@@ -108,12 +116,19 @@ module.exports = (args, cbk) => {
             return cbk([503, 'ExpectedPaymentRequestForCreatedInvoice']);
           }
 
+          const invoiceMtok = mtokens || args.mtokens || noTokens.toString();
+
+          if (!!args.mtokens && invoiceMtok !== args.mtokens) {
+            return cbk([400, 'ExpectedUnambiguousValueForHodlInvoice']);
+          }
+
           return cbk(null, {
             created_at: createdAt.toISOString(),
             description: args.description || undefined,
             id: args.id,
+            mtokens: invoiceMtok,
             request: response.payment_request,
-            tokens: args.tokens || noTokens,
+            tokens: mtokensAsTokens(invoiceMtok),
           });
         });
       }],
@@ -125,6 +140,7 @@ module.exports = (args, cbk) => {
           created_at: res.addInvoice.created_at,
           description: res.addInvoice.description,
           id: res.addInvoice.id,
+          mtokens: res.addInvoice.mtokens,
           request: res.addInvoice.request,
           tokens: res.addInvoice.tokens,
         });

@@ -157,7 +157,7 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     equal(details.policy.cltv_delta, 40, 'CLTV delta returned');
     equal(details.policy.fee_rate, 1, 'Fee rate returned');
     equal(details.policy.is_disabled, false, 'Channel is enabled');
-    equal(details.policy.min_htlc_mtokens, '1000', 'Min HTLC tokens');
+    equal(details.policy.min_htlc_mtokens, '1', 'Min HTLC tokens');
     equal(!!details.policy.updated_at, true, 'Updated at returned');
     equal(details.update.chain, regtestChain, 'Chain is returned');
     equal(details.update.channel_flags, flags, 'Channel flags');

@@ -2,6 +2,7 @@ const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
 const defaultMinConfs = 1;
+const defaultMinHtlcMtokens = '1';
 const minChannelTokens = 20000;
 
 /** Open a new channel.
@@ -68,7 +69,7 @@ module.exports = (args, cbk) => {
         const options = {
           local_funding_amount: args.local_tokens,
           min_confs: minConfs,
-          min_htlc_msat: args.min_htlc_mtokens || undefined,
+          min_htlc_msat: args.min_htlc_mtokens || defaultMinHtlcMtokens,
           node_pubkey: Buffer.from(args.partner_public_key, 'hex'),
           private: !!args.is_private,
           remote_csv_delay: args.partner_csv_delay || undefined,

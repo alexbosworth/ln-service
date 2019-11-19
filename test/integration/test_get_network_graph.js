@@ -73,7 +73,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
     equal(policy.fee_rate, 1, 'Default channel fee rate');
     equal(policy.is_disabled, false, 'Channels are active');
     equal(policy.max_htlc_mtokens, `${ceil(channel.capacity * 0.99)}000`);
-    equal(policy.min_htlc_mtokens, '1000', 'Default min htlc value');
+    equal(policy.min_htlc_mtokens, '1', 'Default min htlc value');
     equal(!!policy.public_key, true, 'Policy has public key');
     equal(new Date() - new Date(policy.updated_at) < 1e5, true, 'Updated at');
 

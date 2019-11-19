@@ -32,8 +32,8 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({
@@ -49,8 +49,8 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    partner_public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await waitForPendingChannel({
