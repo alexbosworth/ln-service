@@ -11,10 +11,13 @@ const randomId = () => randomBytes(32).toString('hex');
 
   Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
+  `incoming_peer` is not supported on LND 0.8.1 and below
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Destination Public Key String>
     [id]: <Payment Request Hash Hex String>
+    [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
     [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
@@ -82,6 +85,7 @@ module.exports = args => {
     cltv_delta: args.cltv_delta || defaultCltvDelta,
     destination: args.destination,
     id: args.id || randomId(),
+    incoming_peer: args.incoming_peer,
     lnd: args.lnd,
     max_fee: args.max_fee,
     max_fee_mtokens: args.max_fee_mtokens,

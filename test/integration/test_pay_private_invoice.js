@@ -66,8 +66,8 @@ test(`Pay private invoice`, async ({deepIs, end, equal}) => {
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await cluster.generate({count: confirmationCount, node: cluster.target});

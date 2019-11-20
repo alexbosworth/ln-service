@@ -14,7 +14,7 @@ const cltvLimit = (limit, height) => !limit ? undefined : limit - height;
 const decBase = 10;
 const defaultCltvDelta = 43;
 const defaultTimeoutSeconds = 25;
-const hexToBuf = hex => Buffer.from(hex, 'hex');
+const hexToBuf = hex => !hex ? undefined : Buffer.from(hex, 'hex');
 const {isArray} = Array;
 const maxTokens = '4294967296';
 const msPerSec = 1000;
@@ -30,10 +30,13 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   Failure due to invalid payment will only be registered on LND 0.7.1+
 
+  Specifying `incoming_peer` is not supported on LND 0.8.1 and below
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Destination Public Key String>
     [id]: <Payment Request Hash Hex String>
+    [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
     [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
@@ -167,6 +170,7 @@ module.exports = args => {
       fee_limit_msat: amounts.max_fee_mtokens,
       fee_limit_sat: amounts.max_fee,
       final_cltv_delta: !args.request ? finalCltv : undefined,
+      last_hop_pubkey: hexToBuf(args.incoming_peer),
       outgoing_chan_id: !channel ? undefined : chanNumber({channel}).number,
       payment_hash: !args.id ? undefined : hexToBuf(args.id),
       payment_request: !args.request ? undefined : args.request,

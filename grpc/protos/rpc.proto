@@ -899,6 +899,11 @@ message SendRequest {
     */
     uint64 outgoing_chan_id = 9;
 
+    /**
+    The pubkey of the last hop of the route. If empty, any hop may be used.
+    */
+    bytes last_hop_pubkey = 13;
+
     /** 
     An optional maximum total time lock for the route. If zero, there is no
     maximum enforced.

@@ -11,6 +11,8 @@ const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
+const {setupChannel} = require('./../macros');
+const {subscribeToInvoice} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -21,29 +23,11 @@ const tokens = 100;
 
 // Create a hodl invoice
 test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
-    lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
   const id = createHash('sha256').update(randomBytes(32)).digest('hex');
 
@@ -53,7 +37,13 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     lnd: cluster.target.lnd,
   });
 
-  setTimeout(async () => {
+  const sub = subscribeToInvoice({id, lnd: cluster.target.lnd});
+
+  sub.on('invoice_updated', async updated => {
+    if (!updated.is_held) {
+      return;
+    }
+
     const [created] = (await getInvoices({lnd: cluster.target.lnd})).invoices;
 
     const invoice = await getInvoice({id, lnd: cluster.target.lnd});
@@ -67,14 +57,16 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
 
     const [canceled] = (await getInvoices({lnd: cluster.target.lnd})).invoices;
 
-    return setTimeout(async () => {
-      await cluster.kill({});
+    sub.removeAllListeners();
 
-      return end();
-    },
-    1000);
-  },
-  3000);
+    await delay(2000);
+
+    await cluster.kill({});
+
+    end();
+
+    return;
+  });
 
   let cancelErr = [];
 

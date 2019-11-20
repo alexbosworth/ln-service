@@ -13,9 +13,12 @@ const defaultTokens = 1;
 
   `max_fee_mtokens` and `mtokens` are not supported on LND below 0.8.1
 
+  `incoming_peer` is not supported on LND 0.8.1 and below
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Pay to Node with Public Key Hex String>
+    [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
     [max_fee_mtokens]: <Maximum Fee Millitokens String>

@@ -199,20 +199,31 @@ module.exports = ({seed, tower, watchers}, cbk) => {
 
       const daemon = spawn(lightningDaemonExecFileName, arguments);
 
+      let isFinished = false;
       let isReady = false;
+
+      const finished = (err, res) => {
+        if (!!isFinished) {
+          return;
+        }
+
+        isFinished = true;
+
+        return cbk(err, res);
+      };
 
       daemon.stderr.on('data', data => {
         daemon.kill();
         spawnChainDaemon.daemon.kill();
 
-        return cbk([503, 'FailedToStartDaemon', `${data}`.trim().split('\n')]);
+        return finished([503, 'FailedToStart', `${data}`.trim().split('\n')]);
       });
 
       daemon.stdout.on('data', data => {
         if (!isReady && /gRPC.proxy.started/.test(data+'')) {
           isReady = true;
 
-          return cbk(null, {daemon});
+          return finished(null, {daemon});
         };
 
         return;

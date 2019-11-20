@@ -65,6 +65,7 @@ const {probeForRoute} = require('./router');
 const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
 const {removePeer} = require('./lightning');
+const {restrictMacaroon} = require('./macaroons');
 const {routeFromChannels} = require('./routing');
 const {sendToChainAddress} = require('./lightning');
 const {sendToChainAddresses} = require('./lightning');
@@ -164,6 +165,7 @@ module.exports = {
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,
+  restrictMacaroon,
   routeFromChannels,
   sendToChainAddress,
   sendToChainAddresses,

@@ -1,5 +1,14 @@
 # Versions
 
+## 47.4.0
+
+- `isDestinationPayable`: Add `incoming_peer` to specify last hop peer
+- `payViaPaymentDetails`: Add `incoming_peer` to specify last hop peer
+- `payViaPaymentRequest`: Add `incoming_peer` to specify last hop peer
+- `subscribeToPayViaDetails`: Add `incoming_peer` to specify last hop peer
+- `subscribeToPayViaRequest`: Add `incoming_peer` to specify last hop peer
+- `restrictMacaroon`: Add method to add ip/timeout restrictions to a macaroon
+
 ## 47.3.0
 
 - `createHodlInvoice`: Add support for `mtokens`

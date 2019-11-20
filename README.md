@@ -165,6 +165,7 @@ for `unlocker` methods.
 - [recoverFundsFromChannel](#recoverFundsFromChannel) - Restore a channel
 - [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
 - [removePeer](#removePeer) - Disconnect from a connected peer
+- [restrictMacaroon](#restrictMacaroon) - Add limitations to a macaroon
 - [routeFromChannels](#routeFromChannels) - Convert channel series to a route
 - [sendToChainAddress](#sendToChainAddress) - Send on-chain to an address
 - [sendToChainAddresses](#sendToChainAddresses) - Send on-chain to addresses
@@ -1984,9 +1985,12 @@ Requires lnd built with routerrpc build tag
 
 Note: on versions of lnd prior to 0.7.1, is_payable will always be false
 
+`incoming_peer` is not supported on LND 0.8.1 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Pay to Node with Public Key Hex String>
+      [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
@@ -2175,12 +2179,19 @@ await pay({lnd, request});
 
 Pay via payment details
 
-Requires lnd built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
+
+If no id is specified, a random id will be used.
+
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+
+`incoming_peer` is not supported on LND 0.8.1 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
       [id]: <Payment Request Hash Hex String>
+      [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
@@ -2219,9 +2230,14 @@ await payViaPaymentDetails({destination, id, lnd, tokens});
 
 Pay via payment request
 
-Requires lnd built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
+
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+
+`incoming_peer` is not supported on LND 0.8.1 and below
 
     {
+      [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
@@ -2525,6 +2541,33 @@ Example:
 const {removePeer} = require('ln-service');
 const connectedPeerPublicKey = 'nodePublicKeyHexString';
 await removePeer({lnd, public_key: connectedPeerPublicKey});
+```
+
+### restrictMacaroon
+
+Restrict an access macaroon
+
+    {
+      [expires_at]: <Expires At ISO 8601 Date String>
+      [ip]: <IP Address String>
+      macaroon: <Base64 Encoded Macaroon String>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    {
+      macaroon: <Restricted Base64 Encoded Macaroon String>
+    }
+
+Example:
+
+```node
+const {restrictMacaroon} = require('ln-service');
+
+// Limit a macaroon to be only usable on localhost
+const restrictedMacaroon = restrictMacaroon({ip: '127.0.0.1', macaroon}).macaroon;
 ```
 
 ### routeFromChannels
@@ -3303,10 +3346,13 @@ Requires LND built with `routerrpc` build tag
 
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
+`incoming_peer` is not supported on LND 0.8.1 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
       [id]: <Payment Request Hash Hex String>
+      [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
@@ -3368,7 +3414,10 @@ Requires LND built with `routerrpc` build tag
 
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
+`incoming_peer` is not supported on LND 0.8.1 and below
+
     {
+      [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
