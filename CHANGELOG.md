@@ -1,5 +1,9 @@
 # Versions
 
+## 47.5.0
+
+- `getPayments`: Add `attempts` attribute for HTLC details related to a payment
+
 ## 47.4.0
 
 - `isDestinationPayable`: Add `incoming_peer` to specify last hop peer

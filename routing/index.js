@@ -10,6 +10,7 @@ const routeFromHops = require('./route_from_hops');
 const routeFromRouteHint = require('./route_from_route_hint');
 const routeHintFromRoute = require('./route_hint_from_route');
 const routesFromQueryRoutes = require('./routes_from_query_routes');
+const rpcAttemptHtlcAsAttempt = require('./rpc_attempt_htlc_as_attempt');
 
 module.exports = {
   calculateHops,
@@ -24,4 +25,5 @@ module.exports = {
   routeFromRouteHint,
   routeHintFromRoute,
   routesFromQueryRoutes,
+  rpcAttemptHtlcAsAttempt,
 };

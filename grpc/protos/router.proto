@@ -422,6 +422,15 @@ message PairData {
 
     /// Whether the last payment attempt through this pair was successful.
     bool last_attempt_successful = 3 [json_name = "last_attempt_successful"];
+
+    /**
+    Lowest amount that failed to forward in millisats. This may be
+    set to zero if the failure is independent of amount.
+    */
+    int64 fail_amt_msat = 4 [json_name = "fail_amt_msat"];
+
+    /// Time of last success.
+    int64 success_time = 5 [json_name = "success_time"];
 }
 
 message QueryProbabilityRequest{

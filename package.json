@@ -13,7 +13,7 @@
     "bitcoinjs-lib": "5.1.6",
     "bn.js": "5.0.0",
     "body-parser": "1.19.0",
-    "bolt07": "1.4.3",
+    "bolt07": "1.4.4",
     "compression": "1.7.4",
     "cors": "2.8.5",
     "dotenv": "8.2.0",
@@ -34,7 +34,7 @@
   "devDependencies": {
     "portfinder": "1.0.25",
     "rimraf": "3.0.0",
-    "tap": "14.9.2",
+    "tap": "14.10.1",
     "uuid": "3.3.3",
     "varuint-bitcoin": "1.1.2"
   },
@@ -68,5 +68,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.4.0"
+  "version": "47.5.0"
 }

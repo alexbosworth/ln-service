@@ -7,6 +7,7 @@ const {getPayments} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -22,22 +23,11 @@ test('Get payments', async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
+  await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    generate: cluster.generate,
+    to: cluster.target,
   });
-
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({lnd, id: controlToTargetChannel.transaction_id});
 
   const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
 

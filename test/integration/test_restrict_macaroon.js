@@ -47,6 +47,20 @@ test(`Restricted macaroons restrict access`, async ({end, equal, rejects}) => {
       [503, 'UnexpectedErrorCreatingAddress'],
       'Does not allow incorrect ip'
     );
+
+    const addRestriction = restrictMacaroon({macaroon, ip: '127.0.0.1'});
+
+    const addedLnd = authenticatedLndGrpc({
+      cert,
+      socket,
+      macaroon: addRestriction.macaroon,
+    });
+
+    rejects(
+      createChainAddress({format, lnd: addedLnd.lnd}),
+      [503, 'UnexpectedErrorCreatingAddress'],
+      'Does not allow extended ip'
+    );
   }
 
   // A macaroon that is ip limited to the right ip is allowed
@@ -79,6 +93,24 @@ test(`Restricted macaroons restrict access`, async ({end, equal, rejects}) => {
       createChainAddress({format, lnd}),
       [503, 'UnexpectedErrorCreatingAddress'],
       'Does not allow expired macaroon'
+    );
+
+    const addTime = restrictMacaroon({
+      macaroon,
+      expires_at: new Date(Date.now() + 1000).toISOString(),
+    });
+
+    const addedLnd = authenticatedLndGrpc({
+      cert,
+      socket,
+      macaroon: addTime.macaroon,
+    });
+
+    // Adding time is also not allowed
+    rejects(
+      createChainAddress({format, lnd: addedLnd.lnd}),
+      [503, 'UnexpectedErrorCreatingAddress'],
+      'Does not allow extending expired macaroon'
     );
   }
 

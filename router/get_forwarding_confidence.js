@@ -93,16 +93,30 @@ module.exports = ({from, lnd, mtokens, to}, cbk) => {
             return cbk([503, 'ExpectedProbabilityInQueryProbabilityResult']);
           }
 
-          const isSuccess = res.history.last_attempt_successful;
           const timestamp = Number(res.history.timestamp);
 
           const date = new Date(timestamp * msPerSec).toISOString();
 
-          // Exit early when the past attempt was successful
-          if (isSuccess) {
+          // On versions of LND 0.8.1 and below, no success time is returned
+          const isSuccess = res.history.last_attempt_successful;
+
+          // Exit early when the past attempt was successful, no success date
+          if (isSuccess && res.history.success_time === '0') {
             return cbk(null, {
               confidence: ceil(res.probability * confidenceDenominator),
               past_success_at: date,
+            });
+          }
+
+          // Exit early when the past attempt was successful
+          if (res.history.success_time !== '0') {
+            const successEpochTime = Number(res.history.success_time);
+
+            const successAt = new Date(successEpochTime * msPerSec);
+
+            return cbk(null, {
+              confidence: ceil(res.probability * confidenceDenominator),
+              past_success_at: successAt.toISOString(),
             });
           }
 

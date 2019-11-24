@@ -44,6 +44,10 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
   rejects(getPayment({lnd, id}), [404, 'SentPaymentNotFound'], 'Not found');
 
   try {
+    await getPayment({lnd, id});
+  } catch (err) {}
+
+  try {
     await payViaPaymentRequest({lnd, request: invoice.request});
   } catch (err) {
     deepIs(err, [503, 'PaymentPathfindingFailedToFindPossibleRoute']);

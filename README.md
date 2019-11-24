@@ -1543,6 +1543,8 @@ const payment = await getPayment({id, lnd});
 
 Get payments made through channels.
 
+Payment `attempts` is not populated on LND 0.8.1 and below
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -1550,6 +1552,30 @@ Get payments made through channels.
     @returns via cbk or Promise
     {
       payments: [{
+        attempts: [{
+          is_confirmed: <Payment Attempt Succeeded Bool>
+          is_failed: <Payment Attempt Failed Bool>
+          is_pending: <Payment Attempt is Waiting For Resolution Bool>
+          route: {
+            fee: <Route Fee Tokens Number>
+            fee_mtokens: <Route Fee Millitokens String>
+            hops: [{
+              channel: <Standard Format Channel Id String>
+              channel_capacity: <Channel Capacity Tokens Number>
+              fee: <Fee Number>
+              fee_mtokens: <Fee Millitokens String>
+              forward: <Forward Tokens Number>
+              forward_mtokens: <Forward Millitokens String>
+              [public_key]: <Forward Edge Public Key Hex String>
+              timeout: <Timeout Block Height Number>
+            }]
+            mtokens: <Total Fee-Inclusive Millitokens String>
+            [payment]: <Payment Identifier Hex String>
+            timeout: <Timeout Block Height Number>
+            tokens: <Total Fee-Inclusive Tokens Number>
+            [total_mtokens]: <Total Payment Millitokens String>
+          }
+        }]
         created_at: <Payment at ISO-8601 Date String>
         destination: <Destination Node Public Key Hex String>
         fee: <Paid Routing Fee Tokens Number>

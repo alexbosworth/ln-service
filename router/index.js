@@ -10,6 +10,7 @@ const payViaPaymentDetails = require('./pay_via_payment_details');
 const payViaPaymentRequest = require('./pay_via_payment_request');
 const payViaRoutes = require('./pay_via_routes');
 const probeForRoute = require('./probe_for_route');
+const rpcRouteFromRoute = require('./rpc_route_from_route');
 const subscribeToPastPayment = require('./subscribe_to_past_payment');
 const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
 const subscribeToPayViaRequest = require('./subscribe_to_pay_via_request');
@@ -29,6 +30,7 @@ module.exports = {
   payViaPaymentRequest,
   payViaRoutes,
   probeForRoute,
+  rpcRouteFromRoute,
   subscribeToPastPayment,
   subscribeToPayViaDetails,
   subscribeToPayViaRequest,

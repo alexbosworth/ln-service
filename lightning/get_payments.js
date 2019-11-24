@@ -2,11 +2,15 @@ const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {returnResult} = require('asyncjs-util');
 
+const {rpcAttemptHtlcAsAttempt} = require('./../routing');
+
 const decBase = 10;
 const {isArray} = Array;
 const msPerSecond = 1e3;
 
 /** Get payments made through channels.
+
+  Payment `attempts` is not populated on LND 0.8.1 and below
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -15,6 +19,30 @@ const msPerSecond = 1e3;
   @returns via cbk or Promise
   {
     payments: [{
+      attempts: [{
+        is_confirmed: <Payment Attempt Succeeded Bool>
+        is_failed: <Payment Attempt Failed Bool>
+        is_pending: <Payment Attempt is Waiting For Resolution Bool>
+        route: {
+          fee: <Route Fee Tokens Number>
+          fee_mtokens: <Route Fee Millitokens String>
+          hops: [{
+            channel: <Standard Format Channel Id String>
+            channel_capacity: <Channel Capacity Tokens Number>
+            fee: <Fee Number>
+            fee_mtokens: <Fee Millitokens String>
+            forward: <Forward Tokens Number>
+            forward_mtokens: <Forward Millitokens String>
+            [public_key]: <Forward Edge Public Key Hex String>
+            timeout: <Timeout Block Height Number>
+          }]
+          mtokens: <Total Fee-Inclusive Millitokens String>
+          [payment]: <Payment Identifier Hex String>
+          timeout: <Timeout Block Height Number>
+          tokens: <Total Fee-Inclusive Tokens Number>
+          [total_mtokens]: <Total Payment Millitokens String>
+        }
+      }]
       created_at: <Payment at ISO-8601 Date String>
       destination: <Destination Node Public Key Hex String>
       fee: <Paid Routing Fee Tokens Number>
@@ -72,6 +100,12 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'ExpectedPaymentFeeInListPaymentsResponse']);
           }
 
+          try {
+            payment.htlcs.forEach(n => rpcAttemptHtlcAsAttempt(n));
+          } catch (err) {
+            return cbk([503, err.message]);
+          }
+
           if (!isArray(payment.path) || !payment.path.length) {
             return cbk([503, 'ExpectedPaymentPathInListPaymentsResponse']);
           }
@@ -105,6 +139,7 @@ module.exports = ({lnd}, cbk) => {
 
           return cbk(null, {
             destination,
+            attempts: payment.htlcs.map(htlc => rpcAttemptHtlcAsAttempt(htlc)),
             created_at: new Date(creationDate * msPerSecond).toISOString(),
             fee: parseInt(payment.fee_sat, decBase),
             fee_mtokens: !payment.fee_msat ? undefined : payment.fee_msat,
