@@ -82,6 +82,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       request: invoice.request,
     });
 
+    equal(paid.fee, 1, 'Fee tokens paid');
     equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
     equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
     equal(paid.mtokens, '101000', 'Paid mtokens');

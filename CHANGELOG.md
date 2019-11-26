@@ -1,5 +1,12 @@
 # Versions
 
+## 47.5.1
+
+- `payViaPaymentDetails`: add `fee` attribute for fee tokens paid
+- `payViaPaymentRequest`: add `fee` attribute for fee tokens paid
+- `subscribeToPayViaDetails`: add `fee` attribute for fee tokens paid
+- `subscribeToPayViaRequest`: add `fee` attribute for fee tokens paid
+
 ## 47.5.0
 
 - `getPayments`: Add `attempts` attribute for HTLC details related to a payment

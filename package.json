@@ -34,7 +34,7 @@
   "devDependencies": {
     "portfinder": "1.0.25",
     "rimraf": "3.0.0",
-    "tap": "14.10.1",
+    "tap": "14.10.2",
     "uuid": "3.3.3",
     "varuint-bitcoin": "1.1.2"
   },
@@ -68,5 +68,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.5.0"
+  "version": "47.5.1"
 }

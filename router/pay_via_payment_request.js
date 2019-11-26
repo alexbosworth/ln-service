@@ -28,6 +28,7 @@ const {isArray} = Array;
 
   @returns via cbk or Promise
   {
+    fee: <Fee Tokens Number>
     fee_mtokens: <Total Fee Millitokens To Pay String>
     hops: [{
       channel: <Standard Format Channel Id String>
@@ -106,6 +107,7 @@ module.exports = (args, cbk) => {
           }
 
           return cbk(null, {
+            fee: res.confirmed.fee,
             fee_mtokens: res.confirmed.fee_mtokens,
             hops: res.confirmed.hops,
             id: res.confirmed.id,

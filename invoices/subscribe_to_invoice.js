@@ -121,10 +121,6 @@ module.exports = ({id, lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedInvoicePreimage'));
     }
 
-    if (!!invoice.receipt.length && !Buffer.isBuffer(invoice.receipt)) {
-      return eventEmitter.emit('error', new Error('ExpectedInvoiceReceipt'));
-    }
-
     if (!invoice.value) {
       return eventEmitter.emit('error', new Error('ExpectedInvoiceValue'));
     }

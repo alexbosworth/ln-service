@@ -43,7 +43,8 @@ const randomId = () => randomBytes(32).toString('hex');
 
   @event 'confirmed'
   {
-    fee_mtokens: <Total Fee Millitokens To Pay String>
+    fee: <Total Fees Paid Tokens Number>
+    fee_mtokens: <Total Fee Millitokens Paid String>
     hops: [{
       channel: <Standard Format Channel Id String>
       channel_capacity: <Channel Capacity Tokens Number>

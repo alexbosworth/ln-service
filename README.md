@@ -2228,7 +2228,8 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
     @returns via cbk or Promise
     {
-      fee_mtokens: <Total Fee Millitokens To Pay String>
+      fee: <Total Fee Tokens Paid Number>
+      fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
         channel: <Standard Format Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
@@ -2275,6 +2276,7 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
     @returns via cbk or Promise
     {
+      fee: <Fee Tokens Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
       hops: [{
         channel: <Standard Format Channel Id String>
@@ -3397,7 +3399,8 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
     @event 'confirmed'
     {
-      fee_mtokens: <Total Fee Millitokens To Pay String>
+      fee: <Fee Tokens Paid Number>
+      fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
         channel: <Standard Format Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
@@ -3464,6 +3467,7 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
 
     @event 'confirmed'
     {
+      fee: <Fee Tokens Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
       hops: [{
         channel: <Standard Format Channel Id String>

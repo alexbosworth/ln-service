@@ -37,7 +37,8 @@ const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
 
   @returns via cbk or Promise
   {
-    fee_mtokens: <Total Fee Millitokens To Pay String>
+    fee: <Total Fee Tokens Paid Number>
+    fee_mtokens: <Total Fee Millitokens Paid String>
     hops: [{
       channel: <Standard Format Channel Id String>
       channel_capacity: <Channel Capacity Tokens Number>
@@ -116,6 +117,7 @@ module.exports = (args, cbk) => {
           }
 
           return cbk(null, {
+            fee: res.confirmed.fee,
             fee_mtokens: res.confirmed.fee_mtokens,
             hops: res.confirmed.hops,
             id: res.confirmed.id,

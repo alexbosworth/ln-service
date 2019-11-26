@@ -63,7 +63,8 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   @event 'confirmed'
   {
-    fee_mtokens: <Total Fee Millitokens To Pay String>
+    fee: <Total Fee Tokens Paid Number>
+    fee_mtokens: <Total Fee Millitokens Paid String>
     hops: [{
       channel: <Standard Format Channel Id String>
       channel_capacity: <Channel Capacity Tokens Number>
@@ -182,6 +183,7 @@ module.exports = args => {
       switch (data.state) {
       case states.confirmed:
         return emitter.emit('confirmed', {
+          fee: Number(BigInt(data.route.total_fees_msat) / mtokensPerToken),
           fee_mtokens: data.route.total_fees_msat,
           hops: data.route.hops.map(hop => ({
             channel: chanFormat({number: hop.chan_id}).channel,
