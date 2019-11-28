@@ -3,6 +3,7 @@ const {chanNumber} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
 const {channelEdgeAsChannel} = require('./../graph');
+const {isLnd} = require('./../grpc');
 
 const edgeIsZombieErrorMessage = 'edge marked as zombie';
 const edgeNotFoundErrorMessage = 'edge not found';
@@ -38,17 +39,13 @@ module.exports = ({id, lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!id) {
-          return cbk([400, 'ExpectedChannelIdToGet']);
-        }
-
         try {
           chanNumber({channel: id}).number
         } catch (err) {
           return cbk([400, 'ExpectedValidChannelIdToGetChannel', {err}]);
         }
 
-        if (!lnd || !lnd.default || !lnd.default.getChanInfo) {
+        if (!isLnd({lnd, method: 'getChanInfo', type: 'default'})) {
           return cbk([400, 'ExpectedLndToGetChannelDetails']);
         }
 

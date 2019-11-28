@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const decBase = 10;
 
 /** Get balance across channels.
@@ -20,7 +22,7 @@ module.exports = ({lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.default || !lnd.default.channelBalance) {
+        if (!isLnd({lnd, method: 'channelBalance', type: 'default'})) {
           return cbk([400, 'ExpectedLndGrpcApiForChannelBalanceQuery']);
         }
 
@@ -31,7 +33,7 @@ module.exports = ({lnd}, cbk) => {
       getChannelBalance: ['validate', ({}, cbk) => {
         return lnd.default.channelBalance({}, (err, res) => {
           if (!!err) {
-            return cbk([503, 'UnexpectedGetChannelBalanceError', err]);
+            return cbk([503, 'UnexpectedGetChannelBalanceError', {err}]);
           }
 
           if (!res) {

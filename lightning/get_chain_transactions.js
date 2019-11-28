@@ -2,6 +2,8 @@ const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const {abs} = Math;
 const decBase = 10;
 const {isArray} = Array;
@@ -36,7 +38,7 @@ module.exports = ({lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.default || !lnd.default.getTransactions) {
+        if (!isLnd({lnd, method: 'getTransactions', type: 'default'})) {
           return cbk([400, 'ExpectedLndToGetChainTransactions']);
         }
 

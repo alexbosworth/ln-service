@@ -2,6 +2,9 @@ const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
 const {backupsFromSnapshot} = require('./../backups');
+const {isLnd} = require('./../grpc');
+
+const method = 'exportAllChannelBackups';
 
 /** Get all channel backups
 
@@ -24,7 +27,7 @@ module.exports = ({lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.default || !lnd.default.exportAllChannelBackups) {
+        if (!isLnd({lnd, method, type: 'default'})) {
           return cbk([400, 'ExpectedLndGrpcToExportAllChannelBackups']);
         }
 

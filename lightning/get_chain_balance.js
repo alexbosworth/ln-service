@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const decBase = 10;
 
 /** Get balance on the chain.
@@ -19,7 +21,7 @@ module.exports = ({lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.default || !lnd.default.walletBalance) {
+        if (!isLnd({lnd, method: 'walletBalance', type: 'default'})) {
           return cbk([400, 'ExpectedAuthenticatedLndToRetrieveChainBalance']);
         }
 

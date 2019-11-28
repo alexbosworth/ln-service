@@ -1,8 +1,11 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const decBase = 10;
 const {isArray} = Array;
+const notFound = -1;
 
 /** Get a chain fee estimate for a prospective chain send
 
@@ -26,7 +29,7 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.lnd || !args.lnd.default || !args.lnd.default.estimateFee) {
+        if (!isLnd({lnd: args.lnd, type: 'default', method: 'estimateFee'})) {
           return cbk([400, 'ExpectedLndToEstimateChainFee']);
         }
 
@@ -35,12 +38,12 @@ module.exports = (args, cbk) => {
         }
 
         // Confirm send_to array has addresses
-        if (!!args.send_to.find(({address}) => !address)) {
+        if (args.send_to.findIndex(({address}) => !address) !== notFound) {
           return cbk([400, 'ExpectedSendToAddressInEstimateChainFee']);
         }
 
         // Confirm send_to array has tokens
-        if (!!args.send_to.find(({tokens}) => !tokens)) {
+        if (args.send_to.findIndex(({tokens}) => !tokens) !== notFound) {
           return cbk([400, 'ExpectedSendToTokensInEstimateChainFee']);
         }
 
@@ -62,6 +65,10 @@ module.exports = (args, cbk) => {
         (err, res) => {
           if (!!err) {
             return cbk([503, 'UnexpectedErrEstimatingFeeForChainSend', {err}]);
+          }
+
+          if (!res) {
+            return cbk([503, 'ExpectedResponseFromEstimateFeeApi']);
           }
 
           if (!res.fee_sat) {

@@ -164,6 +164,7 @@ module.exports = args => {
     }
 
     const sub = args.lnd.router.sendPayment({
+      allow_self_payment: true,
       amt: amounts.tokens,
       amt_msat: amounts.mtokens,
       cltv_limit: !!args.max_timeout_height ? maxCltvDelta : undefined,
