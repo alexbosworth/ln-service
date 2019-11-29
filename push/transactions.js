@@ -1,6 +1,7 @@
 const {broadcastResponse} = require('./../push');
 const subscribeToTx = require('./../lightning/subscribe_to_transactions');
 
+const chainTransaction = 'chain_transaction';
 const {isArray} = Array;
 
 /** Subscribe to transactions.
@@ -28,7 +29,7 @@ module.exports = ({lnd, log, wss}) => {
 
   const subscription = subscribeToTx({lnd});
 
-  subscription.on('data', row => broadcastResponse({log, row, wss}));
+  subscription.on(chainTransaction, row => broadcastResponse({log, row, wss}));
   subscription.on('end', () => {});
   subscription.on('error', err => log([503, 'TxSubscribeErr', {err}]));
   subscription.on('status', ({}) => {});

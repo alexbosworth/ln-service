@@ -1,6 +1,6 @@
 # Versions
 
-## 47.5.1
+## 47.5.3
 
 - `payViaPaymentDetails`: add `fee` attribute for fee tokens paid
 - `payViaPaymentRequest`: add `fee` attribute for fee tokens paid

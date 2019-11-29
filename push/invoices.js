@@ -1,6 +1,7 @@
 const {broadcastResponse} = require('./../push');
 const subscribeToInvoices = require('./../lightning/subscribe_to_invoices');
 
+const invoiceUpdate = 'invoice_updated';
 const {isArray} = Array;
 
 /** Subscribe to invoices.
@@ -29,7 +30,8 @@ module.exports = ({lnd, log, wss}) => {
 
   const subscription = subscribeToInvoices({lnd});
 
-  subscription.on('data', row => broadcastResponse({log, row, wss}));
+  subscription.on(invoiceUpdate, row => broadcastResponse({log, row, wss}));
+
   subscription.on('end', () => {});
   subscription.on('error', err => log([503, 'SubscribeInvoicesErr', {err}]));
   subscription.on('status', ({}) => {});

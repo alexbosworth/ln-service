@@ -1,6 +1,7 @@
 const {broadcastResponse} = require('./../push');
 const subscribeToGraph = require('./../lightning/subscribe_to_graph');
 
+const graphEvents = ['channel_closed', 'channel_updated', 'node_updated'];
 const {isArray} = Array;
 
 /** Subscribe to channel graph updates.
@@ -28,7 +29,10 @@ module.exports = ({lnd, log, wss}) => {
 
   const subscription = subscribeToGraph({lnd});
 
-  subscription.on('data', row => broadcastResponse({log, row, wss}));
+  graphEvents.forEach(event => {
+    return subscription.on(event, row => broadcastResponse({log, row, wss}))
+  });
+
   subscription.on('end', () => {});
   subscription.on('error', err => log([503, 'SubscribeToGraphError', {err}]));
   subscription.on('status', ({}) => {});
