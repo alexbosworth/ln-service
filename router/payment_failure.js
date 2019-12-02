@@ -103,6 +103,9 @@ module.exports = ({channel, failure, index, key, keys}) => {
   case 'CHANNEL_DISABLED':
     return {details, code: 503, message: 'ChannelDisabled'};
 
+  case 'EXPIRY_TOO_FAR':
+    return {details, code: 503, message: 'ExpiryTooFar'};
+
   case 'EXPIRY_TOO_SOON':
     return {details, code: 503, message: 'ExpiryTooSoon'};
 
@@ -162,6 +165,9 @@ module.exports = ({channel, failure, index, key, keys}) => {
 
   case 'UNKNOWN_PAYMENT_HASH':
     return {details, code: 404, message: 'UnknownPaymentHash'};
+
+  case 'UNREADABLE_FAILURE':
+    return {details, code: 503, message: 'UnreadableFailure'};
 
   default:
     return {details, code: 500, message: 'UnexpectedPayViaRoutesFailure'};

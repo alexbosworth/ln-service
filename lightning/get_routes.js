@@ -15,6 +15,8 @@ const {routeFromChannels} = require('./../routing');
 const defaultFinalCltvDelta = 40;
 const defaultTokens = 0;
 const {isArray} = Array;
+const maxPaymentTokens = 4294967;
+const {min} = Math;
 const notFoundCode = 404;
 const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
 
@@ -181,7 +183,7 @@ module.exports = (args, cbk) => {
           outgoing_channel: args.outgoing_channel,
           routes: args.routes,
           start_public_key: getOutgoing.source_key,
-          tokens: args.tokens,
+          tokens: min(args.tokens, maxPaymentTokens),
         },
         cbk);
       }],

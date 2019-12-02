@@ -110,7 +110,7 @@ const {isArray} = Array;
       cltv_delta: <Locktime Delta Number>
       fee_rate: <Fees Charged Per Million Tokens Number>
       [is_disabled]: <Channel is Disabled Bool>
-      max_htlc_mtokens: <Maximum HLTC Millitokens value String>
+      max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
       min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
     }
     public_key: <Public Key Hex String>

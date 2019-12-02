@@ -1,6 +1,8 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const addPeer = require('./add_peer');
+
 const defaultMinConfs = 1;
 const defaultMinHtlcMtokens = '1';
 const minChannelTokens = 20000;
@@ -21,6 +23,7 @@ const minChannelTokens = 20000;
     [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
     partner_public_key: <Public Key Hex String>
     [partner_csv_delay]: <Peer Output CSV Delay Number>
+    [partner_socket]: <Peer Connection Host:Port String>
   }
 
   @returns via cbk or Promise
@@ -53,6 +56,20 @@ module.exports = (args, cbk) => {
         return cbk();
       },
 
+      // Connect to peer
+      connect: ['validate', ({}, cbk) => {
+        if (!args.partner_socket) {
+          return cbk();
+        }
+
+        return addPeer({
+          lnd: args.lnd,
+          public_key: args.partner_public_key,
+          socket: args.partner_socket,
+        },
+        cbk);
+      }],
+
       // Determine the minimum confs for spend utxos
       minConfs: ['validate', ({}, cbk) => {
         if (args.min_confirmations === undefined) {
@@ -63,7 +80,7 @@ module.exports = (args, cbk) => {
       }],
 
       // Open the channel
-      openChannel: ['minConfs', ({minConfs}, cbk) => {
+      openChannel: ['connect', 'minConfs', ({minConfs}, cbk) => {
         let isAnnounced = false;
 
         const options = {
@@ -98,7 +115,7 @@ module.exports = (args, cbk) => {
 
             isAnnounced = true;
 
-            channelOpen.removeAllListeners();
+            channelOpen.cancel();
 
             return cbk(null, {
               transaction_id: chan.chan_pending.txid.reverse().toString('hex'),
@@ -139,6 +156,10 @@ module.exports = (args, cbk) => {
             return cbk([503, 'PeerIsNotOnline']);
           }
 
+          if (/not.enough.witness.outputs.to.create.funding/.test(n.details)) {
+            return cbk([400, 'InsufficientFundsToCreateChannel', {err: n}]);
+          }
+
           switch (n.details) {
           case 'cannot open channel to self':
             return cbk([400, 'CannotOpenChannelToOwnNode']);
@@ -151,6 +172,9 @@ module.exports = (args, cbk) => {
 
           case 'Synchronizing blockchain':
             return cbk([503, 'RemoteNodeSyncing']);
+
+          case 'Unable to send funding request message: peer exiting':
+            return cbk([503, 'RemotePeerExited']);
 
           default:
             return cbk([503, 'FailedToOpenChannel', n]);

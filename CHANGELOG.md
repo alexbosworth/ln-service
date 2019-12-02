@@ -1,5 +1,10 @@
 # Versions
 
+## 47.5.4
+
+- `getRoutes`: allow overflowing the payment size
+- `openChannel`: add `partner_socket` to attempt connecting before opening
+
 ## 47.5.3
 
 - `payViaPaymentDetails`: add `fee` attribute for fee tokens paid
