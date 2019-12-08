@@ -4,6 +4,7 @@ const EventEmitter = require('events');
 const {chanFormat} = require('bolt07');
 const isHex = require('is-hex');
 
+const {safeTokens} = require('./../bolt00');
 const {states} = require('./payment_states');
 
 const decBase = 10;
@@ -39,6 +40,8 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
     }]
     id: <Payment Hash Hex String>
     mtokens: <Total Millitokens Paid String>
+    safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+    safe_tokens: <Payment Tokens Rounded Up Number>
     secret: <Payment Preimage Hex String>
     tokens: <Tokens Paid Number>
     timeout: <Expiration Block Height Number>
@@ -70,6 +73,7 @@ module.exports = args => {
     switch (data.state) {
     case states.confirmed:
       return emitter.emit('confirmed', {
+        fee: safeTokens({mtokens: data.route.total_fees_msat}).tokens,
         fee_mtokens: data.route.total_fees_msat,
         hops: data.route.hops.map(hop => ({
           channel: chanFormat({number: hop.chan_id}).channel,
@@ -80,8 +84,10 @@ module.exports = args => {
         })),
         id: sha256(data.preimage).toString('hex'),
         mtokens: data.route.total_amt_msat,
+        safe_fee: safeTokens({mtokens: data.route.total_fees_msat}).safe,
+        safe_tokens: safeTokens({mtokens: data.route.total_amt_msat}).safe,
         secret: data.preimage.toString('hex'),
-        tokens: Number(BigInt(data.route.total_amt_msat) / mtokensPerToken),
+        tokens: safeTokens({mtokens: data.route.total_amt_msat}).tokens,
       });
 
     case states.errored:

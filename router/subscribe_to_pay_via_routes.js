@@ -137,6 +137,8 @@ const unknownWireError = 'unknown wire error';
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Millitokens To Pay String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
     }
@@ -179,9 +181,13 @@ const unknownWireError = 'unknown wire error';
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Millitokens To Pay String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
     }
+    safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+    safe_tokens: <Payment Tokens Rounded Up Number>
     secret: <Payment Secret Preimage Hex String>
     tokens: <Total Tokens Sent Number>
   }
@@ -338,6 +344,8 @@ module.exports = args => {
           fee_mtokens: route.fee_mtokens,
           hops: route.hops,
           mtokens: route.mtokens,
+          safe_fee: route.safe_fee,
+          safe_tokens: route.safe_tokens,
           secret: attempt.preimage.toString('hex'),
           tokens: route.tokens,
         });
@@ -390,6 +398,8 @@ module.exports = args => {
           fee_mtokens: success.fee_mtokens,
           hops: success.hops,
           mtokens: success.mtokens,
+          safe_fee: success.safe_fee,
+          safe_tokens: success.safe_tokens,
           secret: success.secret,
           tokens: success.tokens,
         });

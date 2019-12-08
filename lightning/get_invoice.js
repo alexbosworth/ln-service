@@ -99,12 +99,12 @@ module.exports = ({id, lnd}, cbk) => {
             return cbk([503, 'ExpectedPaymentRequestForInvoice']);
           }
 
-          if (response.settled !== false && response.settled !== true) {
-            return cbk([503, 'ExpectedSettledStateInLookupInvoiceResponse']);
-          }
-
           if (!Buffer.isBuffer(response.r_preimage)) {
             return cbk([503, 'ExpectedPreimageInLookupInvoiceResponse']);
+          }
+
+          if (response.settled !== false && response.settled !== true) {
+            return cbk([503, 'ExpectedSettledStateInLookupInvoiceResponse']);
           }
 
           const createdAtEpochTime = parseInt(response.creation_date, decBase);

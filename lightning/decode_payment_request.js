@@ -3,7 +3,9 @@ const {isFinite} = require('lodash');
 const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
+const {parsePaymentRequest} = require('./../bolt11');
 const {routeFromRouteHint} = require('./../routing');
+const {safeTokens} = require('./../bolt00');
 
 const decBase = 10;
 const defaultExpireMs = 1000 * 60 * 60;
@@ -27,6 +29,7 @@ const {now} = Date;
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
     id: <Payment Hash String>
+    mtokens: <Requested Millitokens String>
     routes: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
       [channel]: <Standard Format Channel Id String>
@@ -34,7 +37,8 @@ const {now} = Date;
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
-    tokens: <Requested Tokens Number>
+    safe_tokens: <Requested Tokens Rounded Up Number>
+    tokens: <Requested Tokens Rounded Down Number>
   }
 */
 module.exports = ({lnd, request}, cbk) => {
@@ -53,8 +57,19 @@ module.exports = ({lnd, request}, cbk) => {
         return cbk();
       },
 
+      // Get payment request values
+      values: ['validate', ({}, cbk) => {
+        try {
+          const parsed = parsePaymentRequest({request});
+
+          return cbk(null, parsed);
+        } catch (err) {
+          return cbk([503, 'FailedToParsePaymentRequest', {err}]);
+        }
+      }],
+
       // Decode payment request
-      decode: ['validate', ({}, cbk) => {
+      decode: ['values', ({values}, cbk) => {
         return lnd.default.decodePayReq({pay_req: request}, (err, res) => {
           if (!!err) {
             return cbk([503, 'UnexpectedDecodePaymentRequestError', {err}]);
@@ -108,11 +123,13 @@ module.exports = ({lnd, request}, cbk) => {
             expires_at: new Date(expiryDateMs).toISOString(),
             id: res.payment_hash,
             is_expired: now() > expiryDateMs,
+            mtokens: values.mtokens,
             routes: res.route_hints.map(route => routeFromRouteHint({
               destination: res.destination,
               hop_hints: route.hop_hints,
             })),
-            tokens: parseInt(res.num_satoshis, decBase),
+            safe_tokens: values.safe_tokens,
+            tokens: Number(res.num_satoshis),
           });
         });
       }],

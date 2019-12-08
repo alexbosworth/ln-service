@@ -75,10 +75,10 @@ test('Payment errors', async ({end, equal}) => {
 
     await pay({lnd, path: {id, routes: [route]}});
   } catch (err) {
-    const [, code, context] = err;
+    const [, code, context] = err || [];
 
     equal(code, 'RejectedUnacceptableFee', 'Pay fails due to low fee');
-    equal(context.channel, channels.find(n => !n.local_balance).id);
+    equal((context || {}).channel, channels.find(n => !n.local_balance).id);
   }
 
   await cluster.kill({});

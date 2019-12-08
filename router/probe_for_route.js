@@ -48,7 +48,7 @@ const {isArray} = Array;
   @returns via cbk or Promise
   {
     [route]: {
-      fee: <Route Fee Tokens Number>
+      fee: <Route Fee Tokens Rounded Down Number>
       fee_mtokens: <Route Fee Millitokens String>
       hops: [{
         channel: <Standard Format Channel Id String>
@@ -61,8 +61,10 @@ const {isArray} = Array;
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       timeout: <Timeout Block Height Number>
-      tokens: <Total Fee-Inclusive Tokens Number>
+      tokens: <Total Fee-Inclusive Tokens Rounded Down Number>
     }
   }
 */

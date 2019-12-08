@@ -1,5 +1,7 @@
 const {chanFormat} = require('bolt07');
 
+const {safeTokens} = require('./../bolt00');
+
 const decBase = 10;
 const {isArray} = Array;
 const mtokensPerToken = BigInt(1e3);
@@ -50,6 +52,8 @@ const successDenominator = 1e6;
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Millitokens String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       timeout: <Timeout Block Height Number>
       tokens: <Total Tokens Number>
     }]
@@ -107,23 +111,25 @@ module.exports = ({response}) => {
 
       return {
         confidence: confidence || undefined,
-        fee: millitokensToTokens(route.total_fees_msat),
+        fee: safeTokens({mtokens: route.total_fees_msat}).tokens,
         fee_mtokens: route.total_fees_msat,
         hops: route.hops.map(h => {
           return {
             channel: chanFormat({number: h.chan_id}).channel,
-            channel_capacity: parseInt(h.chan_capacity, decBase),
-            fee: millitokensToTokens(h.fee_msat),
+            channel_capacity: Number(h.chan_capacity),
+            fee: safeTokens({mtokens: h.fee_msat}).tokens,
             fee_mtokens: h.fee_msat,
-            forward: millitokensToTokens(h.amt_to_forward_msat),
+            forward: safeTokens({mtokens: h.amt_to_forward_msat}).tokens,
             forward_mtokens: h.amt_to_forward_msat,
             public_key: h.pub_key,
             timeout: h.expiry,
           };
         }),
         mtokens: route.total_amt_msat,
+        safe_fee: safeTokens({mtokens: route.total_fees_msat}).safe,
+        safe_tokens: safeTokens({mtokens: route.total_amt_msat}).safe,
         timeout: route.total_time_lock,
-        tokens: millitokensToTokens(route.total_amt_msat),
+        tokens: safeTokens({mtokens: route.total_amt_msat}).tokens,
       };
     }),
   };

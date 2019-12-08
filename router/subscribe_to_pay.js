@@ -7,6 +7,7 @@ const {chanNumber} = require('bolt07');
 const getWalletInfo = require('./../lightning/get_wallet_info');
 const paymentAmounts = require('./payment_amounts');
 const {routeHintFromRoute} = require('./../routing');
+const {safeTokens} = require('./../bolt00');
 const {states} = require('./payment_states');
 
 const cltvBuf = 3;
@@ -63,11 +64,12 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   @event 'confirmed'
   {
-    fee: <Total Fee Tokens Paid Number>
+    fee: <Total Fee Tokens Paid Rounded Down Number>
     fee_mtokens: <Total Fee Millitokens Paid String>
     hops: [{
       channel: <Standard Format Channel Id String>
       channel_capacity: <Channel Capacity Tokens Number>
+      fee: <Fee Tokens Rounded Down Number>
       fee_mtokens: <Fee Millitokens String>
       forward_mtokens: <Forward Millitokens String>
       public_key: <Public Key Hex String>
@@ -75,9 +77,11 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
     }]
     id: <Payment Hash Hex String>
     mtokens: <Total Millitokens Paid String>
+    safe_fee: <Total Fee Tokens Paid Rounded Up Number>
+    safe_tokens: <Total Tokens Paid, Rounded Up Number>
     secret: <Payment Preimage Hex String>
     timeout: <Expiration Block Height Number>
-    tokens: <Total Tokens Paid Number>
+    tokens: <Total Tokens Paid Rounded Down Number>
   }
 
   @event 'failed'
@@ -85,6 +89,25 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
     is_invalid_payment: <Failed Due to Invalid Payment Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
     is_route_not_found: <Failed Due to Route Not Found Bool>
+    [route]: {
+      fee: <Route Total Fee Tokens Rounded Down Number>
+      fee_mtokens: <Route Total Fee Millitokens String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Hop Forwarding Fee Rounded Down Tokens Number>
+        fee_mtokens: <Hop Forwarding Fee Millitokens String>
+        forward: <Hop Forwarding Tokens Rounded Down Number>
+        forward_mtokens: <Hop Forwarding Millitokens String>
+        public_key: <Hop Sending To Public Key Hex String>
+        timeout: <Hop CTLV Expiration Height Number>
+      }]
+      mtokens: <Payment Sending Millitokens String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Sending Tokens Rounded Up Number>
+      timeout: <Payment CLTV Expiration Height Number>
+      tokens: <Payment Sending Tokens Rounded Down Number>
+    }
   }
 
   @event 'paying'
@@ -184,20 +207,23 @@ module.exports = args => {
       switch (data.state) {
       case states.confirmed:
         return emitter.emit('confirmed', {
-          fee: Number(BigInt(data.route.total_fees_msat) / mtokensPerToken),
+          fee: safeTokens({mtokens: data.route.total_fees_msat}).tokens,
           fee_mtokens: data.route.total_fees_msat,
           hops: data.route.hops.map(hop => ({
             channel: chanFormat({number: hop.chan_id}).channel,
-            channel_capacity: parseInt(hop.chan_capacity, decBase),
+            channel_capacity: Number(hop.chan_capacity),
+            fee: safeTokens({mtokens: hop.fee_msat}).tokens,
             fee_mtokens: hop.fee_msat,
             forward_mtokens: hop.amt_to_forward_msat,
             timeout: hop.expiry,
           })),
           id: sha256(data.preimage).toString('hex'),
           mtokens: data.route.total_amt_msat,
+          safe_fee: safeTokens({mtokens: data.route.total_fees_msat}).safe,
+          safe_tokens: safeTokens({mtokens: data.route.total_amt_msat}).safe,
           secret: data.preimage.toString('hex'),
           timeout: data.route.total_time_lock,
-          tokens: Number(BigInt(data.route.total_amt_msat) / mtokensPerToken),
+          tokens: safeTokens({mtokens: data.route.total_amt_msat}).tokens,
         });
 
       case states.errored:
@@ -209,21 +235,23 @@ module.exports = args => {
           is_pathfinding_timeout: data.state === states.pathfinding_timeout,
           is_route_not_found: data.state === states.pathfinding_routes_failed,
           route: !data.route ? undefined : {
-            fee: Number(BigInt(data.route.total_fees_msat) / BigInt(1e3)),
+            fee: safeTokens({mtokens: data.route.total_fees_msat}).tokens,
             fee_mtokens: data.route.total_fees_msat,
             hops: data.route.hops.map(hop => ({
               channel: chanFormat({number: hop.chan_id}).channel,
               channel_capacity: Number(hop.chan_capacity),
-              fee: Number(BigInt(hop.fee_msat) / BigInt(1e3)),
+              fee: safeTokens({mtokens: hop.fee_msat}).tokens,
               fee_mtokens: hop.fee_msat,
-              forward: Number(BigInt(hop.amt_to_forward_msat) / BigInt(1e3)),
+              forward: safeTokens({mtokens: hop.amt_to_forward_msat}).tokens,
               forward_mtokens: hop.amt_to_forward_msat,
               public_key: hop.pub_key,
               timeout: hop.expiry,
             })),
             mtokens: data.route.total_amt_msat,
+            safe_fee: safeTokens({mtokens: data.route.total_fees_msat}).safe,
+            safe_tokens: safeTokens({mtokens: data.route.total_amt_msat}).safe,
             timeout: data.route.total_time_lock,
-            tokens: Number(data.route.total_amt),
+            tokens: safeTokens({mtokens: data.route.total_amt_msat}).tokens,
           },
         }));
 

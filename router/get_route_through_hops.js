@@ -41,6 +41,8 @@ const unknownServiceMessage = 'unknown service routerrpc.Router';
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       timeout: <Route Timeout Height Number>
       tokens: <Total Fee-Inclusive Tokens Number>
     }

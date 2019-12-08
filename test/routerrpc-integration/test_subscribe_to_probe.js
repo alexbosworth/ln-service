@@ -125,6 +125,8 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
       }
     ],
     mtokens: '500001500',
+    safe_fee: 2,
+    safe_tokens: 500002,
     timeout: 568,
     tokens: 500001,
   });

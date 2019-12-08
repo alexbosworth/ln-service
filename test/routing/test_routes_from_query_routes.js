@@ -61,6 +61,8 @@ const tests = [
           timeout: 1385001,
         }],
         mtokens: '830497000',
+        safe_fee: 1,
+        safe_tokens: 830497,
         timeout: 31337,
         tokens: 830497,
       },

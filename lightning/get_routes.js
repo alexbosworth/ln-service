@@ -11,12 +11,11 @@ const getWalletInfo = require('./get_wallet_info');
 const {ignoreAsIgnoredEdges} = require('./../routing');
 const {queryRoutes} = require('./../routing');
 const {routeFromChannels} = require('./../routing');
+const {safeTokens} = require('./../bolt00');
 
 const defaultFinalCltvDelta = 40;
 const defaultTokens = 0;
 const {isArray} = Array;
-const maxPaymentTokens = 4294967;
-const {min} = Math;
 const notFoundCode = 404;
 const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
 
@@ -81,6 +80,8 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
       [payment]: <Payment Identifier Hex String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       timeout: <Route Timeout Height Number>
       tokens: <Total Fee-Inclusive Tokens Number>
       [total_mtokens]: <Total Millitokens String>
@@ -183,7 +184,7 @@ module.exports = (args, cbk) => {
           outgoing_channel: args.outgoing_channel,
           routes: args.routes,
           start_public_key: getOutgoing.source_key,
-          tokens: min(args.tokens, maxPaymentTokens),
+          tokens: args.tokens,
         },
         cbk);
       }],
@@ -341,6 +342,8 @@ module.exports = (args, cbk) => {
                     hops: route.hops,
                     mtokens: route.mtokens,
                     payment: route.payment,
+                    safe_fee: safeTokens({mtokens: route.fee_mtokens}).safe,
+                    safe_tokens: safeTokens({mtokens: route.mtokens}).safe,
                     timeout: route.timeout,
                     tokens: route.tokens,
                     total_mtokens: route.total_mtokens,

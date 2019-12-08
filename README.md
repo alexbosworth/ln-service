@@ -553,8 +553,13 @@ Setting `mtokens` will not work on LND versions 0.8.1 and below
 Example:
 
 ```node
+// Require the create HODL HTLC method.
 const {createHodlInvoice} = require('ln-service');
+
+// Choose an r_hash for this invoice, a single sha256, on say randomBytes(32)
 const id = 'preimageSha256HashString';
+
+// Supply an authenticatedLndGrpc object for an lnd built with invoicesrpc
 const invoice = await createHodlInvoice({id, lnd});
 ```
 
@@ -658,6 +663,7 @@ Get decoded payment request
       destination: <Public Key String>
       expires_at: <ISO 8601 Date String>
       id: <Payment Hash String>
+      mtokens: <Requested Millitokens String>
       routes: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
@@ -665,7 +671,8 @@ Get decoded payment request
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         public_key: <Forward Edge Public Key Hex String>
       }]]
-      tokens: <Requested Tokens Number>
+      safe_tokens: <Requested Tokens Rounded Up Number>
+      tokens: <Requested Tokens Rounded Down Number>
     }
 
 Example:
@@ -1525,6 +1532,8 @@ Requires LND compiled with `routerrpc` build tag
         }]
         id: <Payment Hash Hex String>
         mtokens: <Total Millitokens Paid String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Tokens Rounded Up Number>
         secret: <Payment Preimage Hex String>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens Paid Number>
@@ -1861,6 +1870,8 @@ Setting both `start` and `outgoing_channel` is not supported
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Fee-Inclusive Millitokens String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Tokens Rounded Up Number>
         timeout: <Final CLTV Delta Number>
         tokens: <Total Fee-Inclusive Tokens Number>
       }]
@@ -2126,6 +2137,7 @@ Note: either description or description_hash will be returned
         [fee_rate]: <Fee Rate Millitokens Per Million Number>
         public_key: <Forward Edge Public Key Hex String>
       }]]
+      [safe_tokens]: <Requested Tokens Rounded Up Number>
       [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
     }
 
@@ -2191,6 +2203,8 @@ hops is required to form the route.
       is_outgoing: <Is Outoing Bool>
       mtokens: <Total Millitokens Sent String>
       secret: <Payment Secret Preimage Hex String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       tokens: <Total Tokens Sent Number>
     }
 
@@ -2241,7 +2255,10 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
       }]
       [id]: <Payment Hash Hex String>
       mtokens: <Total Millitokens To Pay String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
+      tokens: <Tokens Paid Rounded Down Number>
     }
 
 Example:
@@ -2289,7 +2306,10 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
       }]
       [id]: <Payment Hash Hex String>
       mtokens: <Total Millitokens To Pay String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
+      tokens: <Tokens Paid Rounded Down Number>
     }
 
 Example:
@@ -2351,8 +2371,10 @@ If no id is specified, a random id will be used
       is_confirmed: <Is Confirmed Bool>
       is_outgoing: <Is Outoing Bool>
       mtokens: <Total Millitokens Sent String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Secret Preimage Hex String>
-      tokens: <Total Tokens Sent Number>
+      tokens: <Total Tokens Sent Rounded Down Number>
     }
 
     @returns error via cbk or Promise
@@ -2487,7 +2509,7 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
     @returns via cbk or Promise
     {
       [route]: {
-        fee: <Route Fee Tokens Number>
+        fee: <Route Fee Tokens Rounded Down Number>
         fee_mtokens: <Route Fee Millitokens String>
         hops: [{
           channel: <Standard Format Channel Id String>
@@ -2500,8 +2522,10 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Fee-Inclusive Millitokens String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Tokens Rounded Up Number>
         timeout: <Timeout Block Height Number>
-        tokens: <Total Fee-Inclusive Tokens Number>
+        tokens: <Total Fee-Inclusive Tokens Rounded Down Number>
       }
     }
 
@@ -3342,6 +3366,8 @@ Requires LND built with `routerrpc` build tag
       }]
       id: <Payment Hash Hex String>
       mtokens: <Total Millitokens Paid String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
       timeout: <Expiration Block Height Number>
       tokens: <Tokens Paid Number>
@@ -3412,7 +3438,10 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
       }]
       [id]: <Payment Hash Hex String>
       mtokens: <Total Millitokens To Pay String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
+      tokens: <Total Tokens Paid Rounded Down Number>
     }
 
     @event 'failed'
@@ -3420,6 +3449,25 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
       is_route_not_found: <Failed Due to Route Not Found Bool>
+      [route]: {
+        fee: <Route Total Fee Tokens Rounded Down Number>
+        fee_mtokens: <Route Total Fee Millitokens String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Hop Forwarding Fee Rounded Down Tokens Number>
+          fee_mtokens: <Hop Forwarding Fee Millitokens String>
+          forward: <Hop Forwarding Tokens Rounded Down Number>
+          forward_mtokens: <Hop Forwarding Millitokens String>
+          public_key: <Hop Sending To Public Key Hex String>
+          timeout: <Hop CTLV Expiration Height Number>
+        }]
+        mtokens: <Payment Sending Millitokens String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Sending Tokens Rounded Up Number>
+        timeout: <Payment CLTV Expiration Height Number>
+        tokens: <Payment Sending Tokens Rounded Down Number>
+      }
     }
 
     @event 'paying'
@@ -3480,6 +3528,8 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
       }]
       id: <Payment Hash Hex String>
       mtokens: <Total Millitokens Paid String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens Paid Number>
@@ -3490,6 +3540,25 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
       is_route_not_found: <Failed Due to Route Not Found Bool>
+      [route]: {
+        fee: <Route Total Fee Tokens Rounded Down Number>
+        fee_mtokens: <Route Total Fee Millitokens String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Hop Forwarding Fee Rounded Down Tokens Number>
+          fee_mtokens: <Hop Forwarding Fee Millitokens String>
+          forward: <Hop Forwarding Tokens Rounded Down Number>
+          forward_mtokens: <Hop Forwarding Millitokens String>
+          public_key: <Hop Sending To Public Key Hex String>
+          timeout: <Hop CTLV Expiration Height Number>
+        }]
+        mtokens: <Payment Sending Millitokens String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Sending Tokens Rounded Up Number>
+        timeout: <Payment CLTV Expiration Height Number>
+        tokens: <Payment Sending Tokens Rounded Down Number>
+      }
     }
 
     @event 'paying'
@@ -3621,6 +3690,8 @@ Requires lnd built with routerrpc build tag
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
       }
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       [timeout_height]: <Failure Related CLTV Timeout Height Number>
       [update]: {
         chain: <Chain Id Hex String>
@@ -3663,6 +3734,8 @@ Requires lnd built with routerrpc build tag
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
       }
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Secret Preimage Hex String>
       tokens: <Total Tokens Sent Number>
     }
@@ -3738,6 +3811,8 @@ Requires LND built with `routerrpc` build tag
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Millitokens To Pay String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Sending Tokens Rounded Up Number>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
       }

@@ -21,8 +21,8 @@ const confirmationCount = 6;
 const defaultFee = 1e3;
 const tokens = 100;
 
-// Create a hodl invoice
-test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
+// Create a hodl invoice, but cancel it
+test(`Cancel back a hodl invoice`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;

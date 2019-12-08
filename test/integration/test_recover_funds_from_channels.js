@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
@@ -80,6 +81,15 @@ test(`Recover funds with backup`, async ({end, equal}) => {
   equal(chan.partner_public_key, cluster.target_node_public_key, 'Peer key');
   equal(chan.transaction_id, channelOpen.transaction_id, 'Chan tx id');
   equal(chan.transaction_vout, channelOpen.transaction_vout, 'Chan tx vout');
+
+  const interval = retryCount => 50 * Math.pow(2, retryCount);
+  const times = 10;
+
+  await delay(3000);
+
+  clone.kill();
+
+  clone.kill();
 
   clone.kill();
 

@@ -73,6 +73,8 @@ const {isArray} = Array;
         timeout: <Timeout Block Height Number>
       }]
       mtokens: <Total Millitokens To Pay String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Sent Tokens Rounded Up Number>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
     }
@@ -96,6 +98,8 @@ const {isArray} = Array;
       }]
       index: <Failure Index Number>
       mtokens: <Total Millitokens To Pay String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Sending Tokens Rounded Up Number>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens To Pay Number>
     }

@@ -1,5 +1,26 @@
 # Versions
 
+## 47.5.5
+
+Introducing `safe_fee` and `safe_tokens` for payments. This represents token
+values as rounded up versions of themselves to avoid unsafely ignoring the
+amount spent as millitokens.
+
+- `decodePaymentRequest`: add `mtokens`
+- `decodePaymentRequest`: add `safe_tokens`
+- `getPayment`: add `safe_fee` and `safe_tokens`
+- `getRoutes`: add `safe_fee` and `safe_tokens`
+- `pay`: add `safe_fee` and `safe_tokens`
+- `payViaPaymentDetails`: add `safe_fee` and `safe_tokens`
+- `payViaPaymentRequest`: add `safe_fee` and `safe_tokens`
+- `payViaRoutes`: add `safe_fee` and `safe_tokens`
+- `probeForRoute`: add `safe_fee` and `safe_tokens`
+- `subscribeToPastPayment`: add `safe_fee` and `safe_tokens`
+- `subscribeToPayViaDetails`: add `safe_fee` and `safe_tokens`
+- `subscribeToPayViaRequest`: add `safe_fee` and `safe_tokens`
+- `subscribeToPayViaRoutes`: add `safe_fee` and `safe_tokens`
+- `subscribeToProbe`: add `safe_fee` and `safe_tokens`
+
 ## 47.5.4
 
 - `getRoutes`: allow overflowing the payment size

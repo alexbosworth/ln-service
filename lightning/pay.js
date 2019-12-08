@@ -9,6 +9,7 @@ const {returnResult} = require('asyncjs-util');
 
 const {broadcastResponse} = require('./../push');
 const payPaymentRequest = require('./pay_payment_request');
+const {safeTokens} = require('./../bolt00');
 
 const chanIdMatch = /(\d+[x\:]\d+[\:x]\d+)/gim;
 const chanSplit = /[\:x\,]/;
@@ -76,6 +77,8 @@ const tokensFromMtok = n => Number(BigInt(n) / BigInt(1e3));
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
     mtokens: <Total Millitokens Sent String>
+    safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+    safe_tokens: <Payment Tokens Rounded Up Number>
     secret: <Payment Secret Preimage Hex String>
     tokens: <Total Tokens Sent Number>
   }
@@ -360,6 +363,9 @@ module.exports = (args, cbk) => {
                 return cbk([503, 'ExpectedNumericChanIdInPayResponse', {err}]);
               }
 
+              const feeMtokens = attempt.payment_route.total_fees_msat;
+              const mtokens = attempt.payment_route.total_amt_msat;
+
               const row = {
                 fee: parseInt(attempt.payment_route.total_fees, decBase),
                 fee_mtokens: attempt.payment_route.total_fees_msat,
@@ -376,6 +382,8 @@ module.exports = (args, cbk) => {
                 is_confirmed: true,
                 is_outgoing: true,
                 mtokens: attempt.payment_route.total_amt_msat,
+                safe_fee: safeTokens({mtokens: feeMtokens}).safe,
+                safe_tokens: safeTokens({mtokens}).safe,
                 secret: attempt.payment_preimage.toString('hex'),
                 tokens: tokensFromMtok(attempt.payment_route.total_amt_msat),
               };

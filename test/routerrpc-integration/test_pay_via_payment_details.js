@@ -62,12 +62,14 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
     {
       channel: channel.id,
       channel_capacity: 1000000,
+      fee: 1,
       fee_mtokens: '1000',
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
     },
     {
       channel: remoteChan.id,
       channel_capacity: 1000000,
+      fee: 0,
       fee_mtokens: '0',
       forward_mtokens: '100000',
     },
@@ -116,6 +118,8 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
             },
           ],
           mtokens: '101000',
+          safe_fee: 1,
+          safe_tokens: 101,
           timeout: height + 40 + 43,
           tokens: invoice.tokens + 1,
         },

@@ -41,6 +41,8 @@ const subscribeToPay = require('./subscribe_to_pay');
     }]
     id: <Payment Hash Hex String>
     mtokens: <Total Millitokens Paid String>
+    safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+    safe_tokens: <Payment Tokens Rounded Up Number>
     secret: <Payment Preimage Hex String>
     timeout: <Expiration Block Height Number>
     tokens: <Total Tokens Paid Number>
@@ -51,6 +53,25 @@ const subscribeToPay = require('./subscribe_to_pay');
     is_invalid_payment: <Failed Due to Invalid Payment Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
     is_route_not_found: <Failed Due to Route Not Found Bool>
+    [route]: {
+      fee: <Route Total Fee Tokens Rounded Down Number>
+      fee_mtokens: <Route Total Fee Millitokens String>
+      hops: [{
+        channel: <Standard Format Channel Id String>
+        channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Hop Forwarding Fee Rounded Down Tokens Number>
+        fee_mtokens: <Hop Forwarding Fee Millitokens String>
+        forward: <Hop Forwarding Tokens Rounded Down Number>
+        forward_mtokens: <Hop Forwarding Millitokens String>
+        public_key: <Hop Sending To Public Key Hex String>
+        timeout: <Hop CTLV Expiration Height Number>
+      }]
+      mtokens: <Payment Sending Millitokens String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Sending Tokens Rounded Up Number>
+      timeout: <Payment CLTV Expiration Height Number>
+      tokens: <Payment Sending Tokens Rounded Down Number>
+    }
   }
 
   @event 'paying'

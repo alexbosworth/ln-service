@@ -57,8 +57,10 @@ const {isArray} = Array;
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Is Outoing Bool>
     mtokens: <Total Millitokens Sent String>
+    safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+    safe_tokens: <Payment Tokens Rounded Up Number>
     secret: <Payment Secret Preimage Hex String>
-    tokens: <Total Tokens Sent Number>
+    tokens: <Total Tokens Sent Rounded Down Number>
   }
 
   @returns error via cbk or Promise
@@ -134,6 +136,8 @@ module.exports = (args, cbk) => {
               is_confirmed: true,
               is_outgoing: true,
               mtokens: result.success.mtokens,
+              safe_fee: result.success.safe_fee,
+              safe_tokens: result.success.safe_tokens,
               secret: result.success.secret,
               tokens: result.success.tokens,
             });

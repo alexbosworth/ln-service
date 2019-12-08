@@ -34,7 +34,13 @@ const tests = [
   },
   {
     args: {
-      lnd: {router: {buildRoute: ({}, cbk) => cbk({details: 'unknown service routerrpc.Router'})}},
+      lnd: {
+        router: {
+          buildRoute: ({}, cbk) => cbk({
+            details: 'unknown service routerrpc.Router',
+          }),
+        },
+      },
       mtokens: '1',
       public_keys: ['a'],
     },
@@ -111,6 +117,8 @@ const tests = [
           timeout: 1,
         }],
         mtokens: '1',
+        safe_fee: 1,
+        safe_tokens: 1,
         timeout: 1,
         tokens: 0,
       },
@@ -181,6 +189,8 @@ const tests = [
           timeout: 1,
         }],
         mtokens: '1',
+        safe_fee: 1,
+        safe_tokens: 1,
         timeout: 1,
         tokens: 0,
       },

@@ -37,6 +37,8 @@ const paymentNotInitiatedErr = `payment isn't initiated`;
       }]
       id: <Payment Hash Hex String>
       mtokens: <Total Millitokens Paid String>
+      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+      safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
       timeout: <Expiration Block Height Number>
       tokens: <Total Tokens Paid Number>

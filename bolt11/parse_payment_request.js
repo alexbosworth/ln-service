@@ -6,6 +6,7 @@ const {recover} = require('secp256k1');
 const bech32CurrencyCodes = require('./conf/bech32_currency_codes');
 const hrpAsTokens = require('./hrp_as_tokens');
 const paymentRequestExpiration = require('./payment_request_expiration');
+const {safeTokens} = require('./../bolt00');
 const taggedFields = require('./conf/tagged_fields');
 const wordsAsChainAddress = require('./words_as_chain_address');
 const wordsAsHopHints = require('./words_as_hop_hints');
@@ -68,6 +69,7 @@ const timestampWordLength = 7;
       [fee_rate]: <Fee Rate Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
+    [safe_tokens]: <Requested Chain Tokens Rounded Up Number>
     [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
   }
 */
@@ -278,6 +280,8 @@ module.exports = ({request}) => {
     return [].concat([{public_key: firstHop.public_key}]).concat(route);
   });
 
+  const {safe} = !!mtokens ? safeTokens({mtokens}) : {};
+
   return {
     network,
     chain_addresses: !chainAddresses.length ? undefined : chainAddresses,
@@ -291,6 +295,7 @@ module.exports = ({request}) => {
     is_expired: expiresAt < new Date().toISOString(),
     mtokens: mtokens || undefined,
     routes: !routes.length ? undefined : routes,
+    safe_tokens: safe,
     tokens: tokens || undefined,
   };
 };

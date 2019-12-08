@@ -167,6 +167,8 @@ const tests = [
             timeout: 1,
           }],
           mtokens: '1',
+          safe_fee: 1,
+          safe_tokens: 1,
           timeout: 1,
           tokens: 0,
         }],
