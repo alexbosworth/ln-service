@@ -62,7 +62,13 @@ You can install ln-service service via npm
 
     npm install ln-service
 
-To use authenticated methods:
+To use authenticated methods you will need to provide LND credentials.
+
+To export the credentials via a command, you can install
+[balanceofsatoshis](https://github.com/alexbosworth/balanceofsatoshis):
+`npm install -g balanceofsatoshis` and export via `bos credentials --cleartext`
+
+Or you can export them manually:
 
 Run `base64` on the tls.cert and admin.macaroon files to get the encoded
 authentication data to create the LND connection. You can find these files in
