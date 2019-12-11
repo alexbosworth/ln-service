@@ -23,7 +23,7 @@ const sweepBlockCount = 40;
 const tokens = 100;
 
 // Create a hodl invoice
-test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
+test(`Pay a hodl invoice`, async ({deepIs, end, equal, rejects}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -73,6 +73,18 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal}) => {
     cltv_delta: cltvDelta,
     lnd: cluster.target.lnd,
   });
+
+  await rejects(
+    settleHodlInvoice({secret, lnd: cluster.target.lnd}),
+    [402, 'CannotSettleHtlcBeforeHtlcReceived'],
+    'An HTLC cannot be settled before the accept stage'
+  );
+
+  await rejects(
+    settleHodlInvoice({lnd: cluster.target.lnd, secret: id}),
+    [404, 'SecretDoesNotMatchAnyExistingHodlInvoice'],
+    'An HTLC cannot be settled if it does not exist'
+  );
 
   setTimeout(async () => {
     const {lnd} = cluster.target;

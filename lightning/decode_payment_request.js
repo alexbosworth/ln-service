@@ -60,6 +60,7 @@ module.exports = ({lnd, request}, cbk) => {
       // Get payment request values
       values: ['validate', ({}, cbk) => {
         try {
+          // Native parsing is used to get millitokens in LND 0.8.1 and prior
           const parsed = parsePaymentRequest({request});
 
           return cbk(null, parsed);
@@ -113,7 +114,11 @@ module.exports = ({lnd, request}, cbk) => {
 
           const expiryDateMs = createdAtMs + (expiresInMs || defaultExpireMs);
 
+          // LND versions 0.8.1 and below do not return precision
+          const mtokens = res.num_msat !== '0' ? res.num_msat : values.mtokens;
+
           return cbk(null, {
+            mtokens,
             chain_address: res.fallback_addr || undefined,
             cltv_delta: parseInt(res.cltv_expiry || 0, decBase) || undefined,
             created_at: new Date(createdAtMs).toISOString(),
@@ -123,12 +128,11 @@ module.exports = ({lnd, request}, cbk) => {
             expires_at: new Date(expiryDateMs).toISOString(),
             id: res.payment_hash,
             is_expired: now() > expiryDateMs,
-            mtokens: values.mtokens,
             routes: res.route_hints.map(route => routeFromRouteHint({
               destination: res.destination,
               hop_hints: route.hop_hints,
             })),
-            safe_tokens: values.safe_tokens,
+            safe_tokens: safeTokens({mtokens}).safe,
             tokens: Number(res.num_satoshis),
           });
         });

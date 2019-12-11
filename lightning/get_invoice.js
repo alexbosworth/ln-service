@@ -36,6 +36,7 @@ const mtokensPerToken = BigInt('1000');
     [is_held]: <HTLC is Held Bool>
     is_outgoing: <Invoice is Outgoing Bool>
     is_private: <Invoice is Private Bool>
+    mtokens: <Millitokens Number>
     payments: [{
       [confirmed_at]: <Payment Settled At ISO 8601 Date String>
       created_at: <Payment Held Since ISO 860 Date String>
@@ -114,6 +115,8 @@ module.exports = ({id, lnd}, cbk) => {
 
           const createdAtMs = createdAtEpochTime * msPerSec;
 
+          const mtok = (BigInt(response.value) * mtokensPerToken).toString();
+
           return cbk(null, {
             id,
             chain_address: response.fallback_addr || undefined,
@@ -127,7 +130,7 @@ module.exports = ({id, lnd}, cbk) => {
             is_confirmed: response.settled,
             is_held: response.state === 'ACCEPTED' || undefined,
             is_private: response.private,
-            mtokens: (BigInt(response.value) * mtokensPerToken).toString(),
+            mtokens: response.value_msat === '0' ? mtok : response.value_msat,
             payments: response.htlcs.map(htlcAsPayment),
             received: parseInt(response.amt_paid_sat, decBase),
             received_mtokens: response.amt_paid_msat,

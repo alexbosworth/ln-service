@@ -17,6 +17,7 @@ test(`Create an invoice`, async ({end, equal}) => {
   equal(invoice.created_at, parsed.created_at, 'Invoice has created at date');
   equal(invoice.description, undefined, 'Default description is undefined');
   equal(invoice.id, parsed.id, 'Invoice has id');
+  equal(invoice.mtokens, '0', 'Default mtokens are 0');
   equal(!!invoice.request, true, 'Invoice has request');
   equal(!!invoice.secret, true, 'Invoice returns secret');
   equal(invoice.tokens, 0, 'Default tokens are 0');

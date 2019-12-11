@@ -1,5 +1,9 @@
 # Versions
 
+## 47.5.6
+
+- `subscribeToChannels`: Fix incorrect error emission
+
 ## 47.5.5
 
 Introducing `safe_fee` and `safe_tokens` for payments. This represents token

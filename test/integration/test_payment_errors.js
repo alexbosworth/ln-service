@@ -75,10 +75,14 @@ test('Payment errors', async ({end, equal}) => {
 
     await pay({lnd, path: {id, routes: [route]}});
   } catch (err) {
-    const [, code, context] = err || [];
+    if (Array.isArray(err)) {
+      const [, code, context] = err;
 
-    equal(code, 'RejectedUnacceptableFee', 'Pay fails due to low fee');
-    equal((context || {}).channel, channels.find(n => !n.local_balance).id);
+      equal(code, 'RejectedUnacceptableFee', 'Pay fails due to low fee');
+      equal((context || {}).channel, channels.find(n => !n.local_balance).id);
+    } else {
+      equal(err, null, 'Expected array type error');
+    }
   }
 
   await cluster.kill({});

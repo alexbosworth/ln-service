@@ -4,6 +4,8 @@ const {returnResult} = require('asyncjs-util');
 
 const bufferFromHex = hex => Buffer.from(hex, 'hex');
 const expectedSecretLen = 64;
+const htlcNotYetAcceptedError = 'invoice still open';
+const invalidSecretError = 'unable to locate invoice';
 
 /** Settle hodl invoice
 
@@ -38,6 +40,14 @@ module.exports = ({lnd, secret}, cbk) => {
           preimage: bufferFromHex(secret),
         },
         err => {
+          if (!!err && err.details === htlcNotYetAcceptedError) {
+            return cbk([402, 'CannotSettleHtlcBeforeHtlcReceived']);
+          }
+
+          if (!!err && err.details === invalidSecretError) {
+            return cbk([404, 'SecretDoesNotMatchAnyExistingHodlInvoice']);
+          }
+
           if (!!err) {
             return cbk([503, 'UnexpectedErrorWhenSettlingHodlInvoice', {err}]);
           }

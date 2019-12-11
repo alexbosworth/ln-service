@@ -2,6 +2,9 @@ const {test} = require('tap');
 
 const {settleHodlInvoice} = require('./../../');
 
+const errorLnd = err => ({invoices: {settleInvoice: ({}, cbk) => cbk(err)}});
+const secret = Buffer.alloc(32).toString('hex');
+
 const tests = [
   {
     args: {},
@@ -34,15 +37,23 @@ const tests = [
     error: [400, 'ExpectedPaymentPreimageToSettleHodlInvoice'],
   },
   {
-    args: {
-      lnd: {invoices: {settleInvoice: ({}, cbk) => cbk('err')}},
-      secret: Buffer.alloc(32).toString('hex'),
-    },
+    args: {secret, lnd: errorLnd('err')},
     description: 'Error is returned',
     error: [503, 'UnexpectedErrorWhenSettlingHodlInvoice', {err: 'err'}],
   },
   {
+    args: {secret, lnd: errorLnd({details: 'invoice still open'})},
+    description: 'Invoice not accepted error is returned',
+    error: [402, 'CannotSettleHtlcBeforeHtlcReceived'],
+  },
+  {
+    args: {secret, lnd: errorLnd({details: 'unable to locate invoice'})},
+    description: 'Invoice not accepted error is returned',
+    error: [404, 'SecretDoesNotMatchAnyExistingHodlInvoice'],
+  },
+  {
     args: {
+      secret,
       lnd: {
         invoices: {
           settleInvoice: ({preimage}, cbk) => {
@@ -54,7 +65,6 @@ const tests = [
           },
         },
       },
-      secret: Buffer.alloc(32).toString('hex'),
     },
     description: 'A preimage is required',
   },

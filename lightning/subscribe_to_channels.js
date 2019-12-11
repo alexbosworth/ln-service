@@ -81,11 +81,20 @@ module.exports = ({lnd}) => {
   const eventEmitter = new EventEmitter();
   const subscription = lnd.default.subscribeChannelEvents({});
 
+  const error = err => {
+    // Exit early when no one is listening to the error
+    if (!eventEmitter.listenerCount('error')) {
+      return;
+    }
+
+    return eventEmitter.emit('error', err);
+  };
+
   subscription.on('data', update => {
     const updatedAt = new Date().toISOString();
 
     if (!update || !update.type || typeof update.type !== 'string') {
-      return eventEmitter.emit('error', new Error('UnexpectedDataInChanSub'));
+      return error(new Error('UnexpectedDataInChanSubscription'));
     }
 
     const updateType = update.type.toLowerCase();
@@ -94,11 +103,11 @@ module.exports = ({lnd}) => {
     case updateTypes.channel_activated:
     case updateTypes.channel_deactivated:
       if (!update[updateType].funding_txid_bytes) {
-        return eventEmitter.emit('error', new Error('ExpectedActiveChanTxId'));
+        return error(new Error('ExpectedActiveChannelTransactionIdInEvent'));
       }
 
-      if (update[updateType].output_index) {
-        return eventEmitter.emit('error', new Error('ExpectedActiveChanVout'));
+      if (update[updateType].output_index === undefined) {
+        return error(new Error('ExpectedActiveChannelVoutInUpdateEvent'));
       }
 
       const changedTxId = update[updateType].funding_txid_bytes.reverse();
@@ -112,42 +121,42 @@ module.exports = ({lnd}) => {
 
     case updateTypes.channel_closed:
       if (!update[updateType].capacity) {
-        eventEmitter.emit('error', new Error('ExpectedClosedChannelCapacity'));
+        error(new Error('ExpectedClosedChannelCapacityInCloseEvent'));
         break;
       }
 
       if (!update[updateType].chan_id) {
-        eventEmitter.emit('error', new Error('ExpectedClosedChannelId'));
+        error(new Error('ExpectedClosedChannelIdInCloseEvent'));
         break;
       }
 
       if (!update[updateType].channel_point) {
-        eventEmitter.emit('error', new Error('ExpectedClosedChannelOutpoint'));
+        error(new Error('ExpectedClosedChannelOutpointInCloseEvent'));
         break;
       }
 
       if (update[updateType].close_height === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedClosedChannelHeight'));
+        error(new Error('ExpectedClosedChannelHeightInCloseEvent'));
         break;
       }
 
       if (!update[updateType].closing_tx_hash) {
-        eventEmitter.emit('error', new Error('ExpectedClosedChannelTxId'));
+        error(new Error('ExpectedClosedChannelTransactionIdInCloseEvent'));
         break;
       }
 
       if (!update[updateType].remote_pubkey) {
-        eventEmitter.emit('error', new Error('ExpectedClosedChanPeerPubKey'));
+        error(new Error('ExpectedClosedChanPeerPubKeyInCloseEvent'));
         break;
       }
 
       if (!update[updateType].settled_balance) {
-        eventEmitter.emit('error', new Error('ExpectedClosedChanBalance'));
+        error(new Error('ExpectedClosedChanBalanceInCloseEvent'));
         break;
       }
 
       if (!update[updateType].time_locked_balance) {
-        eventEmitter.emit('error', new Error('ExpectedClosedTimelockedFunds'));
+        error(new Error('ExpectedClosedTimelockedFundsInCloseEvent'));
         break;
       }
 
@@ -181,84 +190,81 @@ module.exports = ({lnd}) => {
       const channel = update[updateType];
 
       if (channel.active === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChanActiveState'));
+        error(new Error('ExpectedOpenChanActiveState'));
         break;
       }
 
       if (channel.capacity === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChannelCapacity'));
+        error(new Error('ExpectedOpenChannelCapacity'));
         break;
       }
 
       if (!channel.channel_point) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChannelPoint'));
+        error(new Error('ExpectedOpenChannelPoint'));
         break;
       }
 
       if (channel.commit_fee === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenCommitFee'));
+        error(new Error('ExpectedOpenCommitFee'));
         break;
       }
 
       if (channel.commit_weight === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenCommitWeight'));
+        error(new Error('ExpectedOpenCommitWeight'));
         break;
       }
 
       if (channel.fee_per_kw === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenFeePerKw'));
+        error(new Error('ExpectedOpenFeePerKw'));
         break;
       }
 
       if (channel.local_balance === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenLocalBalance'));
+        error(new Error('ExpectedOpenLocalBalance'));
         break;
       }
 
       if (channel.num_updates === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenNumUpdates'));
+        error(new Error('ExpectedOpenNumUpdates'));
         break;
       }
 
       if (!Array.isArray(channel.pending_htlcs)) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChanPendingHtlcs'));
+        error(new Error('ExpectedOpenChanPendingHtlcs'));
         break;
       }
 
       if (channel.private !== true && channel.private !== false) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChanPrivateStatus'));
+        error(new Error('ExpectedOpenChanPrivateStatus'));
         break;
       }
 
       if (channel.remote_balance === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenRemoteBalance'));
+        error(new Error('ExpectedOpenRemoteBalance'));
         break;
       }
 
       if (!channel.remote_pubkey) {
-        eventEmitter.emit('error', new Error('ExpectedOpenRemotePubkey'));
+        error(new Error('ExpectedOpenRemotePubkey'));
         break;
       }
 
       if (channel.total_satoshis_received === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChanTotalReceived'));
+        error(new Error('ExpectedOpenChanTotalReceived'));
         break;
       }
 
       if (channel.total_satoshis_sent === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChannelTotalSent'));
+        error(new Error('ExpectedOpenChannelTotalSent'));
         break;
       }
 
       if (channel.unsettled_balance === undefined) {
-        eventEmitter.emit('error', new Error('ExpectedOpenChanUnsettled'));
+        error(new Error('ExpectedOpenChanUnsettled'));
         break;
       }
 
-      const {initiator} = channel;
       const [transactionId, vout] = channel.channel_point.split(':');
-
-      const notInitiator = initiator === false ? undefined : !initiator;
 
       eventEmitter.emit('channel_opened', {
         capacity: parseInt(channel.capacity, decBase),
@@ -267,7 +273,7 @@ module.exports = ({lnd}) => {
         is_active: channel.active,
         is_closing: false,
         is_opening: false,
-        is_partner_initiated: notInitiator,
+        is_partner_initiated: !channel.initiator,
         is_private: channel.private,
         local_balance: parseInt(channel.local_balance, decBase),
         partner_public_key: channel.remote_pubkey,
@@ -287,7 +293,7 @@ module.exports = ({lnd}) => {
       break;
 
     default:
-      eventEmitter.emit('error', new Error('UnexpectedChannelUpdate'));
+      error(new Error('UnexpectedChannelUpdate'));
       break;
     }
 
@@ -295,7 +301,7 @@ module.exports = ({lnd}) => {
   });
 
   subscription.on('end', () => eventEmitter.emit('end'));
-  subscription.on('error', err => eventEmitter.emit('error', err));
+  subscription.on('error', err => error(err));
   subscription.on('status', status => eventEmitter.emit('status', status));
 
   return eventEmitter;

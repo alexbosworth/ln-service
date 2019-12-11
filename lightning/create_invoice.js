@@ -34,6 +34,7 @@ const {round} = Math;
     created_at: <ISO 8601 Date String>
     description: <Description String>
     id: <Payment Hash Hex String>
+    mtokens: <Millitokens String>
     request: <BOLT 11 Encoded Payment Request String>
     secret: <Hex Encoded Payment Secret String>
     tokens: <Tokens Number>
@@ -149,6 +150,7 @@ module.exports = (args, cbk) => {
           created_at: getInvoice.created_at,
           description: addInvoice.description,
           id: addInvoice.id,
+          mtokens: getInvoice.mtokens,
           request: addInvoice.request,
           secret: getInvoice.secret,
           tokens: addInvoice.tokens || 0,

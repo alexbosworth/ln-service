@@ -3,6 +3,8 @@ const asyncMap = require('async/map');
 const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const decBase = 10;
 const {isArray} = Array;
 const msPerSec = 1e3;
@@ -60,7 +62,7 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.lnd || !args.lnd.default || !args.lnd.default.listChannels) {
+        if (!isLnd({lnd: args.lnd, method: 'listChannels', type: 'default'})) {
           return cbk([400, 'ExpectedLndToGetChannels']);
         }
 
@@ -97,10 +99,6 @@ module.exports = (args, cbk) => {
 
           if (channel.capacity === undefined) {
             return cbk([503, 'ExpectedChannelCapacity']);
-          }
-
-          if (!channel.chan_id) {
-            return cbk([503, 'ExpectedChanId']);
           }
 
           try {

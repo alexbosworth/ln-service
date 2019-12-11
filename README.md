@@ -3349,7 +3349,7 @@ Subscribe to the status of a past payment
 Requires LND built with `routerrpc` build tag
 
     {
-      [id]: <Payment Request Hash Hex String>
+      id: <Payment Request Hash Hex String>
       lnd: <Authenticated Lnd gRPC API Object>
     }
 

@@ -17,7 +17,7 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
   Requires LND built with `routerrpc` build tag
 
   {
-    [id]: <Payment Request Hash Hex String>
+    id: <Payment Request Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
   }
 
