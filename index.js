@@ -71,6 +71,7 @@ const {sendToChainAddress} = require('./lightning');
 const {sendToChainAddresses} = require('./lightning');
 const {setAutopilot} = require('./autopilot');
 const {settleHodlInvoice} = require('./invoices');
+const {signBytes} = require('./sign');
 const {signMessage} = require('./lightning');
 const {signTransaction} = require('./sign');
 const {stopDaemon} = require('./lightning');
@@ -95,6 +96,7 @@ const {updateConnectedWatchtower} = require('./tower_client');
 const {updateRoutingFees} = require('./lightning');
 const {verifyBackup} = require('./lightning');
 const {verifyBackups} = require('./lightning');
+const {verifyBytesSignature} = require('./sign');
 const {verifyMessage} = require('./lightning');
 
 module.exports = {
@@ -171,6 +173,7 @@ module.exports = {
   sendToChainAddresses,
   setAutopilot,
   settleHodlInvoice,
+  signBytes,
   signMessage,
   signTransaction,
   stopDaemon,
@@ -195,5 +198,6 @@ module.exports = {
   updateRoutingFees,
   verifyBackup,
   verifyBackups,
+  verifyBytesSignature,
   verifyMessage,
 };

@@ -9,11 +9,14 @@ const {safeTokens} = require('./../bolt00');
 
 const decBase = 10;
 const defaultExpireMs = 1000 * 60 * 60;
+const defaultMtokens = '0';
 const {isArray} = Array;
 const msPerSec = 1e3;
 const {now} = Date;
 
 /** Get decoded payment request
+
+  LND 0.8.2 and previous versions do not return `features`
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -28,6 +31,12 @@ const {now} = Date;
     description_hash: <Payment Longer Description Hash String>
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
+    features: [{
+      bit: <BOLT 09 Feature Bit Number>
+      is_known: <Feature is Known Bool>
+      is_required: <Feature Support is Required To Pay Bool>
+      type: <Feature Type String>
+    }]
     id: <Payment Hash String>
     mtokens: <Requested Millitokens String>
     routes: [[{
@@ -60,7 +69,7 @@ module.exports = ({lnd, request}, cbk) => {
       // Get payment request values
       values: ['validate', ({}, cbk) => {
         try {
-          // Native parsing is used to get millitokens in LND 0.8.1 and prior
+          // Native parsing is used to get millitokens in LND 0.8.2 and prior
           const parsed = parsePaymentRequest({request});
 
           return cbk(null, parsed);
@@ -114,11 +123,10 @@ module.exports = ({lnd, request}, cbk) => {
 
           const expiryDateMs = createdAtMs + (expiresInMs || defaultExpireMs);
 
-          // LND versions 0.8.1 and below do not return precision
+          // LND versions 0.8.2 and below do not return precision
           const mtokens = res.num_msat !== '0' ? res.num_msat : values.mtokens;
 
           return cbk(null, {
-            mtokens,
             chain_address: res.fallback_addr || undefined,
             cltv_delta: parseInt(res.cltv_expiry || 0, decBase) || undefined,
             created_at: new Date(createdAtMs).toISOString(),
@@ -126,13 +134,20 @@ module.exports = ({lnd, request}, cbk) => {
             description_hash: res.description_hash || undefined,
             destination: res.destination,
             expires_at: new Date(expiryDateMs).toISOString(),
+            features: res.features.map(feature => ({
+              bit: feature.bit,
+              is_known: feature.is_known,
+              is_required: feature.is_required,
+              type: feature.name,
+            })),
             id: res.payment_hash,
             is_expired: now() > expiryDateMs,
+            mtokens: mtokens || defaultMtokens,
             routes: res.route_hints.map(route => routeFromRouteHint({
               destination: res.destination,
               hop_hints: route.hop_hints,
             })),
-            safe_tokens: safeTokens({mtokens}).safe,
+            safe_tokens: safeTokens({mtokens: mtokens || defaultMtokens}).safe,
             tokens: Number(res.num_satoshis),
           });
         });

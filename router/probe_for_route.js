@@ -14,7 +14,7 @@ const {isArray} = Array;
 
   `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
-  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>

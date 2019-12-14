@@ -18,7 +18,7 @@ const tokensAsMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
 
   Requires LND built with `invoicesrpc` tag
 
-  Setting `mtokens` will not work on LND versions 0.8.1 and below
+  Setting `mtokens` will not work on LND versions 0.8.2 and below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>

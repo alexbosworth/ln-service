@@ -51,6 +51,7 @@ const {sha256} = crypto;
   {
     hash: <Payment Request Signature Hash Hex String>
     hrp: <Human Readable Part of Payment Request String>
+    preimage: <Signature Hash Preimage Hex String>
     tags: [<Data Tag Number>]
   }
 */
@@ -205,5 +206,5 @@ module.exports = args => {
 
   const hash = createHash('sha256').update(preimage).digest().toString('hex');
 
-  return {hash, hrp, tags: allTags};
+  return {hash, hrp, preimage: preimage.toString('hex'), tags: allTags};
 };

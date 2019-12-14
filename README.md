@@ -11,9 +11,10 @@ through npm.
 
 Supported LND versions:
 
-- v0.7.1-beta
-- v0.8.0-beta
+- v0.8.2-beta
 - v0.8.1-beta
+- v0.8.0-beta
+- v0.7.1-beta
 
 ## Installing LND
 
@@ -120,6 +121,8 @@ for `unlocker` methods.
 - [createHodlInvoice](#createHodlInvoice) - Make a HODL HTLC invoice
 - [createInvoice](#createInvoice) - Make a regular invoice
 - [createSeed](#createSeed) - Generate a wallet seed for a new wallet
+- [createSignedRequest](#createSignedRequest) - create a signed payment request
+- [createUnsignedRequest](#createUnsignedRequest) - create an unsigned invoice
 - [createWallet](#createWallet) - Make a new wallet
 - [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
@@ -448,7 +451,10 @@ Either an id or a transaction id / transaction output index is required
 
 If cooperatively closing, pass a public key and socket to connect
 
+`address` is not supported in LND v0.8.2 and below
+
     {
+      [address]: <Request Sending Local Channel Funds To Address String>
       [id]: <Standard Format Channel Id String>
       [is_force_close]: <Is Force Close Bool>
       lnd: <Authenticated LND gRPC API Object>
@@ -527,7 +533,7 @@ arrives. It must be settled separately with a preimage.
 
 Requires LND built with `invoicesrpc` tag
 
-Setting `mtokens` will not work on LND versions 0.8.1 and below
+Setting `mtokens` will not work on LND versions 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -628,6 +634,86 @@ const {createSeed} = require('ln-service');
 const {seed} = await createSeed({lnd});
 ```
 
+### createSignedRequest
+
+Assemble a signed payment request
+
+    {
+      destination: <Destination Public Key Hex String>
+      hrp: <Request Human Readable Part String>
+      signature: <Request Hash Signature Hex String>
+      tags: [<Request Tag Word Number>]
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    {
+      request: <BOLT 11 Encoded Payment Request String>
+    }
+
+Example:
+
+```node
+const {createSignedRequest} = require('ln-service');
+
+// Get hrp and signature from createUnsignedRequest
+// Get signature via standard private key signing, or signBytes
+const {request} = createSignedRequest({
+  destination: nodePublicKey,
+  hrp: amountAndNetworkHrp,
+  signature: signedPreimageHash,
+  tags: paymentRequestTags,
+});
+```
+
+### createUnsignedRequest
+
+Create an unsigned payment request
+
+    {
+      [chain_addresses]: [<Chain Address String>]
+      [cltv_delta]: <CLTV Delta Number>
+      [created_at]: <Invoice Creation Date ISO 8601 String>
+      [description]: <Description String>
+      [description_hash]: <Description Hash Hex String>
+      destination: <Public Key String>
+      [expires_at]: <ISO 8601 Date String>
+      id: <Preimage SHA256 Hash Hex String>
+      [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
+      network: <Network Name String>
+      [routes]: [[{
+        [base_fee_mtokens]: <Base Fee Millitokens String>
+        [channel]: <Standard Format Channel Id String>
+        [cltv_delta]: <Final CLTV Expiration Blocks Delta Number>
+        [fee_rate]: <Fee Rate Millitokens Per Million Number>
+        public_key: <Forward Edge Public Key Hex String>
+      }]]
+      [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
+    }
+
+    @returns
+    {
+      hash: <Payment Request Signature Hash Hex String>
+      hrp: <Human Readable Part of Payment Request String>
+      preimage: <Signature Hash Preimage Hex String>
+      tags: [<Data Tag Number>]
+    }
+
+Example:
+
+```node
+const {createUnsignedRequest} = require('ln-service');
+
+const unsignedComponents = createUnsignedRequest({
+  destination: nodePublicKey,
+  id: rHashHexString,
+  network: 'bitcoin',
+});
+// Use createSignedRequest and a signature to create a complete request
+```
+
 ### createWallet
 
 Create a wallet
@@ -655,6 +741,8 @@ await createWallet({lnd, seed, password: 'password'});
 
 Get decoded payment request
 
+LND 0.8.2 and previous versions do not return `features`
+
     {
       lnd: <Authenticated LND gRPC API Object>
       request: <BOLT 11 Payment Request String>
@@ -668,6 +756,12 @@ Get decoded payment request
       description_hash: <Payment Longer Description Hash String>
       destination: <Public Key String>
       expires_at: <ISO 8601 Date String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required To Pay Bool>
+        type: <Feature Type String>
+      }]
       id: <Payment Hash String>
       mtokens: <Requested Millitokens String>
       routes: [[{
@@ -997,7 +1091,7 @@ Get channels
 
 `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
-`time_offline` and `time_online` will be undefined on 0.8.1 and below
+`time_offline` and `time_online` will be undefined on 0.8.2 and below
 
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
@@ -1165,7 +1259,7 @@ Get the confidence in being able to send between a direct pair of nodes
 
 Requires LND built with `routerrpc` build tag
 
-Note: this method is not supported in LND 0.8.1 and below.
+Note: this method is not supported in LND 0.8.2 and below.
 
     {
       from: <From Public Key Hex String>
@@ -1202,7 +1296,7 @@ Requires LND built with `routerrpc` build tag
 
 Note: In LND v0.7.1 channels reputations are returned.
 Note: In LND v0.8.0 peers reputations are returned.
-Note: after LND v0.8.1 confidence is not returned per peer.
+Note: after LND v0.8.2 confidence is not returned per peer.
 
     {
       [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
@@ -1245,7 +1339,7 @@ When using an "after" date a "before" date is required.
 
 If a next token is returned, pass it to get additional page of results.
 
-`mtokens` is not supported on LND v0.8.1 or lower
+`mtokens` is not supported on LND v0.8.2 or lower
 
     {
       [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
@@ -1370,6 +1464,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
           mtokens: <Incoming Payment Millitokens String>
           [pending_index]: <Pending Payment Channel HTLC Index Number>
           tokens: <Payment TOkens Number>
+          [total_mtokens]: <Total Millitokens String>
         }]
         received: <Received Tokens Number>
         received_mtokens: <Received Millitokens String>
@@ -1558,7 +1653,7 @@ const payment = await getPayment({id, lnd});
 
 Get payments made through channels.
 
-Payment `attempts` is not populated on LND 0.8.1 and below
+Payment `attempts` is not populated on LND 0.8.2 and below
 
     {
       lnd: <Authenticated LND gRPC API Object>
@@ -1832,6 +1927,8 @@ Setting both `start` and `outgoing_channel` is not supported
 `confidence` is not supported in LND 0.7.1
 `max_timeout_height` is not supported in LND 0.7.1
 
+Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.2, below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       [destination]: <Final Send Destination Hex Encoded Public Key String>
@@ -1980,7 +2077,7 @@ const walletInfo = await getWalletInfo({lnd});
 
 Give access to the node by making a macaroon access credential
 
-Note: granting access is not supported in LND versions 0.8.1 and below
+Note: granting access is not supported in LND versions 0.8.2 and below
 
 Note: access once given cannot be revoked
 
@@ -2028,7 +2125,7 @@ Requires lnd built with routerrpc build tag
 
 Note: on versions of lnd prior to 0.7.1, is_payable will always be false
 
-`incoming_peer` is not supported on LND 0.8.1 and below
+`incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2230,9 +2327,9 @@ Requires LND built with `routerrpc` build tag
 
 If no id is specified, a random id will be used.
 
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
-`incoming_peer` is not supported on LND 0.8.1 and below
+`incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2283,9 +2380,9 @@ Pay via payment request
 
 Requires LND built with `routerrpc` build tag
 
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
-`incoming_peer` is not supported on LND 0.8.1 and below
+`incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
@@ -2483,7 +2580,7 @@ Requires LND built with `routerrpc` build tag
 
 `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2831,7 +2928,7 @@ const {signature} = await signMessage({lnd, message: 'hello world'});
 
 Sign transaction
 
-Requires lnd built with signerrpc build tag
+Requires LND built with `signerrpc` build tag
 
     {
       inputs: [{
@@ -3168,7 +3265,7 @@ LND built with `invoicesrpc` tag is required
 
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
-The `mtokens` value is only supported on LND versions after 0.8.1
+The `mtokens` value is only supported on LND versions after 0.8.2
 
     {
       id: <Invoice Payment Hash Hex String>
@@ -3271,6 +3368,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
         tokens: <Payment TOkens Number>
+        [total_mtokens]: <Total Payment Millitokens String>
       }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
@@ -3405,9 +3503,9 @@ Subscribe to the flight of a payment
 
 Requires LND built with `routerrpc` build tag
 
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
-`incoming_peer` is not supported on LND 0.8.1 and below
+`incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3496,9 +3594,9 @@ Initiate and subscribe to the outcome of a payment request
 
 Requires LND built with `routerrpc` build tag
 
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
-`incoming_peer` is not supported on LND 0.8.1 and below
+`incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
@@ -4011,13 +4109,15 @@ await updateConnectedWatchtower({
 Update routing fees on a single channel or on all channels
 
 Updating the maximum htlc size is not supported on LND 0.7.1 and below
+Updating the minimum HTLC size is not supported on LND 0.8.2 and below
 
     {
       [base_fee_tokens]: <Base Fee Tokens Charged Number>
       [cltv_delta]: <HTLC CLTV Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       lnd: <Authenticated LND gRPC API Object>
-      [max_htlc_mtokens]: <Maximum HTLC Mtokens to Forward String>
+      [max_htlc_mtokens]: <Maximum HTLC Millitokens to Forward String>
+      [min_htlc_mtokens]: <Minimum HTLC Millitokens to Forward String>
       [transaction_id]: <Channel Funding Transaction Id String>
       [transaction_vout]: <Channel Funding Transaction Output Index Number>
     }

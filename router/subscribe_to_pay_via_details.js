@@ -9,9 +9,9 @@ const randomId = () => randomBytes(32).toString('hex');
 
   Requires LND built with `routerrpc` build tag
 
-  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.1 or below
+  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
-  `incoming_peer` is not supported on LND 0.8.1 and below
+  `incoming_peer` is not supported on LND 0.8.2 and below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>

@@ -15,6 +15,7 @@ const mtokensPerToken = BigInt(1e3);
     chan_id: <Numeric Channel Id String>
     expiry_height: <HTLC CLTV Expiration Height Number>
     htlc_index: <Channel HTLC Index Number String>
+    mpp_total_amt_msat: <Total Payment Millitokens String>
     resolve_time: <HTLC Removed At Epoch Time Number String>
     state: <HTLC Lifecycle State String>
   }
@@ -35,6 +36,7 @@ const mtokensPerToken = BigInt(1e3);
     [pending_index]: <Pending Payment Channel HTLC Index Number>
     timeout: <HTLC CLTV Timeout Height>
     tokens: <Payment Tokens Number>
+    [total_mtokens]: <Total Millitokens String>
   }
 */
 module.exports = args => {
@@ -73,6 +75,7 @@ module.exports = args => {
   const isAccepted = args.state === htlcStates.accepted;
   const isCanceled = args.state === htlcStates.canceled;
   const isReceived = args.state === htlcStates.received;
+  const totalMtokens = args.mpp_total_amt_msat;
 
   return {
     canceled_at: !isCanceled ? undefined : dateFrom(args.resolve_time),
@@ -87,5 +90,6 @@ module.exports = args => {
     pending_index: isAccepted ? parseInt(args.htlc_index, decBase) : undefined,
     timeout: args.expiry_height,
     tokens: Number(BigInt(args.amt_msat) / mtokensPerToken),
+    total_mtokens: totalMtokens === '0' ? undefined : totalMtokens,
   };
 };

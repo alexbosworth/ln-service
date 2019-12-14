@@ -31,7 +31,7 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   Failure due to invalid payment will only be registered on LND 0.7.1+
 
-  Specifying `incoming_peer` is not supported on LND 0.8.1 and below
+  Specifying `incoming_peer` is not supported on LND 0.8.2 and below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>

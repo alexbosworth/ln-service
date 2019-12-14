@@ -1,5 +1,14 @@
 # Versions
 
+## 47.6.0
+
+- `closeChannel`: Add `address` to specify address to attempt to send funds to
+- `createUnsignedRequest`: Add `preimage` attribute for hash to sign preimage
+- `decodePaymentRequest`: Fix zero value invoice parsing, add invoice features
+- `signBytes`: Add arbitrary bytes signer method
+- `updateRoutingFees`: Add argument `min_htlc_mtokens`  to update minimum HTLC
+- `verifyBytesSignature`: Add signature validation method
+
 ## 47.5.6
 
 - `subscribeToChannels`: Fix incorrect error emission

@@ -3,9 +3,12 @@ const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const decBase = 10;
 const emptyTxId = Buffer.alloc(32).toString('hex');;
 const {isArray} = Array;
+const method = 'closedChannels';
 const outpointSeparator = ':';
 
 /** Get closed out channels
@@ -46,7 +49,7 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.lnd || !args.lnd.default) {
+        if (!isLnd({method, lnd: args.lnd, type: 'default'})) {
           return cbk([400, 'ExpectedLndApiForGetClosedChannelsRequest'])
         }
 
@@ -55,7 +58,7 @@ module.exports = (args, cbk) => {
 
       // Get closed channels
       getClosedChannels: ['validate', ({}, cbk) => {
-        return args.lnd.default.closedChannels({
+        return args.lnd.default[method]({
           breach: args.is_breach_close || undefined,
           cooperative: args.is_cooperative_close || undefined,
           funding_canceled: args.is_breach_close || undefined,
@@ -65,6 +68,10 @@ module.exports = (args, cbk) => {
         (err, res) => {
           if (!!err) {
             return cbk([503, 'FailedToRetrieveClosedChannels', {err}]);
+          }
+
+          if (!res) {
+            return cbk([503, 'ExpectedResponseToGetCloseChannels']);
           }
 
           if (!isArray(res.channels)) {

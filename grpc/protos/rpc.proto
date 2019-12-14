@@ -1501,6 +1501,14 @@ message CloseChannelRequest {
 
     /// A manual fee rate set in sat/byte that should be used when crafting the closure transaction.
     int64 sat_per_byte = 4;
+
+    /*
+    An optional address to send funds to in the case of a cooperative close.
+    If the channel was opened with an upfront shutdown script and this field
+    is set, the request to close will fail because the channel must pay out
+    to the upfront shutdown addresss.
+    */
+    string delivery_address = 5 [json_name = "delivery_address"];
 }
 
 message CloseStatusUpdate {
@@ -2259,6 +2267,9 @@ message Invoice {
     /// List of HTLCs paying to this invoice [EXPERIMENTAL].
     repeated InvoiceHTLC htlcs = 22 [json_name = "htlcs"];
 
+    /// List of features advertised on the invoice.
+    repeated Feature features = 24 [json_name = "features"];
+
     enum InvoiceState {
         OPEN = 0;
         SETTLED = 1;
@@ -2295,6 +2306,9 @@ message InvoiceHTLC {
 
     /// Custom tlv records.
     map<uint64, bytes> custom_records = 9 [json_name = "custom_records"];
+
+    /// The total amount of the mpp payment in msat.
+    uint64 mpp_total_amt_msat = 10 [json_name = "mpp_total_amt_msat"];
 
     enum InvoiceHTLCState {
         ACCEPTED = 0;
@@ -2516,6 +2530,14 @@ message PayReq {
     repeated RouteHint route_hints = 10 [json_name = "route_hints"];
     bytes payment_addr = 11 [json_name = "payment_addr"];
     int64 num_msat = 12 [json_name = "num_msat"];
+    repeated Feature features = 13 [json_name = "features"];
+}
+
+message Feature {
+    uint32 bit = 1 [json_name = "bit"];
+    string name = 2 [json_name = "name"];
+    bool is_required = 3 [json_name = "is_required"];
+    bool is_known = 4 [json_name = "is_known"];
 }
 
 message FeeReportRequest {}
@@ -2566,6 +2588,12 @@ message PolicyUpdateRequest {
 
     /// If set, the maximum HTLC size in milli-satoshis. If unset, the maximum HTLC will be unchanged.
     uint64 max_htlc_msat = 6 [json_name = "max_htlc_msat"];
+
+    /// The minimum HTLC size in milli-satoshis. Only applied if min_htlc_msat_specified is true.
+    uint64 min_htlc_msat = 7 [json_name = "min_htlc_msat"];
+
+    /// If true, min_htlc_msat is applied.
+    bool min_htlc_msat_specified = 8 [json_name = "set_min_htlc_msat"];
 }
 message PolicyUpdateResponse {
 }

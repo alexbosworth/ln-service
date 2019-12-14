@@ -23,7 +23,7 @@ test(`Get access credentials`, async ({end, equal, rejects}) => {
   } catch (err) {
     const [, type] = err;
 
-    // Avoid this test on LND 0.8.1 and below
+    // Avoid this test on LND 0.8.2 and below
     if (type === 'GrantAccessMethodNotSupported') {
       kill();
 

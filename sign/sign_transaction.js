@@ -1,12 +1,15 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const {isArray} = Array;
+const notFound = -1;
 const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
 /** Sign transaction
 
-  Requires lnd built with signerrpc build tag
+  Requires LND built with `signerrpc` build tag
 
   {
     inputs: [{
@@ -36,7 +39,7 @@ module.exports = ({inputs, lnd, transaction}, cbk) => {
           return cbk([400, 'ExpectedInputsToSignTransaction']);
         }
 
-        if (!lnd || !lnd.signer || !lnd.signer.signOutputRaw) {
+        if (!isLnd({lnd, method: 'signOutputRaw', type: 'signer'})) {
           return cbk([400, 'ExpectedAuthenticatedLndToSignTransaction']);
         }
 
@@ -84,7 +87,7 @@ module.exports = ({inputs, lnd, transaction}, cbk) => {
             return cbk([503, 'ExpectedSignaturesInSignatureResponse']);
           }
 
-          if (res.raw_sigs.find(n => !Buffer.isBuffer(n))) {
+          if (res.raw_sigs.findIndex(n => !Buffer.isBuffer(n)) !== notFound) {
             return cbk([503, 'ExpectedSignatureBuffersInSignResponse']);
           }
 

@@ -31,7 +31,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
   `confidence` is not supported in LND 0.7.1
   `max_timeout_height` is not supported in LND 0.7.1
 
-  Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.1, lower
+  Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.2, below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>

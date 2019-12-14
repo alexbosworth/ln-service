@@ -10,7 +10,7 @@ const msPerSecond = 1e3;
 
 /** Get payments made through channels.
 
-  Payment `attempts` is not populated on LND 0.8.1 and below
+  Payment `attempts` is not populated on LND 0.8.2 and below
 
   {
     lnd: <Authenticated LND gRPC API Object>

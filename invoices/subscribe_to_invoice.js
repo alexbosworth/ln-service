@@ -13,7 +13,7 @@ const msPerSec = 1e3;
 
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
-  The `mtokens` value is only supported on LND versions after 0.8.1
+  The `mtokens` value is not supported on LND 0.8.2 and below
 
   {
     id: <Invoice Payment Preimage Hash Hex String>
@@ -52,6 +52,7 @@ const msPerSec = 1e3;
       mtokens: <Incoming Payment Millitokens String>
       [pending_index]: <Pending Payment Channel HTLC Index Number>
       tokens: <Payment TOkens Number>
+      [total_mtokens]: <Total Payment Millitokens String>
     }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>

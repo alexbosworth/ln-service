@@ -12,7 +12,7 @@ const unimplementedError = 'unknown service routerrpc.Router';
 
   Requires LND built with `routerrpc` build tag
 
-  Note: this method is not supported in LND 0.8.1 and below.
+  Note: this method is not supported in LND 0.8.2 and below.
 
   {
     from: <From Public Key Hex String>
@@ -97,7 +97,7 @@ module.exports = ({from, lnd, mtokens, to}, cbk) => {
 
           const date = new Date(timestamp * msPerSec).toISOString();
 
-          // On versions of LND 0.8.1 and below, no success time is returned
+          // On versions of LND 0.8.2 and below, no success time is returned
           const isSuccess = res.history.last_attempt_successful;
 
           // Exit early when the past attempt was successful, no success date

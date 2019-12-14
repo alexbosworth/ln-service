@@ -10,14 +10,16 @@ const tokPerMtok = 1e3;
 
 /** Update routing fees on a single channel or on all channels
 
-  Updating the maximum htlc size is not supported on LND 0.7.1 and below
+  Updating the maximum HTLC size is not supported on LND 0.7.1 and below
+  Updating the minimum HTLC size is not supported on LND 0.8.2 and below
 
   {
     [base_fee_tokens]: <Base Fee Tokens Charged Number>
     [cltv_delta]: <HTLC CLTV Delta Number>
     [fee_rate]: <Fee Rate In Millitokens Per Million Number>
     lnd: <Authenticated LND gRPC API Object>
-    [max_htlc_mtokens]: <Maximum HTLC Mtokens to Forward String>
+    [max_htlc_mtokens]: <Maximum HTLC Millitokens to Forward String>
+    [min_htlc_mtokens]: <Minimum HTLC Millitokens to Forward String>
     [transaction_id]: <Channel Funding Transaction Id String>
     [transaction_vout]: <Channel Funding Transaction Output Index Number>
   }
@@ -64,6 +66,8 @@ module.exports = (args, cbk) => {
           fee_rate: ((args.fee_rate || defaultFeeRate) / feeRatio),
           global: isGlobal || undefined,
           max_htlc_msat: args.max_htlc_mtokens || undefined,
+          min_htlc_msat: args.min_htlc_mtokens || undefined,
+          min_htlc_msat_specified: !!args.min_htlc_mtokens,
           time_lock_delta: args.cltv_delta || defaultCltvDelta,
         },
         err => {

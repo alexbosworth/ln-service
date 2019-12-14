@@ -89,6 +89,7 @@ const tests = [
       pending_index: undefined,
       timeout: 1,
       tokens: 0,
+      total_mtokens: undefined,
     },
   },
   {
@@ -116,6 +117,7 @@ const tests = [
       pending_index: undefined,
       timeout: 1,
       tokens: 0,
+      total_mtokens: undefined,
     },
   },
   {
@@ -143,6 +145,7 @@ const tests = [
       pending_index: 1,
       timeout: 1,
       tokens: 0,
+      total_mtokens: undefined,
     },
   },
 ];

@@ -12,7 +12,10 @@ const getChannel = require('./get_channel');
 
   If cooperatively closing, pass a public key and socket to connect
 
+  `address` is not supported in LND v0.8.2 and below
+
   {
+    [address]: <Request Sending Local Channel Funds To Address String>
     [id]: <Standard Format Channel Id String>
     [is_force_close]: <Is Force Close Bool>
     lnd: <Authenticated LND gRPC API Object>
@@ -40,6 +43,10 @@ module.exports = (args, cbk) => {
         const vout = args.transaction_vout;
 
         const isDirectClose = !!txId && vout !== undefined;
+
+        if (!!args.address && !!args.is_force_close) {
+          return cbk([400, 'ExpectedCoopCloseWhenCloseAddressSpecified']);
+        }
 
         if (!args.id && !isDirectClose) {
           return cbk([400, 'ExpectedIdOfChannelToClose']);
@@ -102,6 +109,7 @@ module.exports = (args, cbk) => {
             funding_txid_bytes: transactionId.reverse(),
             output_index: transactionVout,
           },
+          delivery_address: args.address || undefined,
           force: !!args.is_force_close,
           sat_per_byte: !!tokensPerVByte ? tokensPerVByte : undefined,
           target_conf: args.target_confirmations || undefined,

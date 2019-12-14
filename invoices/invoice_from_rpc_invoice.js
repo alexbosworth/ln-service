@@ -16,6 +16,12 @@ const msPerSec = 1e3;
     description_hash: <Description Hash Buffer>
     expiry: <Invoice Expires In Seconds String>
     fallback_addr: <Fallback On-Chain Address String>
+    features: [{
+      bit: <Feature Bit Number>
+      is_known: <Is Known Feature Bool>
+      is_required: <Feature Is Required Bool>
+      name: <Feature Name String>
+    }]
     htlcs: [{
       accept_height: <HTLC Held Since Height Number>
       accept_time: <HTLC Held Since Epoch Time Number String>
@@ -23,6 +29,7 @@ const msPerSec = 1e3;
       chan_id: <Numeric Channel Id String>
       expiry_height: <HTLC CLTV Expiration Height Number>
       htlc_index: <Channel HTLC Index Number String>
+      mpp_total_amt_msat: <Total Payment Millitokens String>
       resolve_time: <HTLC Removed At Epoch Time Number String>
       state: <HTLC Lifecycle State String>
     }]
@@ -34,6 +41,7 @@ const msPerSec = 1e3;
     settle_index: <Settle Index String>
     settled: <Is Settled Bool>
     state: <Invoice State String>
+    total_mtokens: <Total Millitokens String>
     value: <Tokens Value String>
     value_msat: <Millitokens Value String>
   }
@@ -51,6 +59,12 @@ const msPerSec = 1e3;
     description: <Description String>
     description_hash: <Description Hash Hex String>
     expires_at: <Expires At ISO 8601 Date String>
+    features: [{
+      bit: <Feature Bit Number>
+      is_known: <Feature Is Known Bool>
+      is_required: <Feature Is Required Bool>
+      type: <Feature Type Name String>
+    }]
     id: <Invoice Payment Hash Hex String>
     index: <Invoice Index Number>
     is_confirmed: <Invoice is Confirmed Bool>
@@ -67,6 +81,7 @@ const msPerSec = 1e3;
       mtokens: <Incoming Payment Millitokens String>
       [pending_index]: <Pending Payment Channel HTLC Index Number>
       tokens: <Payment TOkens Number>
+      [total_mtokens]: <Total Millitokens String>
     }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
@@ -108,6 +123,10 @@ module.exports = args => {
 
   if (!!descriptionHash.length && !Buffer.isBuffer(descriptionHash)) {
     throw new Error('ExpectedInvoiceDescriptionHash');
+  }
+
+  if (!isArray(args.features)) {
+    throw new Error('ExpectedFeaturesFromRpcInvoice');
   }
 
   if (!isArray(args.htlcs)) {
@@ -155,6 +174,12 @@ module.exports = args => {
     description: args.memo || '',
     description_hash: descriptionHash.toString('hex') || undefined,
     expires_at: new Date(expiresAt * msPerSec).toISOString(),
+    features: args.features.map(feature => ({
+      bit: feature.bit,
+      is_known: feature.is_known,
+      is_required: feature.is_required,
+      type: feature.name,
+    })),
     id: args.r_hash.toString('hex'),
     index: Number(args.add_index),
     is_confirmed: args.settled,

@@ -88,7 +88,7 @@ module.exports = ({cert, count, host, pass, port, user}, cbk) => {
         return asyncRetry({interval: retryMs, times: retryTimes}, cbk => {
           return rpc(opts, (err, res) => {
             if (!!err) {
-              return cbk([503, 'UnexpectedErrorGettingBlock']);
+              return cbk([503, 'UnexpectedErrorGettingBlock', {err}]);
             }
 
             if (!res || !Array.isArray(res.tx)) {
