@@ -36,7 +36,7 @@ test(`Update routing fees`, async ({end, equal}) => {
     cltv_delta: cltvDelta,
     fee_rate: feeRate,
     max_htlc_mtokens: '10000',
-    min_htlc_mtokens: '2',
+    min_htlc_mtokens: '2000',
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
   });
@@ -55,8 +55,8 @@ test(`Update routing fees`, async ({end, equal}) => {
   }
 
   // LND 0.8.2 and below do not support updating min htlc mtokens
-  if (policy.min_htlc_mtokens !== '1') {
-    equal(policy.min_htlc_mtokens, '2', 'Min HTLC tokens updated');
+  if (policy.min_htlc_mtokens !== '1000') {
+    equal(policy.min_htlc_mtokens, '2000', 'Min HTLC tokens updated');
   }
 
   {

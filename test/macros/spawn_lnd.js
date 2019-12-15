@@ -156,7 +156,7 @@ module.exports = ({seed, tower, watchers}, cbk) => {
         '--autopilot.heuristic', 'preferential:0.5',
         '--bitcoin.active',
         '--bitcoin.chaindir', dir,
-        '--bitcoin.minhtlc', '1',
+        '--bitcoin.minhtlc', '1000',
         '--bitcoin.node', 'btcd',
         '--bitcoin.regtest',
         '--btcd.dir', dir,

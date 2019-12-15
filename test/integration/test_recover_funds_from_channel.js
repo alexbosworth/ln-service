@@ -5,11 +5,10 @@ const {delay} = require('./../macros');
 const {getBackup} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {openChannel} = require('./../../');
 const {recoverFundsFromChannel} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {stopDaemon} = require('./../../');
-const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
@@ -30,25 +29,12 @@ test(`Recover funds from channel`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
+  const channelOpen = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: giftTokens,
     lnd: cluster.target.lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.target.lnd,
+    to: cluster.control,
   });
 
   const {backup} = await getBackup({

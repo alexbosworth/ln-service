@@ -1,5 +1,10 @@
 # Versions
 
+## 47.6.1
+
+- `grantAccess`: Add `is_ok_to_sign_bytes` to allow signing arbitrary bytes
+- `grantAccess`: Add `is_ok_to_verify_bytes_signatures` to verify the signatures
+
 ## 47.6.0
 
 - `closeChannel`: Add `address` to specify address to attempt to send funds to

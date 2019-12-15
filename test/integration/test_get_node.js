@@ -83,7 +83,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
     equal(policy.fee_rate, feeRate, 'Got expected fee rate');
     equal(policy.is_disabled, false, 'Channel is not disabled');
     equal(policy.max_htlc_mtokens, '990000000', 'Max HTLC mtokens returned');
-    equal(policy.min_htlc_mtokens, '1', 'Min HTLC mtokens returned');
+    equal(policy.min_htlc_mtokens, '1000', 'Min HTLC mtokens returned');
   }
 
   const [socket] = node.sockets;

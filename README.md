@@ -2093,8 +2093,10 @@ Note: access once given cannot be revoked
       [is_ok_to_get_peers]: <Can Get Node Peers Information Bool>
       [is_ok_to_pay]: <Can Send Funds or Edit Lightning Payments Bool>
       [is_ok_to_send_to_chain_addresses]: <Can Send Coins On Chain Bool>
+      [is_ok_to_sign_bytes]: <Can Sign Bytes From Node Keys Bool>
       [is_ok_to_sign_messages]: <Can Sign Messages From Node Key Bool>
       [is_ok_to_stop_daemon]: <Can Terminate Node or Change Operation Mode Bool>
+      [is_ok_to_verify_bytes_signatures]: <Can Verify Signatures of Bytes Bool>
       [is_ok_to_verify_messages]: <Can Verify Messages From Node Keys Bool>
       lnd: <Authenticated LND gRPC API Object>
     }

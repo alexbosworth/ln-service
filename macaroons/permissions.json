@@ -5,11 +5,14 @@
   "invoices:read": "is_ok_to_get_invoices",
   "invoices:write": "is_ok_to_create_invoices",
   "macaroon:generate": "is_ok_to_grant_access",
+  "message:read": "is_ok_to_verify_messages",
   "message:write": "is_ok_to_sign_messages",
   "offchain:read": "is_ok_to_get_payments",
   "offchain:write": "is_ok_to_pay",
   "onchain:read": "is_ok_to_get_chain_transactions",
   "onchain:write": "is_ok_to_send_to_chain_addresses",
   "peers:read": "is_ok_to_get_peers",
-  "peers:write": "is_ok_to_adjust_peers"
+  "peers:write": "is_ok_to_adjust_peers",
+  "signer:generate": "is_ok_to_sign_bytes",
+  "signer:read": "is_ok_to_verify_bytes_signatures"
 }

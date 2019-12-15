@@ -5,6 +5,7 @@ const {returnResult} = require('asyncjs-util');
 const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
 
 const {isArray} = Array;
+const maxHopsCount = 20;
 
 /** Make a payment via a specified route
 
@@ -95,6 +96,10 @@ module.exports = (args, cbk) => {
 
         if (!!args.routes.find(n => n.hops.find(hop => !hop.public_key))) {
           return cbk([400, 'ExpectedPublicKeyInPayViaRouteHops']);
+        }
+
+        if (!!args.routes.find(n => n.hops.length > maxHopsCount)) {
+          return cbk([400, 'ExpectedRouteWithFewerThanMaxHops']);
         }
 
         return cbk();

@@ -9,6 +9,7 @@ const {getRoutes} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {probe} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -22,7 +23,6 @@ test('Probe', async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  // Create a channel from the control to the target node
   const controlToTargetChannel = await openChannel({
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
