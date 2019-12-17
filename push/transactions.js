@@ -1,4 +1,4 @@
-const {broadcastResponse} = require('./../push');
+const broadcastResponse = require('./broadcast_response');
 const subscribeToTx = require('./../lightning/subscribe_to_transactions');
 
 const chainTransaction = 'chain_transaction';
