@@ -1,4 +1,4 @@
-const {broadcastResponse} = require('./../push');
+const broadcastResponse = require('./broadcast_response');
 const subscribeToGraph = require('./../lightning/subscribe_to_graph');
 
 const graphEvents = ['channel_closed', 'channel_updated', 'node_updated'];

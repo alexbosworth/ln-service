@@ -1,4 +1,4 @@
-const {broadcastResponse} = require('./../push');
+const broadcastResponse = require('./broadcast_response');
 const subscribeToInvoices = require('./../lightning/subscribe_to_invoices');
 
 const invoiceUpdate = 'invoice_updated';
