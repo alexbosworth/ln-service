@@ -680,9 +680,13 @@ Create an unsigned payment request
       [description_hash]: <Description Hash Hex String>
       destination: <Public Key String>
       [expires_at]: <ISO 8601 Date String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+      }]
       id: <Preimage SHA256 Hash Hex String>
       [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
       network: <Network Name String>
+      [payment]: <Payment Identifier Hex String>
       [routes]: [[{
         [base_fee_mtokens]: <Base Fee Millitokens String>
         [channel]: <Standard Format Channel Id String>
@@ -1486,6 +1490,8 @@ const {invoices} = await getInvoices({lnd});
 
 Get the network graph
 
+LND 0.8.2 and below do not return `features`
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -1512,6 +1518,12 @@ Get the network graph
       nodes: [{
         alias: <Name String>
         color: <Hex Encoded Color String>
+        features: [{
+          bit: <BOLT 09 Feature Bit Number>
+          is_known: <Feature is Known Bool>
+          is_required: <Feature Support is Required Bool>
+          type: <Feature Type String>
+        }]
         public_key: <Node Public Key String>
         sockets: [<Network Address and Port String>]
         updated_at: <Last Updated ISO 8601 Date String>
@@ -1556,6 +1568,8 @@ const {networkDetails} = await getNetworkInfo({lnd});
 
 Get information about a node
 
+LND 0.8.2 and below do not return `features`
+
     {
       [is_omitting_channels]: <Omit Channels from Node Bool>
       lnd: <Authenticated LND gRPC API Object>
@@ -1585,6 +1599,12 @@ Get information about a node
         [updated_at]: <Channel Last Updated At ISO 8601 Date String>
       }]
       color: <RGB Hex Color String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required Bool>
+        type: <Feature Type String>
+      }]
       sockets: [{
         socket: <Host and Port String>
         type: <Socket Type String>
@@ -1712,6 +1732,8 @@ const {payments} = await getPayments({lnd});
 
 Get connected peers.
 
+LND 0.8.2 and below do not return `features`
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -1721,6 +1743,12 @@ Get connected peers.
       peers: [{
         bytes_received: <Bytes Received Number>
         bytes_sent: <Bytes Sent Number>
+        features: [{
+          bit: <BOLT 09 Feature Bit Number>
+          is_known: <Feature is Known Bool>
+          is_required: <Feature Support is Required Bool>
+          type: <Feature Type String>
+        }]
         is_inbound: <Is Inbound Peer Bool>
         [is_sync_peer]: <Is Syncing Graph Data Bool>
         ping_time: <Milliseconds Number>
@@ -2231,10 +2259,16 @@ Note: either description or description_hash will be returned
       [description_hash]: <Description Hash Hex String>
       destination: <Public Key String>
       expires_at: <ISO 8601 Date String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_required: <Feature Support is Required To Pay Bool>
+        type: <Feature Type String>
+      }]
       id: <Payment Request Hash String>
       is_expired: <Invoice is Expired Bool>
       [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
       network: <Network Name String>
+      [payment]: <Payment Identifier Hex Encoded String>
       [routes]: [[{
         [base_fee_mtokens]: <Base Fee Millitokens String>
         [channel]: <Standard Format Channel Id String>

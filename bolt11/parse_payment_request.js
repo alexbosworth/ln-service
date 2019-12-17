@@ -4,6 +4,7 @@ const {decode} = require('bech32');
 const {recover} = require('secp256k1');
 
 const bech32CurrencyCodes = require('./conf/bech32_currency_codes');
+const {featureFlagsFromWords} = require('./../bolt09');
 const hrpAsTokens = require('./hrp_as_tokens');
 const paymentRequestExpiration = require('./payment_request_expiration');
 const {safeTokens} = require('./../bolt00');
@@ -58,10 +59,16 @@ const timestampWordLength = 7;
     [description_hash]: <Description Hash Hex String>
     destination: <Public Key String>
     expires_at: <ISO 8601 Date String>
+    features: [{
+      bit: <BOLT 09 Feature Bit Number>
+      is_required: <Feature Support is Required To Pay Bool>
+      type: <Feature Type String>
+    }]
     id: <Payment Request Hash String>
     is_expired: <Invoice is Expired Bool>
     [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
     network: <Network Name String>
+    [payment]: <Payment Identifier Hex Encoded String>
     [routes]: [[{
       [base_fee_mtokens]: <Base Fee Millitokens String>
       [channel]: <Standard Format Channel Id String>
@@ -158,8 +165,10 @@ module.exports = ({request}) => {
   let descHash;
   let description;
   let expiresAt;
+  let features;
   const hopHints = [];
   let paymentHash;
+  let paymentId;
   let tagCode;
   let tagLen;
   let tagName;
@@ -179,6 +188,10 @@ module.exports = ({request}) => {
     wordsWithTags = wordsWithTags.slice(tagWords.length);
 
     switch ((taggedFields[tagCode] || {}).name) {
+    case '9': // Features
+      features = featureFlagsFromWords({words: tagWords}).features;
+      break;
+
     case 'c': // CLTV expiry
       cltvDelta = wordsAsNumber({words: tagWords});
       break;
@@ -234,6 +247,13 @@ module.exports = ({request}) => {
         throw new Error('FailedToParseRoutingHopHints');
       }
       break;
+
+    case 's': // Payment identifier
+      try {
+        paymentId = wordsAsBuffer({trim, words: tagWords}).toString('hex');
+      } catch (err) {
+        throw new Error('FailedToParsePaymentRequestPaymentIdentifier');
+      }
 
     case 'x': // Expiration Seconds
       try {
@@ -291,9 +311,11 @@ module.exports = ({request}) => {
     description_hash: descHash || undefined,
     destination: destination.toString('hex'),
     expires_at: expiresAt,
+    features: features || [],
     id: paymentHash.toString('hex'),
     is_expired: expiresAt < new Date().toISOString(),
     mtokens: mtokens || undefined,
+    payment: paymentId || undefined,
     routes: !routes.length ? undefined : routes,
     safe_tokens: safe,
     tokens: tokens || undefined,

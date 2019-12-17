@@ -1,0 +1,25 @@
+{
+  "0": {"name": "option_data_loss_protect", "type": "data_loss_protection"},
+  "1": {"name": "option_data_loss_protect", "type": "data_loss_protection"},
+  "3": {"name": "initial_routing_sync", "type": "requires_initial_graph"},
+  "4": {
+    "name": "option_upfront_shutdown_script",
+    "type": "upfront_close_script"
+  },
+  "5": {
+    "name": "option_upfront_shutdown_script",
+    "type": "upfront_close_script"
+  },
+  "6": {"name": "gossip_queries", "type": "gossip_queries_v1"},
+  "7": {"name": "gossip_queries", "type": "gossip_queries_v1"},
+  "8": {"name": "var_onion_optin", "type": "tlv_onion"},
+  "9": {"name": "var_onion_optin", "type": "tlv_onion"},
+  "10": {"name": "gossip_queries_ex", "type": "gossip_queries_v2"},
+  "11": {"name": "gossip_queries_ex", "type": "gossip_queries_v2"},
+  "12": {"name": "option_static_remotekey", "type": "static_remote_key"},
+  "13": {"name": "option_static_remotekey", "type": "static_remote_key"},
+  "14": {"name": "payment_secret", "type": "payment_identifier"},
+  "15": {"name": "payment_secret", "type": "payment_identifier"},
+  "16": {"name": "basic_mpp", "type": "multipath_payments_v0"},
+  "17": {"name": "basic_mpp", "type": "multipath_payments_v0"}
+}

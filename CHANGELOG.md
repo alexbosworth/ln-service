@@ -1,5 +1,12 @@
 # Versions
 
+## 47.7.0
+
+- `createUnsignedRequest`: Add support for `features` and `payment` identifier
+- `getNode`: Add support for `features` feature flag list
+- `getPeers`: Add support for `features` feature flag list
+- `parsePaymentRequest`: Add support for `features` and `payment` identifier
+
 ## 47.6.1
 
 - `grantAccess`: Add `is_ok_to_sign_bytes` to allow signing arbitrary bytes

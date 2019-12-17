@@ -6,6 +6,7 @@ const {broadcastResponse} = require('./../push');
 const createChainAddress = require('./create_chain_address');
 const getInvoice = require('./get_invoice');
 
+const defaultExpiryMs = 1000 * 60 * 60 * 3;
 const invoiceExistsError = 'invoice with payment hash already exists';
 const {isArray} = Array;
 const msPerSec = 1e3;
@@ -99,7 +100,7 @@ module.exports = (args, cbk) => {
 
         return args.lnd.default.addInvoice({
           cltv_expiry: !args.cltv_delta ? undefined : args.cltv_delta,
-          expiry: !expiryMs ? undefined : round(expiryMs / msPerSec),
+          expiry: !expiryMs ? defaultExpiryMs : round(expiryMs / msPerSec),
           fallback_addr: fallbackAddress,
           memo: args.description,
           private: !!args.is_including_private_channels,

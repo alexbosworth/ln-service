@@ -2,12 +2,16 @@ const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {returnResult} = require('asyncjs-util');
 
+const {featureFlagDetails} = require('./../bolt09');
+
 const decBase = 10;
 const {ceil} = Math;
 const {isArray} = Array;
 const microPerMilli = 1e3;
 
 /** Get connected peers.
+
+  LND 0.8.2 and below do not return `features`
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -18,6 +22,12 @@ const microPerMilli = 1e3;
     peers: [{
       bytes_received: <Bytes Received Number>
       bytes_sent: <Bytes Sent Number>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required Bool>
+        type: <Feature Type String>
+      }]
       is_inbound: <Is Inbound Peer Bool>
       [is_sync_peer]: <Is Syncing Graph Data Bool>
       ping_time: <Milliseconds Number>
@@ -109,6 +119,12 @@ module.exports = ({lnd}, cbk) => {
           return cbk(null, {
             bytes_received: parseInt(peer.bytes_recv, decBase),
             bytes_sent: parseInt(peer.bytes_sent, decBase),
+            features: Object.keys(peer.features || {}).map(bit => ({
+              bit,
+              is_known: peer.features[bit].is_known,
+              is_required: peer.features[bit].is_required,
+              type: featureFlagDetails({bit}).type,
+            })),
             is_inbound: peer.inbound,
             is_sync_peer: isSyncPeer,
             ping_time: ceil(parseInt(peer.ping_time, decBase) / microPerMilli),

@@ -13,6 +13,7 @@ const tests = [
       description: 'Read: Global Cryptocurrency Regulation',
       destination: '02212d3ec887188b284dbb7b2e6eb40629a6e14fb049673f22d2a0aa05f902090e',
       expires_at: '2018-07-03T03:32:54.000Z',
+      features: [],
       id: 'e21a0c8df400c66e62e315b1cc96abb95ca30bb00941bf35e436101af2f5b4ea',
       is_expired: true,
       mtokens: '150000',
@@ -29,6 +30,7 @@ const tests = [
       description: 'Read: Global Cryptocurrency Regulation',
       destination: '02212d3ec887188b284dbb7b2e6eb40629a6e14fb049673f22d2a0aa05f902090e',
       expires_at: '2018-07-03T03:32:54.000Z',
+      features: [],
       id: 'e21a0c8df400c66e62e315b1cc96abb95ca30bb00941bf35e436101af2f5b4ea',
       is_expired: true,
       mtokens: '150000',
@@ -45,6 +47,7 @@ const tests = [
       description: 'Please consider supporting this project',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: undefined,
@@ -61,6 +64,7 @@ const tests = [
       description: '1 cup coffee',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 60) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: '250000000',
@@ -77,6 +81,7 @@ const tests = [
       description: 'ナンセンス 1杯',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 60) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: '250000000',
@@ -93,6 +98,7 @@ const tests = [
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: '2000000000',
@@ -110,6 +116,7 @@ const tests = [
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: '2000000000',
@@ -148,6 +155,7 @@ const tests = [
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: '2000000000',
@@ -165,6 +173,7 @@ const tests = [
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: '2000000000',
@@ -182,6 +191,7 @@ const tests = [
       description_hash: '3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1',
       destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
       expires_at: new Date((1496314658 + 3600) * msPerSec).toISOString(),
+      features: [],
       id: '0001020304050607080900010203040506070809000102030405060708090102',
       is_expired: true,
       mtokens: '2000000000',
@@ -198,6 +208,7 @@ const tests = [
       description: "Read Article: Soros Entering Bitcoin Market Be",
       destination: '0220f9fae5058ec9ddb46b4839b04298affa18913f104081aedd680816fb8165e3',
       expires_at: '2018-04-13T16:24:41.000Z',
+      features: [],
       id: 'a8b626e4f842ca9157106d4854064c5550634cda9cd343bb9a0d117ff4406cec',
       is_expired: true,
       mtokens: '150000',
@@ -214,6 +225,7 @@ const tests = [
       created_at: new Date(1533923529 * msPerSec).toISOString(),
       destination: '032bb4f2cd2bf877429f1d79f91de0794e4a3b7b772febbf60fc21bb3475f7cd5e',
       expires_at: new Date((1533923529 + 172800) * msPerSec).toISOString(),
+      features: [],
       id: '5c23c315170c4fc9b1020641651aae17021d7f2488160fc759bbcb666af771c6',
       is_expired: true,
       mtokens: '493020',
@@ -234,6 +246,47 @@ const tests = [
     },
     request: 'lntb4930200p1pdkm5xfrzjqwfn3p9278ttzzpe0e00uhyxhned3j5d9acqak5emwfpflp8z2cng99y0sqqqgcqqqqqqqlgqqqqqeqqjqfppqvzxxvnahw6gkj9aqpptktxpt6906cn2sdqqxqy9gcqpp5ts3ux9ghp38unvgzqeqk2x4wzupp6ley3qtql36eh09kv6hhw8rqlsewhluvdsc05q8pcfwnrfplrglgzlzqmgkzamrhvxj8lep7hhajx6pu5s3ay6pjunw679nx9nrvkdl52n9l273ah4rxwm4tj8fcjcqqh4ku2d',
   },
+  {
+    description: 'Features and payment identifier',
+    expected: {
+      cltv_delta: 9,
+      created_at: new Date(1496314658 * 1e3).toISOString(),
+      description: 'coffee beans',
+      destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
+      expires_at: new Date((1496314658 * 1e3) + (1000 * 60 * 60)).toISOString(),
+      features: [
+        {bit: 15, is_required: false, type: 'payment_identifier'},
+        {bit: 99, is_required: false, type: undefined},
+      ],
+      id: '0001020304050607080900010203040506070809000102030405060708090102',
+      is_expired: true,
+      mtokens: '2500000000',
+      network: 'bitcoin',
+      payment: '1111111111111111111111111111111111111111111111111111111111111111',
+      safe_tokens: 2500000,
+      tokens: 2500000,
+    },
+    request: 'lnbc25m1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5vdhkven9v5sxyetpdeessp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygs9q5sqqqqqqqqqqqqqqqpqqq4u9s93jtgysm3mrwll70zr697y3mf902hvxwej0v7c62rsltw83ng0pu8w3j230sluc5gxkdmm9dvpy9y6ggtjd2w544mzdrcs42t7sqdkcy8h',
+  },
+  {
+    description: 'TLV onion payment request',
+    expected: {
+      cltv_delta: 99,
+      created_at: '2019-12-15T22:55:21.000Z',
+      description: 'Read: Global Cryptocurrency Regulation',
+      destination: '02ff85a8569c0e0a959af504398c4730def961c3b7104b9b27f3bcf527ff5da0e9',
+      expires_at: '2019-12-15T23:55:21.000Z',
+      features: [{bit: 9, is_required: false, type: 'tlv_onion'}],
+      id: '7426ba0604c3f8682c7016b44673f85c5bd9da2fa6c1080810cf53ae320c9863',
+      is_expired: true,
+      mtokens: '150000',
+      network: 'regtest',
+      payment: 'a4bbb8285d8f4b74097889562d1a03098791a503b3720835658dfa277c65b78e',
+      safe_tokens: 150,
+      tokens: 150,
+    },
+    request: 'lnbcrt1500n1pwldwwepp5wsnt5psyc0uxstrsz66yvulct3dank305mqsszqseaf6uvsvnp3sdpa2fjkzep6yprkcmmzv9kzqsmj09c8gmmrw4e8yetwvdujq5n9va6kcct5d9hkucqzrr9qzsqsp55jams2za3a9hgztc39tz6xsrpxrerfgrkdeqsdt93hazwlr9k78q03hl88h8fsu0pyz2ex4fsz62ycm48s55gqc9kjxahlnp6jj0rjq5ssyp2xr4qmsyec3szqphngxmkm65j8ttga2ulg3xzwmq5ry5xvqpet0rgz',
+  },
 ];
 
 tests.forEach(({description, expected, request}) => {
@@ -247,10 +300,12 @@ tests.forEach(({description, expected, request}) => {
     equal(details.description_hash, expected.description_hash, 'Desc hash');
     equal(details.destination, expected.destination, 'Parse dest pubkey');
     equal(details.expires_at, expected.expires_at, 'Parse expiration date');
+    deepIs(details.features, expected.features, 'Parse feature bits');
     equal(details.id, expected.id, 'Parse payment hash');
     equal(details.is_expired, expected.is_expired, 'Check expiration status');
     equal(details.mtokens, expected.mtokens, 'Parse millitokens amount');
     equal(details.network, expected.network, 'Parse network');
+    equal(details.payment, expected.payment, 'Parse payment identifier');
     equal(details.tokens, expected.tokens, 'Parse tokens amount');
 
     if (Array.isArray(details.routes) || Array.isArray(expected.routes)) {

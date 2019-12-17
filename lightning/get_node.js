@@ -4,6 +4,7 @@ const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
 const {channelEdgeAsChannel} = require('./../graph');
+const {featureFlagDetails} = require('./../bolt09');
 const getChannel = require('./get_channel');
 
 const colorTemplate = '#000000';
@@ -13,6 +14,8 @@ const {isArray} = Array;
 const msPerSec = 1e3;
 
 /** Get information about a node
+
+  LND 0.8.2 and below do not return `features`
 
   {
     [is_omitting_channels]: <Omit Channels from Node Bool>
@@ -43,6 +46,12 @@ const msPerSec = 1e3;
       [updated_at]: <Policy Last Updated At ISO 8601 Date String>
     }]
     color: <RGB Hex Color String>
+    features: [{
+      bit: <BOLT 09 Feature Bit Number>
+      is_known: <Feature is Known Bool>
+      is_required: <Feature Support is Required Bool>
+      type: <Feature Type String>
+    }]
     sockets: [{
       socket: <Host and Port String>
       type: <Socket Type String>
@@ -160,6 +169,12 @@ module.exports = (args, cbk) => {
               capacity: parseInt(res.total_capacity, decBase),
               channel_count: res.num_channels,
               color: res.node.color,
+              features: Object.keys(res.node.features).map(bit => ({
+                bit,
+                is_known: res.node.features[bit].is_known,
+                is_required: res.node.features[bit].is_required,
+                type: featureFlagDetails({bit}).type,
+              })),
               sockets: res.node.addresses.map(({addr, network}) => ({
                 socket: addr,
                 type: network,

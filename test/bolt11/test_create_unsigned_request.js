@@ -218,6 +218,38 @@ const tests = [
       private_key: 'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734',
     },
   },
+  {
+    args: {
+      created_at: '2017-06-01T10:57:38.000Z',
+      description: 'coffee beans',
+      features: [
+        {
+          bit: 15,
+          is_required: false,
+          type: 'payment_identifier',
+        },
+        {
+          bit: 99,
+          is_required: false,
+          type: undefined,
+        },
+      ],
+      id: '0001020304050607080900010203040506070809000102030405060708090102',
+      network: 'bitcoin',
+      payment: '1111111111111111111111111111111111111111111111111111111111111111',
+      tokens: 2000000,
+    },
+    description: 'With features and payment identifier',
+    expected: {
+      data: '0b25fe64410d00004080c1014181c20240004080c1014181c20240004080c1014181c202404080a0a40000000000000000000040003414636f66666565206265616e730806822222222222222222222222222222222222222222222222222222222222222220',
+      hash: 'ca79ddcfb01fc3232cf784075742a259afa0d3506c0db278b95175154a89bda5',
+      hrp: 'lnbc20m',
+    },
+    verify: {
+      destination: '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
+      private_key: 'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734',
+    },
+  },
 ];
 
 tests.forEach(({args, description, expected, verify}) => {
@@ -248,8 +280,16 @@ tests.forEach(({args, description, expected, verify}) => {
     equal(parsed.description_hash, args.description_hash, 'Got Desc hash');
     equal(parsed.destination, verify.destination, 'Destination key expected');
 
+    if (!!args.features) {
+      deepIs(parsed.features, args.features, 'Got expected feature bits');
+    }
+
     if (!!args.mtokens) {
       equal(parsed.mtokens, args.mtokens, 'Payment request mtokens expected');
+    }
+
+    if (!!args.payment) {
+      equal(parsed.payment, args.payment, 'Payment identifier expected');
     }
 
     if (!!args.routes) {

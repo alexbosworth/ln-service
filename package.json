@@ -35,7 +35,7 @@
     "bip66": "1.1.5",
     "portfinder": "1.0.25",
     "rimraf": "3.0.0",
-    "tap": "14.10.2",
+    "tap": "14.10.4",
     "uuid": "3.3.3",
     "varuint-bitcoin": "1.1.2"
   },
@@ -69,5 +69,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.6.1"
+  "version": "47.7.0"
 }

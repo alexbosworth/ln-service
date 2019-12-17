@@ -6,6 +6,7 @@ const {flatten} = require('lodash');
 const chainAddressAsWords = require('./chain_address_as_words');
 const currencyCodes = require('./conf/bech32_currency_codes');
 const descriptionAsWords = require('./description_as_words');
+const {featureFlagsAsWords} = require('./../bolt09');
 const hexAsWords = require('./hex_as_words');
 const hopAsHex = require('./hop_as_hex');
 const mtokensAsHrp = require('./mtokens_as_hrp');
@@ -34,9 +35,13 @@ const {sha256} = crypto;
     [description_hash]: <Description Hash Hex String>
     destination: <Public Key String>
     [expires_at]: <ISO 8601 Date String>
+    features: [{
+      bit: <BOLT 09 Feature Bit Number>
+    }]
     id: <Preimage SHA256 Hash Hex String>
     [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
     network: <Network Name String>
+    [payment]: <Payment Identifier Hex String>
     [routes]: [[{
       [base_fee_mtokens]: <Base Fee Millitokens String>
       [channel]: <Standard Format Channel Id String>
@@ -125,6 +130,18 @@ module.exports = args => {
         words: numberAsWords({number: expiresAtEpochTime - createdAt}).words,
       };
 
+    case 'feature_bits':
+      if (!args.features) {
+        return {};
+      }
+
+      const bits = args.features.map(n => n.bit);
+
+      return {
+        field,
+        words: featureFlagsAsWords({features: bits}).words,
+      };
+
     case 'fallback_address':
       if (!args.chain_addresses) {
         return {};
@@ -136,7 +153,9 @@ module.exports = args => {
       }));
 
     case 'min_final_cltv_expiry':
-      return {};
+      if (!args.cltv_delta) {
+        return {};
+      }
 
       return {
         field,
@@ -147,6 +166,16 @@ module.exports = args => {
       return {
         field,
         words: hexAsWords({hex: args.id}).words,
+      };
+
+    case 'payment_identifier':
+      if (!args.payment) {
+        return {};
+      }
+
+      return {
+        field,
+        words: hexAsWords({hex: args.payment}).words,
       };
 
     case 'routing':

@@ -3,6 +3,7 @@ const {isFinite} = require('lodash');
 const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
+const {featureFlagDetails} = require('./../bolt09');
 const {parsePaymentRequest} = require('./../bolt11');
 const {routeFromRouteHint} = require('./../routing');
 const {safeTokens} = require('./../bolt00');
@@ -134,11 +135,11 @@ module.exports = ({lnd, request}, cbk) => {
             description_hash: res.description_hash || undefined,
             destination: res.destination,
             expires_at: new Date(expiryDateMs).toISOString(),
-            features: res.features.map(feature => ({
-              bit: feature.bit,
-              is_known: feature.is_known,
-              is_required: feature.is_required,
-              type: feature.name,
+            features: Object.keys(res.features).map(bit => ({
+              bit,
+              is_known: res.features[bit].is_known,
+              is_required: res.features[bit].is_required,
+              type: featureFlagDetails({bit}).type,
             })),
             id: res.payment_hash,
             is_expired: now() > expiryDateMs,

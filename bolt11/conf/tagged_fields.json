@@ -9,6 +9,11 @@
     "name": "r",
     "type": "route"
   },
+  "5": {
+    "label": "feature_bits",
+    "name": "9",
+    "type": "words"
+  },
   "6": {
     "label": "expiry",
     "name": "x",
@@ -23,6 +28,11 @@
     "label": "description",
     "name": "d",
     "type": "string"
+  },
+  "16": {
+    "label": "payment_identifier",
+    "name": "s",
+    "type": "identifier"
   },
   "19": {
     "label": "destination_public_key",

@@ -3,6 +3,7 @@ const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
 const {channelEdgeAsChannel} = require('./../graph');
+const {featureFlagDetails} = require('./../bolt09');
 
 const countGroupingFactor = 3;
 const decBase = 10;
@@ -11,6 +12,8 @@ const msPerSec = 1e3
 const outpointSeparatorChar = ':';
 
 /** Get the network graph
+
+  LND 0.8.2 and below do not return `features`
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -38,6 +41,12 @@ const outpointSeparatorChar = ':';
     nodes: [{
       alias: <Name String>
       color: <Hex Encoded Color String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required Bool>
+        type: <Feature Type String>
+      }]
       public_key: <Node Public Key String>
       sockets: [<Network Host:Port String>]
       updated_at: <Last Updated ISO 8601 Date String>
@@ -107,6 +116,12 @@ module.exports = ({lnd}, cbk) => {
           return {
             alias: n.alias,
             color: n.color,
+            features: Object.keys(n.features).map(bit => ({
+              bit,
+              is_known: n.features[bit].is_known,
+              is_required: n.features[bit].is_required,
+              type: featureFlagDetails({bit}).type,
+            })),
             public_key: n.pub_key,
             sockets: n.addresses.map(({addr}) => addr),
             updated_at: new Date(n.last_update * msPerSec).toISOString(),

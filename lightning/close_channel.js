@@ -100,6 +100,7 @@ module.exports = (args, cbk) => {
 
       // Close out the channel
       closeChannel: ['addPeer', 'getChannel', ({getChannel}, cbk) => {
+        let isFinished = false;
         const tokensPerVByte = args.tokens_per_vbyte;
         const transactionId = Buffer.from(getChannel.transaction_id, 'hex');
         const transactionVout = getChannel.transaction_vout;
@@ -116,7 +117,13 @@ module.exports = (args, cbk) => {
         });
 
         const finished = (err, res) => {
-          closeChannel.removeAllListeners();
+          if (!!isFinished) {
+            return;
+          }
+
+          closeChannel.cancel();
+
+          isFinished = true;
 
           return cbk(err, res);
         };
