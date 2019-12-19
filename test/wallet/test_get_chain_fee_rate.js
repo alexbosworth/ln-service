@@ -53,7 +53,7 @@ const tests = [
 tests.forEach(({args, description, error, expected}) => {
   return test(description, async ({deepEqual, end, equal, rejects}) => {
     if (!!error) {
-      rejects(() => getChainFeeRate(args), error, 'Got expected error');
+      await rejects(getChainFeeRate(args), error, 'Got expected error');
     } else {
       const res = await getChainFeeRate(args);
 

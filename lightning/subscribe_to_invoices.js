@@ -38,6 +38,12 @@ const restartSubscriptionMs = 1000 * 30;
     description: <Description String>
     description_hash: <Description Hash Hex String>
     expires_at: <Expires At ISO 8601 Date String>
+    features: [{
+      bit: <Feature Bit Number>
+      is_known: <Is Known Feature Bool>
+      is_required: <Feature Is Required Bool>
+      name: <Feature Name String>
+    }]
     id: <Invoice Payment Hash Hex String>
     index: <Invoice Index Number>
     is_confirmed: <Invoice is Confirmed Bool>

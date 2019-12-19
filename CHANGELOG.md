@@ -1,5 +1,12 @@
 # Versions
 
+## 47.8.0
+
+- `getChannels`: add `cooperative_close_address` to show coop close address
+- `getWalletInfo`: add `features` for listing supported features
+- `openChannel`: add `cooperative_close_address` to specify coop close address
+- `subscribeToPeers`: added method to listen for peer connects and disconnects
+
 ## 47.7.0
 
 - `createUnsignedRequest`: Add support for `features` and `payment` identifier

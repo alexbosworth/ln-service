@@ -196,6 +196,7 @@ for `unlocker` methods.
 - [subscribeToPayViaDetails](#subscribeToPayViaDetails) - Pay using details
 - [subscribeToPayViaRequest](#subscribeToPayViaRequest) - Pay using a request
 - [subscribeToPayViaRoutes](#subscribeToPayViaRoutes) - Pay using routes
+- [subscribeToPeers](#subscribeToPeers) - Subscribe to peers connectivity
 - [subscribeToProbe](#subscribeToProbe) - Subscribe to a probe for a route
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
@@ -210,6 +211,7 @@ for `unlocker` methods.
 
 - [bolt03](https://npmjs.com/package/bolt03) - bolt03 tx utilities
 - [bolt07](https://npmjs.com/package/bolt07) - bolt07 channel id utilities
+- [bolt09](https://npmjs.com/package/bolt09) - bolt09 feature flag utilities
 - [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
 
 ### addPeer
@@ -1095,6 +1097,7 @@ Get channels
 
 `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
+`cooperative_close_address` is not supported on LND 0.8.2 and below
 `time_offline` and `time_online` will be undefined on 0.8.2 and below
 
     {
@@ -1111,6 +1114,7 @@ Get channels
         capacity: <Channel Token Capacity Number>
         commit_transaction_fee: <Commit Transaction Fee Number>
         commit_transaction_weight: <Commit Transaction Weight Number>
+        [cooperative_close_address]: <Coop Close Restricted to Address String>
         id: <Standard Format Channel Id String>
         is_active: <Channel Active Bool>
         is_closing: <Channel Is Closing Bool>
@@ -2075,6 +2079,8 @@ const {utxos} = await getUtxos({lnd});
 
 Get overall wallet info.
 
+LND 0.8.2 and below do not return `features`
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -2087,6 +2093,12 @@ Get overall wallet info.
       color: <Node Color String>
       current_block_hash: <Best Chain Hash Hex String>
       current_block_height: <Best Chain Height Number>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required Bool>
+        type: <Feature Type String>
+      }]
       is_synced_to_chain: <Is Synced To Chain Bool>
       latest_block_at: <Latest Known Block At Date String>
       peers_count: <Peer Count Number>
@@ -2198,8 +2210,11 @@ The capacity of the channel is set with local_tokens
 
 If give_tokens is set, it is a gift and it does not alter the capacity
 
+LND 0.8.2 and below do not support `cooperative_close_address`
+
     {
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
+      [cooperative_close_address]: <Restrict Cooperative Close To Address String>
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
       [is_private]: <Channel is Private Bool> // Defaults to false
       lnd: <Authenticated LND gRPC API Object>
@@ -3888,6 +3903,45 @@ const {getRoutes, subscribeToPayViaRoutes} = require('ln-service');
 const {routes} = getRoutes({destination, lnd, tokens});
 const sub = subscribeToPayViaRoutes({lnd, routes});
 const [success] = await once(sub, 'success');
+```
+
+### subscribeToPeers
+
+Subscribe to peer connectivity events
+
+LND 0.8.2 and below do not support peer subscriptions
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    <EventEmitter Object>
+
+    @event 'connected'
+    {
+      public_key: <Connected Peer Public Key Hex String>
+    }
+
+    @event 'disconnected'
+    {
+      public_key: <Disconnected Peer Public Key Hex String>
+    }
+
+Example:
+
+```node
+const {subscribeToPeers} = require('ln-service');
+
+const sub = subscribeToPeers({lnd});
+
+let lastConnectedPeer;
+
+// Listen to connected peers
+sub.on('connected', peer => lastConnected = peer.public_key);
 ```
 
 ### subscribeToProbe

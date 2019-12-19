@@ -355,6 +355,13 @@ service Lightning {
         };
     }
 
+    /**
+    SubscribePeerEvents creates a uni-directional stream from the server to
+    the client in which any events relevant to the state of peers are sent
+    over. Events include peers going online and offline.
+    */
+    rpc SubscribePeerEvents (PeerEventSubscription) returns (stream PeerEvent);
+
     /** lncli: `getinfo`
     GetInfo returns general information concerning the lightning node including
     it's identity pubkey, alias, the chains it is connected to, and information
@@ -1407,6 +1414,20 @@ message ListPeersResponse {
     /// The list of currently connected peers
     repeated Peer peers = 1 [json_name = "peers"];
 }
+message PeerEventSubscription {
+}
+
+message PeerEvent {
+    /// The identity pubkey of the peer.
+    string pub_key = 1 [json_name = "pub_key"];
+
+    enum EventType {
+        PEER_ONLINE = 0;
+        PEER_OFFLINE = 1;
+    }
+
+    EventType type = 2 [ json_name = "type" ];
+}
 
 message GetInfoRequest {
 }
@@ -1460,6 +1481,12 @@ message GetInfoResponse {
 
     // Whether we consider ourselves synced with the public channel graph.
     bool synced_to_graph = 18 [json_name = "synced_to_graph"];
+
+    /*
+    Features that our node has advertised in our init message, node
+    announcements and invoices.
+    */
+    map<uint32, Feature> features = 19 [json_name = "features"];
 }
 
 message Chain {
@@ -1557,6 +1584,17 @@ message OpenChannelRequest {
 
     /// Whether unconfirmed outputs should be used as inputs for the funding transaction.
     bool spend_unconfirmed = 12 [json_name = "spend_unconfirmed"];
+
+    /*
+    Close address is an optional address which specifies the address to which
+    funds should be paid out to upon cooperative close. This field may only be
+    set if the peer supports the option upfront feature bit (call listpeers
+    to check). The remote peer will only accept cooperative closes to this
+    address if it is set.
+    Note: If this value is set on channel creation, you will *not* be able to
+    cooperatively close out to a different address.
+    */
+    string close_address = 13 [json_name = "close_address"];
 }
 message OpenStatusUpdate {
     oneof update {

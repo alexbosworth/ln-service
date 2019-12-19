@@ -42,6 +42,7 @@ const subscribeToChannels = require('./subscribe_to_channels');
 const subscribeToGraph = require('./subscribe_to_graph');
 const subscribeToInvoices = require('./subscribe_to_invoices');
 const subscribeToOpenRequests = require('./subscribe_to_open_requests');
+const subscribeToPeers = require('./subscribe_to_peers');
 const subscribeToTransactions = require('./subscribe_to_transactions');
 const updateRoutingFees = require('./update_routing_fees');
 const verifyBackup = require('./verify_backup');
@@ -93,6 +94,7 @@ module.exports = {
   subscribeToGraph,
   subscribeToInvoices,
   subscribeToOpenRequests,
+  subscribeToPeers,
   subscribeToTransactions,
   updateRoutingFees,
   verifyBackup,

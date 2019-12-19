@@ -12,6 +12,7 @@ const getInfo = ({}, cbk) => {
     block_height: 100,
     chains: [],
     color: '#000000',
+    features: {},
     identity_pubkey: Buffer.alloc(33).toString('hex'),
     num_active_channels: 1,
     num_peers: 1,

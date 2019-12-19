@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
+const {featureFlagDetails} = require('bolt09');
 const {isFinite} = require('lodash');
 const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
-const {featureFlagDetails} = require('./../bolt09');
 const {parsePaymentRequest} = require('./../bolt11');
 const {routeFromRouteHint} = require('./../routing');
 const {safeTokens} = require('./../bolt00');
@@ -136,7 +136,7 @@ module.exports = ({lnd, request}, cbk) => {
             destination: res.destination,
             expires_at: new Date(expiryDateMs).toISOString(),
             features: Object.keys(res.features).map(bit => ({
-              bit,
+              bit: Number(bit),
               is_known: res.features[bit].is_known,
               is_required: res.features[bit].is_required,
               type: featureFlagDetails({bit}).type,

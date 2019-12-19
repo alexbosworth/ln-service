@@ -13,8 +13,11 @@ const minChannelTokens = 20000;
 
   If give_tokens is set, it is a gift and it does not alter the capacity
 
+  LND 0.8.2 and below do not support `cooperative_close_address`
+
   {
     [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
+    [cooperative_close_address]: <Restrict Cooperative Close To Address String>
     [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
     [is_private]: <Channel is Private Bool> // Defaults to false
     lnd: <Authenticated LND gRPC API Object>
@@ -95,6 +98,10 @@ module.exports = (args, cbk) => {
 
         if (!!args.chain_fee_tokens_per_vbyte) {
           options.sat_per_byte = args.chain_fee_tokens_per_vbyte;
+        }
+
+        if (!!args.cooperative_close_address) {
+          options.close_address = args.cooperative_close_address;
         }
 
         if (!!args.give_tokens) {

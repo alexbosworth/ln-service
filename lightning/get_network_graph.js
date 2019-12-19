@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
 const {chanFormat} = require('bolt07');
+const {featureFlagDetails} = require('bolt09');
 const {returnResult} = require('asyncjs-util');
 
 const {channelEdgeAsChannel} = require('./../graph');
-const {featureFlagDetails} = require('./../bolt09');
 
 const countGroupingFactor = 3;
 const decBase = 10;

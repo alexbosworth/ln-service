@@ -1,10 +1,10 @@
 const {createHash} = require('crypto');
 
 const {decode} = require('bech32');
+const {featureFlagsFromWords} = require('bolt09');
 const {recover} = require('secp256k1');
 
 const bech32CurrencyCodes = require('./conf/bech32_currency_codes');
-const {featureFlagsFromWords} = require('./../bolt09');
 const hrpAsTokens = require('./hrp_as_tokens');
 const paymentRequestExpiration = require('./payment_request_expiration');
 const {safeTokens} = require('./../bolt00');

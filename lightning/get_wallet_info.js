@@ -1,9 +1,11 @@
 const asyncAuto = require('async/auto');
+const {featureFlagDetails} = require('bolt09');
 const {isBoolean} = require('lodash');
 const {isNumber} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 
 const {chainId} = require('./../bolt02');
+const {isLnd} = require('./../grpc');
 
 const cannotConnectMessage = 'failed to connect to all addresses';
 const connectFailMessage = '14 UNAVAILABLE: channel is in state TRANSIENT_FAILURE';
@@ -13,6 +15,8 @@ const lockedLndErrorMessage = 'unknown service lnrpc.Lightning';
 const msPerSec = 1e3;
 
 /** Get overall wallet info.
+
+  LND 0.8.2 and below do not return `features`
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -26,6 +30,12 @@ const msPerSec = 1e3;
     color: <Node Color String>
     current_block_hash: <Best Chain Hash Hex String>
     current_block_height: <Best Chain Height Number>
+    features: [{
+      bit: <BOLT 09 Feature Bit Number>
+      is_known: <Feature is Known Bool>
+      is_required: <Feature Support is Required Bool>
+      type: <Feature Type String>
+    }]
     is_synced_to_chain: <Is Synced To Chain Bool>
     [is_synced_to_graph]: <Is Synced To Network Graph Bool>
     latest_block_at: <Latest Known Block At Date String>
@@ -41,7 +51,7 @@ module.exports = ({lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.default || !lnd.default.getInfo) {
+        if (!isLnd({lnd, method: 'getInfo', type: 'default'})) {
           return cbk([400, 'ExpectedAuthenticatedLndGrpcForGetInfoRequest']);
         }
 
@@ -140,6 +150,12 @@ module.exports = ({lnd}, cbk) => {
             alias: res.alias,
             current_block_hash: res.block_hash,
             current_block_height: res.block_height,
+            features: Object.keys(res.features).map(bit => ({
+              bit: Number(bit),
+              is_known: res.features[bit].is_known,
+              is_required: res.features[bit].is_required,
+              type: featureFlagDetails({bit}).type,
+            })),
             is_synced_to_chain: res.synced_to_chain,
             is_synced_to_graph: !res.synced_to_graph ? undefined : true,
             latest_block_at: latestBlockAt.toISOString(),

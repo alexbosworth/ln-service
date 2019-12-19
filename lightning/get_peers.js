@@ -1,8 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const {featureFlagDetails} = require('bolt09');
 const {returnResult} = require('asyncjs-util');
-
-const {featureFlagDetails} = require('./../bolt09');
 
 const decBase = 10;
 const {ceil} = Math;

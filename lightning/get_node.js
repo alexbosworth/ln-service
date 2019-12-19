@@ -1,10 +1,10 @@
 const asyncAuto = require('async/auto');
 const asyncMapLimit = require('async/mapLimit');
 const {chanFormat} = require('bolt07');
+const {featureFlagDetails} = require('bolt09');
 const {returnResult} = require('asyncjs-util');
 
 const {channelEdgeAsChannel} = require('./../graph');
-const {featureFlagDetails} = require('./../bolt09');
 const getChannel = require('./get_channel');
 
 const colorTemplate = '#000000';

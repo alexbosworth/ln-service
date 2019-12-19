@@ -1,3 +1,5 @@
+const {featureFlagDetails} = require('bolt09');
+
 const htlcAsPayment = require('./htlc_as_payment');
 
 const asMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
@@ -125,7 +127,7 @@ module.exports = args => {
     throw new Error('ExpectedInvoiceDescriptionHash');
   }
 
-  if (!isArray(args.features)) {
+  if (!args.features) {
     throw new Error('ExpectedFeaturesFromRpcInvoice');
   }
 
@@ -174,11 +176,11 @@ module.exports = args => {
     description: args.memo || '',
     description_hash: descriptionHash.toString('hex') || undefined,
     expires_at: new Date(expiresAt * msPerSec).toISOString(),
-    features: args.features.map(feature => ({
-      bit: feature.bit,
-      is_known: feature.is_known,
-      is_required: feature.is_required,
-      type: feature.name,
+    features: Object.keys(args.features).map(bit => ({
+      bit: Number(bit),
+      is_known: args.features[bit].is_known,
+      is_required: args.features[bit].is_required,
+      type: featureFlagDetails({bit}).type,
     })),
     id: args.r_hash.toString('hex'),
     index: Number(args.add_index),

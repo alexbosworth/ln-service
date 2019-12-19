@@ -1,12 +1,12 @@
 const {createHash} = require('crypto');
 
 const {crypto} = require('bitcoinjs-lib');
+const {featureFlagsAsWords} = require('bolt09');
 const {flatten} = require('lodash');
 
 const chainAddressAsWords = require('./chain_address_as_words');
 const currencyCodes = require('./conf/bech32_currency_codes');
 const descriptionAsWords = require('./description_as_words');
-const {featureFlagsAsWords} = require('./../bolt09');
 const hexAsWords = require('./hex_as_words');
 const hopAsHex = require('./hop_as_hex');
 const mtokensAsHrp = require('./mtokens_as_hrp');

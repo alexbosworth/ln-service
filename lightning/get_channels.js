@@ -13,6 +13,7 @@ const msPerSec = 1e3;
 
   `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
+  `cooperative_close_address` is not supported on LND 0.8.2 and below
   `time_offline` and `time_online` will be undefined on 0.8.2 and below
 
   {
@@ -29,6 +30,7 @@ const msPerSec = 1e3;
       capacity: <Channel Token Capacity Number>
       commit_transaction_fee: <Commit Transaction Fee Number>
       commit_transaction_weight: <Commit Transaction Weight Number>
+      [cooperative_close_address]: <Coop Close Restricted to Address String>
       id: <Standard Format Channel Id String>
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
@@ -183,6 +185,7 @@ module.exports = (args, cbk) => {
             capacity: parseInt(channel.capacity, decBase),
             commit_transaction_fee: parseInt(channel.commit_fee, decBase),
             commit_transaction_weight: commitWeight,
+            cooperative_close_address: channel.close_address || undefined,
             id: chanFormat({number: channel.chan_id}).channel,
             is_active: channel.active,
             is_closing: false,
