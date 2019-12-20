@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 
+const {featureFlagDetails} = require('bolt09');
 const isHex = require('is-hex');
 
 const htlcAsPayment = require('./htlc_as_payment');
@@ -13,6 +14,7 @@ const msPerSec = 1e3;
 
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
+  The `features` and `messages` arrays are not populated on LND 0.8.2 and below
   The `mtokens` value is not supported on LND 0.8.2 and below
 
   {
@@ -34,6 +36,12 @@ const msPerSec = 1e3;
     description: <Description String>
     description_hash: <Description Hash Hex String>
     expires_at: <ISO 8601 Date String>
+    features: [{
+      bit: <BOLT 09 Feature Bit Number>
+      is_known: <Feature is Known Bool>
+      is_required: <Feature Support is Required To Pay Bool>
+      type: <Feature Type String>
+    }]
     id: <Payment Hash String>
     [is_canceled]: <Invoice is Canceled Bool>
     is_confirmed: <Invoice is Confirmed Bool>
@@ -49,6 +57,10 @@ const msPerSec = 1e3;
       is_canceled: <Payment is Canceled Bool>
       is_confirmed: <Payment is Confirmed Bool>
       is_held: <Payment is Held Bool>
+      messages: [{
+        type: <Message Type Number String>
+        value: <Raw Value Hex String>
+      }]
       mtokens: <Incoming Payment Millitokens String>
       [pending_index]: <Pending Payment Channel HTLC Index Number>
       tokens: <Payment TOkens Number>
@@ -138,6 +150,12 @@ module.exports = ({id, lnd}) => {
       created_at: new Date(createdAt * msPerSec).toISOString(),
       description: invoice.memo || '',
       expires_at: new Date(expiresAt * msPerSec).toISOString(),
+      features: Object.keys(invoice.features).map(bit => ({
+        bit: Number(bit),
+        is_known: invoice.features[bit].is_known,
+        is_required: invoice.features[bit].is_required,
+        type: featureFlagDetails({bit}).type,
+      })),
       id: invoice.r_hash.toString('hex'),
       is_canceled: invoice.state === 'CANCELED' || undefined,
       is_confirmed: invoice.settled,

@@ -1385,6 +1385,7 @@ Lookup a channel invoice.
 The received value and the invoiced value may differ as invoices may be
 over-paid.
 
+The `features` array is not populated on LND 0.8.2 and below
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     {
@@ -1400,6 +1401,12 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       description: <Description String>
       [description_hash]: <Description Hash Hex String>
       expires_at: <ISO 8601 Date String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required To Pay Bool>
+        type: <Feature Type String>
+      }]
       id: <Payment Hash String>
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
@@ -1414,6 +1421,10 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         is_canceled: <Payment is Canceled Bool>
         is_confirmed: <Payment is Confirmed Bool>
         is_held: <Payment is Held Bool>
+        messages: [{
+          type: <Message Type Number String>
+          value: <Raw Value Hex String>
+        }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
         tokens: <Payment TOkens Number>
@@ -1438,6 +1449,7 @@ Get all created invoices.
 
 If a next token is returned, pass it to get another page of invoices.
 
+The `features` and `messages` arrays are not populated on LND before 0.8.2
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     {
@@ -1455,6 +1467,12 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         description: <Description String>
         [description_hash]: <Description Hash Hex String>
         expires_at: <ISO 8601 Date String>
+        features: [{
+          bit: <BOLT 09 Feature Bit Number>
+          is_known: <Feature is Known Bool>
+          is_required: <Feature Support is Required To Pay Bool>
+          type: <Feature Type String>
+        }]
         id: <Payment Hash String>
         [is_canceled]: <Invoice is Canceled Bool>
         is_confirmed: <Invoice is Confirmed Bool>
@@ -1469,6 +1487,10 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
           is_canceled: <Payment is Canceled Bool>
           is_confirmed: <Payment is Confirmed Bool>
           is_held: <Payment is Held Bool>
+          messages: [{
+            type: <Message Type Number String>
+            value: <Raw Value Hex String>
+          }]
           mtokens: <Incoming Payment Millitokens String>
           [pending_index]: <Pending Payment Channel HTLC Index Number>
           tokens: <Payment TOkens Number>
@@ -2378,18 +2400,27 @@ Requires LND built with `routerrpc` build tag
 
 If no id is specified, a random id will be used.
 
+Specifying `features` is not supported on LND 0.8.2 and below
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
+Specifying `messages` is not supported on LND 0.8.2 and below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
+      [features]: [{
+        bit: <Feature Bit Number>
+      }]
       [id]: <Payment Request Hash Hex String>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
+      }]
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       tokens: <Tokens To Pay Number>
@@ -2432,6 +2463,7 @@ Pay via payment request
 Requires LND built with `routerrpc` build tag
 
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
+Specifying `messages` is not supported on LND 0.8.2 and below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
 
@@ -2440,6 +2472,10 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
+      }]
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       request: <BOLT 11 Payment Request String>
@@ -2478,9 +2514,11 @@ await payViaPaymentRequest({lnd, request});
 
 Make a payment via a specified route
 
-Requires lnd built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
 
 If no id is specified, a random id will be used
+
+LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
 
     {
       [id]: <Payment Hash Hex String>
@@ -2498,6 +2536,10 @@ If no id is specified, a random id will be used
           forward_mtokens: <Forward Millitokens String>
           [public_key]: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
+        }]
+        [messages]: [{
+          type: <Message Type Number String>
+          value: <Message Raw Value Hex Encoded String>
         }]
         mtokens: <Total Millitokens To Pay String>
         timeout: <Expiration Block Height Number>
@@ -3316,6 +3358,7 @@ LND built with `invoicesrpc` tag is required
 
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
+The `features` and `messages` arrays are not populated on LND 0.8.2 and below
 The `mtokens` value is only supported on LND versions after 0.8.2
 
     {
@@ -3337,6 +3380,12 @@ The `mtokens` value is only supported on LND versions after 0.8.2
       description: <Description String>
       description_hash: <Description Hash Hex String>
       expires_at: <ISO 8601 Date String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required To Pay Bool>
+        type: <Feature Type String>
+      }]
       id: <Payment Hash String>
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
@@ -3352,6 +3401,10 @@ The `mtokens` value is only supported on LND versions after 0.8.2
         is_canceled: <Payment is Canceled Bool>
         is_confirmed: <Payment is Confirmed Bool>
         is_held: <Payment is Held Bool>
+        messages: [{
+          type: <Message Type Number String>
+          value: <Raw Value Hex String>
+        }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
         tokens: <Payment TOkens Number>
@@ -3385,6 +3438,7 @@ const [invoice] = await once(sub, 'invoice_updated');
 Subscribe to invoices
 
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
+`features`, `messages` arrays aren't populated on LND version 0.8.2 and below
 
     {
       lnd: <Authenticated LND gRPC API Object>
@@ -3405,6 +3459,12 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       description: <Description String>
       description_hash: <Description Hash Hex String>
       expires_at: <Expires At ISO 8601 Date String>
+      features: [{
+        bit: <Feature Bit Number>
+        is_known: <Is Known Feature Bool>
+        is_required: <Feature Is Required Bool>
+        name: <Feature Name String>
+      }]
       id: <Invoice Payment Hash Hex String>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
@@ -3416,6 +3476,10 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         is_canceled: <Payment is Canceled Bool>
         is_confirmed: <Payment is Confirmed Bool>
         is_held: <Payment is Held Bool>
+        messages: [{
+          type: <Message Type Number String>
+          value: <Raw Value Hex String>
+        }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
         tokens: <Payment TOkens Number>
@@ -3554,19 +3618,28 @@ Subscribe to the flight of a payment
 
 Requires LND built with `routerrpc` build tag
 
+Specifying `features` is not supported on LND 0.8.2 and below
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
+Specifying `messages` is not supported on LND 0.8.2 and below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
+      [features]: [{
+        bit: <Feature Bit Number>
+      }]
       [id]: <Payment Request Hash Hex String>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
+      }]
       [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
@@ -3733,7 +3806,9 @@ const [paid] = once(sub, 'confirmed');
 
 Subscribe to the attempts of paying via specified routes
 
-Requires lnd built with routerrpc build tag
+Requires LND built with `routerrpc` build tag
+
+LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
 
     {
       [id]: <Payment Hash Hex String>
@@ -3751,6 +3826,10 @@ Requires lnd built with routerrpc build tag
           forward_mtokens: <Forward Millitokens String>
           public_key: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
+        }]
+        [messages]: [{
+          type: <Message Type Number String>
+          value: <Message Raw Value Hex Encoded String>
         }]
         mtokens: <Total Millitokens To Pay String>
         timeout: <Expiration Block Height Number>

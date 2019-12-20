@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 
 const {chanFormat} = require('bolt07');
 const {chanNumber} = require('bolt07');
+const isHex = require('is-hex');
 
 const getWalletInfo = require('./../lightning/get_wallet_info');
 const paymentAmounts = require('./payment_amounts');
@@ -31,17 +32,26 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   Failure due to invalid payment will only be registered on LND 0.7.1+
 
+  Specifying `features` is not supported on LND 0.8.2 and below
   Specifying `incoming_peer` is not supported on LND 0.8.2 and below
+  Specifying `messages` is not supported on LND 0.8.2 and below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Destination Public Key String>
+    [features]: [{
+      bit: <Feature Bit Number>
+    }]
     [id]: <Payment Request Hash Hex String>
     [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
     [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
     [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+    [messages]: [{
+      type: <Message Type Number String>
+      value: <Message Raw Value Hex Encoded String>
+    }]
     [mtokens]: <Millitokens to Pay String>
     [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
     [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
@@ -130,6 +140,24 @@ module.exports = args => {
     throw new Error('ExpectedAuthenticatedLndToSubscribeToPayment');
   }
 
+  if (!!args.messages && !isArray(args.messages)) {
+    throw new Error('ExpectedArrayOfMessagesToSubscribeToPayment');
+  }
+
+  if (!!args.messages) {
+    if (args.messages.length !== args.messages.filter(n => !!n).length) {
+      throw new Error('ExpectedMessageEntriesInPaymentMessages');
+    }
+
+    if (!!args.messages.find(n => !n.type)) {
+      throw new Error('ExpectedMessageTypeNumberInPaymentMessages');
+    }
+
+    if (!!args.messages.find(n => !isHex(n.value))) {
+      throw new Error('ExpectedHexEncodedValuesInPaymentMessages');
+    }
+  }
+
   if (!args.mtokens && !args.tokens && !args.request){
     throw new Error('ExpectedTokenAmountToPayWhenPaymentRequestNotSpecified');
   }
@@ -155,6 +183,7 @@ module.exports = args => {
   });
 
   const emitter = new EventEmitter();
+  const features = !args.features ? undefined : args.features.map(n => n.bit);
   const maxFee = args.max_fee !== undefined ? args.max_fee : maxTokens;
   const channel = !!args.outgoing_channel ? args.outgoing_channel : null;
   const routes = (args.routes || []);
@@ -186,12 +215,21 @@ module.exports = args => {
       return;
     }
 
+    const destTlv = (args.messages || []).reduce((tlv, n) => {
+      tlv[n.type] = Buffer.from(n.value, 'hex');
+
+      return tlv;
+    },
+    {});
+
     const sub = args.lnd.router.sendPayment({
       allow_self_payment: true,
       amt: amounts.tokens,
       amt_msat: amounts.mtokens,
       cltv_limit: !!args.max_timeout_height ? maxCltvDelta : undefined,
       dest: !args.destination ? undefined : hexToBuf(args.destination),
+      dest_features: features,
+      dest_tlv: !!(args.messages || []).length ? destTlv : undefined,
       fee_limit_msat: amounts.max_fee_mtokens,
       fee_limit_sat: amounts.max_fee,
       final_cltv_delta: !args.request ? finalCltv : undefined,

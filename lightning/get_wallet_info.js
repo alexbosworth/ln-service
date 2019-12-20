@@ -98,7 +98,7 @@ module.exports = ({lnd}, cbk) => {
           }
 
           if (!isNumber(res.block_height)) {
-            return cbk([500, 'ExpectedBlockHeight']);
+            return cbk([503, 'ExpectedBlockHeight']);
           }
 
           if (!isArray(res.chains)) {
@@ -145,7 +145,7 @@ module.exports = ({lnd}, cbk) => {
 
           return cbk(null, {
             chains,
-            color: res.color || undefined,
+            color: res.color,
             active_channels_count: res.num_active_channels,
             alias: res.alias,
             current_block_hash: res.block_hash,

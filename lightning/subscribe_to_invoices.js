@@ -14,6 +14,7 @@ const restartSubscriptionMs = 1000 * 30;
 /** Subscribe to invoices
 
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
+  `features`, `messages` arrays aren't populated on LND version 0.8.2 and below
 
   {
     [added_after]: <Invoice Added After Index Number>
@@ -56,6 +57,10 @@ const restartSubscriptionMs = 1000 * 30;
       is_canceled: <Payment is Canceled Bool>
       is_confirmed: <Payment is Confirmed Bool>
       is_held: <Payment is Held Bool>
+      messages: [{
+        type: <Message Type Number String>
+        value: <Raw Value Hex String>
+      }]
       mtokens: <Incoming Payment Millitokens String>
       [pending_index]: <Pending Payment Channel HTLC Index Number>
       tokens: <Payment TOkens Number>

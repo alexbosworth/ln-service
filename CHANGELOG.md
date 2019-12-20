@@ -1,5 +1,18 @@
 # Versions
 
+## 47.9.0
+
+- `getInvoice`: Add support for `features` and `messages`
+- `getInvoices`: Add support for `features` and `messages`
+- `payViaPaymentDetails`: Add support for specifying `features` and `messages`
+- `payViaPaymentRequest`: Add support for `messages`
+- `payViaRoutes`: Add support for specifying `messages`
+- `subscribeToInvoice`: Add support for `features` and `messages`
+- `subscribeToInvoices`: Add support for `messages`
+- `subscribeToPayViaRoutes`: Add support for specifying `messages`
+- `subscribeToPayViaDetails`: Add support for specifying `features`, `messages`
+- `subscribeToPayViaRequest`: Add support for specifying `messages`
+
 ## 47.8.0
 
 - `getChannels`: add `cooperative_close_address` to show coop close address

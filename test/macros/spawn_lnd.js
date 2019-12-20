@@ -148,88 +148,89 @@ module.exports = ({seed, tower, watchers}, cbk) => {
       'spawnChainDaemon',
       ({getPorts, spawnChainDaemon}, cbk) =>
     {
-      const {dir} = spawnChainDaemon;
+      return asyncRetry({interval, times}, cbk => {
+        const {dir} = spawnChainDaemon;
 
-      const arguments = [
-        '--adminmacaroonpath', join(dir, adminMacaroonFileName),
-        '--autopilot.heuristic', 'externalscore:0.5',
-        '--autopilot.heuristic', 'preferential:0.5',
-        '--bitcoin.active',
-        '--bitcoin.chaindir', dir,
-        '--bitcoin.minhtlc', '1000',
-        '--bitcoin.node', 'btcd',
-        '--bitcoin.regtest',
-        '--btcd.dir', dir,
-        '--btcd.rpccert', join(dir, chainRpcCertName),
-        '--btcd.rpchost', `${localhost}:${spawnChainDaemon.rpc_port}`,
-        '--btcd.rpcpass', chainPass,
-        '--btcd.rpcuser', chainUser,
-        '--datadir', dir,
-        '--debuglevel', 'trace',
-        '--externalip', `${localhost}:${getPorts.listen}`,
-        '--historicalsyncinterval', '1s',
-        '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
-        '--listen', `${localhost}:${getPorts.listen}`,
-        '--logdir', join(dir, lightningDaemonLogPath),
-        '--maxlogfilesize', 1,
-        '--nobootstrap',
-        '--readonlymacaroonpath', join(dir, readMacaroonFileName),
-        '--restlisten', `${localhost}:${getPorts.rest}`,
-        '--rpclisten', `${localhost}:${getPorts.rpc}`,
-        '--tlscertpath', join(dir, lightningTlsCertFileName),
-        '--tlskeypath', join(dir, lightningTlsKeyFileName),
-        '--trickledelay', 1,
-        '--unsafe-disconnect',
-      ];
+        const arguments = [
+          '--adminmacaroonpath', join(dir, adminMacaroonFileName),
+          '--autopilot.heuristic', 'externalscore:0.5',
+          '--autopilot.heuristic', 'preferential:0.5',
+          '--bitcoin.active',
+          '--bitcoin.chaindir', dir,
+          '--bitcoin.minhtlc', '1000',
+          '--bitcoin.node', 'btcd',
+          '--bitcoin.regtest',
+          '--btcd.dir', dir,
+          '--btcd.rpccert', join(dir, chainRpcCertName),
+          '--btcd.rpchost', `${localhost}:${spawnChainDaemon.rpc_port}`,
+          '--btcd.rpcpass', chainPass,
+          '--btcd.rpcuser', chainUser,
+          '--datadir', dir,
+          '--debuglevel', 'trace',
+          '--externalip', `${localhost}:${getPorts.listen}`,
+          '--historicalsyncinterval', '1s',
+          '--invoicemacaroonpath', join(dir, invoiceMacaroonFileName),
+          '--listen', `${localhost}:${getPorts.listen}`,
+          '--logdir', join(dir, lightningDaemonLogPath),
+          '--maxlogfilesize', 1,
+          '--nobootstrap',
+          '--readonlymacaroonpath', join(dir, readMacaroonFileName),
+          '--restlisten', `${localhost}:${getPorts.rest}`,
+          '--rpclisten', `${localhost}:${getPorts.rpc}`,
+          '--tlscertpath', join(dir, lightningTlsCertFileName),
+          '--tlskeypath', join(dir, lightningTlsKeyFileName),
+          '--trickledelay', 1,
+          '--unsafe-disconnect',
+        ];
 
-      const towerArgs = [
-        '--watchtower.active',
-        '--watchtower.externalip', `${localhost}:${getPorts.tower}`,
-        '--watchtower.listen', `${localhost}:${getPorts.tower}`,
-        '--watchtower.towerdir', dir,
-      ]
+        const towerArgs = [
+          '--watchtower.active',
+          '--watchtower.externalip', `${localhost}:${getPorts.tower}`,
+          '--watchtower.listen', `${localhost}:${getPorts.tower}`,
+          '--watchtower.towerdir', dir,
+        ]
 
-      if (!!tower) {
-        towerArgs.forEach(n => arguments.push(n));
-      }
-
-      if (!!watchers) {
-        arguments.push('--wtclient.active');
-      }
-
-      const daemon = spawn(lightningDaemonExecFileName, arguments);
-
-      let isFinished = false;
-      let isReady = false;
-
-      const finished = (err, res) => {
-        if (!!isFinished) {
-          return;
+        if (!!tower) {
+          towerArgs.forEach(n => arguments.push(n));
         }
 
-        isFinished = true;
+        if (!!watchers) {
+          arguments.push('--wtclient.active');
+        }
 
-        return cbk(err, res);
-      };
+        const daemon = spawn(lightningDaemonExecFileName, arguments);
 
-      daemon.stderr.on('data', data => {
-        daemon.kill();
-        spawnChainDaemon.daemon.kill();
+        let isFinished = false;
+        let isReady = false;
 
-        return finished([503, 'FailedToStart', `${data}`.trim().split('\n')]);
-      });
+        const finished = (err, res) => {
+          if (!!isFinished) {
+            return;
+          }
 
-      daemon.stdout.on('data', data => {
-        if (!isReady && /gRPC.proxy.started/.test(data+'')) {
-          isReady = true;
+          isFinished = true;
 
-          return finished(null, {daemon});
+          return cbk(err, res);
         };
 
-        return;
-      });
+        daemon.stderr.on('data', data => {
+          daemon.kill();
+          spawnChainDaemon.daemon.kill();
 
-      return;
+          return finished([503, 'FailedToStart', `${data}`.trim().split('\n')]);
+        });
+
+        daemon.stdout.on('data', data => {
+          if (!isReady && /gRPC.proxy.started/.test(data+'')) {
+            isReady = true;
+
+            return finished(null, {daemon});
+          };
+
+          return;
+        });
+      },
+      cbk);
     }],
 
     // Get the cert

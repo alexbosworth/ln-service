@@ -26,6 +26,8 @@ const unknownWireError = 'unknown wire error';
 
   Requires LND built with `routerrpc` build tag
 
+  LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
+
   {
     [id]: <Payment Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
@@ -42,6 +44,10 @@ const unknownWireError = 'unknown wire error';
         forward_mtokens: <Forward Millitokens String>
         public_key: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
+      }]
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
       }]
       mtokens: <Total Millitokens To Pay String>
       [payment]: <Payment Identifier Hex String>

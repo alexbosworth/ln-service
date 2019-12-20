@@ -10,7 +10,7 @@ const {getPendingChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
-const {pay} = require('./../../');
+const {payViaRoutes} = require('./../../');
 const {routeFromHops} = require('./../../routing');
 const {subscribeToInvoices} = require('./../../');
 const {waitForChannel} = require('./../macros');
@@ -24,6 +24,8 @@ const invoiceId = '7426ba0604c3f8682c7016b44673f85c5bd9da2fa6c1080810cf53ae320c9
 const mtok = '000';
 const overPay = 1;
 const secret = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
+const tlvType = '68730';
+const tlvValue = '030201';
 const tokens = 1e4;
 
 // Subscribing to invoices should trigger invoice events
@@ -121,6 +123,19 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
       fail('Expected unconfirmed invoice before confirmed invoice');
     }
 
+    if (!!invoice.payments.length) {
+      const [payment] = invoice.payments;
+
+      if (!!payment.messages.length) {
+        const [{messages}] = invoice.payments;
+
+        const [{type, value}] = messages;
+
+        equal(type, tlvType, 'Got tlv type back in message');
+        equal(value, tlvValue, 'Got tlv value back in message');
+      }
+    }
+
     if (invoice.is_confirmed) {
       equal(!!invoice.confirmed_at, true, 'Invoice confirmed at date')
       equal(invoice.confirmed_index, 1, 'Confirmation index is returned');
@@ -166,7 +181,9 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     initial_cltv: 40,
   })];
 
-  const selfPay = await pay({lnd, path: {id, routes}});
+  routes[0].messages = [{type: tlvType, value: tlvValue}];
+
+  const selfPay = await payViaRoutes({id, lnd, routes});
 
   sub.removeAllListeners();
 

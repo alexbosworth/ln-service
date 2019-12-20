@@ -15,6 +15,10 @@ const rpcHopFromHop = require('./rpc_hop_from_hop');
       [public_key]: <Forward Edge Public Key Hex String>
       timeout: <Timeout Block Height Number>
     }]
+    [messages]: [{
+      type: <Message Type Number String>
+      value: <Message Raw Value Hex Encoded String>
+    }]
     mtokens: <Total Fee-Inclusive Millitokens String>
     [payment]: <Payment Identifier Hex String>
     timeout: <Timeout Block Height Number>
@@ -52,18 +56,29 @@ const rpcHopFromHop = require('./rpc_hop_from_hop');
 module.exports = args => {
   const hops = args.hops.map(hop => rpcHopFromHop(hop));
 
+  const finalHopIndex = hops.length - 1;
   const payAddress = !args.payment ? null : Buffer.from(args.payment, 'hex');
 
   // Set the payment identifier and total amount in the TLV payload
   if (!!args.payment || !!args.total_mtokens) {
-    const finalHopIndex = hops.length - 1
+    hops[finalHopIndex].tlv_payload = true;
 
-    hops[hops.length - 1].tlv_payload = true;
-
-    hops[hops.length - 1].mpp_record = {
+    hops[finalHopIndex].mpp_record = {
       payment_addr: payAddress || undefined,
       total_amt_msat: args.total_mtokens || undefined,
     };
+  }
+
+  // Set custom TLV payload records
+  if (!!args.messages && !!args.messages.length) {
+    hops[finalHopIndex].tlv_payload = true;
+
+    hops[finalHopIndex].custom_records = args.messages.reduce((tlv, n) => {
+      tlv[n.type] = Buffer.from(n.value, 'hex');
+
+      return tlv;
+    },
+    {});
   }
 
   return {

@@ -13,6 +13,9 @@ const mtokensPerToken = BigInt(1e3);
     accept_time: <HTLC Held Since Epoch Time Number String>
     amt_msat: <HTLC Amount Millitokens String>
     chan_id: <Numeric Channel Id String>
+    custom_records: {
+      <UInt64 String>: <Record Data Buffer>
+    }
     expiry_height: <HTLC CLTV Expiration Height Number>
     htlc_index: <Channel HTLC Index Number String>
     mpp_total_amt_msat: <Total Payment Millitokens String>
@@ -32,6 +35,10 @@ const mtokensPerToken = BigInt(1e3);
     is_canceled: <Payment is Canceled Bool>
     is_confirmed: <Payment is Confirmed Bool>
     is_held: <Payment is Held Bool>
+    messages: [{
+      type: <Message Type Number String>
+      value: <Raw Value Hex String>
+    }]
     mtokens: <Incoming Payment Millitokens String>
     [pending_index]: <Pending Payment Channel HTLC Index Number>
     timeout: <HTLC CLTV Timeout Height>
@@ -54,6 +61,10 @@ module.exports = args => {
 
   if (!args.chan_id) {
     throw new Error('ExpectedChannelIdInResponseHtlc');
+  }
+
+  if (!args.custom_records) {
+    throw new Error('ExpectedCustomRecordsInResponseHtlc');
   }
 
   if (!args.expiry_height) {
@@ -86,6 +97,10 @@ module.exports = args => {
     is_canceled: isCanceled,
     is_confirmed: isReceived,
     is_held: isAccepted,
+    messages: Object.keys(args.custom_records).map(type => ({
+      type: Buffer.from(type).readBigInt64LE().toString(),
+      value: args.custom_records[type].toString('hex'),
+    })),
     mtokens: args.amt_msat,
     pending_index: isAccepted ? parseInt(args.htlc_index, decBase) : undefined,
     timeout: args.expiry_height,

@@ -4,7 +4,6 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
@@ -14,8 +13,8 @@ const {waitForRoute} = require('./../macros');
 
 const tokens = 1e6 / 2;
 
-// Probing for a route should return a route
-test('Probe for route', async ({deepIs, end, equal}) => {
+// Deleting forwarding reputations should eliminate forwarding reputations
+test('Delete forwarding reputations', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

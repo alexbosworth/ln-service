@@ -1,9 +1,11 @@
 const asyncAuto = require('async/auto');
 const {chanFormat} = require('bolt07');
+const {featureFlagDetails} = require('bolt09');
 const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {htlcAsPayment} = require('./../invoices');
+const {isLnd} = require('./../grpc');
 
 const dateFrom = epoch => new Date(1e3 * epoch).toISOString();
 const decBase = 10;
@@ -15,6 +17,7 @@ const mtokensPerToken = BigInt('1000');
   The received value and the invoiced value may differ as invoices may be
   over-paid.
 
+  The `features` array is not populated on LND 0.8.2 and below
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
@@ -30,6 +33,12 @@ const mtokensPerToken = BigInt('1000');
     description: <Description String>
     [description_hash]: <Description Hash Hex String>
     expires_at: <ISO 8601 Date String>
+    features: [{
+      bit: <BOLT 09 Feature Bit Number>
+      is_known: <Feature is Known Bool>
+      is_required: <Feature Support is Required To Pay Bool>
+      type: <Feature Type String>
+    }]
     id: <Payment Hash Hex String>
     [is_canceled]: <Invoice is Canceled Bool>
     is_confirmed: <Invoice is Confirmed Bool>
@@ -45,6 +54,10 @@ const mtokensPerToken = BigInt('1000');
       is_canceled: <Payment is Canceled Bool>
       is_confirmed: <Payment is Confirmed Bool>
       is_held: <Payment is Held Bool>
+      messages: [{
+        type: <Message Type Number String>
+        value: <Raw Value Hex String>
+      }]
       mtokens: <Incoming Payment Millitokens String>
       [pending_index]: <Pending Payment Channel HTLC Index Number>
       tokens: <Payment TOkens Number>
@@ -61,11 +74,11 @@ module.exports = ({id, lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!id || !isHex(id)) {
+        if (!isHex(id)) {
           return cbk([400, 'ExpectedIdToGetInvoiceDetails']);
         }
 
-        if (!lnd || !lnd.default || !lnd.default.lookupInvoice) {
+        if (!isLnd({lnd, method: 'lookupInvoice', type: 'default'})) {
           return cbk([400, 'ExpectedLndToGetInvoiceDetails']);
         }
 
@@ -126,6 +139,12 @@ module.exports = ({id, lnd}, cbk) => {
             description: response.memo,
             description_hash: !descHash.length ? undefined : descHash,
             expires_at: new Date(createdAtMs + expiresInMs).toISOString(),
+            features: Object.keys(response.features).map(bit => ({
+              bit: Number(bit),
+              is_known: response.features[bit].is_known,
+              is_required: response.features[bit].is_required,
+              type: featureFlagDetails({bit}).type,
+            })),
             is_canceled: response.state === 'CANCELED' || undefined,
             is_confirmed: response.settled,
             is_held: response.state === 'ACCEPTED' || undefined,

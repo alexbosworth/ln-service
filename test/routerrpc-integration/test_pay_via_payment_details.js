@@ -9,6 +9,8 @@ const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
+const {getInvoice} = require('./../../');
+const {getInvoices} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
@@ -27,6 +29,8 @@ const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const mtokPadding = '000';
+const tlvData = '0000';
+const tlvType = '65537';
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
@@ -58,6 +62,11 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
   const height = (await getWalletInfo({lnd})).current_block_height;
   const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
+  const {features} = await decodePaymentRequest({
+    lnd,
+    request: invoice.request,
+  });
+
   const expectedHops = [
     {
       channel: channel.id,
@@ -83,6 +92,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   try {
     const paid = await payViaPaymentDetails({
+      features,
       lnd,
       destination: cluster.remote.public_key,
       tokens: invoice.tokens,
@@ -129,6 +139,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   try {
     const tooSoonCltv = await payViaPaymentDetails({
+      features,
       lnd,
       destination: cluster.remote.public_key,
       id: invoice.id,
@@ -143,10 +154,12 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   try {
     const paid = await payViaPaymentDetails({
+      features,
       lnd,
       destination: cluster.remote.public_key,
       id: invoice.id,
       max_timeout_height: height + 90,
+      messages: [{type: tlvType, value: tlvData}],
       tokens: invoice.tokens,
     });
 
@@ -167,6 +180,41 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
     deepIs(paid.hops, expectedHops, 'Hops are returned');
   } catch (err) {
     equal(err, null, 'No error is thrown when payment is attempted');
+  }
+
+  {
+    const {payments} = await getInvoice({
+      id: invoice.id,
+      lnd: cluster.remote.lnd,
+    });
+
+    if (!!payments) {
+      const [payment] = payments;
+
+      if (!!payment && !!payment.messages.length) {
+        const [message] = payment.messages;
+
+        equal(message.type, tlvType, 'Got TLV type');
+        equal(message.value, tlvData, 'Got TLV value');
+      }
+    }
+  }
+
+  {
+    const {invoices} = await getInvoices({lnd: cluster.remote.lnd});
+
+    const [{payments}] = invoices;
+
+    if (!!payments.length) {
+      const [payment] = payments;
+
+      if (!!payment && !!payment.messages.length) {
+        const [message] = payment.messages;
+
+        equal(message.type, tlvType, 'Got TLV type');
+        equal(message.value, tlvData, 'Got TLV value');
+      }
+    }
   }
 
   await cluster.kill({});

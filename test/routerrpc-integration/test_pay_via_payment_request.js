@@ -9,6 +9,7 @@ const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
+const {getInvoice} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
@@ -27,6 +28,8 @@ const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const mtokPadding = '000';
+const tlvType = '67890';
+const tlvValue = '0102';
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
@@ -79,6 +82,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
     const paid = await payViaPaymentRequest({
       lnd,
       max_timeout_height: height + 40 + 43,
+      messages: [{type: tlvType, value: tlvValue}],
       request: invoice.request,
     });
 
@@ -114,6 +118,22 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
     ];
 
     deepIs(paid.hops, expectedHops, 'Hops are returned');
+
+    const {payments} = await getInvoice({
+      id: paid.id,
+      lnd: cluster.remote.lnd,
+    });
+
+    if (!!payments.length) {
+      const [payment] = payments;
+
+      if (!!payment.messages.length) {
+        const [message] = payment.messages;
+
+        equal(message.type, tlvType, 'Got TLV message type');
+        equal(message.value, tlvValue, 'Got TLV message value');
+      }
+    }
   } catch (err) {
     equal(err, null, 'Expected no error paying payment request');
   }

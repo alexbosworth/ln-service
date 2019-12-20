@@ -139,6 +139,9 @@ module.exports = ({channel, failure, index, key, keys}) => {
   case 'INVALID_REALM':
     return {details, code: 503, message: 'InvalidRealm'};
 
+  case 'MPP_TIMEOUT':
+    return {details, code: 503, message: 'MppTimeout'};
+
   case 'PERMANENT_CHANNEL_FAILURE':
     return {details, code: 503, message: 'PermanentChannelFailure'};
 

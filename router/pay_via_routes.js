@@ -13,6 +13,8 @@ const maxHopsCount = 20;
 
   If no id is specified, a random id will be used
 
+  LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
+
   {
     [id]: <Payment Hash Hex String>
     lnd: <Authenticated LND gRPC API Object>
@@ -29,6 +31,10 @@ const maxHopsCount = 20;
         forward_mtokens: <Forward Millitokens String>
         [public_key]: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
+      }]
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
       }]
       mtokens: <Total Millitokens To Pay String>
       [payment]: <Payment Identifier Hex String>
@@ -112,6 +118,7 @@ module.exports = (args, cbk) => {
         const sub = subscribeToPayViaRoutes({
           id: args.id,
           lnd: args.lnd,
+          messages: args.messages,
           pathfinding_timeout: args.pathfinding_timeout,
           routes: args.routes,
         });

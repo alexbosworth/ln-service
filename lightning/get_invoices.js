@@ -3,6 +3,7 @@ const {createHash} = require('crypto');
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {chanFormat} = require('bolt07');
+const {featureFlagDetails} = require('bolt09');
 const {isBoolean} = require('lodash');
 const {isFinite} = require('lodash');
 const {isString} = require('lodash');
@@ -26,6 +27,7 @@ const {stringify} = JSON;
 
   If a next token is returned, pass it to get another page of invoices.
 
+  The `features` and `messages` arrays are not populated on LND before 0.8.2
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
@@ -44,6 +46,12 @@ const {stringify} = JSON;
       description: <Description String>
       [description_hash]: <Description Hash Hex String>
       expires_at: <ISO 8601 Date String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required To Pay Bool>
+        type: <Feature Type String>
+      }]
       id: <Payment Hash String>
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
@@ -58,6 +66,10 @@ const {stringify} = JSON;
         is_canceled: <Payment is Canceled Bool>
         is_confirmed: <Payment is Confirmed Bool>
         is_held: <Payment is Held Bool>
+        messages: [{
+          type: <Message Type Number String>
+          value: <Raw Value Hex String>
+        }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
         tokens: <Payment TOkens Number>
@@ -208,6 +220,12 @@ module.exports = ({limit, lnd, token}, cbk) => {
             description: invoice.memo,
             description_hash: memoHash || undefined,
             expires_at: new Date(createTimeMs + expiresInMs).toISOString(),
+            features: Object.keys(invoice.features).map(bit => ({
+              bit: Number(bit),
+              is_known: invoice.features[bit].is_known,
+              is_required: invoice.features[bit].is_required,
+              type: featureFlagDetails({bit}).type,
+            })),
             id: invoice.r_hash.toString('hex'),
             is_canceled: invoice.state === canceledState || undefined,
             is_confirmed: invoice.settled,

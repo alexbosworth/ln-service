@@ -28,6 +28,8 @@ const defaultVout = 0;
 const mtokPadding = '000';
 const regtestChain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const reserveRatio = 0.99;
+const tlvType = '67676';
+const tlvValue = '010203';
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
@@ -167,9 +169,22 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     equal(lowFeeErrMessage, 'FeeInsufficient', 'Low fee returns low fee msg');
   }
 
+  routes[0].messages = [{type: tlvType, value: tlvValue}];
+
   const payment = await payViaRoutes({id, lnd, routes});
 
   const paidInvoice = await getInvoice({id, lnd: cluster.remote.lnd});
+
+  if (!!paidInvoice.payments.length) {
+    const [payment] = paidInvoice.payments;
+
+    if (!!payment.messages.length) {
+      const [message] = payment.messages;
+
+      equal(message.type, tlvType, 'Got message type');
+      equal(message.value, tlvValue, 'Got message value');
+    }
+  }
 
   equal(paidInvoice.secret, invoice.secret, 'Paying invoice got secret');
   equal(paidInvoice.is_confirmed, true, 'Private invoice is paid');

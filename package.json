@@ -28,7 +28,7 @@
     "promptly": "3.0.3",
     "request": "2.88.0",
     "safe-compare": "1.1.4",
-    "secp256k1": "3.7.1",
+    "secp256k1": "3.8.0",
     "ws": "7.2.1"
   },
   "description": "Interaction helper for your Lightning Network daemon",
@@ -70,5 +70,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.8.0"
+  "version": "47.9.0"
 }
