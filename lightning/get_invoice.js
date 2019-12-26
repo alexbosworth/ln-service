@@ -45,6 +45,7 @@ const mtokensPerToken = BigInt('1000');
     [is_held]: <HTLC is Held Bool>
     is_outgoing: <Invoice is Outgoing Bool>
     is_private: <Invoice is Private Bool>
+    [is_push]: <Invoice is Push Payment Bool>
     mtokens: <Millitokens Number>
     payments: [{
       [confirmed_at]: <Payment Settled At ISO 8601 Date String>
@@ -64,7 +65,7 @@ const mtokensPerToken = BigInt('1000');
     }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
-    request: <Bolt 11 Invoice String>
+    [request]: <Bolt 11 Invoice String>
     secret: <Secret Preimage Hex String>
     tokens: <Tokens Number>
   }
@@ -109,7 +110,7 @@ module.exports = ({id, lnd}, cbk) => {
             return cbk([503, 'ExpectedMemoInLookupInvoiceResponse']);
           }
 
-          if (!response.payment_request) {
+          if (!response.is_key_send && !response.payment_request) {
             return cbk([503, 'ExpectedPaymentRequestForInvoice']);
           }
 
@@ -149,11 +150,12 @@ module.exports = ({id, lnd}, cbk) => {
             is_confirmed: response.settled,
             is_held: response.state === 'ACCEPTED' || undefined,
             is_private: response.private,
+            is_push: response.is_key_send || undefined,
             mtokens: response.value_msat === '0' ? mtok : response.value_msat,
             payments: response.htlcs.map(htlcAsPayment),
             received: parseInt(response.amt_paid_sat, decBase),
             received_mtokens: response.amt_paid_msat,
-            request: response.payment_request,
+            request: response.payment_request || undefined,
             secret: response.r_preimage.toString('hex'),
             tokens: !response.value ? null : parseInt(response.value, decBase),
           });

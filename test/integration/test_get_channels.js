@@ -20,7 +20,7 @@ test(`Get channels`, async ({end, equal}) => {
   const [channel] = (await getChannels({lnd})).channels;
   const [targetChan] = (await getChannels({lnd: cluster.target.lnd})).channels;
 
-  equal(targetChan.is_partner_initiated, false, 'Self-init channel');
+  equal(targetChan.is_partner_initiated, true, 'Self-init channel');
 
   equal(channel.capacity, 1000000, 'Channel capacity');
   equal(channel.commit_transaction_fee, 9050, 'Commit fee');
@@ -29,7 +29,7 @@ test(`Get channels`, async ({end, equal}) => {
   equal(channel.is_active, true, 'Channel active');
   equal(channel.is_closing, false, 'Channel not closing');
   equal(channel.is_opening, false, 'Channel not opening');
-  equal(channel.is_partner_initiated, true, 'Partner initiated channel');
+  equal(channel.is_partner_initiated, false, 'Partner initiated channel');
   equal(channel.is_private, false, 'Channel not private');
   equal(channel.local_balance, 990950, 'Local balance');
   equal(channel.local_reserve, 10000, 'Local reserve');

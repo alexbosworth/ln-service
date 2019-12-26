@@ -27,6 +27,7 @@ const tokens = 50e8;
 /** Create a cluster of lnds
 
   {
+    [is_keysend_enabled]: <Nodes Accept Keysend Payments Bool>
     [is_remote_skipped]: <Is Remote Node Creation Skipped Bool>
     [nodes]: [{
       chain_rpc_cert: <RPC Cert Path String>
@@ -61,10 +62,10 @@ const tokens = 50e8;
 module.exports = (args, cbk) => {
   return asyncAuto({
     // Create control lnd
-    control: cbk => spawnLnd({seed}, cbk),
+    control: cbk => spawnLnd({seed, keysend: args.is_keysend_enabled}, cbk),
 
     // Create target lnd
-    target: cbk => spawnLnd({}, cbk),
+    target: cbk => spawnLnd({keysend: args.is_keysend_enabled}, cbk),
 
     // Create remote lnd
     remote: cbk => {
@@ -72,7 +73,7 @@ module.exports = (args, cbk) => {
         return cbk();
       }
 
-      return spawnLnd({}, cbk);
+      return spawnLnd({keysend: args.is_keysend_enabled}, cbk);
     },
 
     // Get the remote node info

@@ -49,6 +49,7 @@ const restartSubscriptionMs = 1000 * 30;
     index: <Invoice Index Number>
     is_confirmed: <Invoice is Confirmed Bool>
     is_outgoing: <Invoice is Outgoing Bool>
+    [is_push]: <Invoice is Push Payment Bool>
     payments: [{
       [confirmed_at]: <Payment Settled At ISO 8601 Date String>
       created_at: <Payment Held Since ISO 860 Date String>
@@ -68,7 +69,7 @@ const restartSubscriptionMs = 1000 * 30;
     }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
-    request: <BOLT 11 Payment Request String>
+    [request]: <BOLT 11 Payment Request String>
     secret: <Payment Secret Hex String>
     tokens: <Invoiced Tokens Number>
   }

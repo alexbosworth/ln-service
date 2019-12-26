@@ -46,6 +46,7 @@ const times = 20;
 /** Spawn an lnd instance
 
   {
+    [keysend]: <Enable Key Send Bool>
     [seed]: <Seed Phrase String>
     [tower]: <Tower Enabled Bool>
     [watchers]: <Watchtower Client Enabled Bool>
@@ -71,7 +72,7 @@ const times = 20;
     socket: <LND RPC Network Socket String>
   }
 */
-module.exports = ({seed, tower, watchers}, cbk) => {
+module.exports = ({keysend, seed, tower, watchers}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
@@ -190,6 +191,10 @@ module.exports = ({seed, tower, watchers}, cbk) => {
           '--watchtower.towerdir', dir,
         ]
 
+        if (!!keysend) {
+          arguments.push('--accept-key-send');
+        }
+
         if (!!tower) {
           towerArgs.forEach(n => arguments.push(n));
         }
@@ -217,6 +222,10 @@ module.exports = ({seed, tower, watchers}, cbk) => {
           daemon.kill();
           spawnChainDaemon.daemon.kill();
 
+          if (/unknown.flag/.test(data.toString())) {
+            return finished();
+          }
+
           return finished([503, 'FailedToStart', `${data}`.trim().split('\n')]);
         });
 
@@ -237,8 +246,12 @@ module.exports = ({seed, tower, watchers}, cbk) => {
     cert: [
       'spawnChainDaemon',
       'spawnLightningDaemon',
-      ({spawnChainDaemon}, cbk) =>
+      ({spawnChainDaemon, spawnLightningDaemon}, cbk) =>
     {
+      if (!spawnLightningDaemon) {
+        return cbk([500, 'ExpectedLightningDaemon']);
+      }
+
       const certPath = join(spawnChainDaemon.dir, lightningTlsCertFileName);
 
       return asyncRetry({interval, times}, cbk => {

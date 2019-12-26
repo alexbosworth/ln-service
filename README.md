@@ -1413,6 +1413,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       [is_held]: <HTLC is Held Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      [is_push]: <Invoice is Push Payment Bool>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>
@@ -1431,7 +1432,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
-      request: <Bolt 11 Invoice String>
+      [request]: <Bolt 11 Invoice String>
       secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
     }
@@ -1479,6 +1480,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         [is_held]: <HTLC is Held Bool>
         is_outgoing: <Invoice is Outgoing Bool>
         is_private: <Invoice is Private Bool>
+        [is_push]: <Invoice is Push Payment Bool>
         payments: [{
           [confirmed_at]: <Payment Settled At ISO 8601 Date String>
           created_at: <Payment Held Since ISO 860 Date String>
@@ -1498,7 +1500,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         }]
         received: <Received Tokens Number>
         received_mtokens: <Received Millitokens String>
-        request: <Bolt 11 Invoice String>
+        [request]: <Bolt 11 Invoice String>
         secret: <Secret Preimage Hex String>
         tokens: <Tokens Number>
       }]
@@ -2416,14 +2418,23 @@ Specifying `messages` is not supported on LND 0.8.2 and below
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [messages]: [{
         type: <Message Type Number String>
         value: <Message Raw Value Hex Encoded String>
       }]
+      [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
-      tokens: <Tokens To Pay Number>
+      routes: [[{
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+        [channel]: <Standard Format Channel Id String>
+        [cltv_delta]: <CLTV Blocks Delta Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+        public_key: <Forward Edge Public Key Hex String>
+      }]]
+      [tokens]: <Tokens To Pay Number>
     }
 
     @returns via cbk or Promise
@@ -3468,6 +3479,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       id: <Invoice Payment Hash Hex String>
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
+      [is_push]: <Invoice is Push Payment Bool>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>
@@ -3487,7 +3499,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
-      request: <BOLT 11 Payment Request String>
+      [request]: <BOLT 11 Payment Request String>
       secret: <Payment Secret Hex String>
       tokens: <Invoiced Tokens Number>
     }

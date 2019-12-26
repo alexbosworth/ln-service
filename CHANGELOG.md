@@ -1,5 +1,14 @@
 # Versions
 
+## 47.10.0
+
+- `getChannels`: Fix partner initiated inaccurate output
+- `getInvoice`: Add `is_push` to indicate push payment
+- `getInvoices`: Add `is_push` to indicate push payment
+- `subscribeToInvoices`: Add `is_push` to indicate push payment
+
+If a payment is a push payment, `request` may now be undefined on an invoice
+
 ## 47.9.0
 
 - `getInvoice`: Add support for `features` and `messages`

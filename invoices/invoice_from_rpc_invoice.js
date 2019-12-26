@@ -35,6 +35,7 @@ const msPerSec = 1e3;
       resolve_time: <HTLC Removed At Epoch Time Number String>
       state: <HTLC Lifecycle State String>
     }]
+    is_key_send: <Is Key Send Bool>
     memo: <Invoice Memo String>
     payment_request: <Bolt 11 Payment Request String>
     r_hash: <Preimage Hash Buffer>
@@ -71,6 +72,7 @@ const msPerSec = 1e3;
     index: <Invoice Index Number>
     is_confirmed: <Invoice is Confirmed Bool>
     is_outgoing: <Invoice is Outgoing Bool>
+    [is_push]: <Invoice is Push Payment Bool>
     mtokens: <Invoiced Millitokens String>
     payments: [{
       [confirmed_at]: <Payment Settled At ISO 8601 Date String>
@@ -87,7 +89,7 @@ const msPerSec = 1e3;
     }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
-    request: <BOLT 11 Payment Request String>
+    [request]: <BOLT 11 Payment Request String>
     secret: <Payment Secret Hex String>
     tokens: <Invoiced Tokens Number>
   }
@@ -186,11 +188,12 @@ module.exports = args => {
     index: Number(args.add_index),
     is_confirmed: args.settled,
     is_outgoing: false,
+    is_push: args.is_key_send || undefined,
     mtokens: hasMsat ? args.value_msat : asMtok(args.value),
     payments: args.htlcs.map(htlcAsPayment),
     received: Number(args.amt_paid_sat),
     received_mtokens: args.amt_paid_msat,
-    request: args.payment_request,
+    request: args.payment_request || undefined,
     secret: args.r_preimage.toString('hex'),
     tokens: Number(args.value),
   };

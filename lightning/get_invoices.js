@@ -58,6 +58,7 @@ const {stringify} = JSON;
       [is_held]: <HTLC is Held Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      [is_push]: <Invoice is Push Payment Bool>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>
@@ -77,7 +78,7 @@ const {stringify} = JSON;
       }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
-      request: <Bolt 11 Invoice String>
+      [request]: <Bolt 11 Invoice String>
       secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
     }]
@@ -187,7 +188,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             return cbk([503, 'ExpectedInvoicePrivateStatus']);
           }
 
-          if (!isString(invoice.payment_request)) {
+          if (!invoice.is_key_send && !isString(invoice.payment_request)) {
             return cbk([503, 'ExpectedPaymentRequestInInvoice']);
           }
 
@@ -231,11 +232,12 @@ module.exports = ({limit, lnd, token}, cbk) => {
             is_confirmed: invoice.settled,
             is_held: invoice.state === acceptedState || undefined,
             is_private: !!invoice.private,
+            is_push: !!invoice.is_key_send || undefined,
             mtokens: (BigInt(invoice.value) * mtokensPerToken).toString(),
             payments: invoice.htlcs.map(htlcAsPayment),
             received: parseInt(invoice.amt_paid_sat, decBase),
             received_mtokens: invoice.amt_paid_msat,
-            request: invoice.payment_request,
+            request: invoice.payment_request || undefined,
             secret: invoice.r_preimage.toString('hex'),
             tokens: parseInt(invoice.value, decBase),
           });

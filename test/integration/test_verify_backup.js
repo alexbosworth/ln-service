@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
@@ -11,6 +12,8 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const giftTokens = 1e5;
+const interval = retryCount => 10 * Math.pow(2, retryCount);
+const times = 20;
 
 // Verifying a channel backup should show the backup is valid
 test(`Test verify backup`, async ({end, equal}) => {
@@ -18,14 +21,18 @@ test(`Test verify backup`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
-    lnd: cluster.target.lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.control.public_key,
-    socket: cluster.control.socket,
-  });
+  const channelOpen = await (async () => {
+    return await asyncRetry({interval, times}, async () => {
+      return await openChannel({
+        lnd: cluster.target.lnd,
+        chain_fee_tokens_per_vbyte: defaultFee,
+        give_tokens: giftTokens,
+        local_tokens: channelCapacityTokens,
+        partner_public_key: cluster.control.public_key,
+        socket: cluster.control.socket,
+      });
+    });
+  })();
 
   await waitForPendingChannel({
     id: channelOpen.transaction_id,

@@ -41,7 +41,7 @@ const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
       public_key: <Forward Edge Public Key Hex String>
     }]]
-    tokens: <Tokens To Pay Number>
+    [tokens]: <Tokens To Pay Number>
   }
 
   @returns via cbk or Promise
@@ -75,10 +75,6 @@ module.exports = (args, cbk) => {
 
         if (!args.lnd || !args.lnd.router) {
           return cbk([400, 'ExpectedAuthenticatedLndToPayViaDetails']);
-        }
-
-        if (!args.tokens) {
-          return cbk([400, 'ExpectedTokenAmountToPayViaDetails']);
         }
 
         return cbk();

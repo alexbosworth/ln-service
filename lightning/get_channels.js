@@ -190,7 +190,7 @@ module.exports = (args, cbk) => {
             is_active: channel.active,
             is_closing: false,
             is_opening: false,
-            is_partner_initiated: !!channel.initiator,
+            is_partner_initiated: !channel.initiator,
             is_private: channel.private,
             is_static_remote_key: channel.static_remote_key || undefined,
             local_balance: parseInt(channel.local_balance, decBase),
