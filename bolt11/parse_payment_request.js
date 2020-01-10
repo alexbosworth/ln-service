@@ -1,8 +1,8 @@
 const {createHash} = require('crypto');
 
 const {decode} = require('bech32');
+const {ecdsaRecover} = require('secp256k1');
 const {featureFlagsFromWords} = require('bolt09');
-const {recover} = require('secp256k1');
 
 const bech32CurrencyCodes = require('./conf/bech32_currency_codes');
 const hrpAsTokens = require('./hrp_as_tokens');
@@ -276,18 +276,18 @@ module.exports = ({request}) => {
     throw new Error('ExpectedPaymentHash');
   }
 
-  const hash = createHash('sha256').update(
-    Buffer.concat([
-      Buffer.from(prefix, 'ascii'),
-      wordsAsBuffer({words: wordsWithoutSig}),
-    ])
-  );
+  const preimage = Buffer.concat([
+    Buffer.from(prefix, 'ascii'),
+    wordsAsBuffer({words: wordsWithoutSig}),
+  ]);
 
-  const destination = recover(hash.digest(), sigBuffer, recoveryFlag, true);
+  const hash = createHash('sha256').update(preimage).digest();
+
+  const destination = ecdsaRecover(sigBuffer, recoveryFlag, hash, true);
 
   const routes = hopHints.map(hops => {
     const [firstHop] = hops;
-    const lastHop = {public_key: destination.toString('hex')};
+    const lastHop = {public_key: Buffer.from(destination).toString('hex')};
 
     const route = hops.map((hop, i) => ({
       base_fee_mtokens: hop.base_fee_mtokens,
@@ -309,7 +309,7 @@ module.exports = ({request}) => {
     created_at: createdAt,
     description: description || undefined,
     description_hash: descHash || undefined,
-    destination: destination.toString('hex'),
+    destination: Buffer.from(destination).toString('hex'),
     expires_at: expiresAt,
     features: features || [],
     id: paymentHash.toString('hex'),

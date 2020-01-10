@@ -1,3 +1,4 @@
+const bodyParser = require('body-parser');
 const {Router} = require('express');
 
 /** Get a blank router object
@@ -8,5 +9,9 @@ const {Router} = require('express');
   <Router Object>
 */
 module.exports = ({}) => {
-  return Router({caseSensitive: true, strict: true});
+  const router = Router({caseSensitive: true, strict: true});
+
+  router.use(bodyParser.json());
+
+  return router;
 };

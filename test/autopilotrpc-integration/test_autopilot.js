@@ -12,6 +12,7 @@ const {getWalletInfo} = require('./../../');
 const {getAutopilot} = require('./../../');
 const {openChannel} = require('./../../');
 const {setAutopilot} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
@@ -29,27 +30,9 @@ test(`Autopilot`, async ({end, equal}) => {
 
   const {kill} = cluster;
 
-  const controlToTargetChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    lnd: cluster.control.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    id: controlToTargetChannel.transaction_id,
-    lnd: cluster.control.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({
-    id: controlToTargetChannel.transaction_id,
-    lnd: cluster.control.lnd,
-  });
-
   const {lnd} = cluster.control;
+
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
   equal((await getAutopilot({lnd})).is_enabled, false, 'Autopilot starts off');
 
@@ -67,9 +50,9 @@ test(`Autopilot`, async ({end, equal}) => {
   ]);
 
   await addPeer({
-    lnd: cluster.control.lnd,
-    public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    lnd,
+    public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   equal((await getAutopilot({lnd})).is_enabled, true, 'Autopilot turned on');

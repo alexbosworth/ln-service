@@ -72,11 +72,7 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
             return cbk([503, 'ExpectedResponseToGetForwardReputationsQuery']);
           }
 
-          if (!isArray(res.nodes)) {
-            return cbk([503, 'ExpectedArrayOfNodesInMissionControlResponse']);
-          }
-
-          return cbk(null, {nodes: res.nodes, pairs: res.pairs});
+          return cbk(null, {nodes: res.nodes || [], pairs: res.pairs});
         });
       }],
 
@@ -192,24 +188,12 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
       peers: ['getReputations', ({getReputations}, cbk) => {
         const {pairs} = getReputations;
 
-        if (!!pairs.find(n => !n.last_fail_time)) {
-          return cbk([503, 'ExpectedLastFailTimeInReputationsResponse']);
-        }
-
-        if (!!pairs.find(n => !n.min_penalize_amt_sat)) {
-          return cbk([503, 'ExpectedMinPenalizeAmtSatInReputationResponse']);
-        }
-
         if (!!pairs.find(n => !Buffer.isBuffer(n.node_from))) {
           return cbk([503, 'ExpectedFromNodePublicKeyInReputationsResponse']);
         }
 
         if (!!pairs.find(n => !Buffer.isBuffer(n.node_to))) {
           return cbk([503, 'ExpectedToNodePublicKeyInReputationsResponse'])
-        }
-
-        if (!!pairs.find(n => n.success_prob === undefined)) {
-          return cbk([503, 'ExpectedSuccessProbInReputationResponse']);
         }
 
         return cbk(null, pairs.map(pair => {
@@ -219,8 +203,8 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
           if (!pair.history || !Number(pair.history.timestamp)) {
             return {
               confidence: confidence || undefined,
-              last_failed_forward_at: timeAsDate(pair.last_fail_time),
-              min_relevant_tokens: Number(pair.min_penalize_amt_sat),
+              last_failed_forward_at: timeAsDate(pair.last_fail_time || '0'),
+              min_relevant_tokens: Number(pair.min_penalize_amt_sat || '0'),
               public_key: pair.node_from.toString('hex'),
               to_public_key: pair.node_to.toString('hex'),
             };

@@ -6,6 +6,7 @@ const connectionsRouter = require('./connections');
 const cryptoRouter = require('./crypto');
 const exchangeRouter = require('./exchange');
 const historyRouter = require('./history');
+const grpcProxyServer = require('./grpc_proxy_server');
 const invoicesRouter = require('./invoices');
 const networkInfoRouter = require('./network_info');
 const paymentsRouter = require('./payments');
@@ -23,6 +24,7 @@ module.exports = {
   cryptoRouter,
   exchangeRouter,
   historyRouter,
+  grpcProxyServer,
   invoicesRouter,
   networkInfoRouter,
   paymentsRouter,
@@ -31,4 +33,3 @@ module.exports = {
   transactionsRouter,
   walletInfoRouter,
 };
-

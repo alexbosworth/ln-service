@@ -106,7 +106,7 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, err.message]);
           }
 
-          if (!isArray(payment.path) || !payment.path.length) {
+          if (!isArray(payment.path)) {
             return cbk([503, 'ExpectedPaymentPathInListPaymentsResponse']);
           }
 

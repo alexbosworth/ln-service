@@ -1,7 +1,7 @@
 const {createHash} = require('crypto');
 
+const {ecdsaRecover} = require('secp256k1');
 const {encode} = require('bech32');
-const {recover} = require('secp256k1');
 
 const hexAsWords = require('./hex_as_words');
 const wordsAsBuffer = require('./words_as_buffer');
@@ -64,7 +64,9 @@ module.exports = ({destination, hrp, signature, tags}) => {
   // Find the recovery flag that works for this signature
   const recoveryFlag = recoveryFlags.find(flag => {
     try {
-      return recover(hash, sig, flag, true).equals(destinationKey);
+      const key = Buffer.from(ecdsaRecover(sig, flag, hash, true));
+
+      return key.equals(destinationKey);
     } catch (err) {
       return false;
     }

@@ -19,12 +19,10 @@ test(`Disconnect watchtower`, async ({end, equal, match}) => {
     client = await spawnLnd({watchers: true});
     tower = await spawnLnd({tower: true});
   } catch (err) {
-    const [,, failDetails] = err;
-
-    const [failMessage] = failDetails;
+    const [, errMessage] = err;
 
     // LND 0.7.1 does not support wtclient
-    if (failMessage === "unknown flag `wtclient.active'") {
+    if (errMessage === 'ExpectedLightningDaemon') {
       return end();
     }
   }

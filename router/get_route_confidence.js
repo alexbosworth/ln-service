@@ -151,7 +151,7 @@ module.exports = ({from, hops, lnd}, cbk) => {
           }
 
           // Exit early with default odds when reputation is not relevant
-          if (forwardMtokens < BigInt(forwarding.min_relevant_tokens)) {
+          if (forwardMtokens < BigInt(forwarding.min_relevant_tokens || '0')) {
             return forwardingNode.confidence;
           }
 
@@ -162,7 +162,7 @@ module.exports = ({from, hops, lnd}, cbk) => {
           .reduce((sum, n) => sum * oddsDenominator, BigInt('1'));
 
         const totalOdds = odds
-          .reduce((sum, n) => sum * BigInt(n), BigInt('1'));
+          .reduce((sum, n) => sum * BigInt(n || '0'), BigInt('1'));
 
         const successOdds = (totalOdds / totalDenominator).toString();
 

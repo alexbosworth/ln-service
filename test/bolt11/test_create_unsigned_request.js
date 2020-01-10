@@ -1,4 +1,4 @@
-const {sign} = require('secp256k1');
+const sign = require('secp256k1').ecdsaSign;
 
 const {test} = require('tap');
 
@@ -268,7 +268,7 @@ tests.forEach(({args, description, expected, verify}) => {
       hrp,
       tags,
       destination: verify.destination,
-      signature: signature.toString('hex'),
+      signature: Buffer.from(signature).toString('hex'),
     });
 
     const parsed = parsePaymentRequest({request});

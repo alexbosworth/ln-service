@@ -108,7 +108,7 @@ module.exports = args => {
     throw new Error('ExpectedAuthenticatedLndToSubscribeToPayViaDetails');
   }
 
-  if (!args.tokens && !args.request){
+  if ((!args.tokens && !args.mtokens) && !args.request) {
     throw new Error('ExpectedTokenAmountToPayInPaymentDetails');
   }
 

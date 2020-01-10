@@ -1,8 +1,12 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {getPeers} = require('./../../');
+
+const interval = retryCount => 50 * Math.pow(2, retryCount);
+const times = 15;
 
 // Adding peers should result in a connected peer
 test(`Add a peer`, async ({end, equal}) => {
@@ -15,7 +19,7 @@ test(`Add a peer`, async ({end, equal}) => {
 
   equal(connectedKeys.find(n => n === remoteNodeKey), undefined, 'No peer');
 
-  try {
+  await asyncRetry({interval, times}, async () => {
     await addPeer({
       lnd,
       public_key: cluster.remote.public_key,
@@ -27,9 +31,7 @@ test(`Add a peer`, async ({end, equal}) => {
     const connected = peers.find(n => n.public_key === remoteNodeKey);
 
     equal(connected.public_key, remoteNodeKey, 'Connected to remote node');
-  } catch (err) {
-    equal(err, null, 'Expected no error');
-  }
+  });
 
   await cluster.kill({});
 

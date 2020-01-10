@@ -20,6 +20,7 @@ module.exports = ({lnd, log}) => {
   // Add an address
   router.post('/', ({body}, res) => {
     const format = body.format || defaultFormat;
+
     return createChainAddress({lnd, format}, returnJson({log, res}));
   });
 

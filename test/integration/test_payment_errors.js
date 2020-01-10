@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {decodeChanId} = require('bolt07');
 const {test} = require('tap');
 
@@ -12,7 +13,9 @@ const {pay} = require('./../../');
 const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
 
+const interval = retryCount => 50 * Math.pow(2, retryCount);
 const mtok = '000';
+const times = 15;
 const tokens = 1e3;
 
 // Encountering errors in payment should return valid error codes
@@ -48,22 +51,27 @@ test('Payment errors', async ({end, equal}) => {
   const destination = (await getWalletInfo({lnd})).public_key;
 
   try {
-    const inChan = await getChannel({lnd, id: inChanId});
-    const outChan = await getChannel({lnd, id: outChanId});
+    let route;
 
-    inChan.id = inChanId;
-    outChan.id = outChanId;
+    // Wait for graph sync and pay
+    await asyncRetry({interval, times}, async () => {
+      const inChan = await getChannel({lnd, id: inChanId});
+      const outChan = await getChannel({lnd, id: outChanId});
 
-    const {hops} = hopsFromChannels({
-      destination,
-      channels: [inChan, outChan],
-    });
+      inChan.id = inChanId;
+      outChan.id = outChanId;
 
-    const route = routeFromHops({
-      height,
-      hops,
-      mtokens,
-      initial_cltv: 40,
+      const {hops} = hopsFromChannels({
+        destination,
+        channels: [inChan, outChan],
+      });
+
+      route = routeFromHops({
+        height,
+        hops,
+        mtokens,
+        initial_cltv: 40,
+      });
     });
 
     route.hops[0].fee = 0;

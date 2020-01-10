@@ -43,7 +43,7 @@ const startPortRange = 7593;
 const startWalletTimeoutMs = 5500;
 const times = 20;
 
-/** Spawn an lnd instance
+/** Spawn an LND instance
 
   {
     [keysend]: <Enable Key Send Bool>

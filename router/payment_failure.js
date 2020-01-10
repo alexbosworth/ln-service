@@ -124,6 +124,10 @@ module.exports = ({channel, failure, index, key, keys}) => {
   case 'INCORRECT_CLTV_EXPIRY':
     return {details, code: 503, message: 'IncorrectCltvExpiry'};
 
+  case 'INCORRECT_OR_UNKNOWN_PAYMENT_DETAILS':
+  case 'UNKNOWN_PAYMENT_HASH':
+    return {details, code: 404, message: 'UnknownPaymentHash'};
+
   case 'INCORRECT_PAYMENT_AMOUNT':
     return {details, code: 404, message: 'IncorrectPaymentAmount'};
 
@@ -165,9 +169,6 @@ module.exports = ({channel, failure, index, key, keys}) => {
 
   case 'UNKNOWN_FAILURE':
     return {details, code: 503, message: 'UnknownFailure'};
-
-  case 'UNKNOWN_PAYMENT_HASH':
-    return {details, code: 404, message: 'UnknownPaymentHash'};
 
   case 'UNREADABLE_FAILURE':
     return {details, code: 503, message: 'UnreadableFailure'};
