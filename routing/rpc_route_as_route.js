@@ -39,7 +39,7 @@ const millitokensPerToken = BigInt(1e3);
       forward: <Forward Tokens Number>
       forward_mtokens: <Forward Millitokens String>
       public_key: <Forward Edge Public Key Hex String>
-      timeout: <Timeout Block Height Number>
+      [timeout]: <Timeout Block Height Number>
     }]
     mtokens: <Total Fee-Inclusive Millitokens String>
     [payment]: <Payment Identifier Hex String>

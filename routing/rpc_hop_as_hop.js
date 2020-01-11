@@ -30,7 +30,7 @@ const millitokensPerToken = BigInt(1e3);
     forward: <Forward Tokens Number>
     forward_mtokens: <Forward Millitokens String>
     [public_key]: <Forward Edge Public Key Hex String>
-    timeout: <Timeout Block Height Number>
+    [timeout]: <Timeout Block Height Number>
   }
 */
 module.exports = hop => {
@@ -48,10 +48,6 @@ module.exports = hop => {
 
   if (hop.chan_capacity === undefined) {
     throw new Error('ExpectedChannelCapacityTokensNumberInRpcHopDetails');
-  }
-
-  if (!hop.expiry) {
-    throw new Error('ExpectedHtlcForwardExpiryHeightInRpcHopDetails');
   }
 
   if (!hop.fee_msat) {
@@ -82,6 +78,6 @@ module.exports = hop => {
     forward: Number(BigInt(hop.amt_to_forward_msat) / millitokensPerToken),
     forward_mtokens: hop.amt_to_forward_msat,
     public_key: hop.pub_key,
-    timeout: hop.expiry,
+    timeout: hop.expiry || undefined,
   };
 };

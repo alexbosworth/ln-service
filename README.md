@@ -1725,11 +1725,11 @@ Payment `attempts` is not populated on LND 0.8.2 and below
               forward: <Forward Tokens Number>
               forward_mtokens: <Forward Millitokens String>
               [public_key]: <Forward Edge Public Key Hex String>
-              timeout: <Timeout Block Height Number>
+              [timeout]: <Timeout Block Height Number>
             }]
             mtokens: <Total Fee-Inclusive Millitokens String>
             [payment]: <Payment Identifier Hex String>
-            timeout: <Timeout Block Height Number>
+            [timeout]: <Timeout Block Height Number>
             tokens: <Total Fee-Inclusive Tokens Number>
             [total_mtokens]: <Total Payment Millitokens String>
           }

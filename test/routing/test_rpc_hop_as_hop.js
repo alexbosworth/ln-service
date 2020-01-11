@@ -52,11 +52,6 @@ const tests = [
     error: 'ExpectedChannelCapacityTokensNumberInRpcHopDetails',
   },
   {
-    args: makeHop({expiry: undefined}),
-    description: 'Expiry is expected',
-    error: 'ExpectedHtlcForwardExpiryHeightInRpcHopDetails',
-  },
-  {
     args: makeHop({fee_msat: undefined}),
     description: 'Forwarding fee millitokens is expected',
     error: 'ExpectedHtlcForwardingMillitokensFeeInRpcHopDetails',
