@@ -1,6 +1,6 @@
 # Versions
 
-## 47.10.3
+## 47.10.4
 
 - `getChannels`: Fix partner initiated inaccurate output
 - `getInvoice`: Add `is_push` to indicate push payment
