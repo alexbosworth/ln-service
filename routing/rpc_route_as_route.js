@@ -57,7 +57,7 @@ module.exports = route => {
     throw new Error('ExpectedRouteHopsArrayInRpcRouteDetails');
   }
 
-  if (!route.hops.length) {
+  if (!isArray(route.hops)) {
     throw new Error('ExpectedRouteHopsInRpcRouteDetails');
   }
 
@@ -75,7 +75,7 @@ module.exports = route => {
 
   const [finalHop] = route.hops.slice().reverse();
 
-  const mpp = finalHop.mpp_record || {};
+  const mpp = (finalHop || {}).mpp_record || {};
 
   return {
     fee: Number(BigInt(route.total_fees_msat) / millitokensPerToken),

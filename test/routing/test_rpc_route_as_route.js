@@ -36,11 +36,6 @@ const tests = [
     error: 'ExpectedRouteHopsArrayInRpcRouteDetails',
   },
   {
-    args: makeRoute({hops: []}),
-    description: 'A hop is expected',
-    error: 'ExpectedRouteHopsInRpcRouteDetails',
-  },
-  {
     args: makeRoute({total_amt_msat: undefined}),
     description: 'Forward amount msat is expected',
     error: 'ExpectedTotalForwardAmountMillitokensValueForRoute',
