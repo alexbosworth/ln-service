@@ -49,7 +49,7 @@ const rpcRouteAsRoute = require('./rpc_route_as_route');
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
       [payment]: <Payment Identifier Hex String>
-      timeout: <Timeout Block Height Number>
+      [timeout]: <Timeout Block Height Number>
       tokens: <Total Fee-Inclusive Tokens Number>
       [total_mtokens]: <Total Payment Millitokens String>
     }

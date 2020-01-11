@@ -43,7 +43,7 @@ const millitokensPerToken = BigInt(1e3);
     }]
     mtokens: <Total Fee-Inclusive Millitokens String>
     [payment]: <Payment Identifier Hex String>
-    timeout: <Timeout Block Height Number>
+    [timeout]: <Timeout Block Height Number>
     tokens: <Total Fee-Inclusive Tokens Number>
     [total_mtokens]: <Total Payment Millitokens String>
   }
@@ -69,10 +69,6 @@ module.exports = route => {
     throw new Error('ExpectedTotalRoutingFeesInRpcRouteDetails');
   }
 
-  if (!route.total_time_lock) {
-    throw new Error('ExpectedTotalTimeLockValueInRpcRouteDetails');
-  }
-
   const [finalHop] = route.hops.slice().reverse();
 
   const mpp = (finalHop || {}).mpp_record || {};
@@ -83,7 +79,7 @@ module.exports = route => {
     hops: route.hops.map(hop => rpcHopAsHop(hop)),
     mtokens: route.total_amt_msat,
     payment: !!mpp.payment_addr ? mpp.payment_addr.toString('hex') : undefined,
-    timeout: route.total_time_lock,
+    timeout: route.total_time_lock || undefined,
     tokens: Number(BigInt(route.total_amt_msat) / millitokensPerToken),
     total_mtokens: !!mpp.total_amt_msat ? mpp.total_amt_msat : undefined,
   };

@@ -46,11 +46,6 @@ const tests = [
     error: 'ExpectedTotalRoutingFeesInRpcRouteDetails',
   },
   {
-    args: makeRoute({total_time_lock: undefined}),
-    description: 'CLTV height is expected',
-    error: 'ExpectedTotalTimeLockValueInRpcRouteDetails',
-  },
-  {
     args: makeRoute({}),
     description: 'Route is returned',
     expected: {
