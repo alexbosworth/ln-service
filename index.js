@@ -17,6 +17,7 @@ const {createWallet} = require('./unlocker');
 const {decodePaymentRequest} = require('./lightning');
 const {deleteForwardingReputations} = require('./router');
 const {deletePayments} = require('./lightning');
+const {diffieHellmanComputeSecret} = require('./sign');
 const {disconnectWatchtower} = require('./tower_client');
 const {getAutopilot} = require('./autopilot');
 const {getBackup} = require('./lightning');
@@ -120,6 +121,7 @@ module.exports = {
   decodePaymentRequest,
   deleteForwardingReputations,
   deletePayments,
+  diffieHellmanComputeSecret,
   disconnectWatchtower,
   getAutopilot,
   getBackup,

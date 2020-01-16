@@ -1,9 +1,12 @@
+const cors = require('cors');
 const {emitGrpcEvents} = require('lightning');
 const express = require('express');
 const {grpcRouter} = require('lightning');
+const logger = require('morgan');
 const {Server} = require('ws');
 
 const defaultBind = '127.0.0.1';
+const logFormat = ':method :url :status - :response-time ms - :user-agent';
 
 /** Get a gRPC proxy server
 
@@ -14,14 +17,18 @@ const defaultBind = '127.0.0.1';
     path: <Router Path String>
     port: <Listen Port Number>
     socket: <LND Socket String>
+    stream: <Log Write Stream Object>
   }
 */
-module.exports = ({bind, cert, log, path, port, socket}) => {
+module.exports = ({bind, cert, log, path, port, socket, stream}) => {
   const app = express();
 
   const server = app
-    .listen(port, bind || defaultBind, () => log(null, `Listening: ${port}`))
+    .listen(port, () => log(null, `Listening: ${port}`))
     .on('error', err => log([500, 'ListenError', err]));
+
+  app.use(cors());
+  app.use(logger(logFormat, {stream}));
 
   app.use(path, grpcRouter({cert, socket}));
 

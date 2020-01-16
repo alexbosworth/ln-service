@@ -1,5 +1,9 @@
 # Versions
 
+## 47.11.0
+
+- `diffieHellmanComputeSecret`: add method to create shared key
+
 ## 47.10.4
 
 - `getChannels`: Fix partner initiated inaccurate output

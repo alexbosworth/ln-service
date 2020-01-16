@@ -127,6 +127,7 @@ for `unlocker` methods.
 - [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
 - [deletePayments](#deletePayments) - Delete entire history of past payments
+- [diffieHellmanComputeSecret](#diffieHellmanComputeSecret) - Get DH shared key
 - [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
 - [getAutopilot](#getAutopilot) - Get autopilot status or node scores
 - [getBackup](#getBackup) - Get a backup of a channel
@@ -828,6 +829,28 @@ const {deletePayments} = require('ln-service');
 // Eliminate all the records of past payments
 await deletePayments({lnd});
 ```
+
+### diffieHellmanComputeSecret
+
+Derive a shared secret
+
+Key family and key index default to 6 and 0, which is the node identity key
+
+Requires LND built with `signerrpc` build tag
+
+This method is not supported in LND v0.8.2 and below
+
+    {
+      [key_family]: <Key Family Number>
+      [key_index]: <Key Index Number>
+      lnd: <Authenticated LND gRPC API Object>
+      partner_public_key: <Public Key Hex String>
+    }
+
+    @returns via cbk or Promise
+    {
+      secret: <Shared Secret Hex String>
+    }
 
 ### disconnectWatchtower
 

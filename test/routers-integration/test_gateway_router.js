@@ -1,5 +1,6 @@
 const {once} = require('events');
 const {readFileSync} = require('fs');
+const {Writable} = require('stream');
 
 const {getPortPromise} = require('portfinder');
 const {lndGateway} = require('lightning');
@@ -27,7 +28,14 @@ test('Gateway proxies requests to LND', async ({end, equal}) => {
   const macaroon = spawned.lnd_macaroon;
   const socket = spawned.lnd_socket;
 
-  const {app, server, wss} = grpcProxyServer({cert, log, path, port, socket});
+  const {app, server, wss} = grpcProxyServer({
+    cert,
+    log,
+    path,
+    port,
+    socket,
+    stream: new Writable({write: (chunk, encoding, cbk) => cbk()}),
+  });
 
   const {lnd} = lndGateway({
     macaroon,
