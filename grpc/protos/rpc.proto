@@ -867,8 +867,17 @@ message TransactionDetails {
 
 message FeeLimit {
     oneof limit {
-        /// The fee limit expressed as a fixed amount of satoshis.
+        /**
+        The fee limit expressed as a fixed amount of satoshis.
+        The fields fixed and fixed_msat are mutually exclusive.
+        */
         int64 fixed = 1;
+
+        /**
+        The fee limit expressed as a fixed amount of millisatoshis.
+        The fields fixed and fixed_msat are mutually exclusive.
+        */
+        int64 fixed_msat = 3;
 
         /// The fee limit expressed as a percentage of the payment amount.
         int64 percent = 2;
@@ -1912,8 +1921,17 @@ message QueryRoutesRequest {
     /// The 33-byte hex-encoded public key for the payment destination
     string pub_key = 1;
 
-    /// The amount to send expressed in satoshis
+    /**
+    The amount to send expressed in satoshis.
+    The fields amt and amt_msat are mutually exclusive.
+    */
     int64 amt = 2;
+
+    /**
+    The amount to send expressed in millisatoshis.
+    The fields amt and amt_msat are mutually exclusive.
+    */
+    int64 amt_msat = 12;
 
     reserved 3;
 
@@ -2470,7 +2488,7 @@ message Invoice {
     Indicates if this invoice was a spontaneous payment that arrived via keysend
     [EXPERIMENTAL].
     */
-    bool is_key_send = 25 [json_name = "is_key_send"];
+    bool is_keysend = 25 [json_name = "is_keysend"];
 
     enum InvoiceState {
         OPEN = 0;

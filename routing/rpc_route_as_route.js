@@ -57,10 +57,6 @@ module.exports = route => {
     throw new Error('ExpectedRouteHopsArrayInRpcRouteDetails');
   }
 
-  if (!isArray(route.hops)) {
-    throw new Error('ExpectedRouteHopsInRpcRouteDetails');
-  }
-
   if (!route.total_amt_msat) {
     throw new Error('ExpectedTotalForwardAmountMillitokensValueForRoute');
   }

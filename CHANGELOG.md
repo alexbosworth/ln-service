@@ -1,5 +1,10 @@
 # Versions
 
+## 47.12.0
+
+- `decodePaymentRequest`: add `payment` attribute for payment identifier
+- `getRouteToDestination`: add method to get a route to a destination with TLV
+
 ## 47.11.0
 
 - `diffieHellmanComputeSecret`: add method to create shared key

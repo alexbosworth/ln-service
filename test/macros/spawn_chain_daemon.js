@@ -63,6 +63,8 @@ module.exports = (args, cbk) => {
 
       res.daemon.on('close', code => removeDir(dir, () => {}));
 
+      process.setMaxListeners(20);
+
       process.on('uncaughtException', err => {
         res.daemon.kill();
         process.exit(1)

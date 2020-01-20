@@ -167,7 +167,7 @@ const tests = [
       description_hash: Buffer.alloc(0),
       features: {},
       htlcs: [],
-      is_key_send: true,
+      is_keysend: true,
       r_hash: Buffer.alloc(0),
       r_preimage: Buffer.alloc(0),
       settled: false,

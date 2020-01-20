@@ -1,6 +1,7 @@
 const calculateHops = require('./calculate_hops');
 const calculatePaths = require('./calculate_paths');
 const getIgnoredEdges = require('./get_ignored_edges');
+const getRouteToDestination = require('./get_route_to_destination');
 const hopsFromChannels = require('./hops_from_channels');
 const ignoreAsIgnoredEdges = require('./ignore_as_ignored_edges');
 const ignoreAsIgnoredNodes = require('./ignore_as_ignored_nodes');
@@ -16,6 +17,7 @@ module.exports = {
   calculateHops,
   calculatePaths,
   getIgnoredEdges,
+  getRouteToDestination,
   hopsFromChannels,
   ignoreAsIgnoredEdges,
   ignoreAsIgnoredNodes,

@@ -188,7 +188,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             return cbk([503, 'ExpectedInvoicePrivateStatus']);
           }
 
-          if (!invoice.is_key_send && !isString(invoice.payment_request)) {
+          if (!invoice.is_keysend && !isString(invoice.payment_request)) {
             return cbk([503, 'ExpectedPaymentRequestInInvoice']);
           }
 
@@ -232,7 +232,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             is_confirmed: invoice.settled,
             is_held: invoice.state === acceptedState || undefined,
             is_private: !!invoice.private,
-            is_push: !!invoice.is_key_send || undefined,
+            is_push: !!invoice.is_keysend || undefined,
             mtokens: (BigInt(invoice.value) * mtokensPerToken).toString(),
             payments: invoice.htlcs.map(htlcAsPayment),
             received: parseInt(invoice.amt_paid_sat, decBase),

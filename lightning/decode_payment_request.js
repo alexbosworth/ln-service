@@ -8,6 +8,7 @@ const {parsePaymentRequest} = require('./../bolt11');
 const {routeFromRouteHint} = require('./../routing');
 const {safeTokens} = require('./../bolt00');
 
+const bufToHex = n => !n.length ? undefined : n.toString('hex');
 const decBase = 10;
 const defaultExpireMs = 1000 * 60 * 60;
 const defaultMtokens = '0';
@@ -17,7 +18,7 @@ const {now} = Date;
 
 /** Get decoded payment request
 
-  LND 0.8.2 and previous versions do not return `features`
+  LND 0.8.2 and previous versions do not return `features`, `payment`
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -40,6 +41,7 @@ const {now} = Date;
     }]
     id: <Payment Hash String>
     mtokens: <Requested Millitokens String>
+    [payment]: <Payment Identifier Hex Encoded String>
     routes: [[{
       [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
       [channel]: <Standard Format Channel Id String>
@@ -144,6 +146,7 @@ module.exports = ({lnd, request}, cbk) => {
             id: res.payment_hash,
             is_expired: now() > expiryDateMs,
             mtokens: mtokens || defaultMtokens,
+            payment: bufToHex(res.payment_addr) || undefined,
             routes: res.route_hints.map(route => routeFromRouteHint({
               destination: res.destination,
               hop_hints: route.hop_hints,

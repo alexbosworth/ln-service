@@ -32,8 +32,8 @@ const reserveRatio = 0.99;
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
-// Paying via routes should successfully pay via routes
-test(`Pay via routes`, async ({deepIs, end, equal}) => {
+// Getting a route through hops should result in a route through specified hops
+test(`Get route through hops`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -95,6 +95,7 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     });
 
     delete res.route.confidence;
+    delete res.route.messages;
     delete res.route.payment;
     delete res.route.total_mtokens;
     delete route.confidence;

@@ -33,6 +33,8 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
 
   Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.2, below
 
+  On LND versions higher than 0.8.2, use getRouteToDestination instead
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Final Send Destination Hex Encoded Public Key String>

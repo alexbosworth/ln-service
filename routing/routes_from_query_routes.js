@@ -4,6 +4,7 @@ const {safeTokens} = require('./../bolt00');
 
 const decBase = 10;
 const {isArray} = Array;
+const {keys} = Object;
 const mtokensPerToken = BigInt(1e3);
 const millitokensToTokens = n => Number(BigInt(n) / BigInt(1e3));
 const {round} = Math;
@@ -50,6 +51,10 @@ const successDenominator = 1e6;
         forward_mtokens: <Forward Millitokens String>
         public_key: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
+      }]
+      messages: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
       }]
       mtokens: <Total Millitokens String>
       safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
@@ -106,6 +111,7 @@ module.exports = ({response}) => {
 
   return {
     routes: routes.map(route => {
+      const [lastHop] = (route.hops || []).slice().reverse();
       const totalFeesMtok = BigInt(route.total_fees_msat);
       const totalAmtMtok = BigInt(route.total_amt_msat);
 
@@ -125,6 +131,10 @@ module.exports = ({response}) => {
             timeout: h.expiry,
           };
         }),
+        messages: keys(lastHop.custom_records || {}).map(type => ({
+          type: Buffer.from(type, 'ascii').readBigInt64LE().toString(),
+          value: lastHop.custom_records[type].toString('hex'),
+        })),
         mtokens: route.total_amt_msat,
         safe_fee: safeTokens({mtokens: route.total_fees_msat}).safe,
         safe_tokens: safeTokens({mtokens: route.total_amt_msat}).safe,

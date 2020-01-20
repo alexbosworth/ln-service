@@ -98,7 +98,7 @@ module.exports = args => {
     is_confirmed: isReceived,
     is_held: isAccepted,
     messages: Object.keys(args.custom_records).map(type => ({
-      type: Buffer.from(type).readBigInt64LE().toString(),
+      type: Buffer.from(type, 'ascii').readBigInt64LE().toString(),
       value: args.custom_records[type].toString('hex'),
     })),
     mtokens: args.amt_msat,

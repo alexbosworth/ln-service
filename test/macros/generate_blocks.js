@@ -5,8 +5,8 @@ const asyncRetry = require('async/retry');
 
 const rpc = require('./rpc');
 
-const retryMs = 200;
-const retryTimes = 10;
+const interval = retryCount => 2000 * Math.random();
+const retryTimes = 20;
 
 /** Connect to node
 
@@ -85,7 +85,7 @@ module.exports = ({cert, count, host, pass, port, user}, cbk) => {
       return asyncMap(generate, (blockId, cbk) => {
         const opts = {cert, cmd, host, pass, port, user, params: [blockId]};
 
-        return asyncRetry({interval: retryMs, times: retryTimes}, cbk => {
+        return asyncRetry({interval, times: retryTimes}, cbk => {
           return rpc(opts, (err, res) => {
             if (!!err) {
               return cbk([503, 'UnexpectedErrorGettingBlock', {err}]);

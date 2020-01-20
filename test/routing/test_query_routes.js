@@ -166,6 +166,7 @@ const tests = [
             public_key: 'b',
             timeout: 1,
           }],
+          messages: [],
           mtokens: '1',
           safe_fee: 1,
           safe_tokens: 1,

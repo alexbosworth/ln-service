@@ -99,6 +99,9 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   // On 0.7.1 confidence is not supported
   delete route.confidence;
 
+  // On 0.8.2 and below messages are not supported
+  delete route.messages;
+
   deepIs(route, {
     fee: 1,
     fee_mtokens: '1500',
@@ -190,7 +193,7 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
 
   equal(success.route.fee, 1, 'Successful route fee');
   equal(success.route.fee_mtokens, '1500', 'Successful route fee mtokens');
-  deepIs(success.route.hops.length, 2, 'Successful route returned');
+  equal(success.route.hops.length, 2, 'Successful route returned');
   equal(success.route.mtokens, '500001500', 'Successful route mtokens');
   equal(success.route.timeout, 588, 'Successful route timeout');
   equal(success.route.tokens, 500001, 'Successful route tokens');

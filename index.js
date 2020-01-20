@@ -48,6 +48,7 @@ const {getPendingChannels} = require('./lightning');
 const {getPublicKey} = require('./wallet');
 const {getRouteConfidence} = require('./router');
 const {getRouteThroughHops} = require('./router');
+const {getRouteToDestination} = require('./routing');
 const {getRoutes} = require('./lightning');
 const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('./lightning');
@@ -152,6 +153,7 @@ module.exports = {
   getPublicKey,
   getRouteConfidence,
   getRouteThroughHops,
+  getRouteToDestination,
   getRoutes,
   getTowerServerInfo,
   getUtxos,

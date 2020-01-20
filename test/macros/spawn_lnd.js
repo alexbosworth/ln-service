@@ -192,7 +192,7 @@ module.exports = ({keysend, seed, tower, watchers}, cbk) => {
         ]
 
         if (!!keysend) {
-          arguments.push('--accept-key-send');
+          arguments.push('--accept-keysend');
         }
 
         if (!!tower) {
@@ -382,6 +382,8 @@ module.exports = ({keysend, seed, tower, watchers}, cbk) => {
 
       return;
     };
+
+    process.setMaxListeners(20);
 
     process.on('uncaughtException', err => {
       kill();

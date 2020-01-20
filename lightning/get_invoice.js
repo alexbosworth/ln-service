@@ -9,6 +9,7 @@ const {isLnd} = require('./../grpc');
 
 const dateFrom = epoch => new Date(1e3 * epoch).toISOString();
 const decBase = 10;
+const {keys} = Object;
 const msPerSec = 1e3;
 const mtokensPerToken = BigInt('1000');
 
@@ -110,7 +111,7 @@ module.exports = ({id, lnd}, cbk) => {
             return cbk([503, 'ExpectedMemoInLookupInvoiceResponse']);
           }
 
-          if (!response.is_key_send && !response.payment_request) {
+          if (!response.is_keysend && !response.payment_request) {
             return cbk([503, 'ExpectedPaymentRequestForInvoice']);
           }
 
@@ -140,7 +141,7 @@ module.exports = ({id, lnd}, cbk) => {
             description: response.memo,
             description_hash: !descHash.length ? undefined : descHash,
             expires_at: new Date(createdAtMs + expiresInMs).toISOString(),
-            features: Object.keys(response.features).map(bit => ({
+            features: keys(response.features).map(bit => ({
               bit: Number(bit),
               is_known: response.features[bit].is_known,
               is_required: response.features[bit].is_required,
@@ -150,7 +151,7 @@ module.exports = ({id, lnd}, cbk) => {
             is_confirmed: response.settled,
             is_held: response.state === 'ACCEPTED' || undefined,
             is_private: response.private,
-            is_push: response.is_key_send || undefined,
+            is_push: response.is_keysend || undefined,
             mtokens: response.value_msat === '0' ? mtok : response.value_msat,
             payments: response.htlcs.map(htlcAsPayment),
             received: parseInt(response.amt_paid_sat, decBase),

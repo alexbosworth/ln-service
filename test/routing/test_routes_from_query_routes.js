@@ -4,6 +4,8 @@ const {test} = require('tap');
 
 const {routesFromQueryRoutes} = require('./../../routing');
 
+const recordType = '11903';
+
 const tests = [
   {
     description: 'No response',
@@ -60,6 +62,7 @@ const tests = [
           forward_mtokens: '830497000',
           timeout: 1385001,
         }],
+        messages: [{type: recordType, value: '01010101'}],
         mtokens: '830497000',
         safe_fee: 1,
         safe_tokens: 830497,
@@ -79,6 +82,18 @@ const tests = [
           amt_to_forward_msat: '830497000',
           chan_capacity: '16270430',
           chan_id: '1487411633484267520',
+          custom_records: [{
+            type: recordType,
+            value: Buffer.alloc(4, 1),
+          }].reduce((sum, n) => {
+            const buf = Buffer.alloc(8);
+
+            buf.writeBigInt64LE(BigInt(n.type));
+
+            sum[buf.toString('ascii')] = n.value;
+
+            return sum;
+          }, {}),
           expiry: 1385001,
           fee: '1',
           fee_msat: '1000',

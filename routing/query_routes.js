@@ -163,7 +163,7 @@ module.exports = (args, cbk) => {
           return args.lnd.default.queryRoutes({
             amt: args.tokens || defaultTokens,
             cltv_limit: getCltvLimit,
-            fee_limit: !args.max_fee ? undefined : {fee_limit: args.max_fee},
+            fee_limit: !args.max_fee ? undefined : {fixed: args.max_fee},
             final_cltv_delta: (args.cltv_delta || defaultCltv) + blocksBuffer,
             ignored_edges: ignoreAsIgnoredEdges({ignore}).ignored,
             ignored_nodes: ignoreAsIgnoredNodes({ignore}).ignored,

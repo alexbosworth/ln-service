@@ -15,6 +15,7 @@ const defaultFee = 1e3;
     generate: <Generate Blocks Promise>
     [generator]: <Generator Node Object>
     [give]: <Gift Tokens Number>
+    [hidden]: <Channel Is Private Bool>
     lnd: <Authenticated LND gRPC API Object>
     to: {
       public_key: <Partner Public Key Hex String>
@@ -29,7 +30,7 @@ const defaultFee = 1e3;
     transaction_vout: <Funding Transaction Output Index Number>
   }
 */
-module.exports = ({generate, generator, give, lnd, to}, cbk) => {
+module.exports = ({generate, generator, give, hidden, lnd, to}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Open channel
@@ -38,6 +39,7 @@ module.exports = ({generate, generator, give, lnd, to}, cbk) => {
           lnd,
           chain_fee_tokens_per_vbyte: defaultFee,
           give_tokens: give,
+          is_private: !!hidden,
           local_tokens: channelCapacityTokens,
           partner_public_key: to.public_key,
           socket: to.socket,

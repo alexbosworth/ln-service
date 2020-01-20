@@ -35,7 +35,7 @@ const msPerSec = 1e3;
       resolve_time: <HTLC Removed At Epoch Time Number String>
       state: <HTLC Lifecycle State String>
     }]
-    is_key_send: <Is Key Send Bool>
+    is_keysend: <Is Key Send Bool>
     memo: <Invoice Memo String>
     payment_request: <Bolt 11 Payment Request String>
     r_hash: <Preimage Hash Buffer>
@@ -188,7 +188,7 @@ module.exports = args => {
     index: Number(args.add_index),
     is_confirmed: args.settled,
     is_outgoing: false,
-    is_push: args.is_key_send || undefined,
+    is_push: args.is_keysend || undefined,
     mtokens: hasMsat ? args.value_msat : asMtok(args.value),
     payments: args.htlcs.map(htlcAsPayment),
     received: Number(args.amt_paid_sat),

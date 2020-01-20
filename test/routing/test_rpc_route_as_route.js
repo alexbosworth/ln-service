@@ -58,6 +58,11 @@ const tests = [
     },
   },
   {
+    args: makeRoute({hops: [], total_time_lock: undefined}),
+    description: 'Route without anything',
+    expected: {fee: 1, fee_mtokens: '1000', mtokens: '1000'},
+  },
+  {
     args: makeRoute({
       hops: [{
         amt_to_forward_msat: '1000',
