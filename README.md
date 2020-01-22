@@ -11,6 +11,7 @@ through npm.
 
 Supported LND versions:
 
+- v0.9.0-beta
 - v0.8.2-beta
 - v0.8.1-beta
 - v0.8.0-beta
@@ -200,6 +201,7 @@ for `unlocker` methods.
 - [subscribeToPayViaRoutes](#subscribeToPayViaRoutes) - Pay using routes
 - [subscribeToPeers](#subscribeToPeers) - Subscribe to peers connectivity
 - [subscribeToProbe](#subscribeToProbe) - Subscribe to a probe for a route
+- [subscribeToProbeForRoute](#subscribeToProbeForRoute) - Probe for a route
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
@@ -2013,6 +2015,7 @@ Do not use this method on LND 0.8.2 and below
         from_public_key: <Public Key Hex String>
         [to_public_key]: <To Public Key Hex String>
       }]
+      [incoming_peer]: <Incoming Peer Public Key Hex String>
       [is_ignoring_past_failures]: <Ignore Past Failures Bool>
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens Number>
@@ -4152,6 +4155,8 @@ Requires LND built with `routerrpc` build tag
 
 `confidence` is not supported in LND 0.7.1
 
+On LND 0.9.0, use subscribeToProbeForRoute instead
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key Hex String>
@@ -4278,6 +4283,175 @@ const {once} = require('events');
 const {subscribeToProbe} = require('ln-service');
 const destination = 'destinationPublicKeyHexString';
 const sub = subscribeToProbe({destination, lnd, tokens: 80085});
+const [{route}] = await once(sub, 'probe_success');
+```
+
+### subscribeToProbeForRoute
+
+Subscribe to a probe attempt
+
+Requires LND built with `routerrpc` build tag
+
+This method is not supported on LND 0.8.2 or below.
+
+    {
+      [cltv_delta]: <Final CLTV Delta Number>
+      destination: <Destination Public Key Hex String>
+      [features]: [{
+        bit: <Feature Bit Number>
+      }]
+      [ignore]: [{
+        from_public_key: <Public Key Hex String>
+        [to_public_key]: <To Public Key Hex String>
+      }]
+      [incoming_peer]: <Incoming Peer Public Key Hex String>
+      lnd: <Authenticated LND gRPC API Object>
+      [max_fee]: <Maximum Fee Tokens Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Probe String>
+      [max_timeout_height]: <Maximum CLTV Timeout Height Number>
+      [messages]: [{
+        type: <Message To Final Destination Type Number String>
+        value: <Message To Final Destination Raw Value Hex Encoded String>
+      }]
+      [mtokens]: <Millitokens to Probe String>
+      [outgoing_channel]: <Outgoing Channel Id String>
+      [path_timeout_ms]: <Skip Individual Path Attempt After Milliseconds Number>
+      [payment]: <Payment Identifier Hex Strimng>
+      [probe_timeout_ms]: <Fail Entire Probe After Milliseconds Number>
+      [routes]: [[{
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
+        [channel_capacity]: <Channel Capacity Tokens Number>
+        [channel]: <Standard Format Channel Id String>
+        [cltv_delta]: <CLTV Blocks Delta Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+        public_key: <Forward Edge Public Key Hex String>
+      }]]
+      [tokens]: <Tokens to Probe Number>
+      [total_mtokens]: <Total Millitokens of Shards String>
+    }
+
+    @returns
+    <Probe Subscription Event Emitter Object>
+
+    @event 'error'
+    [<Failure Code Number>, <Failure Message String>]
+
+    @event 'probe_success'
+    {
+      route: {
+        [confidence]: <Route Confidence Score Out Of One Million Number>
+        fee: <Total Fee Tokens To Pay Number>
+        fee_mtokens: <Total Fee Millitokens To Pay String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        [messages]: [{
+          type: <Message Type Number String>
+          value: <Message Raw Value Hex Encoded String>
+        }]
+        mtokens: <Total Millitokens To Pay String>
+        [payment]: <Payment Identifier Hex String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Sent Tokens Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+        tokens: <Total Tokens To Pay Number>
+        [total_mtokens]: <Total Millitokens String>
+      }
+    }
+
+    @event 'probing'
+    {
+      route: {
+        [confidence]: <Route Confidence Score Out Of One Million Number>
+        fee: <Total Fee Tokens To Pay Number>
+        fee_mtokens: <Total Fee Millitokens To Pay String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        [messages]: [{
+          type: <Message Type Number String>
+          value: <Message Raw Value Hex Encoded String>
+        }]
+        mtokens: <Total Millitokens To Pay String>
+        [payment]: <Payment Identifier Hex String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Sent Tokens Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+        tokens: <Total Tokens To Pay Number>
+        [total_mtokens]: <Total Millitokens String>
+      }
+    }
+
+    @event 'routing_failure'
+    {
+      [channel]: <Standard Format Channel Id String>
+      [mtokens]: <Millitokens String>
+      [policy]: {
+        base_fee_mtokens: <Base Fee Millitokens String>
+        cltv_delta: <Locktime Delta Number>
+        fee_rate: <Fees Charged Per Million Tokens Number>
+        [is_disabled]: <Channel is Disabled Bool>
+        max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
+        min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+      }
+      public_key: <Public Key Hex String>
+      reason: <Failure Reason String>
+      route: {
+        [confidence]: <Route Confidence Score Out Of One Million Number>
+        fee: <Total Fee Tokens To Pay Number>
+        fee_mtokens: <Total Fee Millitokens To Pay String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        [messages]: [{
+          type: <Message Type Number String>
+          value: <Message Raw Value Hex Encoded String>
+        }]
+        mtokens: <Total Millitokens To Pay String>
+        [payment]: <Payment Identifier Hex String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Sent Tokens Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+        tokens: <Total Tokens To Pay Number>
+        [total_mtokens]: <Total Millitokens String>
+      }
+      [update]: {
+        chain: <Chain Id Hex String>
+        channel_flags: <Channel Flags Number>
+        extra_opaque_data: <Extra Opaque Data Hex String>
+        message_flags: <Message Flags Number>
+        signature: <Channel Update Signature Hex String>
+      }
+    }
+
+Example:
+
+```node
+const {once} = require('events');
+const {subscribeToProbeForRoute} = require('ln-service');
+const destination = 'destinationPublicKeyHexString';
+const sub = subscribeToProbeForRoute({destination, lnd, tokens: 80085});
 const [{route}] = await once(sub, 'probe_success');
 ```
 

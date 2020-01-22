@@ -22,6 +22,8 @@ const {isArray} = Array;
 
   `confidence` is not supported in LND 0.7.1
 
+  On LND 0.9.0, use subscribeToProbeForRoute instead
+
   {
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Destination Public Key Hex String>

@@ -92,6 +92,7 @@ const {subscribeToPayViaRequest} = require('./router');
 const {subscribeToPayViaRoutes} = require('./router');
 const {subscribeToPeers} = require('./lightning');
 const {subscribeToProbe} = require('./router');
+const {subscribeToProbeForRoute} = require('./payments');
 const {subscribeToTransactions} = require('./lightning');
 const {unauthenticatedLndGrpc} = require('./grpc');
 const {unlockWallet} = require('./unlocker');
@@ -197,6 +198,7 @@ module.exports = {
   subscribeToPayViaRoutes,
   subscribeToPeers,
   subscribeToProbe,
+  subscribeToProbeForRoute,
   subscribeToTransactions,
   unauthenticatedLndGrpc,
   unlockWallet,

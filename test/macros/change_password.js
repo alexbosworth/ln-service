@@ -13,10 +13,12 @@ const {changePassword} = require('./../../');
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
+const {getWalletInfo} = require('./../../');
 const {authenticatedLndGrpc} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
 const {stopDaemon} = require('./../../');
 const {unauthenticatedLndGrpc} = require('./../../');
+const {unlockWallet} = require('./../../');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainPass = 'pass';
@@ -276,14 +278,13 @@ module.exports = ({network}, cbk) => {
     }],
 
     // Stop LND
-    stopLnd: ['lnd', ({lnd}, cbk) => {
+    stopLnd: ['lnd', async ({lnd}) => {
       const interval = retryCount => 50 * Math.pow(2, retryCount);
       const times = 15;
 
-      return asyncRetry({interval, times}, cbk => {
-        return stopDaemon({lnd}, cbk);
-      },
-      cbk);
+      return await asyncRetry({interval, times}, async () => {
+        return await stopDaemon({lnd});
+      });
     }],
 
     // Restart LND (locked)

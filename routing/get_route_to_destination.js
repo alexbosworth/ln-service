@@ -13,6 +13,7 @@ const {pathNotFoundErrors} = require('./constants');
 const routeHintFromRoute = require('./route_hint_from_route');
 const routesFromQueryRoutes = require('./routes_from_query_routes');
 
+const bufFromHex = hex => !hex ? null : Buffer.from(hex, 'hex');
 const {concat} = Buffer;
 const defaultMaxFee = Number.MAX_SAFE_INTEGER;
 const dummyMppType = '5262155';
@@ -39,10 +40,10 @@ const trimByte = 0;
       bit: <Feature Bit Number>
     }]
     [ignore]: [{
-      [channel]: <Channel Id String>
       from_public_key: <Public Key Hex String>
       [to_public_key]: <To Public Key Hex String>
     }]
+    [incoming_peer]: <Incoming Peer Public Key Hex String>
     [is_ignoring_past_failures]: <Ignore Past Failures Bool>
     lnd: <Authenticated LND gRPC API Object>
     [max_fee]: <Maximum Fee Tokens Number>
@@ -231,7 +232,7 @@ module.exports = (args, cbk) => {
           return cbk();
         }
 
-        return cbk(null, chanNumber({channel}).number);
+        return cbk(null, chanNumber({channel: args.outgoing_channel}).number);
       }],
 
       // Derive hop hints in RPC format
@@ -278,7 +279,7 @@ module.exports = (args, cbk) => {
           final_cltv_delta: (args.cltv_delta || defaultCltv) + blocksBuffer,
           ignored_nodes: ignoreAsIgnoredNodes({ignore}).ignored || undefined,
           ignored_pairs: ignoreAsIgnoredPairs({ignore}).ignored || undefined,
-          last_hop_pubkey: args.incoming_peer || undefined,
+          last_hop_pubkey: bufFromHex(args.incoming_peer) || undefined,
           outgoing_chan_id: outgoingChannel || undefined,
           pub_key: args.destination,
           route_hints: routeHints || undefined,

@@ -1,5 +1,9 @@
 # Versions
 
+## 47.13.0
+
+- `subscribeToProbeForRoute`: add method to probe for a route using TLV
+
 ## 47.12.0
 
 - `decodePaymentRequest`: add `payment` attribute for payment identifier

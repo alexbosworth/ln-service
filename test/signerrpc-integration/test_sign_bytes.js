@@ -6,6 +6,7 @@ const {createUnsignedRequest} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {signBytes} = require('./../../');
 const {spawnLnd} = require('./../macros');
+const {stopDaemon} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 // Signing bytes should result in a signature for the bytes
@@ -50,6 +51,8 @@ test(`Sign bytes`, async ({end, equal}) => {
     equal(code, 400, 'A 400 code is thrown if signer is absent');
     equal(message, 'ExpectedSignerRpcLndBuildTagToSignBytes', 'Invalid LND');
   }
+
+  await stopDaemon({lnd: spawned.lnd});
 
   spawned.kill();
 

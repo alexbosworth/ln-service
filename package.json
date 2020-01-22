@@ -58,7 +58,7 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
-    "all-integration-tests": "tap -j 2 -t 120 test/autopilot/*.js test/autopilotrpc-integration/*.js test/backups/*.js test/bolt00/*.js test/bolt02/*.js test/bolt11/*.js test/chain/*.js test/chainrpc-integration/*.js test/graph/*.js test/grpc/*.js test/grpc-integration/*.js test/integration/*.js test/invoices/*.js test/invoicesrpc-integration/*.js test/macaroons/*.js test/router/*.js test/routerrpc-integration/*.js test/routers-integration/*.js test/routing/*.js test/signer/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js test/walletrpc-integration/*.js",
+    "all-integration-tests": "tap -j 1 -t 120 test/autopilot/*.js test/autopilotrpc-integration/*.js test/backups/*.js test/bolt00/*.js test/bolt02/*.js test/bolt11/*.js test/chain/*.js test/chainrpc-integration/*.js test/graph/*.js test/grpc/*.js test/grpc-integration/*.js test/integration/*.js test/invoices/*.js test/invoicesrpc-integration/*.js test/macaroons/*.js test/router/*.js test/routerrpc-integration/*.js test/routers-integration/*.js test/routing/*.js test/signer/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js test/walletrpc-integration/*.js",
     "autopilot-integration-tests": "tap --no-coverage -t 90 test/autopilotrpc-integration/*.js",
     "chain-integration-tests": "tap --no-coverage -t 90 test/chainrpc-integration/*.js",
     "integration-tests": "tap --no-coverage -t 90 test/grpc-integration/*.js test/integration/*.js",
@@ -71,5 +71,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.12.0"
+  "version": "47.13.0"
 }
