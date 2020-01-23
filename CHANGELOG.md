@@ -1,6 +1,6 @@
 # Versions
 
-## 47.13.0
+## 47.13.1
 
 - `subscribeToProbeForRoute`: add method to probe for a route using TLV
 

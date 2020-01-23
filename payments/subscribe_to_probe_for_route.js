@@ -246,6 +246,7 @@ module.exports = args => {
           'getInfo',
           ({getInfo, getNextRoute}, cbk) =>
         {
+          // Confirm that node is not running LND 0.8.2 or below
           if (!getInfo.features.length) {
             return cbk([400, 'ExpectedFeaturesToSubscribeToProbeDestination']);
           }

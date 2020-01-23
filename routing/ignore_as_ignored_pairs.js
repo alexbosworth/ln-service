@@ -32,9 +32,7 @@ module.exports = ({ignore}) => {
     throw new Error('ExpectedArrayOfPairsToIgnore');
   }
 
-  const pairs = ignore
-    .filter(n => !n.channel)
-    .filter(n => !!ignore.from_public_key && !!ignore.to_public_key);
+  const pairs = ignore.filter(n => !!n.from_public_key && !!n.to_public_key);
 
   const ignored = pairs.map(n => ({
     from: Buffer.from(n.from_public_key, 'hex'),

@@ -31,7 +31,8 @@ module.exports = ({ignore}) => {
 
   const ignoreNodes = ignore
     .filter(n => !n.channel)
-    .filter(n => !!n.from_public_key || !!n.to_public_key);
+    .filter(n => !n.to_public_key)
+    .filter(n => !!n.from_public_key);
 
   const nodes = []
     .concat(ignoreNodes.map(n => n.from_public_key))

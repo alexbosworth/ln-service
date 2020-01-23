@@ -17,7 +17,7 @@ const tests = [
     args: {
       ignore: [
         {channel: '1x2x3', to_public_key: '01'},
-        {to_public_key: '00'},
+        {from_public_key: '00'},
       ],
     },
     description: 'To ignored node is returned',
