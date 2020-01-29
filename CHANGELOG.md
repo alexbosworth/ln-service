@@ -1,5 +1,9 @@
 # Versions
 
+## 47.14.0
+
+- `subscribeToChannels`: add `channel_opening` event for new channels
+
 ## 47.13.1
 
 - `subscribeToProbeForRoute`: add method to probe for a route using TLV
