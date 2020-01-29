@@ -12,6 +12,8 @@ const outpointSeparator = ':';
 
 /** Subscribe to channel updates
 
+  LND 0.9.0 and below do not emit `channel_opening` events.
+
   {
     lnd: <Authenticated LND gRPC API Object>
   }
@@ -55,7 +57,7 @@ const outpointSeparator = ':';
     is_active: <Channel Active Bool>
     is_closing: <Channel Is Closing Bool>
     is_opening: <Channel Is Opening Bool>
-    is_partner_initiated: <Channel Partner Opened Channel>
+    is_partner_initiated: <Channel Partner Opened Channel Bool>
     is_private: <Channel Is Private Bool>
     local_balance: <Local Balance Tokens Number>
     partner_public_key: <Channel Partner Public Key String>
@@ -71,6 +73,12 @@ const outpointSeparator = ':';
     transaction_id: <Blockchain Transaction Id String>
     transaction_vout: <Blockchain Transaction Vout Number>
     unsettled_balance: <Unsettled Balance Tokens Number>
+  }
+
+  @event 'channel_opening'
+  {
+    transaction_id: <Blockchain Transaction Id Hex String>
+    transaction_vout: <Blockchain Transaction Output Index Number>
   }
 */
 module.exports = ({lnd}) => {
@@ -289,6 +297,23 @@ module.exports = ({lnd}) => {
         transaction_id: transactionId,
         transaction_vout: parseInt(vout, decBase),
         unsettled_balance: parseInt(channel.unsettled_balance, decBase),
+      });
+      break;
+
+    case updateTypes.channel_opening:
+      if (!Buffer.isBuffer(update[updateType].txid)) {
+        error(new Error('ExpectedChannelTransactionIdForChannelOpening'));
+        break;
+      }
+
+      if (update[updateType].output_index === undefined) {
+        error(new Error('ExpectedChannelTransactionVoutForChannelOpening'));
+        break;
+      }
+
+      eventEmitter.emit('channel_opening', {
+        transaction_id: update[updateType].txid.reverse().toString('hex'),
+        transaction_vout: Number(update[updateType].output_index),
       });
       break;
 

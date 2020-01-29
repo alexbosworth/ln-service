@@ -19,6 +19,7 @@ const times = 20;
 // Subscribing to channels should trigger channel events
 test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   const activeChanged = [];
+  const channelAdding = [];
   const channelClosed = [];
   const channelOpened = [];
   const cluster = await createCluster({is_remote_skipped: true});
@@ -32,6 +33,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   sub.on('channel_active_changed', update => activeChanged.push(update));
   sub.on('channel_closed', update => channelClosed.push(update));
   sub.on('channel_opened', update => channelOpened.push(update));
+  sub.on('channel_opening', update => channelAdding.push(update));
   sub.on('err', err => errors.push(err));
 
   // Create a channel from the control to the target node
@@ -55,6 +57,14 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
 
     return;
   });
+
+  const pendingEvent = channelAdding.pop();
+
+  // LND 0.9.0 and below do not support pending open events
+  if (!!pendingEvent) {
+    equal(pendingEvent.transaction_id, channelOpen.transaction_id, 'Got txid');
+    equal(pendingEvent.transaction_vout, channelOpen.transaction_vout, 'Vout');
+  }
 
   const openEvent = channelOpened.pop();
 
