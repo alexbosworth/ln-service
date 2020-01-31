@@ -151,40 +151,59 @@ module.exports = (args, cbk) => {
 
           const updated = !updatedAt ? undefined : new Date(updatedAt);
 
-          const channelIds = nodeChannels
-            .map(n => chanFormat({number: n.channel_id}).channel);
-
-          // Fetch the channels directly as getNode gives back wrong policies
-          return asyncMapLimit(channelIds, getChannelLimit, (id, cbk) => {
-            return getChannel({id, lnd: args.lnd}, cbk);
-          },
-          (err, channels) => {
-            if (!!err) {
-              return cbk(err);
-            }
-
-            return cbk(null, {
-              channels,
-              alias: res.node.alias,
-              capacity: parseInt(res.total_capacity, decBase),
-              channel_count: res.num_channels,
-              color: res.node.color,
-              features: Object.keys(res.node.features).map(bit => ({
-                bit,
-                is_known: res.node.features[bit].is_known,
-                is_required: res.node.features[bit].is_required,
-                type: featureFlagDetails({bit}).type,
-              })),
-              sockets: res.node.addresses.map(({addr, network}) => ({
-                socket: addr,
-                type: network,
-              })),
-              updated_at: !updated ? undefined : updated.toISOString(),
-            });
+          return cbk(null, {
+            alias: res.node.alias,
+            capacity: parseInt(res.total_capacity, decBase),
+            channel_count: res.num_channels,
+            channels: nodeChannels,
+            color: res.node.color,
+            features: Object.keys(res.node.features).map(bit => ({
+              bit,
+              is_known: res.node.features[bit].is_known,
+              is_required: res.node.features[bit].is_required,
+              type: featureFlagDetails({bit}).type,
+            })),
+            sockets: res.node.addresses.map(({addr, network}) => ({
+              socket: addr,
+              type: network,
+            })),
+            updated_at: !updated ? undefined : updated.toISOString(),
           });
         });
       }],
+
+      // Get channels
+      getChannels: ['getNode', ({getNode}, cbk) => {
+        const channels = getNode.channels.map(n => channelEdgeAsChannel(n));
+
+        // Exit when LND 0.9.0 which gives back correct channel details
+        if (!!getNode.features.length) {
+          return cbk(null, channels);
+        }
+
+        const channelIds = channels.map(n => n.id);
+
+        // Fetch the channels directly as getNode gives back wrong policies
+        return asyncMapLimit(channelIds, getChannelLimit, (id, cbk) => {
+          return getChannel({id, lnd: args.lnd}, cbk);
+        },
+        cbk);
+      }],
+
+      // Final node details
+      node: ['getChannels', 'getNode', ({getChannels, getNode}, cbk) => {
+        return cbk(null, {
+          alias: getNode.alias,
+          capacity: getNode.capacity,
+          channel_count: getNode.channel_count,
+          channels: getChannels,
+          color: getNode.color,
+          features: getNode.features,
+          sockets: getNode.sockets,
+          updated_at: getNode.updated_at,
+        });
+      }],
     },
-    returnResult({reject, resolve, of: 'getNode'}, cbk));
+    returnResult({reject, resolve, of: 'node'}, cbk));
   });
 };

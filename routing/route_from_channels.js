@@ -1,6 +1,7 @@
 const hopsFromChannels = require('./hops_from_channels');
 const routeFromHops = require('./route_from_hops');
 
+const defaultInitialCltvDelta = 144;
 const {isArray} = Array;
 
 /** Get a route from a sequence of channels
@@ -81,7 +82,7 @@ module.exports = args => {
     cltv_delta: args.cltv_delta,
     height: args.height,
     hops: path.hops,
-    initial_cltv: path.initial_cltv,
+    initial_cltv: path.initial_cltv || defaultInitialCltvDelta,
     mtokens: args.mtokens,
     payment: args.payment,
     total_mtokens: args.total_mtokens,

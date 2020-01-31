@@ -1,5 +1,9 @@
 # Versions
 
+## 47.14.1
+
+- `getNode`: improve with-channels lookup speed when a node has features
+
 ## 47.14.0
 
 - `subscribeToChannels`: add `channel_opening` event for new channels
