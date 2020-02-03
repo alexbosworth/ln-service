@@ -1,5 +1,4 @@
-const {flatten} = require('lodash');
-
+const flatten = arr => [].concat(...arr);
 const inBits = 5;
 const outBits = 8;
 const trimByteLength = 1;

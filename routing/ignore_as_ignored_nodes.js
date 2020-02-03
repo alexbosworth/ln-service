@@ -1,4 +1,4 @@
-const {uniq} = require('lodash');
+const uniq = arr => Array.from(new Set(arr));
 
 const {isArray} = Array;
 

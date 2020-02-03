@@ -1,5 +1,9 @@
 # Versions
 
+## 47.14.2
+
+- `getNode`: rollback lookup improvement due to sometimes policy mismatch
+
 ## 47.14.1
 
 - `getNode`: improve with-channels lookup speed when a node has features

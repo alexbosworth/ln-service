@@ -2,7 +2,6 @@ const {createHash} = require('crypto');
 
 const {crypto} = require('bitcoinjs-lib');
 const {featureFlagsAsWords} = require('bolt09');
-const {flatten} = require('lodash');
 
 const chainAddressAsWords = require('./chain_address_as_words');
 const currencyCodes = require('./conf/bech32_currency_codes');
@@ -16,6 +15,7 @@ const wordsAsBuffer = require('./words_as_buffer');
 
 const decBase = 10;
 const defaultExpireMs = 1e3 * 60 * 60 * 24;
+const flatten = arr => [].concat(...arr);
 const {floor} = Math;
 const {keys} = Object;
 const maxDescriptionLen = 639;

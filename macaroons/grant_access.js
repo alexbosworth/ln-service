@@ -13,13 +13,15 @@ const notSupported = 'unknown service lnrpc.Lightning';
 
   Note: granting access is not supported in LND versions 0.8.2 and below
 
-  Note: access once given cannot be revoked
+  Note: access once given cannot be revoked. Access is defined at the LND level
+  and version differences in LND can result in expanded access.
 
   {
+    [is_ok_to_adjust_peers]: <Can Add or Remove Peers Bool>
     [is_ok_to_create_chain_addresses]: <Can Make New Addresses Bool>
     [is_ok_to_create_invoices]: <Can Create Lightning Invoices Bool>
     [is_ok_to_create_macaroons]: <Can Create Macaroons Bool>
-    [is_ok_to_adjust_peers]: <Can Add or Remove Peers Bool>
+    [is_ok_to_derive_keys]: <Can Derive Public Keys Bool>
     [is_ok_to_get_chain_transactions]: <Can See Chain Transactions Bool>
     [is_ok_to_get_invoices]: <Can See Invoices Bool>
     [is_ok_to_get_wallet_info]: <Can General Graph and Wallet Information Bool>

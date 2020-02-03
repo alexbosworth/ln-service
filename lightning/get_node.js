@@ -176,11 +176,6 @@ module.exports = (args, cbk) => {
       getChannels: ['getNode', ({getNode}, cbk) => {
         const channels = getNode.channels.map(n => channelEdgeAsChannel(n));
 
-        // Exit when LND 0.9.0 which gives back correct channel details
-        if (!!getNode.features.length) {
-          return cbk(null, channels);
-        }
-
         const channelIds = channels.map(n => n.id);
 
         // Fetch the channels directly as getNode gives back wrong policies

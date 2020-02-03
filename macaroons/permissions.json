@@ -1,4 +1,5 @@
 {
+  "address:read": "is_ok_to_derive_keys",
   "address:write": "is_ok_to_create_chain_addresses",
   "info:read": "is_ok_to_get_wallet_info",
   "info:write": "is_ok_to_stop_daemon",

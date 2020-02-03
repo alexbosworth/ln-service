@@ -1,7 +1,6 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
-const {flatten} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
 
@@ -15,6 +14,7 @@ const {safeTokens} = require('./../bolt00');
 
 const defaultFinalCltvDelta = 40;
 const defaultTokens = 0;
+const flatten = arr => [].concat(...arr);
 const {isArray} = Array;
 const notFoundCode = 404;
 const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();

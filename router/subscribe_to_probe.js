@@ -3,7 +3,6 @@ const EventEmitter = require('events');
 const asyncAuto = require('async/auto');
 const asyncEach = require('async/each');
 const asyncWhilst = require('async/whilst');
-const {flatten} = require('lodash');
 const isHex = require('is-hex');
 
 const {getRoutes} = require('./../lightning');
@@ -12,6 +11,7 @@ const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
 
 const defaultPathTimeoutMs = 1000 * 60;
 const defaultProbeTimeoutMs = 1000 * 60 * 60 * 24;
+const flatten = arr => [].concat(...arr);
 const {isArray} = Array;
 
 /** Subscribe to a probe attempt
