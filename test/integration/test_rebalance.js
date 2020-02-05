@@ -20,7 +20,16 @@ const tokens = 1e3;
 
 // Rebalancing channels should result in balanced channels
 test('Rebalance', async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  let cluster;
+
+  try {
+    cluster = await createCluster({
+      is_circular_enabled: true,
+      is_remote_skipped: true,
+    });
+  } catch (err) {
+    cluster = await createCluster({is_remote_skipped: true});
+  }
 
   const {lnd} = cluster.control;
 

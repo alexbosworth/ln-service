@@ -235,7 +235,7 @@ module.exports = args => {
             payment: args.payment,
             routes: args.routes,
             tokens: args.tokens,
-            total_mtokens: args.mtokens,
+            total_mtokens: args.total_mtokens,
           },
           cbk);
         },

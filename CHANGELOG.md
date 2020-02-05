@@ -1,5 +1,9 @@
 # Versions
 
+## 47.14.3
+
+Fix issue with circular payments failing due to LND circular payment ban
+
 ## 47.14.2
 
 - `getNode`: rollback lookup improvement due to sometimes policy mismatch

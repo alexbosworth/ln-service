@@ -26,7 +26,16 @@ const tokens = 1e3;
 
 // Pushing funds via a fee bump should result in the destination getting funds
 test('Push funds', async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  let cluster;
+
+  try {
+    cluster = await createCluster({
+      is_circular_enabled: true,
+      is_remote_skipped: true,
+    });
+  } catch (err) {
+    cluster = await createCluster({is_remote_skipped: true});
+  }
 
   const {lnd} = cluster.control;
 
@@ -36,8 +45,8 @@ test('Push funds', async ({end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     local_tokens: channelCapacityTokens,
     give_tokens: floor(channelCapacityTokens * reserveRatio),
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({

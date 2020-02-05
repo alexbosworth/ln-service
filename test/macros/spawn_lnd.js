@@ -46,6 +46,7 @@ const times = 20;
 /** Spawn an LND instance
 
   {
+    [circular]: <Allow Circular Payments Bool>
     [keysend]: <Enable Key Send Bool>
     [seed]: <Seed Phrase String>
     [tower]: <Tower Enabled Bool>
@@ -72,7 +73,7 @@ const times = 20;
     socket: <LND RPC Network Socket String>
   }
 */
-module.exports = ({keysend, seed, tower, watchers}, cbk) => {
+module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
@@ -190,6 +191,10 @@ module.exports = ({keysend, seed, tower, watchers}, cbk) => {
           '--watchtower.listen', `${localhost}:${getPorts.tower}`,
           '--watchtower.towerdir', dir,
         ]
+
+        if (!!circular) {
+          arguments.push('--allow-circular-route');
+        }
 
         if (!!keysend) {
           arguments.push('--accept-keysend');

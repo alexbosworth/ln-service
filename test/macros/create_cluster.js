@@ -27,6 +27,7 @@ const tokens = 50e8;
 /** Create a cluster of lnds
 
   {
+    [is_circular_enabled]: <Allow Circular Payments Bool>
     [is_keysend_enabled]: <Nodes Accept Keysend Payments Bool>
     [is_remote_skipped]: <Is Remote Node Creation Skipped Bool>
     [nodes]: [{
@@ -62,10 +63,23 @@ const tokens = 50e8;
 module.exports = (args, cbk) => {
   return asyncAuto({
     // Create control lnd
-    control: cbk => spawnLnd({seed, keysend: args.is_keysend_enabled}, cbk),
+    control: cbk => {
+      return spawnLnd({
+        seed,
+        circular: args.is_circular_enabled,
+        keysend: args.is_keysend_enabled,
+      },
+      cbk);
+    },
 
     // Create target lnd
-    target: cbk => spawnLnd({keysend: args.is_keysend_enabled}, cbk),
+    target: cbk => {
+      return spawnLnd({
+        circular: args.is_circular_enabled,
+        keysend: args.is_keysend_enabled,
+      },
+      cbk);
+    },
 
     // Create remote lnd
     remote: cbk => {
@@ -73,7 +87,11 @@ module.exports = (args, cbk) => {
         return cbk();
       }
 
-      return spawnLnd({keysend: args.is_keysend_enabled}, cbk);
+      return spawnLnd({
+        circular: args.is_circular_enabled,
+        keysend: args.is_keysend_enabled,
+      },
+      cbk);
     },
 
     // Get the remote node info
