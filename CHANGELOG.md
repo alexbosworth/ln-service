@@ -1,5 +1,9 @@
 # Versions
 
+## 47.14.4
+
+- Increase message maximum limit for gRPC to accomodate large responses
+
 ## 47.14.3
 
 Fix issue with circular payments failing due to LND circular payment ban
