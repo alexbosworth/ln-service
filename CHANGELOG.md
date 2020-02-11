@@ -2,7 +2,7 @@
 
 ## 47.14.5
 
-- Return feature bits as numbers instead of strings
+- `getNode`: Return feature bits as numbers instead of strings
 
 ## 47.14.4
 
