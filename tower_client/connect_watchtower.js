@@ -1,11 +1,15 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
 const {unimplementedError} = require('./constants');
+
+const method = 'addTower';
+const type = 'tower_client';
 
 /** Connect to a watchtower
 
-  This method requires LND built with wtclientrpc build tag
+  This method requires LND built with `wtclientrpc` build tag
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -20,7 +24,7 @@ module.exports = (args, cbk) => {
     return new asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.lnd || !args.lnd.tower_client) {
+        if (!isLnd({method, type, lnd: args.lnd})) {
           return cbk([400, 'ExpectedLndToConnectToWatchtower']);
         }
 
@@ -37,7 +41,7 @@ module.exports = (args, cbk) => {
 
       // Add watchtower
       add: ['validate', ({}, cbk) => {
-        return args.lnd.tower_client.addTower({
+        return args.lnd[type][method]({
           address: args.socket,
           pubkey: Buffer.from(args.public_key, 'hex'),
         },

@@ -1455,7 +1455,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
-        tokens: <Payment TOkens Number>
+        tokens: <Payment Tokens Number>
       }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
@@ -1522,7 +1522,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
           }]
           mtokens: <Incoming Payment Millitokens String>
           [pending_index]: <Pending Payment Channel HTLC Index Number>
-          tokens: <Payment TOkens Number>
+          tokens: <Payment Tokens Number>
           [total_mtokens]: <Total Millitokens String>
         }]
         received: <Received Tokens Number>
@@ -3538,7 +3538,7 @@ The `mtokens` value is only supported on LND versions after 0.8.2
         }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
-        tokens: <Payment TOkens Number>
+        tokens: <Payment Tokens Number>
       }]
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
@@ -3614,7 +3614,7 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
-        tokens: <Payment TOkens Number>
+        tokens: <Payment Tokens Number>
         [total_mtokens]: <Total Payment Millitokens String>
       }]
       received: <Received Tokens Number>

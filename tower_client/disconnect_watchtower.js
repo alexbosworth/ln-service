@@ -2,10 +2,13 @@ const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
 const {unimplementedError} = require('./constants');
 
 const interval = retryCount => 50 * Math.pow(2, retryCount);
+const method = 'removeTower';
 const times = 10;
+const type = 'tower_client';
 
 /** Disconnect a watchtower
 
@@ -23,7 +26,7 @@ module.exports = (args, cbk) => {
     return new asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.lnd || !args.lnd.tower_client) {
+        if (!isLnd({method, type, lnd: args.lnd})) {
           return cbk([400, 'ExpectedLndToDisconnectWatchtower']);
         }
 

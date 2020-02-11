@@ -1,5 +1,9 @@
 # Versions
 
+## 47.14.5
+
+- Return feature bits as numbers instead of strings
+
 ## 47.14.4
 
 - Increase message maximum limit for gRPC to accomodate large responses

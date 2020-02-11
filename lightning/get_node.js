@@ -158,7 +158,7 @@ module.exports = (args, cbk) => {
             channels: nodeChannels,
             color: res.node.color,
             features: Object.keys(res.node.features).map(bit => ({
-              bit,
+              bit: Number(bit),
               is_known: res.node.features[bit].is_known,
               is_required: res.node.features[bit].is_required,
               type: featureFlagDetails({bit}).type,

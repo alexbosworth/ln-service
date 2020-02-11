@@ -84,7 +84,7 @@ const msPerSec = 1e3;
       is_held: <Payment is Held Bool>
       mtokens: <Incoming Payment Millitokens String>
       [pending_index]: <Pending Payment Channel HTLC Index Number>
-      tokens: <Payment TOkens Number>
+      tokens: <Payment Tokens Number>
       [total_mtokens]: <Total Millitokens String>
     }]
     received: <Received Tokens Number>

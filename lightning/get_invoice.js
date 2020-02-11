@@ -62,7 +62,7 @@ const mtokensPerToken = BigInt('1000');
       }]
       mtokens: <Incoming Payment Millitokens String>
       [pending_index]: <Pending Payment Channel HTLC Index Number>
-      tokens: <Payment TOkens Number>
+      tokens: <Payment Tokens Number>
     }]
     received: <Received Tokens Number>
     received_mtokens: <Received Millitokens String>
