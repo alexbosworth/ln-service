@@ -1,6 +1,6 @@
 const asyncRetry = require('async/retry');
 const {includes} = require('lodash');
-const request = require('request');
+const request = require('@alexbosworth/request');
 
 const centsPerUnit = 100;
 const coindeskApi = 'https://api.coindesk.com/v1/';

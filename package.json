@@ -4,6 +4,7 @@
     "url": "https://github.com/alexbosworth/ln-service/issues"
   },
   "dependencies": {
+    "@alexbosworth/request": "2.88.3",
     "@datastructures-js/priority-queue": "1.0.2",
     "@grpc/proto-loader": "0.5.3",
     "async": "3.1.1",
@@ -27,7 +28,6 @@
     "macaroon": "3.0.4",
     "morgan": "1.9.1",
     "promptly": "3.0.3",
-    "request": "2.88.0",
     "safe-compare": "1.1.4",
     "secp256k1": "4.0.0",
     "ws": "7.2.1"
@@ -71,5 +71,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.14.5"
+  "version": "47.14.6"
 }
