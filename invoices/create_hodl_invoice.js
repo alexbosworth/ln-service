@@ -25,7 +25,6 @@ const tokensAsMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
     [description]: <Invoice Description String>
     [expires_at]: <Expires At ISO 8601 Date String>
     id: <Payment Hash Hex String>
-    [internal_description]: <Internal Description String>
     [is_fallback_included]: <Is Fallback Address Included Bool>
     [is_fallback_nested]: <Is Fallback Address Nested Bool>
     [is_including_private_channels]: <Invoice Includes Private Channels Bool>
@@ -44,7 +43,6 @@ const tokensAsMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
     id: <Payment Hash Hex String>
     mtokens: <Millitokens Number>
     request: <BOLT 11 Encoded Payment Request String>
-    secret: <Hex Encoded Payment Secret String>
     tokens: <Tokens Number>
   }
 */

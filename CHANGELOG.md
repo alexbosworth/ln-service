@@ -1,6 +1,6 @@
 # Versions
 
-## 47.14.6
+## 47.14.7
 
 - `getNode`: Return feature bits as numbers instead of strings
 

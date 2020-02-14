@@ -282,6 +282,11 @@ module.exports = args => {
           };
 
           const routeTimeout = setTimeout(() => {
+            // Exit early when there is no current route
+            if (!currentRoute) {
+              return;
+            }
+
             const [lastHop, penultimate] = currentRoute.hops.slice().reverse();
 
             const from = penultimate || getInfo;
