@@ -82,6 +82,16 @@ test(`Close channel`, async ({end, equal}) => {
     equal(channel.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
   }
 
+  // Partner closed is not supported on 0.9.0 or earlier
+  if (!!channel && channel.is_partner_closed !== undefined) {
+    equal(channel.is_partner_closed, false, 'Partner did not close the chan');
+  }
+
+  // Partner initiated is not supported on 0.9.0 or earlier
+  if (!!channel && channel.is_partner_initiated !== undefined) {
+    equal(channel.is_partner_initiated, false, 'Partner did not open channel');
+  }
+
   await cluster.kill({});
 
   return end();

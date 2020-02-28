@@ -3,7 +3,6 @@ const EventEmitter = require('events');
 
 const {chanFormat} = require('bolt07');
 const {chanNumber} = require('bolt07');
-const isHex = require('is-hex');
 
 const getWalletInfo = require('./../lightning/get_wallet_info');
 const paymentAmounts = require('./payment_amounts');
@@ -18,6 +17,7 @@ const defaultCltvDelta = 43;
 const defaultTimeoutSeconds = 25;
 const hexToBuf = hex => !hex ? undefined : Buffer.from(hex, 'hex');
 const {isArray} = Array;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 const maxTokens = '4294967296';
 const msPerSec = 1000;
 const mtokensPerToken = BigInt(1e3);

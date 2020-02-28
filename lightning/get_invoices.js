@@ -56,7 +56,6 @@ const {stringify} = JSON;
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
       [is_held]: <HTLC is Held Bool>
-      is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
       [is_push]: <Invoice is Push Payment Bool>
       payments: [{

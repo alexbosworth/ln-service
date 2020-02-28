@@ -1,11 +1,11 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const bufferFromHex = hex => Buffer.from(hex, 'hex');
 const expectedSecretLen = 64;
 const htlcNotYetAcceptedError = 'invoice still open';
 const invalidSecretError = 'unable to locate invoice';
+const isPreimage = n => /^[0-9A-F]{64}$/i.test(n);
 
 /** Settle hodl invoice
 
@@ -27,7 +27,7 @@ module.exports = ({lnd, secret}, cbk) => {
           return cbk([400, 'ExpectedInvoicesLndToSettleHodlInvoice']);
         }
 
-        if (!secret || !isHex(secret) || secret.length !== expectedSecretLen) {
+        if (!secret || !isPreimage(secret)) {
           return cbk([400, 'ExpectedPaymentPreimageToSettleHodlInvoice']);
         }
 

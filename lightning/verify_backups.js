@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const hexToBuffer = hex => Buffer.from(hex, 'hex');
 const {isArray} = Array;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Verify a set of aggregated channel backups
 

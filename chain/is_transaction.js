@@ -1,5 +1,6 @@
-const isHex = require('is-hex');
 const {Transaction} = require('bitcoinjs-lib');
+
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Determine if a hex string is a regular Transaction
 

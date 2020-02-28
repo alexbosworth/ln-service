@@ -1,11 +1,11 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const broadcastResponse = require('./../push/broadcast_response');
 const createChainAddress = require('./../lightning/create_chain_address');
 
 const {isArray} = Array;
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const msPerSec = 1e3;
 const mtokensAsTokens = mtokens => Number(BigInt(mtokens) / BigInt(1e3));
 const noTokens = 0;
@@ -51,7 +51,7 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!args.id || !isHex(args.id)) {
+        if (!args.id || !isHash(args.id)) {
           return cbk([400, 'ExpectedInvoiceIdForNewHodlInvoice']);
         }
 

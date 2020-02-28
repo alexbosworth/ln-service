@@ -9,7 +9,7 @@ const tests = [
     error: [400, 'ExpectedIdToGetInvoiceDetails'],
   },
   {
-    args: {id: '00'},
+    args: {id: Buffer.alloc(32).toString('hex')},
     description: 'LND is required',
     error: [400, 'ExpectedLndToGetInvoiceDetails'],
   },

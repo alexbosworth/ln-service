@@ -2,13 +2,13 @@ const {createHash} = require('crypto');
 const EventEmitter = require('events');
 
 const {chanFormat} = require('bolt07');
-const isHex = require('is-hex');
 
 const {safeTokens} = require('./../bolt00');
 const {states} = require('./payment_states');
 
 const decBase = 10;
 const hexToBuf = hex => Buffer.from(hex, 'hex');
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const mtokensPerToken = BigInt(1e3);
 const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
@@ -58,7 +58,7 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
   {}
 */
 module.exports = args => {
-  if (!args.id || !isHex(args.id)) {
+  if (!args.id || !isHash(args.id)) {
     throw new Error('ExpectedIdOfPastPaymentToSubscribeTo');
   }
 

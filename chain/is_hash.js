@@ -1,6 +1,4 @@
-const isHex = require('is-hex');
-
-const hashHexLength = 64;
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 
 /** Determine if a string looks like a regular 256 bit hex encoded hash
 
@@ -14,5 +12,5 @@ const hashHexLength = 64;
   }
 */
 module.exports = ({hash}) => {
-  return {is_hash: !!hash && isHex(hash) && hash.length === hashHexLength};
+  return {is_hash: !!hash && isHash(hash)};
 };

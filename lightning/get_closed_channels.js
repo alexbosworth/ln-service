@@ -5,7 +5,6 @@ const {returnResult} = require('asyncjs-util');
 
 const {isLnd} = require('./../grpc');
 
-const decBase = 10;
 const emptyTxId = Buffer.alloc(32).toString('hex');;
 const {isArray} = Array;
 const method = 'closedChannels';
@@ -14,6 +13,9 @@ const outpointSeparator = ':';
 /** Get closed out channels
 
   Multiple close type flags are supported.
+
+  `is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
+  and below.
 
   {
     [is_breach_close]: <Only Return Breach Close Channels Bool>
@@ -37,6 +39,8 @@ const outpointSeparator = ':';
       is_cooperative_close: <Is Cooperative Close Bool>
       is_funding_cancel: <Is Funding Cancelled Close Bool>
       is_local_force_close: <Is Local Force Close Bool>
+      [is_partner_closed]: <Channel Was Closed By Channel Peer Bool>
+      [is_partner_initiated]: <Channel Was Initiated By Channel Peer Bool>
       is_remote_force_close: <Is Remote Force Close Bool>
       partner_public_key: <Partner Public Key Hex String>
       transaction_id: <Channel Funding Transaction Id Hex String>
@@ -117,30 +121,56 @@ module.exports = (args, cbk) => {
             return cbk([503, 'ExpectedFinalTimeLockedBalanceForClosedChan']);
           }
 
-          const finalTimeLock = parseInt(chan.time_locked_balance, decBase);
+          const finalTimeLock = Number(chan.time_locked_balance);
           const hasCloseTx = chan.closing_tx_hash !== emptyTxId;
           const hasId = chan.chan_id !== '0';
           const height = !chan.close_height ? undefined : chan.close_height;
+          let isPartnerClosed;
+          let isPartnerInitiated;
           const [txId, vout] = chan.channel_point.split(outpointSeparator);
 
           const chanId = !hasId ? null : chanFormat({number: chan.chan_id});
           const closeTxId = !hasCloseTx ? undefined : chan.closing_tx_hash;
+          const isLocalCooperativeClose = chan.close_initiator === 'LOCAL';
+          const isRemoteCooperativeClose = chan.close_initiator === 'REMOTE';
+
+          // Try and determine if the channel was opened by our peer
+          if (chan.open_initiator === 'LOCAL') {
+            isPartnerInitiated = false;
+          } else if (chan.open_initiator === 'REMOTE') {
+            isPartnerInitiated = true;
+          }
+
+          // Try and determine if the channel was closed by our peer
+          if (chan.close_initiator === 'LOCAL') {
+            isPartnerClosed = false;
+          } else if (chan.close_initiator === 'REMOTE') {
+            isPartnerClosed = true;
+          }
+
+          if (chan.close_type === 'LOCAL_FORCE_CLOSE') {
+            isPartnerClosed = false
+          } else if (chan.close_type === 'REMOTE_FORCE_CLOSE') {
+            isPartnerClosed = true;
+          }
 
           return cbk(null, {
-            capacity: parseInt(chan.capacity, decBase),
+            capacity: Number(chan.capacity),
             close_confirm_height: height,
             close_transaction_id: closeTxId,
-            final_local_balance: parseInt(chan.settled_balance, decBase),
+            final_local_balance: Number(chan.settled_balance),
             final_time_locked_balance: finalTimeLock,
             id: !chanId ? undefined : chanId.channel,
             is_breach_close: chan.close_type === 'BREACH_CLOSE',
             is_cooperative_close: chan.close_type === 'COOPERATIVE_CLOSE',
             is_funding_cancel: chan.close_type === 'FUNDING_CANCELED',
             is_local_force_close: chan.close_type === 'LOCAL_FORCE_CLOSE',
+            is_partner_closed: isPartnerClosed,
+            is_partner_initiated: isPartnerInitiated,
             is_remote_force_close: chan.close_type === 'REMOTE_FORCE_CLOSE',
             partner_public_key: chan.remote_pubkey,
             transaction_id: txId,
-            transaction_vout: parseInt(vout, decBase),
+            transaction_vout: Number(vout),
           });
         },
         cbk);

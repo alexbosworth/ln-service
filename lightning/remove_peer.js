@@ -1,6 +1,7 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
+
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Remove a peer if possible
 
@@ -20,7 +21,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedLndForPeerDisconnection']);
         }
 
-        if (!args.public_key) {
+        if (!args.public_key || !isHex(args.public_key)) {
           return cbk([400, 'ExpectedPublicKeyOfPeerToRemove']);
         }
 

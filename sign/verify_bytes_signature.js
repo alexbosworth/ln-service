@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {isLnd} = require('./../grpc');
 
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
 /** Verify signature of arbitrary bytes
@@ -33,15 +33,15 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedLndToVerifyBytesSignature']);
         }
 
-        if (!isHex(args.preimage)) {
+        if (!args.preimage || !isHex(args.preimage)) {
           return cbk([400, 'ExpectedPreimageToVerifyBytesSignature'])
         }
 
-        if (!isHex(args.public_key)) {
+        if (!args.public_key || !isHex(args.public_key)) {
           return cbk([400, 'ExpectedPublicKeyToVerifyBytesSignature']);
         }
 
-        if (!isHex(args.signature)) {
+        if (!args.signature || !isHex(args.signature)) {
           return cbk([400, 'ExpectedSignatureToVerifyBytesSignature']);
         }
 

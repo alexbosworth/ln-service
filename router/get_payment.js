@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const subscribeToPastPayment = require('./subscribe_to_past_payment');
 
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const paymentNotInitiatedErr = `payment isn't initiated`;
 
 /** Get the status of a past payment
@@ -50,7 +50,7 @@ module.exports = ({id, lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!id || !isHex(id)) {
+        if (!id || !isHash(id)) {
           return cbk([400, 'ExpectedPaymentHashToLookupPastPaymentStatus']);
         }
 

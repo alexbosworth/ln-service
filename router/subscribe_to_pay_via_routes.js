@@ -5,7 +5,6 @@ const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
 const {chanNumber} = require('bolt07');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {broadcastResponse} = require('./../push');
@@ -15,6 +14,7 @@ const paymentFailure = require('./payment_failure');
 const rpcRouteFromRoute = require('./rpc_route_from_route');
 
 const {isArray} = Array;
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const {nextTick} = process;
 const notFoundIndex = -1;
 const {now} = Date;
@@ -199,7 +199,7 @@ const unknownWireError = 'unknown wire error';
   }
 */
 module.exports = args => {
-  if (!!args.id && !isHex(args.id)) {
+  if (!!args.id && !isHash(args.id)) {
     throw new Error('ExpectedPaymentHashToPayViaRoutes');
   }
 

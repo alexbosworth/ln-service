@@ -1,11 +1,11 @@
 const EventEmitter = require('events');
 
 const {featureFlagDetails} = require('bolt09');
-const isHex = require('is-hex');
 
 const htlcAsPayment = require('./htlc_as_payment');
 
 const decBase = 10;
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const msPerSec = 1e3;
 
 /** Subscribe to an invoice
@@ -81,11 +81,11 @@ const msPerSec = 1e3;
   }
 */
 module.exports = ({id, lnd}) => {
-  if (!id || !isHex(id)) {
+  if (!id || !isHash(id)) {
     throw new Error('ExpectedIdOfInvoiceToSubscribeTo');
   }
 
-  if (!lnd || !lnd.invoices.subscribeSingleInvoice) {
+  if (!lnd || !lnd.invoices || !lnd.invoices.subscribeSingleInvoice) {
     throw new Error('ExpectedInvoiceLndToSubscribeToSingleInvoice');
   }
 

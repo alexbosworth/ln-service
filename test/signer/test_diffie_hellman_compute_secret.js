@@ -8,7 +8,7 @@ const makeLnd = (err, res) => {
 
 const makeArgs = ({override}) => {
   const args = {
-    lnd: makeLnd(null, {shared_key: Buffer.alloc(1)}),
+    lnd: makeLnd(null, {shared_key: Buffer.alloc(32)}),
     partner_public_key: '00',
   };
 
@@ -31,7 +31,9 @@ const tests = [
   {
     args: makeArgs({}),
     description: 'Secret is calculated',
-    expected: {secret: '00'},
+    expected: {
+      secret: '0000000000000000000000000000000000000000000000000000000000000000',
+    },
   },
 ];
 

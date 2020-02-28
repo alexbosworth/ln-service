@@ -61,7 +61,7 @@ test(`Test verify backup`, async ({end, equal}) => {
 
   const badBackup = await verifyBackup({
     lnd,
-    backup: backup.slice([backup].length),
+    backup: backup.slice([backup, backup].length),
     transaction_id: channelOpen.transaction_id,
     transaction_vout: channelOpen.transaction_vout,
   });

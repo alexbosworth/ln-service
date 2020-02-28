@@ -1,12 +1,12 @@
 const asyncAuto = require('async/auto');
 const asyncTimeout = require('async/timeout');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const subscribeToProbe = require('./subscribe_to_probe');
 
 const defaultProbeTimeoutMs = 1000 * 60;
 const {isArray} = Array;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Probe to find a successful route
 

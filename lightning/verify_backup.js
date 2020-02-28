@@ -1,6 +1,7 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
+
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Verify a channel backup
 
@@ -20,11 +21,11 @@ module.exports = ({backup, lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!backup) {
+        if (!backup || !isHex(backup)) {
           return cbk([400, 'ExpectedChannelBackupToVerify']);
         }
 
-        if (!lnd || !lnd.default) {
+        if (!lnd || !lnd.default || !lnd.default.verifyChanBackup) {
           return cbk([400, 'ExpectedLndToVerifyChannelBackup']);
         }
 

@@ -2,7 +2,6 @@ const EventEmitter = require('events');
 
 const asyncAuto = require('async/auto');
 const asyncWhilst = require('async/whilst');
-const isHex = require('is-hex');
 
 const {getRouteToDestination} = require('./../routing');
 const {getWalletInfo} = require('./../lightning');
@@ -11,6 +10,7 @@ const {subscribeToPayViaRoutes} = require('./../router');
 const defaultPathTimeoutMs = 1000 * 60;
 const defaultProbeTimeoutMs = 1000 * 60 * 60 * 24;
 const {isArray} = Array;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Subscribe to a probe attempt
 

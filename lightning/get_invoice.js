@@ -1,7 +1,6 @@
 const asyncAuto = require('async/auto');
 const {chanFormat} = require('bolt07');
 const {featureFlagDetails} = require('bolt09');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {htlcAsPayment} = require('./../invoices');
@@ -9,6 +8,7 @@ const {isLnd} = require('./../grpc');
 
 const dateFrom = epoch => new Date(1e3 * epoch).toISOString();
 const decBase = 10;
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const {keys} = Object;
 const msPerSec = 1e3;
 const mtokensPerToken = BigInt('1000');
@@ -44,10 +44,9 @@ const mtokensPerToken = BigInt('1000');
     [is_canceled]: <Invoice is Canceled Bool>
     is_confirmed: <Invoice is Confirmed Bool>
     [is_held]: <HTLC is Held Bool>
-    is_outgoing: <Invoice is Outgoing Bool>
     is_private: <Invoice is Private Bool>
     [is_push]: <Invoice is Push Payment Bool>
-    mtokens: <Millitokens Number>
+    mtokens: <Millitokens String>
     payments: [{
       [confirmed_at]: <Payment Settled At ISO 8601 Date String>
       created_at: <Payment Held Since ISO 860 Date String>
@@ -76,7 +75,7 @@ module.exports = ({id, lnd}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!isHex(id)) {
+        if (!isHash(id)) {
           return cbk([400, 'ExpectedIdToGetInvoiceDetails']);
         }
 

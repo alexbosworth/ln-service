@@ -1,10 +1,10 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
 
 const {isArray} = Array;
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const maxHopsCount = 20;
 
 /** Make a payment via a specified route
@@ -88,7 +88,7 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!!args.id && !isHex(args.id)) {
+        if (!!args.id && !isHash(args.id)) {
           return cbk([400, 'ExpectedStandardHexPaymentHashId']);
         }
 

@@ -1,6 +1,5 @@
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const getPeers = require('./get_peers');
@@ -8,6 +7,7 @@ const getPeers = require('./get_peers');
 const connectedErrMsg = /already.connected.to/;
 const defaultRetries = 10;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 const publicKeyHexStringLength = 33 * 2;
 const notSyncedError = 'chain backend is still syncing, server not active yet';
 const selfKeyErrMsg = /connection.to.self/;
@@ -33,7 +33,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedLndToAddPeer']);
         }
 
-        if (!args.public_key || !isHex(args.public_key)) {
+        if (typeof args.public_key !== 'string' || !isHex(args.public_key)) {
           return cbk([400, 'ExpectedPublicKeyOfPeerToAdd']);
         }
 

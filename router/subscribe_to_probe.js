@@ -3,7 +3,6 @@ const EventEmitter = require('events');
 const asyncAuto = require('async/auto');
 const asyncEach = require('async/each');
 const asyncWhilst = require('async/whilst');
-const isHex = require('is-hex');
 
 const {getRoutes} = require('./../lightning');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
@@ -13,6 +12,7 @@ const defaultPathTimeoutMs = 1000 * 60;
 const defaultProbeTimeoutMs = 1000 * 60 * 60 * 24;
 const flatten = arr => [].concat(...arr);
 const {isArray} = Array;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Subscribe to a probe attempt
 

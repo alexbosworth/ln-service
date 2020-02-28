@@ -1,11 +1,11 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {isLnd} = require('./../grpc');
 
 const defaultKeyFamily = 6;
 const defaultKeyIndex = 0;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 const method = 'deriveSharedKey';
 const type = 'signer';
 const unimplementedError = 'unknown service signrpc.Signer';
@@ -39,7 +39,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedAuthenticatedLndToComputeSharedSecret']);
         }
 
-        if (!isHex(args.partner_public_key)) {
+        if (!args.partner_public_key || !isHex(args.partner_public_key)) {
           return cbk([400, 'ExpectedHexEncodedPartnerPublicKey']);
         }
 

@@ -1,8 +1,8 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const bufferFromHex = hex => Buffer.from(hex, 'hex');
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Cancel an invoice
 

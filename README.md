@@ -1183,6 +1183,9 @@ Get closed out channels
 
 Multiple close type flags are supported.
 
+`is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
+and below.
+
     {
       [is_breach_close]: <Only Return Breach Close Channels Bool>
       [is_cooperative_close]: <Only Return Cooperative Close Channels Bool>
@@ -1205,6 +1208,8 @@ Multiple close type flags are supported.
         is_cooperative_close: <Is Cooperative Close Bool>
         is_funding_cancel: <Is Funding Cancelled Close Bool>
         is_local_force_close: <Is Local Force Close Bool>
+        [is_partner_closed]: <Channel Was Closed By Channel Peer Bool>
+        [is_partner_initiated]: <Channel Was Initiated By Channel Peer Bool>
         is_remote_force_close: <Is Remote Force Close Bool>
         partner_public_key: <Partner Public Key Hex String>
         transaction_id: <Channel Funding Transaction Id Hex String>
@@ -1436,7 +1441,6 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
       [is_held]: <HTLC is Held Bool>
-      is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
       [is_push]: <Invoice is Push Payment Bool>
       payments: [{
@@ -1503,7 +1507,6 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
         [is_canceled]: <Invoice is Canceled Bool>
         is_confirmed: <Invoice is Confirmed Bool>
         [is_held]: <HTLC is Held Bool>
-        is_outgoing: <Invoice is Outgoing Bool>
         is_private: <Invoice is Private Bool>
         [is_push]: <Invoice is Push Payment Bool>
         payments: [{

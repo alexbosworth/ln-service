@@ -1,5 +1,6 @@
 const grpc = require('grpc');
-const isHex = require('is-hex');
+
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Get SSL for gRPC
 
@@ -13,7 +14,7 @@ const isHex = require('is-hex');
   }
 */
 module.exports = ({cert}) => {
-  if (isHex(cert)) {
+  if (!!cert && isHex(cert)) {
     return {ssl: grpc.credentials.createSsl(Buffer.from(cert, 'hex'))};
   }
 

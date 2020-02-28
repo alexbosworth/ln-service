@@ -1,5 +1,4 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {broadcastResponse} = require('./../push');
@@ -9,6 +8,7 @@ const getInvoice = require('./get_invoice');
 const defaultExpiryMs = 1000 * 60 * 60 * 3;
 const invoiceExistsError = 'invoice with payment hash already exists';
 const {isArray} = Array;
+const isPreimage = n => /^[0-9A-F]{64}$/i.test(n);
 const msPerSec = 1e3;
 const {parse} = Date;
 const {round} = Math;
@@ -50,7 +50,7 @@ module.exports = (args, cbk) => {
           return cbk();
         }
 
-        if (!isHex(args.secret)) {
+        if (!isPreimage(args.secret)) {
           return cbk([400, 'ExpectedHexSecretForNewInvoice']);
         }
 

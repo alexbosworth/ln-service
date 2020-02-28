@@ -2,6 +2,8 @@ const {test} = require('tap');
 
 const {createHodlInvoice} = require('./../../');
 
+const id = Buffer.alloc(32).toString('hex');
+
 const tests = [
   {
     args: {},
@@ -9,56 +11,53 @@ const tests = [
     error: [400, 'ExpectedInvoiceIdForNewHodlInvoice'],
   },
   {
-    args: {id: 'z'},
+    args: {id: 'foo'},
     description: 'A hex id of the invoice is required',
     error: [400, 'ExpectedInvoiceIdForNewHodlInvoice'],
   },
   {
-    args: {id: '00'},
+    args: {id},
     description: 'An authenticated lnd is required',
     error: [400, 'ExpectedInvoicesLndToCreateHodlInvoice'],
   },
   {
-    args: {id: '00', lnd: {}},
+    args: {id, lnd: {}},
     description: 'An authenticated lnd with invoices methods is required',
     error: [400, 'ExpectedInvoicesLndToCreateHodlInvoice'],
   },
   {
-    args: {id: '00', lnd: {}},
+    args: {id, lnd: {}},
     description: 'An authenticated lnd with invoices methods is required',
     error: [400, 'ExpectedInvoicesLndToCreateHodlInvoice'],
   },
   {
-    args: {id: '00', lnd: {invoices: {}}, wss: 'foo'},
+    args: {id, lnd: {invoices: {}}, wss: 'foo'},
     description: 'Wss argument must be an array',
     error: [400, 'ExpectedWssArrayForCreateHodlInvoice'],
   },
   {
-    args: {id: '00', lnd: {invoices: {}}, wss: []},
+    args: {id, lnd: {invoices: {}}, wss: []},
     description: 'Wss argument means log must also be specified',
     error: [400, 'ExpectedLogFunctionForCreateHodlInvoice'],
   },
   {
-    args: {
-      id: '00',
-      lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk('err')}},
-    },
+    args: {id, lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk('err')}}},
     description: 'Invoice add hodl invoice error returned',
     error: [503, 'UnexpectedAddHodlInvoiceError', {err: 'err'}],
   },
   {
-    args: {id: '00', lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk()}}},
+    args: {id, lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk()}}},
     description: 'Invoice add hodl invoice returns no result',
     error: [503, 'ExpectedResponseWhenAddingHodlInvoice'],
   },
   {
-    args: {id: '00', lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk()}}},
+    args: {id, lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk()}}},
     description: 'Invoice add hodl invoice returns no result',
     error: [503, 'ExpectedResponseWhenAddingHodlInvoice'],
   },
   {
     args: {
-      id: '00',
+      id,
       is_fallback_included: true,
       lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk()}},
     },
@@ -67,7 +66,7 @@ const tests = [
   },
   {
     args: {
-      id: '00',
+      id,
       is_fallback_included: true,
       is_fallback_nested: true,
       lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk()}},
@@ -76,16 +75,13 @@ const tests = [
     error: [400, 'ExpectedLndForAddressCreation'],
   },
   {
-    args: {
-      id: '00',
-      lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk(null, {})}},
-    },
+    args: {id, lnd: {invoices: {addHoldInvoice: ({}, cbk) => cbk(null, {})}}},
     description: 'Invoice add hodl invoice returns no payment request',
     error: [503, 'ExpectedPaymentRequestForCreatedInvoice'],
   },
   {
     args: {
-      id: '00',
+      id,
       lnd: {
         invoices: {
           addHoldInvoice: ({}, cbk) => cbk(null, {payment_request: 'req'}),
@@ -96,16 +92,16 @@ const tests = [
     expected: {
       chain_address: undefined,
       description: undefined,
-      id: '00',
+      id: '0000000000000000000000000000000000000000000000000000000000000000',
       request: 'req',
       tokens: 0,
     },
   },
   {
     args: {
+      id,
       cltv_delta: 1,
       expires_at: new Date().toISOString(),
-      id: '00',
       is_fallback_included: true,
       lnd: {
         default: {
@@ -122,7 +118,7 @@ const tests = [
     expected: {
       chain_address: 'address',
       description: undefined,
-      id: '00',
+      id: '0000000000000000000000000000000000000000000000000000000000000000',
       request: 'req',
       tokens: 0,
     },

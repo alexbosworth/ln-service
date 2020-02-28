@@ -1,7 +1,6 @@
 const asyncAuto = require('async/auto');
 const {featureFlagDetails} = require('bolt09');
 const {isFinite} = require('lodash');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {parsePaymentRequest} = require('./../bolt11');
@@ -13,6 +12,7 @@ const decBase = 10;
 const defaultExpireMs = 1000 * 60 * 60;
 const defaultMtokens = '0';
 const {isArray} = Array;
+const isHash = n => /^[0-9A-F]{64}$/i.test(n);
 const msPerSec = 1e3;
 const {now} = Date;
 
@@ -96,7 +96,7 @@ module.exports = ({lnd, request}, cbk) => {
             return cbk([503, 'ExpectedPaymentReqExpirationInDecodedPayReq']);
           }
 
-          if (!res.payment_hash || !isHex(res.payment_hash)) {
+          if (!res.payment_hash || !isHash(res.payment_hash)) {
             return cbk([503, 'ExpectedPaymentHashFromDecodePayReqResponse']);
           }
 

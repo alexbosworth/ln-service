@@ -1,5 +1,9 @@
 # Versions
 
+## 47.15.0
+
+- `getClosedChannels`: indicate `is_partner_closed` and `is_partner_initiated`
+
 ## 47.14.7
 
 - `getNode`: Return feature bits as numbers instead of strings

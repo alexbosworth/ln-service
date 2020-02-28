@@ -1,8 +1,9 @@
 const grpc = require('grpc');
 const isBase64 = require('is-base64');
-const isHex = require('is-hex');
 
 const grpcSsl = require('./grpc_ssl');
+
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Credentials for grpc
 
@@ -28,7 +29,7 @@ module.exports = ({cert, macaroon}) => {
 
   let macaroonData;
 
-  if (isHex(macaroon)) {
+  if (!!macaroon && !!macaroon.length && isHex(macaroon)) {
     macaroonData = macaroon;
   } else if (!!macaroon && isBase64(macaroon)) {
     macaroonData = Buffer.from(macaroon, 'base64').toString('hex');

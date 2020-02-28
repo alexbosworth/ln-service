@@ -1,11 +1,11 @@
 const asyncAuto = require('async/auto');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {isLnd} = require('./../grpc');
 const permissions = require('./permissions');
 
 const {keys} = Object;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 const notFound = -1;
 const notSupported = 'unknown service lnrpc.Lightning';
 

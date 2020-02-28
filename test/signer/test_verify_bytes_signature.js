@@ -9,8 +9,8 @@ const makeLnd = (err, res) => {
 const makeArgs = ({override}) => {
   const args = {
     lnd: makeLnd(null, {valid: true}),
-    preimage: '00',
-    public_key: 'b',
+    preimage: Buffer.alloc(32).toString('hex'),
+    public_key: Buffer.alloc(33).toString('hex'),
     signature: '00',
   };
 

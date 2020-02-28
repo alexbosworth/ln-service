@@ -1,6 +1,5 @@
 const asyncAuto = require('async/auto');
 const {chanNumber} = require('bolt07');
-const isHex = require('is-hex');
 const {returnResult} = require('asyncjs-util');
 
 const {blocksBuffer} = require('./constants');
@@ -18,6 +17,7 @@ const {concat} = Buffer;
 const defaultMaxFee = Number.MAX_SAFE_INTEGER;
 const dummyMppType = '5262155';
 const {isArray} = Array;
+const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 const isPathNotFoundCode = code => !!pathNotFoundErrors[code];
 const mtokensByteLength = 8;
 const mtokensFromMpp = n => n.value.slice(64).padStart(16, 0);

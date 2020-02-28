@@ -3,7 +3,7 @@ const {readFileSync} = require('fs');
 const {tmpdir} = require('os');
 
 const removeDir = require('rimraf');
-const uuidv4 = require('uuid/v4');
+const {v4} = require('uuid');
 
 const btcsuiteTypeDaemon = require('./btcsuite_type_daemon');
 
@@ -34,7 +34,7 @@ module.exports = (args, cbk) => {
 
   let daemon;
 
-  const dir = join(tmpdir(), uuidv4());
+  const dir = join(tmpdir(), v4());
 
   switch (args.daemon) {
   case 'btcd':
