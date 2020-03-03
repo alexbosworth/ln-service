@@ -1,6 +1,6 @@
 # Versions
 
-## 47.15.0
+## 47.15.1
 
 - `getClosedChannels`: indicate `is_partner_closed` and `is_partner_initiated`
 
