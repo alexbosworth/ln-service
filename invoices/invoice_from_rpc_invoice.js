@@ -1,6 +1,5 @@
 const {featureFlagDetails} = require('bolt09');
-
-const htlcAsPayment = require('./htlc_as_payment');
+const {htlcAsPayment} = require('lightning/lnd_responses');
 
 const asMtok = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
 const defaultExpirySeconds = 60 * 60;

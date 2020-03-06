@@ -1,5 +1,9 @@
 # Versions
 
+## 47.15.2
+
+Improve support for node version 10
+
 ## 47.15.1
 
 - `getClosedChannels`: indicate `is_partner_closed` and `is_partner_initiated`

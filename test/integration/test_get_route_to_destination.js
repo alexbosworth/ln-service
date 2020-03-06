@@ -105,34 +105,38 @@ test(`Get a route to a destination`, async ({deepIs, end, equal}) => {
     total_mtokens: invDetails.mtokens,
   });
 
-  const [controlPay, remotePay] = await all([
-    payViaRoutes({
+  try {
+    const [controlPay, remotePay] = await all([
+      payViaRoutes({
+        id: invDetails.id,
+        lnd: cluster.control.lnd,
+        routes: [controlToTarget.route],
+      }),
+      payViaRoutes({
+        id: invDetails.id,
+        lnd: cluster.remote.lnd,
+        routes: [remoteToTarget.route],
+      }),
+    ]);
+
+    equal(controlPay.secret, inv.secret, 'Control paid for secret');
+    equal(remotePay.secret, inv.secret, 'Remote paid for secret');
+
+    const {payments} = await getInvoice({
       id: invDetails.id,
-      lnd: cluster.control.lnd,
-      routes: [controlToTarget.route],
-    }),
-    payViaRoutes({
-      id: invDetails.id,
-      lnd: cluster.remote.lnd,
-      routes: [remoteToTarget.route],
-    }),
-  ]);
+      lnd: cluster.target.lnd,
+    });
 
-  equal(controlPay.secret, inv.secret, 'Control paid for secret');
-  equal(remotePay.secret, inv.secret, 'Remote paid for secret');
+    const [payment1, payment2] = payments;
 
-  const {payments} = await getInvoice({
-    id: invDetails.id,
-    lnd: cluster.target.lnd,
-  });
+    const [message1] = payment1.messages;
+    const [message2] = payment2.messages;
 
-  const [payment1, payment2] = payments;
-
-  const [message1] = payment1.messages;
-  const [message2] = payment2.messages;
-
-  deepIs(message1, message, 'Target received message');
-  deepIs(message2, message, 'Target received both messages');
+    deepIs(message1, message, 'Target received message');
+    deepIs(message2, message, 'Target received both messages');
+  } catch (err) {
+    equal(err, null, 'Unexpected error paying invoice');
+  }
 
   await cluster.kill({});
 

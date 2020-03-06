@@ -21,8 +21,8 @@
     "dotenv": "8.2.0",
     "express": "4.17.1",
     "grpc": "1.24.2",
-    "is-base64": "1.0.0",
-    "lightning": "1.2.3",
+    "is-base64": "1.1.0",
+    "lightning": "1.2.4",
     "lodash": "4.17.15",
     "macaroon": "3.0.4",
     "morgan": "1.9.1",
@@ -37,7 +37,7 @@
     "portfinder": "1.0.25",
     "rimraf": "3.0.2",
     "tap": "14.10.6",
-    "uuid": "7.0.1",
+    "uuid": "7.0.2",
     "varuint-bitcoin": "1.1.2"
   },
   "engines": {
@@ -70,5 +70,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "47.15.1"
+  "version": "47.15.2"
 }

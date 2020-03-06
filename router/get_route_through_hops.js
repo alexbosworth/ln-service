@@ -1,8 +1,7 @@
 const asyncAuto = require('async/auto');
 const {chanNumber} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
-
-const {routesFromQueryRoutes} = require('./../routing');
+const {routesFromQueryRoutes} = require('lightning/lnd_responses');
 
 const defaultFinalCltvDelta = 40;
 const defaultMtokens = '1000000';

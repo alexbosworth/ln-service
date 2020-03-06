@@ -1,6 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {returnResult} = require('asyncjs-util');
+const {routesFromQueryRoutes} = require('lightning/lnd_responses');
 
 const {blocksBuffer} = require('./constants');
 const {defaultCltv} = require('./constants');
@@ -9,7 +10,6 @@ const getWalletInfo = require('./../lightning/get_wallet_info');
 const ignoreAsIgnoredEdges = require('./ignore_as_ignored_edges');
 const ignoreAsIgnoredNodes = require('./ignore_as_ignored_nodes');
 const {pathNotFoundErrors} = require('./constants');
-const routesFromQueryRoutes = require('./routes_from_query_routes');
 
 const {isArray} = Array;
 const isPathNotFoundCode = code => !!pathNotFoundErrors[code];

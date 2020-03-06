@@ -4,13 +4,12 @@ const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const {chanFormat} = require('bolt07');
 const {featureFlagDetails} = require('bolt09');
+const {htlcAsPayment} = require('lightning/lnd_responses');
 const {isBoolean} = require('lodash');
 const {isFinite} = require('lodash');
 const {isString} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 const {sortBy} = require('lodash');
-
-const {htlcAsPayment} = require('./../invoices');
 
 const acceptedState = 'ACCEPTED';
 const canceledState = 'CANCELED';

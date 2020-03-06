@@ -1,8 +1,7 @@
 const EventEmitter = require('events');
 
 const {featureFlagDetails} = require('bolt09');
-
-const htlcAsPayment = require('./htlc_as_payment');
+const {htlcAsPayment} = require('lightning/lnd_responses');
 
 const decBase = 10;
 const isHash = n => /^[0-9A-F]{64}$/i.test(n);

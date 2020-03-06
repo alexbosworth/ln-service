@@ -1,9 +1,9 @@
 const asyncAuto = require('async/auto');
 const {chanFormat} = require('bolt07');
 const {featureFlagDetails} = require('bolt09');
+const {htlcAsPayment} = require('lightning/lnd_responses');
 const {returnResult} = require('asyncjs-util');
 
-const {htlcAsPayment} = require('./../invoices');
 const {isLnd} = require('./../grpc');
 
 const dateFrom = epoch => new Date(1e3 * epoch).toISOString();

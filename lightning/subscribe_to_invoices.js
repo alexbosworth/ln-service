@@ -1,8 +1,8 @@
 const EventEmitter = require('events');
 
 const asyncDoUntil = require('async/doUntil');
+const {htlcAsPayment} = require('lightning/lnd_responses');
 
-const {htlcAsPayment} = require('./../invoices');
 const {invoiceFromRpcInvoice} = require('./../invoices');
 const {isLnd} = require('./../grpc');
 
