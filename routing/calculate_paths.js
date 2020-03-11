@@ -45,7 +45,7 @@ const defaultLimit = 20;
   }
 */
 module.exports = ({channels, end, limit, mtokens, start}) => {
-  const candidatePaths = PriorityQueue();
+  const candidatePaths = new PriorityQueue();
   const shortestPaths = [];
   const startingPath = calculateHops({channels, end, mtokens, start});
 

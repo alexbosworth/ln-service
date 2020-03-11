@@ -52,7 +52,7 @@ const queueStart = 1;
 module.exports = ({channels, end, ignore, mtokens, start}) => {
   const distances = {};
   const next = {};
-  const queue = PriorityQueue();
+  const queue = new PriorityQueue();
 
   // Set all distances to Infinity, meaning the nodes cannot be reached
   channels.forEach(({policies}) => {

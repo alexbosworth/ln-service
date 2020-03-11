@@ -1,6 +1,6 @@
 # Versions
 
-## 47.15.2
+## 47.15.3
 
 Improve support for node version 10
 
