@@ -1480,6 +1480,23 @@ message Peer {
     SyncType sync_type = 10 [json_name = "sync_type"];
 
     map<uint32, Feature> features = 11 [json_name = "features"];
+
+    /*
+    The latest errors received from our peer with timestamps, limited to the 10
+    most recent errors. These errors are tracked across peer connections, but
+    are not persisted across lnd restarts. Note that these errors are only
+    stored for peers that we have channels open with, to prevent peers from
+    spamming us with errors at no cost.
+    */
+    repeated TimestampedError errors = 12;
+}
+
+message TimestampedError {
+    // The unix timestamp in seconds when the error occurred.
+    uint64 timestamp = 1;
+
+    // The string representation of the error sent by our peer.
+    string error = 2;
 }
 
 message ListPeersRequest {
