@@ -24,9 +24,6 @@ const unimplementedError = 'unknown service routerrpc.Router';
   @returns via cbk or Promise
   {
     confidence: <Success Confidence Score Out Of One Million Number>
-    [past_failure_at]: <Past Failure At ISO 8601 Date String>
-    [past_failure_tokens]: <Smallest Tokens That Historically Failed Number>
-    [past_success_at]: <Past Success At ISO 8601 Date String>
   }
 */
 module.exports = ({from, lnd, mtokens, to}, cbk) => {
@@ -77,55 +74,12 @@ module.exports = ({from, lnd, mtokens, to}, cbk) => {
             return cbk([503, 'ExpectedHistoryFromQueryProbability']);
           }
 
-          if (res.history.last_attempt_successful === undefined) {
-            return cbk([503, 'ExpectedLastSuccessfulAttemptForProbability']);
-          }
-
-          if (!res.history.min_penalize_amt_sat) {
-            return cbk([503, 'ExpectedMinPenaltyAmountInQueryProbability']);
-          }
-
-          if (!res.history.timestamp) {
-            return cbk([503, 'ExpectedTimestampForProbabilityHistory']);
-          }
-
           if (res.probability === undefined) {
             return cbk([503, 'ExpectedProbabilityInQueryProbabilityResult']);
           }
 
-          const timestamp = Number(res.history.timestamp);
-
-          const date = new Date(timestamp * msPerSec).toISOString();
-
-          // On versions of LND 0.8.2 and below, no success time is returned
-          const isSuccess = res.history.last_attempt_successful;
-
-          // Exit early when the past attempt was successful, no success date
-          if (isSuccess && res.history.success_time === '0') {
-            return cbk(null, {
-              confidence: ceil(res.probability * confidenceDenominator),
-              past_success_at: date,
-            });
-          }
-
-          // Exit early when the past attempt was successful
-          if (res.history.success_time !== '0') {
-            const successEpochTime = Number(res.history.success_time);
-
-            const successAt = new Date(successEpochTime * msPerSec);
-
-            return cbk(null, {
-              confidence: ceil(res.probability * confidenceDenominator),
-              past_success_at: successAt.toISOString(),
-            });
-          }
-
-          const pastFailureTokens = res.history.min_penalize_amt_sat;
-
           return cbk(null, {
             confidence: ceil(res.probability * confidenceDenominator),
-            past_failure_at: date,
-            past_failure_tokens: Number(pastFailureTokens) || undefined,
           });
         });
       }],

@@ -68,19 +68,32 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
 
   const openEvent = channelOpened.pop();
 
+  if (!!openEvent.local_given) {
+    equal(openEvent.local_given, giveTokens, 'Push tokens are reflected');
+    equal(openEvent.remote_given, Number(), 'Push tokens are reflected');
+  }
+
+  if (!!openEvent.remote_given) {
+    equal(openEvent.local_given, Number(), 'Push tokens are reflected');
+    equal(openEvent.remote_given, giveTokens, 'Push tokens are reflected');
+  }
+
   equal(openEvent.capacity, channelCapacityTokens, 'Channel open capacity');
   equal(openEvent.commit_transaction_fee, 9050, 'Channel commit tx fee');
   equal(openEvent.commit_transaction_weight, 724, 'Commit tx weight');
+  equal(openEvent.id, '443x1x0', 'Channel id is returned');
   equal(openEvent.is_active, true, 'Channel is active');
   equal(openEvent.is_closing, false, 'Channel is not inactive');
   equal(openEvent.is_opening, false, 'Channel is no longer opening');
   equal(openEvent.is_partner_initiated, false, 'Channel was locally made');
   equal(openEvent.is_private, false, 'Channel is not private by default');
   equal(openEvent.local_balance, 890950, 'Channel local balance returned');
+  equal(openEvent.local_reserve, 10000, 'Reserve tokens are reflected');
   equal(openEvent.partner_public_key, cluster.target.public_key, 'Peer pk');
   equal(openEvent.pending_payments.length, [].length, 'No pending payments');
   equal(openEvent.received, 0, 'Not received anything yet');
   equal(openEvent.remote_balance, giveTokens, 'Gift tokens is remote balance');
+  equal(openEvent.remote_reserve, 10000, 'Reserve tokens are reflected');
   equal(openEvent.sent, 0, 'No tokens sent yet');
   equal(openEvent.transaction_id, channelOpen.transaction_id, 'Funding tx id');
   equal(openEvent.transaction_vout, channelOpen.transaction_vout, 'Fund vout');

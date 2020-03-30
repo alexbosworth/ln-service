@@ -3,10 +3,10 @@ const EventEmitter = require('events');
 const asyncAuto = require('async/auto');
 const asyncEach = require('async/each');
 const asyncWhilst = require('async/whilst');
+const {subscribeToPayViaRoutes} = require('lightning/lnd_methods');
 
 const {getRoutes} = require('./../lightning');
 const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
-const subscribeToPayViaRoutes = require('./subscribe_to_pay_via_routes');
 
 const defaultPathTimeoutMs = 1000 * 60;
 const defaultProbeTimeoutMs = 1000 * 60 * 60 * 24;

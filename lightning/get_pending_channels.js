@@ -12,6 +12,8 @@ const outpointSeparator = ':';
   Both is_closing and is_opening are returned as part of a channel because
   a channel may be opening, closing, or active.
 
+  `is_partner_initiated` is not accurate on LND 0.9.2 and below.
+
   {
     lnd: <Authenticated LND gRPC API Object>
   }
@@ -23,6 +25,7 @@ const outpointSeparator = ':';
       is_active: <Channel Is Active Bool>
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
+      [is_partner_initiated]: <Channel Partner Initiated Channel Bool>
       local_balance: <Channel Local Tokens Balance Number>
       local_reserve: <Channel Local Reserved Tokens Number>
       partner_public_key: <Channel Peer Public Key String>
@@ -65,10 +68,6 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'UnexpectedPendingChannelsErr', {err}]);
           }
 
-          if (!res || !isArray(res.pending_closing_channels)) {
-            return cbk([503, 'ExpectedPendingClosingChannels']);
-          }
-
           if (!res || !isArray(res.pending_force_closing_channels)) {
             return cbk([503, 'ExpectedPendingForceCloseChannels']);
           }
@@ -82,7 +81,7 @@ module.exports = ({lnd}, cbk) => {
           res.pending_force_closing_channels.forEach(n => {
             return forceClosing[n.channel.channel_point] = {
               close_transaction_id: n.closing_txid,
-              pending_balance: parseInt(n.limbo_balance, decBase),
+              pending_balance: Number(n.limbo_balance),
               pending_payments: n.pending_htlcs.map(htlc => {
                 const [txId, vout] = htlc.outpoint.split(outpointSeparator);
 
@@ -100,13 +99,6 @@ module.exports = ({lnd}, cbk) => {
           });
 
           const coopClosing = {};
-
-          res.pending_closing_channels.forEach(n => {
-            return coopClosing[n.channel.channel_point] = {
-              close_transaction_id: n.closing_txid,
-            };
-          });
-
           const opening = {};
 
           res.pending_open_channels.forEach(n => {
@@ -120,13 +112,12 @@ module.exports = ({lnd}, cbk) => {
 
           res.waiting_close_channels.forEach(n => {
             return waitClosing[n.channel.channel_point] = {
-              pending_balance: parseInt(n.limbo_balance, decBase),
+              pending_balance: Number(n.limbo_balance),
             };
           });
 
           const channels = []
             .concat(res.pending_open_channels)
-            .concat(res.pending_closing_channels)
             .concat(res.pending_force_closing_channels)
             .concat(res.waiting_close_channels)
             .map(n => n.channel);
@@ -181,6 +172,7 @@ module.exports = ({lnd}, cbk) => {
             is_active: false,
             is_closing: !chanOpen,
             is_opening: !!chanOpen,
+            is_partner_initiated: !channel.initiated,
             local_balance: parseInt(channel.local_balance, decBase),
             local_reserve: parseInt(channel.local_chan_reserve_sat, decBase),
             partner_public_key: channel.remote_node_pub,
@@ -188,8 +180,8 @@ module.exports = ({lnd}, cbk) => {
             pending_payments: forced.pending_payments || undefined,
             received: 0,
             recovered_tokens: forced.recovered_tokens || undefined,
-            remote_balance: parseInt(channel.remote_balance, decBase),
-            remote_reserve: parseInt(channel.remote_chan_reserve_sat, decBase),
+            remote_balance: Number(channel.remote_balance),
+            remote_reserve: Number(channel.remote_chan_reserve_sat),
             sent: 0,
             timelock_expiration: forced.timelock_expiration || undefined,
             transaction_fee: !chanOpen ? null : chanOpen.transaction_fee,

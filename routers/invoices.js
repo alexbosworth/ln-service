@@ -1,4 +1,5 @@
-const {createInvoice} = require('./../lightning');
+const {createInvoice} = require('lightning/lnd_methods');
+
 const {getInvoiceDetails} = require('./../service');
 const {getInvoices} = require('./../lightning');
 const returnJson = require('./return_json');

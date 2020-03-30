@@ -1,14 +1,17 @@
 const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
+const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
-const decBase = 10;
+const emptyChannelId = '0';
 const notFound = -1;
 const outpointDivider = ':';
 const satsPerMSat = 1e3;
 const transactionIdHexLength = 32 * 2;
 
 /** Get a rundown on fees for channels
+
+  `id` is not supported on LND 0.9.2 and below
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -19,6 +22,7 @@ const transactionIdHexLength = 32 * 2;
     channels: [{
       base_fee: <Base Flat Fee in Tokens Number>
       fee_rate: <Fee Rate In Tokens Per Million Number>
+      [id]: <Standard Format Channel Id String>
       transaction_id: <Channel Funding Transaction Id Hex String>
       transaction_vout: <Funding Outpoint Output Index Number>
     }]
@@ -54,17 +58,17 @@ module.exports = ({lnd}, cbk) => {
       // Map fee report into fee rates and check response data
       feesForChannels: ['getFeeReport', ({getFeeReport}, cbk) => {
         return asyncMapSeries(getFeeReport, (channel, cbk) => {
-          if (!channel.chan_point) {
+          if (!channel.channel_point) {
             return cbk([503, 'ExpectedChannelPoint']);
           }
 
-          if (channel.chan_point.indexOf(outpointDivider) === notFound) {
+          if (channel.channel_point.indexOf(outpointDivider) === notFound) {
             return cbk([503, 'UnexpectedChannelPointFormat']);
           }
 
-          const [id, index] = channel.chan_point.split(outpointDivider);
+          const [txId, index] = channel.channel_point.split(outpointDivider);
 
-          if (!id || id.length !== transactionIdHexLength) {
+          if (!txId || txId.length !== transactionIdHexLength) {
             return cbk([503, 'ExpectedChannelPointTransactionId']);
           }
 
@@ -80,11 +84,24 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'ExpectedFeeRatePerMillion']);
           }
 
+          const number = channel.chan_id;
+
+          const hasId = number !== emptyChannelId;
+
+          if (hasId) {
+            try {
+              chanFormat({number});
+            } catch (err) {
+              throw new Error('ExpectedNumericFormatChannelIdInFeeReport');
+            }
+          }
+
           return cbk(null, {
-            base_fee: parseInt(channel.base_fee_msat, decBase) / satsPerMSat,
-            fee_rate: parseInt(channel.fee_per_mil, decBase),
-            transaction_id: id,
-            transaction_vout: parseInt(index, decBase),
+            base_fee: Number(channel.base_fee_msat) / satsPerMSat,
+            fee_rate: Number(channel.fee_per_mil),
+            id: hasId ? chanFormat({number}).channel : undefined,
+            transaction_id: txId,
+            transaction_vout: Number(index),
           });
         },
         cbk);

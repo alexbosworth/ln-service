@@ -107,6 +107,10 @@ module.exports = (args, cbk) => {
             return cbk([503, 'UnexpectedErrorPayingViaPaymentDetails', {err}]);
           }
 
+          if (!!res.failed && !!res.failed.is_insufficient_balance) {
+            return cbk([503, 'InsufficientBalanceToAttemptPayment']);
+          }
+
           if (!!res.failed && !!res.failed.is_invalid_payment) {
             const {route} = res.failed;
 

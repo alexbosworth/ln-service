@@ -2,6 +2,7 @@
   "states": {
     "confirmed": "SUCCEEDED",
     "errored": "FAILED_ERROR",
+    "insufficient_balance": "FAILED_INSUFFICIENT_BALANCE",
     "invalid_payment": "FAILED_INCORRECT_PAYMENT_DETAILS",
     "pathfinding_routes_failed": "FAILED_NO_ROUTE",
     "pathfinding_timeout_failed": "FAILED_TIMEOUT",

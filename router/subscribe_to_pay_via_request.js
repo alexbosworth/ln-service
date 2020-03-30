@@ -55,6 +55,7 @@ const subscribeToPay = require('./subscribe_to_pay');
 
   @event 'failed'
   {
+    is_insufficient_balance: <Failed Due To Lack of Balance Bool>
     is_invalid_payment: <Failed Due to Invalid Payment Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
     is_route_not_found: <Failed Due to Route Not Found Bool>

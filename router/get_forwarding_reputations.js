@@ -200,7 +200,7 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
           const confidence = probabilityAsConfidence(pair.success_prob);
 
           // Only after LND 0.8.2 there is history for pairs
-          if (!pair.history || !Number(pair.history.timestamp)) {
+          if (!pair.history || !Number(pair.history.fail_time)) {
             return {
               confidence: confidence || undefined,
               last_failed_forward_at: timeAsDate(pair.last_fail_time || '0'),
@@ -212,7 +212,7 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
 
           const isFail = !pair.history.last_attempt_successful;
 
-          const lastFailAt = !isFail ? null : Number(pair.history.timestamp);
+          const lastFailAt = !isFail ? null : Number(pair.history.fail_time);
 
           return {
             confidence: confidence || undefined,

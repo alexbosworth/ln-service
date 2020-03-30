@@ -94,6 +94,10 @@ module.exports = (args, cbk) => {
             return cbk([503, 'UnexpectedErrorPayingViaPaymentRequest', {err}]);
           }
 
+          if (!!res.failed && !!res.failed.is_insufficient_balance) {
+            return cbk([503, 'InsufficientBalanceToAttemptPayment']);
+          }
+
           if (!!res.failed && !!res.failed.is_invalid_payment) {
             return cbk([503, 'PaymentRejectedByDestination']);
           }

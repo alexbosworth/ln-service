@@ -1,8 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
+const {getPeers} = require('lightning/lnd_methods');
 const {returnResult} = require('asyncjs-util');
-
-const getPeers = require('./get_peers');
 
 const connectedErrMsg = /already.connected.to/;
 const defaultRetries = 10;

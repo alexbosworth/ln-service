@@ -14,6 +14,7 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  // Target starts a channel with control
   const coopChan = await setupChannel({
     lnd,
     generate: cluster.generate,
@@ -21,6 +22,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     to: cluster.target,
   });
 
+  // Target closes the channel
   const niceClose = await closeChannel({
     lnd: cluster.target.lnd,
     public_key: cluster.target.public_key,
@@ -30,10 +32,15 @@ test(`Get pending channels`, async ({end, equal}) => {
     transaction_vout: coopChan.transaction_vout,
   });
 
+  // Control views their pending channels
   const {channel} = await waitForPendingChannel({
     lnd: cluster.control.lnd,
     id: coopChan.transaction_id,
   });
+
+  if (channel.is_partner_initiated !== undefined) {
+    equal(channel.is_partner_initiated, true, 'Channel was partner initiated');
+  }
 
   equal(channel.close_transaction_id, undefined, 'No close tx id');
   equal(channel.is_active, false, 'Ended');

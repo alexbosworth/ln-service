@@ -130,6 +130,7 @@ const tests = [
             address: 'address',
             bytes_recv: '0',
             bytes_sent: '0',
+            features: {},
             inbound: false,
             ping_time: '0',
             pub_key: Buffer.alloc(33).toString('hex'),

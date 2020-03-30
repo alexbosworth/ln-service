@@ -65,12 +65,12 @@ module.exports = (args, cbk) => {
               return cbk([503, 'ExpectedAddressInUtxoResponse']);
             }
 
-            if (!utxo.type) {
+            if (!utxo.address_type) {
               return cbk([503, 'ExpectedAddressTypeInListedUtxo']);
             }
 
             const addressFormat = keys(formats)
-              .find(k => formats[k] === utxo.type);
+              .find(k => formats[k] === utxo.address_type);
 
             if (!addressFormat) {
               return cbk([503, 'UnexpectedAddressTypeInUtxoResponse']);

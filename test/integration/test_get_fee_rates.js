@@ -1,13 +1,9 @@
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const {getFeeRates} = require('./../../');
-const {openChannel} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
-const confirmationCount = 20;
 const defaultBaseFee = 1;
 const defaultFeeRate = 1;
 
@@ -17,24 +13,21 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
+  const channelOpen = await setupChannel({
     lnd,
-    local_tokens: 1e6,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    generate: cluster.generate,
+    to: cluster.target,
   });
-
-  await waitForPendingChannel({lnd, id: channelOpen.transaction_id});
-
-  await cluster.generate({count: confirmationCount});
-
-  await waitForChannel({lnd, id: channelOpen.transaction_id});
 
   const {channels} = await getFeeRates({lnd});
 
   equal(channels.length, [channelOpen].length, 'Channel was opened');
 
-  const channel = channels[0] || {};
+  const [channel] = channels || [{}];
+
+  if (!!channel.id) {
+    equal(channel.id, channelOpen.id, 'Channel id is represented');
+  }
 
   equal(channel.base_fee, defaultFeeRate, 'Channel base fee');
   equal(channel.fee_rate, defaultBaseFee, 'Channel fee rate');

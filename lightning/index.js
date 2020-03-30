@@ -1,7 +1,6 @@
 const addPeer = require('./add_peer');
 const closeChannel = require('./close_channel');
 const createChainAddress = require('./create_chain_address');
-const createInvoice = require('./create_invoice');
 const decodePaymentRequest = require('./decode_payment_request');
 const deletePayments = require('./delete_payments');
 const getBackup = require('./get_backup');
@@ -11,7 +10,6 @@ const getChainFeeEstimate = require('./get_chain_fee_estimate');
 const getChainTransactions = require('./get_chain_transactions');
 const getChannel = require('./get_channel');
 const getChannelBalance = require('./get_channel_balance');
-const getChannels = require('./get_channels');
 const getClosedChannels = require('./get_closed_channels');
 const getFeeRates = require('./get_fee_rates');
 const getForwards = require('./get_forwards');
@@ -21,7 +19,6 @@ const getNetworkGraph = require('./get_network_graph');
 const getNetworkInfo = require('./get_network_info');
 const getNode = require('./get_node');
 const getPayments = require('./get_payments');
-const getPeers = require('./get_peers');
 const getPendingChainBalance = require('./get_pending_chain_balance');
 const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
@@ -53,7 +50,6 @@ module.exports = {
   addPeer,
   closeChannel,
   createChainAddress,
-  createInvoice,
   decodePaymentRequest,
   deletePayments,
   getBackup,
@@ -63,7 +59,6 @@ module.exports = {
   getChainTransactions,
   getChannel,
   getChannelBalance,
-  getChannels,
   getClosedChannels,
   getFeeRates,
   getForwards,
@@ -73,7 +68,6 @@ module.exports = {
   getNetworkInfo,
   getNode,
   getPayments,
-  getPeers,
   getPendingChainBalance,
   getPendingChannels,
   getRoutes,

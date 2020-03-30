@@ -1,5 +1,6 @@
+const {getPeers} = require('lightning/lnd_methods');
+
 const {addPeer} = require('./../lightning');
-const {getPeers} = require('./../lightning');
 const {removePeer} = require('./../lightning');
 const returnJson = require('./return_json');
 const Router = require('./router');

@@ -193,6 +193,7 @@ for `unlocker` methods.
 - [subscribeToChainAddress](#subscribeToChainAddress) - Subscribe to receives
 - [subscribeToChainSpend](#subscribeToChainSpend) - Subscribe to chain spends
 - [subscribeToChannels](#subscribeToChannels) - Subscribe to channel statuses
+- [subscribeToForwards](#subscribeToForwards) - Subscribe to HTLC events
 - [subscribeToGraph](#subscribeToGraph) - Subscribe to network graph updates
 - [subscribeToInvoice](#subscribeToInvoice) - Subscribe to invoice updates
 - [subscribeToInvoices](#subscribeToInvoices) - Subscribe to all invoices
@@ -538,6 +539,8 @@ const {address} = await createChainAddress({format, lnd});
 
 Create hodl invoice. This invoice will not settle automatically when an HTLC
 arrives. It must be settled separately with a preimage.
+
+Warning: make sure to cancel the created invoice before its CLTV timeout.
 
 Requires LND built with `invoicesrpc` tag
 
@@ -1127,12 +1130,15 @@ Get channels
 `cooperative_close_address` is not supported on LND 0.8.2 and below
 `time_offline` and `time_online` will be undefined on 0.8.2 and below
 
+`local_given` and `remote_given` are not supported on LND 0.9.2 and below
+
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
       [is_offline]: <Limit Results To Only Offline Channels Bool> // false
       [is_private]: <Limit Results To Only Private Channels Bool> // false
       [is_public]: <Limit Results To Only Public Channels Bool> // false
       lnd: <Authenticated LND gRPC API Object>
+      [partner_public_key]: <Only Channels With Public Key Hex String>
     }
 
     @returns via cbk or Promise
@@ -1150,6 +1156,7 @@ Get channels
         is_private: <Channel Is Private Bool>
         [is_static_remote_key]: <Remote Key Is Static Bool>
         local_balance: <Local Balance Tokens Number>
+        [local_given]: <Local Initially Pushed Tokens Number>
         local_reserve: <Local Reserved Tokens Number>
         partner_public_key: <Channel Partner Public Key String>
         pending_payments: [{
@@ -1160,6 +1167,7 @@ Get channels
         }]
         received: <Received Tokens Number>
         remote_balance: <Remote Balance Tokens Number>
+        [remote_given]: <Remote Initially Pushed Tokens Number>
         remote_reserve: <Remote Reserved Tokens Number>
         sent: <Sent Tokens Number>
         [time_offline]: <Monitoring Uptime Channel Down Milliseconds Number>
@@ -1272,6 +1280,8 @@ const {towers} = (await getConnectedWatchtowers({lnd}));
 
 Get a rundown on fees for channels
 
+`id` is not supported on LND 0.9.2 and below
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -1281,6 +1291,7 @@ Get a rundown on fees for channels
       channels: [{
         base_fee: <Base Flat Fee in Tokens Number>
         fee_rate: <Fee Rate In Tokens Per Million Number>
+        [id]: <Standard Format Channel Id String>
         transaction_id: <Channel Funding Transaction Id Hex String>
         transaction_vout: <Funding Outpoint Output Index Number>
       }]
@@ -1311,9 +1322,6 @@ Note: this method is not supported in LND 0.8.2 and below.
     @returns via cbk or Promise
     {
       confidence: <Success Confidence Score Out Of One Million Number>
-      [past_failure_at]: <Past Failure At ISO 8601 Date String>
-      [past_failure_tokens]: <Smallest Tokens That Historically Failed Number>
-      [past_success_at]: <Past Success At ISO 8601 Date String>
     }
 
 Example:
@@ -1692,6 +1700,7 @@ Requires LND compiled with `routerrpc` build tag
     @returns via cbk or Promise
     {
       [failed]: {
+        is_insufficient_balance: <Failed Due To Lack of Balance Bool>
         is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
         is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
         is_route_not_found: <Failed Due to Absence of Path Through Graph Bool>
@@ -1704,7 +1713,9 @@ Requires LND compiled with `routerrpc` build tag
         hops: [{
           channel: <Standard Format Channel Id String>
           channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Routing Fee Tokens Number>
           fee_mtokens: <Fee Millitokens String>
+          forward: <Forwarded Tokens Number>
           forward_mtokens: <Forward Millitokens String>
           public_key: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
@@ -1851,6 +1862,8 @@ Get pending channels.
 Both `is_closing` and `is_opening` are returned as part of a channel because a
 channel may be opening, closing, or active.
 
+`is_partner_initiated` is not accurate on LND 0.9.2 and below.
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -1862,6 +1875,7 @@ channel may be opening, closing, or active.
         is_active: <Channel Is Active Bool>
         is_closing: <Channel Is Closing Bool>
         is_opening: <Channel Is Opening Bool>
+        [is_partner_initiated]: <Channel Partner Initiated Channel Bool>
         local_balance: <Channel Local Tokens Balance Number>
         local_reserve: <Channel Local Reserved Tokens Number>
         partner_public_key: <Channel Peer Public Key String>
@@ -3350,6 +3364,8 @@ Subscribe to channel updates
 
 LND 0.9.0 and below do not emit `channel_opening` events.
 
+`local_given` and `remote_given` are not supported on LND 0.9.2 and below
+
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -3424,6 +3440,62 @@ const {once} = require('events');
 const {subscribeToChannels} = require('ln-service');
 const sub = subscribeToChannels({lnd});
 const [openedChannel] = await once(sub, 'channel_opened');
+```
+
+### subscribeToForwards
+
+Subscribe to HTLC events
+
+Requires LND built with `routerrpc` build tag
+
+This method is not supported on LND 0.9.2 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    <Subscription EventEmitter Object>
+
+    @event 'error'
+    <Error Object>
+
+    @event 'forward'
+    {
+      at: <Forward Update At ISO 8601 Date String>
+      [external_failure]: <Public Failure Reason String>
+      [in_channel]: <Inbound Standard Format Channel Id String>
+      [in_payment]: <Inbound Channel Payment Id Number>
+      [internal_failure]: <Private Failure Reason String>
+      is_confirmed: <Forward Is Confirmed Bool>
+      is_failed: <Forward Is Failed Bool>
+      is_receive: <Is Receive Bool>
+      is_send: <Is Send Bool>
+      [mtokens]: <Sending Millitokens Number>
+      [out_channel]: <Outgoing Standard Format Channel Id String>
+      [out_payment]: <Outgoing Channel Payment Id Number>
+      [timeout]: <Forward Timeout at Height Number>
+      [tokens]: <Sending Tokens Number>
+    }
+
+Example:
+
+```node
+const {subscribeToForwards} = require('ln-service');
+const sub = subscribeToForwards({lnd});
+
+const confirmedForwards = [];
+
+sub.on('forward', forward => {
+  if (!forward.is_confirmed) {
+    return;
+  }
+
+  return confirmedForwards.push(forward);
+});
 ```
 
 ### subscribeToGraph
@@ -3713,7 +3785,9 @@ Requires LND built with `routerrpc` build tag
       hops: [{
         channel: <Standard Format Channel Id String>
         channel_capacity: <Channel Capacity Tokens Number>
+        fee: <Routing Fee Tokens Number>
         fee_mtokens: <Fee Millitokens String>
+        forward: <Forwarded Tokens Number>
         forward_mtokens: <Forward Millitokens String>
         public_key: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
@@ -3729,6 +3803,7 @@ Requires LND built with `routerrpc` build tag
 
     @event 'failed'
     {
+      is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
       is_route_not_found: <Failed Due to Absence of Path Through Graph Bool>
@@ -3809,6 +3884,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
     @event 'failed'
     {
+      is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
       is_route_not_found: <Failed Due to Route Not Found Bool>
@@ -3900,6 +3976,7 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
     @event 'failed'
     {
+      is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
       is_route_not_found: <Failed Due to Route Not Found Bool>

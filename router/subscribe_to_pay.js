@@ -96,6 +96,7 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest();
 
   @event 'failed'
   {
+    is_insufficient_balance: <Failed Due To Lack of Balance Bool>
     is_invalid_payment: <Failed Due to Invalid Payment Bool>
     is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
     is_route_not_found: <Failed Due to Route Not Found Bool>
@@ -228,8 +229,8 @@ module.exports = args => {
       amt_msat: amounts.mtokens,
       cltv_limit: !!args.max_timeout_height ? maxCltvDelta : undefined,
       dest: !args.destination ? undefined : hexToBuf(args.destination),
+      dest_custom_records: !(args.messages || []).length ? undefined : destTlv,
       dest_features: features,
-      dest_tlv: !!(args.messages || []).length ? destTlv : undefined,
       fee_limit_msat: amounts.max_fee_mtokens,
       fee_limit_sat: amounts.max_fee,
       final_cltv_delta: !args.request ? finalCltv : undefined,
@@ -266,10 +267,12 @@ module.exports = args => {
 
       case states.errored:
       case states.invalid_payment:
+      case states.insufficient_balance:
       case states.pathfinding_routes_failed:
       case states.pathfinding_timeout_failed:
         return emitter.emit('failed', ({
           is_invalid_payment: data.state === states.invalid_payment,
+          is_insufficient_balance: data.state === states.insufficient_balance,
           is_pathfinding_timeout: data.state === states.pathfinding_timeout,
           is_route_not_found: data.state === states.pathfinding_routes_failed,
           route: !data.route ? undefined : {

@@ -2,10 +2,10 @@ const EventEmitter = require('events');
 
 const asyncAuto = require('async/auto');
 const asyncWhilst = require('async/whilst');
+const {subscribeToPayViaRoutes} = require('lightning/lnd_methods');
 
 const {getRouteToDestination} = require('./../routing');
 const {getWalletInfo} = require('./../lightning');
-const {subscribeToPayViaRoutes} = require('./../router');
 
 const defaultPathTimeoutMs = 1000 * 60;
 const defaultProbeTimeoutMs = 1000 * 60 * 60 * 24;

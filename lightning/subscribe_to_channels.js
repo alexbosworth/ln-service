@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 
 const {chanFormat} = require('bolt07');
+const {rpcChannelAsChannel} = require('lightning/lnd_responses');
 
 const getNode = require('./get_node');
 const updateTypes = require('./conf/channel_update_types');
@@ -13,6 +14,8 @@ const outpointSeparator = ':';
 /** Subscribe to channel updates
 
   LND 0.9.0 and below do not emit `channel_opening` events.
+
+  `local_given` and `remote_given` are not supported on LND 0.9.2 and below
 
   {
     lnd: <Authenticated LND gRPC API Object>
@@ -54,12 +57,17 @@ const outpointSeparator = ':';
     capacity: <Channel Token Capacity Number>
     commit_transaction_fee: <Commit Transaction Fee Number>
     commit_transaction_weight: <Commit Transaction Weight Number>
+    [cooperative_close_address]: <Coop Close Restricted to Address String>
+    id: <Standard Format Channel Id String>
     is_active: <Channel Active Bool>
     is_closing: <Channel Is Closing Bool>
     is_opening: <Channel Is Opening Bool>
     is_partner_initiated: <Channel Partner Opened Channel Bool>
     is_private: <Channel Is Private Bool>
+    [is_static_remote_key]: <Remote Key Is Static Bool>
     local_balance: <Local Balance Tokens Number>
+    [local_given]: <Local Initially Pushed Tokens Number>
+    local_reserve: <Local Reserved Tokens Number>
     partner_public_key: <Channel Partner Public Key String>
     pending_payments: [{
       id: <Payment Preimage Hash Hex String>
@@ -69,6 +77,8 @@ const outpointSeparator = ':';
     }]
     received: <Received Tokens Number>
     remote_balance: <Remote Balance Tokens Number>
+    [remote_given]: <Remote Initially Pushed Tokens Number>
+    remote_reserve: <Remote Reserved Tokens Number>
     sent: <Sent Tokens Number>
     transaction_id: <Blockchain Transaction Id String>
     transaction_vout: <Blockchain Transaction Vout Number>
@@ -274,30 +284,7 @@ module.exports = ({lnd}) => {
 
       const [transactionId, vout] = channel.channel_point.split(':');
 
-      eventEmitter.emit('channel_opened', {
-        capacity: parseInt(channel.capacity, decBase),
-        commit_transaction_fee: parseInt(channel.commit_fee, decBase),
-        commit_transaction_weight: parseInt(channel.commit_weight, decBase),
-        is_active: channel.active,
-        is_closing: false,
-        is_opening: false,
-        is_partner_initiated: !channel.initiator,
-        is_private: channel.private,
-        local_balance: parseInt(channel.local_balance, decBase),
-        partner_public_key: channel.remote_pubkey,
-        pending_payments: channel.pending_htlcs.map(n => ({
-          id: n.hash_lock.toString('hex'),
-          is_outgoing: !n.incoming,
-          timeout: n.expiration_height,
-          tokens: parseInt(n.amount, decBase),
-        })),
-        received: parseInt(channel.total_satoshis_received, decBase),
-        remote_balance: parseInt(channel.remote_balance, decBase),
-        sent: parseInt(channel.total_satoshis_sent, decBase),
-        transaction_id: transactionId,
-        transaction_vout: parseInt(vout, decBase),
-        unsettled_balance: parseInt(channel.unsettled_balance, decBase),
-      });
+      eventEmitter.emit('channel_opened', rpcChannelAsChannel(channel));
       break;
 
     case updateTypes.channel_opening:

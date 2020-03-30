@@ -1,10 +1,10 @@
 const asyncAuto = require('async/auto');
+const {getChannels} = require('lightning/lnd_methods');
+const {getPeers} = require('lightning/lnd_methods');
 const {groupBy} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 const {uniq} = require('lodash');
 
-const {getChannels} = require('./../');
-const {getPeers} = require('./../');
 const {getPendingChannels} = require('./../');
 
 /** Get all connections, offline and online.

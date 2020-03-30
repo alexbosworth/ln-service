@@ -1,5 +1,22 @@
 # Versions
 
+## 47.16.0
+
+- `getPendingChannels`: show initiator with `is_partner_initiated` attribute
+- `getChannels`: add `partner_public_key` argument to filter channels by pubkey
+- `getChannels`:  show push amounts via `local_given` and `remote_given`
+- `getFeeRates`: add `id` attribute to show the short channel id of channels
+- `getForwardingConfidence`: remove `past_failure_at`, `past_failure_tokens`
+- `getForwardingConfidence`: remove `past_success_at`
+- `getPayment`: add `fee` and `forward` to hops to show rounded up amounts
+- `getPayment`: add `is_insufficient_balance` to payment status
+- `payViaPaymentRequest`: add `is_insufficient_balance` to payment methods
+- `subscribeToForwards`: add method to get HTLC event notification
+- `subscribeToPastPayment`: add `fee`, `forward` in hops for rounded up amounts
+- `subscribeToPastPayment`: add `is_insufficient_balance` to payment status
+- `subscribeToPayViaDetails`: add `is_insufficient_balance` to payment status
+- `subscribeToPayViaRequest`: add `is_insufficient_balance` to payment status
+
 ## 47.15.4
 
 Improve support for node version 10

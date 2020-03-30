@@ -137,7 +137,6 @@ test('Get forwarding confidence', async ({deepIs, end, equal}) => {
     });
 
     equal(successHop.confidence, 950000, 'High confidence in A -> B');
-    equal(!!successHop.past_success_at, true, 'Past success date returned');
 
     const failedHop = await getForwardingConfidence({
       lnd,
@@ -147,8 +146,6 @@ test('Get forwarding confidence', async ({deepIs, end, equal}) => {
     });
 
     equal(failedHop.confidence < 1e3, true, 'Low confidence in B -> C');
-    equal(!!failedHop.past_failure_at, true, 'Past failure date returned');
-    equal(failedHop.past_failure_tokens, 500000, 'Past failed tokens');
   }
 
   await cluster.kill({});
