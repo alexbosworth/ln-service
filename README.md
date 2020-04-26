@@ -1128,7 +1128,7 @@ Example:
 ```node
 const {getChainFeeEstimate} = require('ln-service');
 const sendTo = [{address: 'chainAddressString', tokens: 100000000}];
-const {fee} = await getChainTransactions({lnd, send_to: sendTo});
+const {fee} = await getChainFeeEstimate({lnd, send_to: sendTo});
 ```
 
 ### getChainFeeRate
