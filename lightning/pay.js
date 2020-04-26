@@ -30,8 +30,10 @@ const tokensFromMtok = n => Number(BigInt(n) / BigInt(1e3));
   For paying to private destinations along set paths, a public key in the route
   hops is required to form the route.
 
+  Requires `offchain:write` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [log]: <Log Function> // Required if wss is set
     [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
     [max_timeout_height]: <Max CLTV Timeout Number>

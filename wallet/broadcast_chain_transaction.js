@@ -5,12 +5,18 @@ const {Transaction} = require('bitcoinjs-lib');
 const {isLnd} = require('./../grpc');
 const {isTransaction} = require('./../chain');
 
+const bufFromHex = hex => Buffer.from(hex, 'hex');
+const method = 'publishTransaction';
+const type = 'wallet';
+
 /** Publish a raw blockchain transaction to Blockchain network peers
 
-  Requires lnd built with `walletrpc` tag
+  Requires LND built with `walletrpc` tag
+
+  Requires `onchain:write` permission
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     transaction: <Transaction Hex String>
   }
 
@@ -24,7 +30,7 @@ module.exports = ({lnd, transaction}, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!isLnd({lnd, method: 'publishTransaction', type: 'wallet'})) {
+        if (!isLnd({lnd, method, type})) {
           return cbk([400, 'ExpectedWalletRpcLndToSendRawTransaction']);
         }
 
@@ -37,8 +43,8 @@ module.exports = ({lnd, transaction}, cbk) => {
 
       // Publish transaction
       broadcast: ['validate', ({}, cbk) => {
-        return lnd.wallet.publishTransaction({
-          tx_hex: Buffer.from(transaction, 'hex'),
+        return lnd[type][method]({
+          tx_hex: bufFromHex(transaction),
         },
         (err, res) => {
           if (!!err) {

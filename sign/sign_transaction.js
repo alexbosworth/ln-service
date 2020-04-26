@@ -9,7 +9,9 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
 /** Sign transaction
 
-  Requires LND built with `signerrpc` build tag
+  Requires LND built with `signrpc` build tag
+
+  Requires `signer:generate` permission
 
   {
     inputs: [{
@@ -21,7 +23,7 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
       vin: <Input Index To Sign Number>
       witness_script: <Witness Script Hex String>
     }]
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     transaction: <Unsigned Transaction Hex String>
   }
 

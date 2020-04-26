@@ -1,16 +1,16 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
+const {getChannel} = require('lightning/lnd_methods');
 const {returnResult} = require('asyncjs-util');
-const {sortBy} = require('lodash');
 
-const getChannel = require('./get_channel');
 const {getIgnoredEdges} = require('./../routing');
 const getWalletInfo = require('./get_wallet_info');
 const {ignoreAsIgnoredEdges} = require('./../routing');
 const {queryRoutes} = require('./../routing');
 const {routeFromChannels} = require('./../routing');
 const {safeTokens} = require('./../bolt00');
+const {sortBy} = require('./../arrays');
 
 const defaultFinalCltvDelta = 40;
 const defaultTokens = 0;
@@ -27,6 +27,8 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
   `is_adjusted_for_past_failures` will turn on past-fail adjusted pathfinding
 
   Setting both `start` and `outgoing_channel` is not supported
+
+  Requires `info:read` permission
 
   `confidence` is not supported in LND 0.7.1
   `max_timeout_height` is not supported in LND 0.7.1
@@ -46,7 +48,7 @@ const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1000)).toString();
     }]
     [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
     [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [max_timeout_height]: <Max CLTV Timeout Number>
     [outgoing_channel]: <Outgoing Channel Id String>
@@ -377,7 +379,9 @@ module.exports = (args, cbk) => {
           return true;
         });
 
-        return cbk(null, {routes: sortBy(routes, 'fee')});
+        const {sorted} = sortBy({array: routes, attribute: 'fee'});
+
+        return cbk(null, {routes: sorted});
       }],
     },
     returnResult({reject, resolve, of: 'assembledRoutes'}, cbk));

@@ -7,12 +7,14 @@ const {isArray} = Array;
 
 /** Get a list of connected watchtowers and watchtower info
 
-  Requires LND built with wtclientrpc build tag
+  Requires LND built with `wtclientrpc` build tag
+
+  Requires `offchain:read` permission
 
   Includes previously connected watchtowers
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

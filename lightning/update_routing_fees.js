@@ -10,6 +10,8 @@ const tokPerMtok = 1e3;
 
 /** Update routing fees on a single channel or on all channels
 
+  Requires `offchain:write` permission
+
   Updating the maximum HTLC size is not supported on LND 0.7.1 and below
   Updating the minimum HTLC size is not supported on LND 0.8.2 and below
 

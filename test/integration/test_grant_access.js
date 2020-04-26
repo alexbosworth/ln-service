@@ -13,7 +13,7 @@ const pkHashByteLength = 20;
 const regtestBech32AddressHrp = 'bcrt';
 
 // Granting access should result in access granted
-test(`Get access credentials`, async ({end, equal, rejects}) => {
+test(`Get access credentials`, async ({deepIs, end, equal, rejects}) => {
   const spawned = await spawnLnd({});
 
   const {lnd, kill} = spawned;
@@ -36,7 +36,12 @@ test(`Get access credentials`, async ({end, equal, rejects}) => {
   const makeChainAddresses = await grantAccess({
     lnd,
     is_ok_to_create_chain_addresses: true,
+    permissions: ['address:read'],
   });
+
+  const permissions = ['address:write', 'address:read'];
+
+  deepIs(makeChainAddresses.permissions, permissions, 'Got permissions');
 
   const canPay = authenticatedLndGrpc({
     cert: spawned.lnd_cert,

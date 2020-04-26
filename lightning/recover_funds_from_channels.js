@@ -5,9 +5,11 @@ const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Verify and restore channels from a multi-channel backup
 
+  Requires `offchain:write` permission
+
   {
     backup: <Backup Hex String>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

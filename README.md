@@ -117,6 +117,7 @@ for `unlocker` methods.
 - [calculateHops](#calculateHops) - Pathfind to get payment hops from channels
 - [calculatePaths](#calculatePaths) - Pathfind to find multiple routes to pay
 - [cancelHodlInvoice](#cancelHodlInvoice) - Cancel a held or open invoice
+- [cancelPendingChannel](#cancelPendingChannel) - Cancel a pending open channel
 - [changePassword](#changePassword) - Change the wallet unlock password
 - [closeChannel](#closeChannel) - Terminate an open channel
 - [connectWatchtower](#connectWatchtower) - Connect a watchtower
@@ -132,6 +133,7 @@ for `unlocker` methods.
 - [deletePayments](#deletePayments) - Delete entire history of past payments
 - [diffieHellmanComputeSecret](#diffieHellmanComputeSecret) - Get DH shared key
 - [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
+- [fundPendingChannels](#fundPendingChannels) - Fund pending open channels
 - [getAutopilot](#getAutopilot) - Get autopilot status or node scores
 - [getBackup](#getBackup) - Get a backup of a channel
 - [getBackups](#getBackups) - Get a backup for all channels
@@ -150,6 +152,7 @@ for `unlocker` methods.
 - [getForwards](#getForwards) - Get forwarded routed payments
 - [getInvoice](#getInvoice) - Get a previously created invoice
 - [getInvoices](#getInvoices) - Get all previously created invoice
+- [getNetworkCentrality](#getNetworkCentrality) - Get centrality score for nodes
 - [getNetworkGraph](#getNetworkGraph) - Get the channels and nodes of the graph
 - [getNetworkInfo](#getNetworkInfo) - Get high-level graph info
 - [getNode](#getNode) - Get graph info about a single node and its channels
@@ -166,9 +169,12 @@ for `unlocker` methods.
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
+- [getWalletVersion](#getWalletVersion) - Get the build and version of the LND
 - [grantAccess](#grantAccess) - Grant an access credential macaroon
+- [grpcProxyServer](#grpcProxyServer) - REST proxy server for calling to gRPC
 - [isDestinationPayable](#isDestinationPayable) - Check can pay to destination
 - [openChannel](#openChannel) - Open a new channel
+- [openChannels](#openChannels) - Open channels with external funding
 - [parsePaymentRequest](#parsePaymentRequest) - Parse a BOLT11 Payment Request
 - [pay](#pay) - Send a payment
 - [payViaPaymentDetails](#payViaPaymentDetails) - Pay using decomposed details
@@ -216,20 +222,25 @@ for `unlocker` methods.
 
 ## Additional Libraries
 
-- [bolt03](https://npmjs.com/package/bolt03) - bolt03 tx utilities
-- [bolt07](https://npmjs.com/package/bolt07) - bolt07 channel id utilities
+- [bolt03](https://npmjs.com/package/bolt03) - bolt03 transaction utilities
+- [bolt07](https://npmjs.com/package/bolt07) - bolt07 channel gossip utilities
 - [bolt09](https://npmjs.com/package/bolt09) - bolt09 feature flag utilities
+- [invoices](https://npmjs.com/package/invoices) - bolt11 request utilities
+- [lightning](https://npmjs.com/package/lightning) - general lightning utilities
 - [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
 
 ### addPeer
 
 Add a peer if possible (not self, or already connected)
 
+Requires `peers:write` permission
+
     {
       [is_temporary]: <Add Peer as Temporary Peer Bool> // Default: false
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       public_key: <Public Key Hex String>
       [retry_count]: <Retry Count Number>
+      [retry_delay]: <Delay Retry By Milliseconds Number>
       socket: <Host Network Address And Optional Port String> // ip:port
     }
 
@@ -245,7 +256,9 @@ await addPeer({lnd, socket, public_key: publicKeyHexString});
 
 ### authenticatedLndGrpc
 
-Initiate an gRPC API Methods Object for authenticated methods.
+Initiate a gRPC API Methods Object for authenticated methods
+
+Both the cert and macaroon expect the entire serialized LND generated file
 
     {
       [cert]: <Base64 or Hex Serialized LND TLS Cert>
@@ -259,13 +272,17 @@ Initiate an gRPC API Methods Object for authenticated methods.
     @returns
     {
       lnd: {
-        autopilot: <Autopilot gRPC Methods Object>
-        chain: <ChainNotifier gRPC Methods Object>
-        default: <Default gRPC Methods Object>
-        invoices: <Invoices gRPC Methods Object>
-        router: <Router gRPC Methods Object>
-        signer: <Signer gRPC Methods Object>
-        wallet: <WalletKit gRPC Methods Object>
+        autopilot: <Autopilot API Methods Object>
+        chain: <ChainNotifier API Methods Object>
+        default: <Default API Methods Object>
+        invoices: <Invoices API Methods Object>
+        router: <Router API Methods Object>
+        router_legacy: <Legacy Router API Methods Object>
+        signer: <Signer Methods API Object>
+        tower_client: <Watchtower Client Methods Object>
+        tower_server: <Watchtower Server Methods API Object>
+        wallet: <WalletKit gRPC Methods API Object>
+        version: <Version Methods API Object>
       }
     }
 
@@ -285,10 +302,10 @@ const wallet = await lnService.getWalletInfo({lnd});
 
 Publish a raw blockchain transaction to Blockchain network peers
 
-Requires lnd built with `walletrpc` tag
+Requires LND built with `walletrpc` tag
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       transaction: <Transaction Hex String>
     }
 
@@ -414,14 +431,16 @@ const const {paths} = calculatePaths({channels, end, start, mtokens: '1000'});
 
 Cancel an invoice
 
-Requires lnd built with invoicesrpc
+  This call can cancel both HODL invoices and also void regular invoices
+
+  Requires LND built with `invoicesrpc`
+
+  Requires `invoices:write` permission
 
     {
       id: <Payment Preimage Hash Hex String>
-      lnd: <Authenticated RPC LND gRPC API Object>
+      lnd: <Authenticated RPC LND API Object>
     }
-
-    @returns via cbk or Promise
 
 Example:
 
@@ -431,15 +450,42 @@ const id = paymentRequestPreimageHashHexString;
 const await cancelHodlInvoice({id, lnd});
 ```
 
+### cancelPendingChannel
+
+Cancel an external funding pending channel
+
+PSBT funded channels are not supported in LND 0.9.2 and below
+
+    {
+      id: <Pending Channel Id Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+```node
+const {cancelPendingChannel, openChannels} = require('ln-service');
+
+const channelsToOpen = [{capacity: 1e6, partner_public_key: publicKey}];
+
+const {pending} = await openChannels({lnd, channels: channelsToOpen});
+
+const [id] = pending;
+
+// Cancel the pending channel open request
+await cancelPendingChannel({id, lnd});
+```
+
 ### changePassword
 
-Change password
+Change wallet password
 
-Requires locked LND and unauthenticated LND gRPC connection
+Requires locked LND and unauthenticated LND connection
 
     {
       current_password: <Current Password String>
-      lnd: <Unauthenticated LND gRPC API Object>
+      lnd: <Unauthenticated LND API Object>
       new_password: <New Password String>
     }
 
@@ -460,13 +506,15 @@ Either an id or a transaction id / transaction output index is required
 
 If cooperatively closing, pass a public key and socket to connect
 
+Requires info:read, offchain:write, onchain:write, peers:write permissions
+
 `address` is not supported in LND v0.8.2 and below
 
     {
       [address]: <Request Sending Local Channel Funds To Address String>
       [id]: <Standard Format Channel Id String>
       [is_force_close]: <Is Force Close Bool>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [public_key]: <Peer Public Key String>
       [socket]: <Peer Socket String>
       [target_confirmations]: <Confirmation Target Number>
@@ -492,15 +540,15 @@ const closing = await closeChannel({id, lnd});
 
 Connect to a watchtower
 
-This method requires LND built with wtclientrpc build tag
+This method requires LND built with `wtclientrpc` build tag
+
+Requires `offchain:write` permission
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       public_key: <Watchtower Public Key Hex String>
       socket: <Network Socket Address IP:PORT String>
     }
-
-    @returns via cbk or Promise
 
 Example:
 
@@ -516,15 +564,12 @@ await connectWatchtower({lnd, public_key: tower.public_key, socket: tower.socket
 
 Create a new receive address.
 
+Requires `address:write` permission
+
     {
       format: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
       [is_unused]: <Get As-Yet Unused Address Bool>
-      lnd: <Authenticated LND gRPC API Object>
-    }
-
-    @returns via cbk or Promise
-    {
-      address: <Chain Address String>
+      lnd: <Authenticated LND API Object>
     }
 
 Example:
@@ -537,12 +582,14 @@ const {address} = await createChainAddress({format, lnd});
 
 ### createHodlInvoice
 
-Create hodl invoice. This invoice will not settle automatically when an HTLC
-arrives. It must be settled separately with a preimage.
+Create HODL invoice. This invoice will not settle automatically when an
+HTLC arrives. It must be settled separately with the secret preimage.
 
 Warning: make sure to cancel the created invoice before its CLTV timeout.
 
 Requires LND built with `invoicesrpc` tag
+
+Requires `address:write`, `invoices:write` permission
 
 Setting `mtokens` will not work on LND versions 0.8.2 and below
 
@@ -550,15 +597,13 @@ Setting `mtokens` will not work on LND versions 0.8.2 and below
       [cltv_delta]: <Final CLTV Delta Number>
       [description]: <Invoice Description String>
       [expires_at]: <Expires At ISO 8601 Date String>
-      id: <Payment Hash Hex String>
+      [id]: <Payment Hash Hex String>
       [is_fallback_included]: <Is Fallback Address Included Bool>
       [is_fallback_nested]: <Is Fallback Address Nested Bool>
       [is_including_private_channels]: <Invoice Includes Private Channels Bool>
-      lnd: <Authenticated LND gRPC API Object>
-      [log]: <Log Function> // Required when WSS is passed
+      lnd: <Authenticated LND API Object>
       [mtokens]: <Millitokens String>
       [tokens]: <Tokens Number>
-      [wss]: [<Web Socket Server Object>]
     }
 
     @returns via cbk or Promise
@@ -567,26 +612,49 @@ Setting `mtokens` will not work on LND versions 0.8.2 and below
       created_at: <ISO 8601 Date String>
       description: <Description String>
       id: <Payment Hash Hex String>
+      mtokens: <Millitokens Number>
       request: <BOLT 11 Encoded Payment Request String>
+      [secret]: <Hex Encoded Payment Secret String>
       tokens: <Tokens Number>
     }
 
 Example:
 
 ```node
-// Require the create HODL HTLC method.
-const {createHodlInvoice} = require('ln-service');
+const {createHash, randomBytes} = require('crypto');
+const {createHodlInvoice, settleHodlInvoice} = require('ln-service');
+const {subscribeToInvoice} = require('ln-service');
+
+const randomSecret = () => randomBytes(32);
+const sha256 = buffer => createHash('sha256').update(buffer).digest('hex');
 
 // Choose an r_hash for this invoice, a single sha256, on say randomBytes(32)
-const id = 'preimageSha256HashString';
+const secret = randomSecret();
 
-// Supply an authenticatedLndGrpc object for an lnd built with invoicesrpc
-const invoice = await createHodlInvoice({id, lnd});
+const id = sha256(secret);
+
+// Supply an authenticatedLndGrpc object for an lnd built with invoicesrpc tag
+const {request} = await createHodlInvoice({id, lnd});
+
+// Share the request with the payer and wait for a payment
+const sub = subscribeToInvoice({id, lnd});
+
+sub.on('invoice_updated', async invoice => {
+  // Only actively held invoices can be settled
+  if (!invoice.is_held) {
+    return;
+  }
+
+  // Use the secret to claim the funds
+  await settleHodlInvoice(({lnd, secret: secret.toString('hex')}));
+});
 ```
 
 ### createInvoice
 
 Create a Lightning invoice.
+
+Requires `address:write`, `invoices:write` permission
 
     {
       [cltv_delta]: <CLTV Delta Number>
@@ -595,11 +663,9 @@ Create a Lightning invoice.
       [is_fallback_included]: <Is Fallback Address Included Bool>
       [is_fallback_nested]: <Is Fallback Address Nested Bool>
       [is_including_private_channels]: <Invoice Includes Private Channels Bool>
-      lnd: <Authenticated LND gRPC API Object>
-      [log]: <Log Function> // Required when WSS is passed
-      [secret]: <Payment Secret Hex String>
+      lnd: <Authenticated LND API Object>
+      [secret]: <Payment Preimage Hex String>
       [tokens]: <Tokens Number>
-      [wss]: [<Web Socket Server Object>]
     }
 
     @returns via cbk or Promise
@@ -608,15 +674,18 @@ Create a Lightning invoice.
       created_at: <ISO 8601 Date String>
       description: <Description String>
       id: <Payment Hash Hex String>
+      [mtokens]: <Millitokens String>
       request: <BOLT 11 Encoded Payment Request String>
       secret: <Hex Encoded Payment Secret String>
-      tokens: <Tokens Number>
+      [tokens]: <Tokens Number>
     }
 
 Example:
 
 ```node
 const {createInvoice} = require('ln-service');
+
+// Create a zero value invoice
 const invoice = await createInvoice({lnd});
 ```
 
@@ -624,10 +693,10 @@ const invoice = await createInvoice({lnd});
 
 Create a wallet seed
 
-Requires unlocked lnd and unauthenticated LND gRPC API Object
+Requires unlocked lnd and unauthenticated LND API Object
 
     {
-      lnd: <Unauthenticed LND gRPC API Object>
+      lnd: <Unauthenticated LND API Object>
       [passphrase]: <Seed Passphrase String>
     }
 
@@ -639,8 +708,11 @@ Requires unlocked lnd and unauthenticated LND gRPC API Object
 Example:
 
 ```node
-const {createSeed} = require('ln-service');
+const {createSeed, createWallet} = require('ln-service');
 const {seed} = await createSeed({lnd});
+
+// Use the seed to create a wallet
+await createWallet({lnd, seed, password: '123456'});
 ```
 
 ### createSignedRequest
@@ -668,7 +740,7 @@ Example:
 const {createSignedRequest} = require('ln-service');
 
 // Get hrp and signature from createUnsignedRequest
-// Get signature via standard private key signing, or signBytes
+// Get signature via standard private key signing, or LND signBytes
 const {request} = createSignedRequest({
   destination: nodePublicKey,
   hrp: amountAndNetworkHrp,
@@ -731,10 +803,10 @@ const unsignedComponents = createUnsignedRequest({
 
 Create a wallet
 
-Requires unlocked lnd and unauthenticated LND gRPC API Object
+Requires unlocked lnd and unauthenticated LND API Object
 
     {
-      lnd: <Unauthenticated LND gRPC API Object>
+      lnd: <Unauthenticated LND API Object>
       [passphrase]: <AEZSeed Encryption Passphrase String>
       password: <Wallet Password String>
       seed: <Seed Mnemonic String>
@@ -754,10 +826,12 @@ await createWallet({lnd, seed, password: 'password'});
 
 Get decoded payment request
 
+Requires `offchain:read` permission
+
 LND 0.8.2 and previous versions do not return `features`, `payment`
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       request: <BOLT 11 Payment Request String>
     }
 
@@ -801,10 +875,12 @@ const details = await decodePaymentRequest({lnd, request});
 
 Delete all forwarding reputations
 
+Requires `offchain:write` permission
+
 Requires LND built with `routerrpc` build tag
 
     {
-      lnd: <Authenticated gRPC LND API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -822,8 +898,10 @@ await deleteForwardingReputations({});
 
 Delete all records of payments
 
+Requires `offchain:write` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -845,12 +923,14 @@ Key family and key index default to 6 and 0, which is the node identity key
 
 Requires LND built with `signerrpc` build tag
 
+Requires `signer:generate` permission
+
 This method is not supported in LND v0.8.2 and below
 
     {
       [key_family]: <Key Family Number>
       [key_index]: <Key Index Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       partner_public_key: <Public Key Hex String>
     }
 
@@ -863,10 +943,12 @@ This method is not supported in LND v0.8.2 and below
 
 Disconnect a watchtower
 
-Requires LND built with wtclientrpc build tag
+Requires LND built with `wtclientrpc` build tag
+
+Requires `offchain:write` permission
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       public_key: <Watchtower Public Key Hex String>
     }
 
@@ -880,6 +962,33 @@ const [tower] = (await getConnectedWatchtowers({lnd})).towers;
 await disconnectWatchtower({lnd, public_key: tower.public_key});
 ```
 
+### fundPendingChannels
+
+Fund pending channels
+
+Requires `offchain:write`, `onchain:write` permissions
+
+    {
+      channels: [<Pending Channel Id Hex String>]
+      funding: <Signed Funding Transaction PSBT Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+```node
+const {fundPendingChannels, openChannels} = require('ln-service');
+
+const channelsToOpen = [{capacity: 1e6, partner_public_key: publicKey}];
+
+const {pending} = await openChannels({lnd, channel: channelsToOpen});
+
+const channels = pending.map(n => n.id);
+
+// Fund the pending open channels request
+await fundPendingChannels({channels, lnd, funding: psbt});
+```
+
 ### getAutopilot
 
 Get Autopilot status
@@ -887,8 +996,10 @@ Get Autopilot status
 Optionally, get the score of nodes as considered by the autopilot.
 Local scores reflect an internal scoring that includes local channel info
 
+Permission `info:read` is required
+
     {
-      lnd: <Authenticated LND gRPC Object>
+      lnd: <Authenticated LND Object>
       [node_scores]: [<Get Score For Public Key Hex String>]
     }
 
@@ -917,8 +1028,10 @@ const isAutopilotEnabled = (await getAutopilot({lnd})).is_enabled;
 
 Get the static channel backup for a channel
 
+Requires `offchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       transaction_id: <Funding Transaction Id Hex String>
       transaction_vout: <Funding Transaction Output Index Number>
     }
@@ -944,8 +1057,10 @@ const {backup} = await getBackup({
 
 Get all channel backups
 
+Requires `offchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -969,8 +1084,10 @@ const {backup} = await getBackups({lnd});
 
 Get balance on the chain.
 
+Requires `onchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -989,8 +1106,10 @@ const chainBalance = (await getChainBalance({lnd})).chain_balance;
 
 Get a chain fee estimate for a prospective chain send
 
+Requires `onchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       send_to: [{
         address: <Address String>
         tokens: <Tokens Number>
@@ -1016,11 +1135,13 @@ const {fee} = await getChainTransactions({lnd, send_to: sendTo});
 
 Get chain fee rate estimate
 
-Requires lnd built with `walletrpc` tag
+Requires LND built with `walletrpc` tag
+
+Requires `onchain:read` permission
 
     {
       [confirmation_target]: <Future Blocks Confirmation Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1039,8 +1160,10 @@ const fee = (await getChainFeeRate({lnd, confirmation_target: 6})).tokens_per_vb
 
 Get chain transactions.
 
+Requires `onchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC Object>
+      lnd: <Authenticated LND Object>
     }
 
     @returns via cbk or Promise
@@ -1068,8 +1191,10 @@ const {transactions} = await getChainTransactions({lnd});
 
 Get balance across channels.
 
+Requires `offchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1089,9 +1214,11 @@ const balanceInChannels = (await getChannelBalance({lnd})).channel_balance;
 
 Get graph information about a channel on the network
 
+Requires `info:read` permission
+
     {
       id: <Standard Format Channel Id String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1124,6 +1251,8 @@ const channelDetails = await getChannel({id, lnd});
 ### getChannels
 
 Get channels
+
+Requires `offchain:read` permission
 
 `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
@@ -1193,6 +1322,8 @@ Get closed out channels
 
 Multiple close type flags are supported.
 
+Requires `offchain:read` permission
+
 `is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
 and below.
 
@@ -1238,12 +1369,14 @@ const breachCount = await getClosedChannels({lnd, is_breach_close: true});
 
 Get a list of connected watchtowers and watchtower info
 
-Requires LND built with wtclientrpc build tag
+Requires LND built with `wtclientrpc` build tag
+
+Requires `offchain:read` permission
 
 Includes previously connected watchtowers
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1279,6 +1412,8 @@ const {towers} = (await getConnectedWatchtowers({lnd}));
 ### getFeeRates
 
 Get a rundown on fees for channels
+
+Requires `offchain:read` permission
 
 `id` is not supported on LND 0.9.2 and below
 
@@ -1342,13 +1477,15 @@ Get the set of forwarding reputations
 
 Requires LND built with `routerrpc` build tag
 
+Requires `offchain:read` permission
+
 Note: In LND v0.7.1 channels reputations are returned.
 Note: In LND v0.8.0 peers reputations are returned.
 Note: after LND v0.8.2 confidence is not returned per peer.
 
     {
       [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [tokens]: <Reputation Against Forwarding Tokens Number>
     }
 
@@ -1387,13 +1524,15 @@ When using an "after" date a "before" date is required.
 
 If a next token is returned, pass it to get additional page of results.
 
+Requires `offchain:read` permission
+
 `mtokens` is not supported on LND v0.8.2 or lower
 
     {
       [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
       [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>
       [limit]: <Page Result Limit Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [token]: <Opaque Paging Token String>
     }
 
@@ -1425,12 +1564,14 @@ Lookup a channel invoice.
 The received value and the invoiced value may differ as invoices may be
 over-paid.
 
+Requires `invoices:read` permission
+
 The `features` array is not populated on LND 0.8.2 and below
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     {
       id: <Payment Hash Id Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1489,12 +1630,14 @@ Get all created invoices.
 
 If a next token is returned, pass it to get another page of invoices.
 
+Requires `invoices:read` permission
+
 The `features` and `messages` arrays are not populated on LND before 0.8.2
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     {
       [limit]: <Page Result Limit Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [token]: <Opaque Paging Token String>
     }
 
@@ -1552,14 +1695,46 @@ const {getInvoices} = require('ln-service');
 const {invoices} = await getInvoices({lnd});
 ```
 
+### getNetworkCentrality
+
+Get the graph centrality scores of the nodes on the network
+
+Scores are from 0 to 1,000,000.
+
+Requires `info:read` permission
+
+This method is not supported in LND 0.9.2 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      nodes: [{
+        betweenness: <Betweenness Centrality Number>
+        betweenness_normalized: <Normalized Betweenness Centrality Number>
+        public_key: <Node Public Key Hex String>
+      }]
+    }
+
+```node
+const {getNetworkCentrality} = require('ln-service');
+
+// Calculate centrality scores for all graph nodes
+const centrality = await getNetworkCentrality({lnd});
+```
+
 ### getNetworkGraph
 
 Get the network graph
 
+Requires `info:read` permission
+
 LND 0.8.2 and below do not return `features`
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1607,8 +1782,10 @@ const {channels, nodes} = await getNetworkGraph({lnd});
 
 Get network info
 
+Requires `info:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1634,11 +1811,13 @@ const {networkDetails} = await getNetworkInfo({lnd});
 
 Get information about a node
 
+Requires `info:read` permission
+
 LND 0.8.2 and below do not return `features`
 
     {
       [is_omitting_channels]: <Omit Channels from Node Bool>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       public_key: <Node Public Key Hex String>
     }
 
@@ -1692,9 +1871,11 @@ Get the status of a past payment
 
 Requires LND compiled with `routerrpc` build tag
 
+Requires `offchain:read` permission
+
     {
       id: <Payment Preimage Hash Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1742,16 +1923,48 @@ const payment = await getPayment({id, lnd});
 
 Get payments made through channels.
 
+Requires `offchain:read` permission
+
+Payment `limit` is not supported on LND 0.9.2 and below
 Payment `attempts` is not populated on LND 0.8.2 and below
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      [limit]: <Page Result Limit Number>
+      lnd: <Authenticated LND API Object>
+      [token]: <Opaque Paging Token String>
     }
 
     @returns via cbk or Promise
     {
       payments: [{
         attempts: [{
+          [failure]: {
+            code: <Error Type Code Number>
+            [details]: {
+              [channel]: <Standard Format Channel Id String>
+              [height]: <Error Associated Block Height Number>
+              [index]: <Failed Hop Index Number>
+              [mtokens]: <Error Millitokens String>
+              [policy]: {
+                base_fee_mtokens: <Base Fee Millitokens String>
+                cltv_delta: <Locktime Delta Number>
+                fee_rate: <Fees Charged Per Million Tokens Number>
+                [is_disabled]: <Channel is Disabled Bool>
+                max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
+                min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+                updated_at: <Updated At ISO 8601 Date String>
+              }
+              [timeout_height]: <Error CLTV Timeout Height Number>
+              [update]: {
+                chain: <Chain Id Hex String>
+                channel_flags: <Channel Flags Number>
+                extra_opaque_data: <Extra Opaque Data Hex String>
+                message_flags: <Message Flags Number>
+                signature: <Channel Update Signature Hex String>
+              }
+            }
+            message: <Error Message String>
+          }
           is_confirmed: <Payment Attempt Succeeded Bool>
           is_failed: <Payment Attempt Failed Bool>
           is_pending: <Payment Attempt is Waiting For Resolution Bool>
@@ -1770,24 +1983,27 @@ Payment `attempts` is not populated on LND 0.8.2 and below
             }]
             mtokens: <Total Fee-Inclusive Millitokens String>
             [payment]: <Payment Identifier Hex String>
-            [timeout]: <Timeout Block Height Number>
+            timeout: <Timeout Block Height Number>
             tokens: <Total Fee-Inclusive Tokens Number>
-            [total_mtokens]: <Total Payment Millitokens String>
+            [total_mtokens]: <Total Millitokens String>
           }
         }]
         created_at: <Payment at ISO-8601 Date String>
         destination: <Destination Node Public Key Hex String>
-        fee: <Paid Routing Fee Tokens Number>
+        fee: <Paid Routing Fee Rounded Down Tokens Number>
         fee_mtokens: <Paid Routing Fee in Millitokens String>
-        hops: [<Node Hop Public Key Hex String>]
+        hops: [<First Route Hop Public Key Hex String>]
         id: <Payment Preimage Hash String>
         is_confirmed: <Payment is Confirmed Bool>
         is_outgoing: <Transaction Is Outgoing Bool>
         mtokens: <Millitokens Sent to Destination String>
         [request]: <BOLT 11 Payment Request String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Tokens Rounded Up Number>
         secret: <Payment Preimage Hex String>
-        tokens: <Tokens Sent to Destination Number>
+        tokens: <Rounded Down Tokens Sent to Destination Number>
       }]
+      [next]: <Next Opaque Paging Token String>
     }
 
 Example:
@@ -1801,10 +2017,12 @@ const {payments} = await getPayments({lnd});
 
 Get connected peers.
 
+Requires `peers:read` permission
+
 LND 0.8.2 and below do not return `features`
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1837,10 +2055,14 @@ const {peers} = await getPeers({lnd});
 
 ### getPendingChainBalance
 
-Get pending chain balance in unconfirmed outputs and in channel limbo.
+Get pending chain balance in simple unconfirmed outputs.
+
+Pending channels limbo balance is not included
+
+Requires `onchain:read` permission
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1862,10 +2084,12 @@ Get pending channels.
 Both `is_closing` and `is_opening` are returned as part of a channel because a
 channel may be opening, closing, or active.
 
+Requires `offchain:read` permission
+
 `is_partner_initiated` is not accurate on LND 0.9.2 and below.
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1913,10 +2137,12 @@ Get a public key in the seed
 
 Requires LND compiled with `walletrpc` build tag
 
+Requires `address:read` permission
+
     {
       family: <Key Family Number>
       index: <Key Index Number>
-      lnd: <Authenticated gRPC API LND Object>
+      lnd: <Authenticated API LND Object>
     }
 
     @returns via cbk or Promise
@@ -1941,13 +2167,15 @@ Requires LND built with `routerrpc` build tag
 
 If `from` is not set, self is default
 
+Requires `offchain:read` permission
+
     {
       [from]: <Starting Hex Serialized Public Key>
       hops: [{
         forward_mtokens: <Forward Millitokens String>
         public_key: <Forward Edge Public Key Hex String>
       }]
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1971,11 +2199,13 @@ Get an outbound route that goes through specific hops
 
 Requires LND built with `routerrpc` build tag
 
+Requires `offchain:read` permission
+
 This method is not supported by LND v0.7.1
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [mtokens]: <Millitokens to Send String>
     [outgoing_channel]: <Outgoing Channel Id String>
     public_keys: [<Public Key Hex String>]
@@ -2019,6 +2249,8 @@ Get a route to a destination.
 
 Call this iteratively after failed route attempts to get new routes
 
+Requires `info:read` permission
+
 Do not use this method on LND 0.8.2 and below
 
     {
@@ -2034,7 +2266,7 @@ Do not use this method on LND 0.8.2 and below
       }]
       [incoming_peer]: <Incoming Peer Public Key Hex String>
       [is_ignoring_past_failures]: <Ignore Past Failures Bool>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens String>
       [max_timeout_height]: <Max CLTV Timeout Number>
@@ -2107,10 +2339,14 @@ addition to routes.
 
 Setting both `start` and `outgoing_channel` is not supported
 
+Requires `info:read` permission
+
 `confidence` is not supported in LND 0.7.1
 `max_timeout_height` is not supported in LND 0.7.1
 
 Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.2, below
+
+On LND versions higher than 0.8.2, use getRouteToDestination instead
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2123,7 +2359,7 @@ Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.2, below
       }]
       [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
       [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [max_timeout_height]: <Max CLTV Timeout Number>
       [outgoing_channel]: <Outgoing Channel Id String>
@@ -2176,8 +2412,12 @@ const {routes} = await getRoutes({destination, lnd, tokens});
 
 Get watchtower server info.
 
+This method requires LND built with `watchtowerrpc` build tag
+
+Requires `info:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -2200,8 +2440,10 @@ const towerInfo = await getTowerServerInfo({lnd});
 
 Get unspent transaction outputs
 
+Requires `onchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_confirmations]: <Maximum Confirmations Number>
       [min_confirmations]: <Minimum Confirmations Number>
     }
@@ -2229,6 +2471,8 @@ const {utxos} = await getUtxos({lnd});
 ### getWalletInfo
 
 Get overall wallet info.
+
+Requires `info:read` permission
 
 LND 0.8.2 and below do not return `features`
 
@@ -2264,14 +2508,50 @@ const {getWalletInfo} = require('ln-service');
 const walletInfo = await getWalletInfo({lnd});
 ```
 
+### getWalletVersion
+
+Get wallet version
+
+Tags are self-reported by LND and are not guaranteed to be accurate
+
+Requires `info:read` permission
+
+LND 0.9.2 and below do not return `features`
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      build_tags: [<Build Tag String>]
+      commit_hash: <Commit SHA1 160 Bit Hash Hex String>
+      is_autopilotrpc_enabled: <Is Autopilot RPC Enabled Bool>
+      is_chainrpc_enabled: <Is Chain RPC Enabled Bool>
+      is_invoicesrpc_enabled: <Is Invoices RPC Enabled Bool>
+      is_signrpc_enabled: <Is Sign RPC Enabled Bool>
+      is_walletrpc_enabled: <Is Wallet RPC Enabled Bool>
+      is_watchtowerrpc_enabled: <Is Watchtower Server RPC Enabled Bool>
+      is_wtclientrpc_enabled: <Is Watchtower Client RPC Enabled Bool>
+    }
+
+```node
+const {getWalletVersion} = require('ln-service');
+
+// Determine if the invoices rpc build tag was used with the running LND
+const hasInvoicesRpc = (await getWalletVersion({lnd})).is_invoicesrpc_enabled;
+```
+
 ### grantAccess
 
 Give access to the node by making a macaroon access credential
 
-Note: granting access is not supported in LND versions 0.8.2 and below
+Requires `macaroon:generate` permission
 
 Note: access once given cannot be revoked. Access is defined at the LND level
 and version differences in LND can result in expanded access.
+
+Note: granting access is not supported in LND versions 0.8.2 and below
 
     {
       [is_ok_to_adjust_peers]: <Can Add or Remove Peers Bool>
@@ -2292,11 +2572,13 @@ and version differences in LND can result in expanded access.
       [is_ok_to_verify_bytes_signatures]: <Can Verify Signatures of Bytes Bool>
       [is_ok_to_verify_messages]: <Can Verify Messages From Node Keys Bool>
       lnd: <Authenticated LND gRPC API Object>
+      [permissions]: [<Entity:Action String>]
     }
 
     @returns via cbk or Promise
     {
       macaroon: <Base64 Encoded Macaroon String>
+      permissions: [<Entity:Action String>]
     }
 
 ```node
@@ -2312,11 +2594,65 @@ const createInvoices = authenticatedLndGrpc({cert, macaroon, socket});
 const {request} = await createInvoice({lnd: createInvoices.lnd, tokens: 1});
 ```
 
+### grpcProxyServer
+
+Get a gRPC proxy server
+
+    {
+      [bind]: <Bind to Address String>
+      [cert]: <LND Cert Base64 String>
+      log: <Log Function>
+      path: <Router Path String>
+      port: <Listen Port Number>
+      socket: <LND Socket String>
+      stream: <Log Write Stream Object>
+    }
+
+    @returns
+    {
+      app: <Express Application Object>
+      server: <Web Server Object>
+      wss: <WebSocket Server Object>
+    }
+
+```node
+const {getWalletInfo} = require('ln-service');
+const {lndGateway} = require('lightning');
+const request = require('@alexbosworth/request');
+const websocket = require('ws');
+const {Writable} = require('stream');
+
+const log = output => console.log(output);
+const path = '/lnd/';
+const port = 8050;
+
+const {app, server, wss} = grpcProxyServer({
+  log,
+  path,
+  port,
+  cert: base64Encoded64TlsCertFileString,
+  socket: 'localhost:10009',
+  stream: new Writable({write: (chunk, encoding, cbk) => cbk()}),
+});
+
+// Create an authenticated LND for the gRPC REST gateway
+const {lnd} = lndGateway({
+  request,
+  macaroon: base64EncodedMacaroonFileString,
+  url: `http://localhost:${port}${path}`,
+});
+
+// Make a request to a gRPC method through the REST proxy
+const nodeInfo = await getWalletInfo({lnd});
+```
+
 ### isDestinationPayable
 
 Determine if a payment destination is actually payable by probing it
 
 Requires lnd built with routerrpc build tag
+
+Requires `offchain:write` permission
 
 Note: on versions of lnd prior to 0.7.1, is_payable will always be false
 
@@ -2326,7 +2662,7 @@ Note: on versions of lnd prior to 0.7.1, is_payable will always be false
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Pay to Node with Public Key Hex String>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [outgoing_channel]: <Pay Out of Outgoing Standard Format Channel Id String>
@@ -2363,6 +2699,8 @@ The capacity of the channel is set with local_tokens
 
 If give_tokens is set, it is a gift and it does not alter the capacity
 
+Requires `offchain:write`, `onchain:write`, `peers:write` permissions
+
 LND 0.8.2 and below do not support `cooperative_close_address`
 
     {
@@ -2370,7 +2708,7 @@ LND 0.8.2 and below do not support `cooperative_close_address`
       [cooperative_close_address]: <Restrict Cooperative Close To Address String>
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
       [is_private]: <Channel is Private Bool> // Defaults to false
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       local_tokens: <Local Tokens Number>
       [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
       [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
@@ -2392,6 +2730,58 @@ const {openChannel} = require('ln-service');
 const publicKey = 'publicKeyHexString';
 const tokens = 1000000;
 await openChannel({lnd, local_tokens: tokens, partner_public_key: publicKey});
+```
+
+### openChannels
+
+Open one or more channels
+
+Requires `offchain:write`, `onchain:write` permissions
+
+This method requires external funding of channels, which is not supported in
+LND versions 0.9.2 and below.
+
+After getting the addresses and tokens to fund, use fundChannels within ten
+minutes to fund the channels.
+
+If you do not fund the channels, be sure to cancelPendingChannel on each
+channel that was not funded.
+
+    {
+      channels: [{
+        capacity: <Channel Capacity Tokens Number>
+        [cooperative_close_address]: <Restrict Coop Close To Address String>
+        [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
+        [is_private]: <Channel is Private Bool> // Defaults to false
+        [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
+        partner_public_key: <Public Key Hex String>
+        [partner_csv_delay]: <Peer Output CSV Delay Number>
+        [partner_socket]: <Peer Connection Host:Port String>
+      }]
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      pending: [{
+        address: <Address To Send To String>
+        id: <Pending Channel Id Hex String>
+        tokens: <Tokens to Send Number>
+      }]
+    }
+
+Example:
+
+```node
+const {fundPendingChannels, openChannels} = require('ln-service');
+
+const channelsToOpen = [{capacity: 1e6, partner_public_key: publicKey}];
+
+const {pending} = await openChannels({lnd, channels: channelsToOpen});
+
+const channels = pending.map(n => n.id);
+
+await fundPendingChannels({lnd, channels, funding: hexEncodedPsbt});
 ```
 
 ### parsePaymentRequest
@@ -2462,8 +2852,10 @@ Either a payment path or a BOLT 11 payment request is required
 For paying to private destinations along set paths, a public key in the route
 hops is required to form the route.
 
+Requires `offchain:write` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [log]: <Log Function> // Required if wss is set
       [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
       [max_timeout_height]: <Max CLTV Timeout Number>
@@ -2531,6 +2923,8 @@ Requires LND built with `routerrpc` build tag
 
 If no id is specified, a random id will be used.
 
+Requires `offchain:write` permission
+
 Specifying `features` is not supported on LND 0.8.2 and below
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 Specifying `messages` is not supported on LND 0.8.2 and below
@@ -2545,7 +2939,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
       }]
       [id]: <Payment Request Hash Hex String>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
@@ -2568,22 +2962,37 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
     @returns via cbk or Promise
     {
-      fee: <Total Fee Tokens Paid Number>
+      fee: <Total Fee Tokens Paid Rounded Down Number>
       fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
-        channel: <Standard Format Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
-        fee_mtokens: <Fee Millitokens String>
-        forward_mtokens: <Forward Millitokens String>
-        public_key: <Public Key Hex String>
-        timeout: <Timeout Block Height Number>
+        channel: <First Route Standard Format Channel Id String>
+        channel_capacity: <First Route Channel Capacity Tokens Number>
+        fee: <First Route Fee Tokens Rounded Down Number>
+        fee_mtokens: <First Route Fee Millitokens String>
+        forward_mtokens: <First Route Forward Millitokens String>
+        public_key: <First Route Public Key Hex String>
+        timeout: <First Route Timeout Block Height Number>
       }]
-      [id]: <Payment Hash Hex String>
-      mtokens: <Total Millitokens To Pay String>
-      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
-      safe_tokens: <Payment Tokens Rounded Up Number>
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens Paid String>
+      paths: [{
+        fee_mtokens: <Total Fee Millitokens Paid String>
+        hops: [{
+          channel: <First Route Standard Format Channel Id String>
+          channel_capacity: <First Route Channel Capacity Tokens Number>
+          fee: <First Route Fee Tokens Rounded Down Number>
+          fee_mtokens: <First Route Fee Millitokens String>
+          forward_mtokens: <First Route Forward Millitokens String>
+          public_key: <First Route Public Key Hex String>
+          timeout: <First Route Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Paid String>
+      }]
+      safe_fee: <Total Fee Tokens Paid Rounded Up Number>
+      safe_tokens: <Total Tokens Paid, Rounded Up Number>
       secret: <Payment Preimage Hex String>
-      tokens: <Tokens Paid Rounded Down Number>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens Paid Rounded Down Number>
     }
 
 Example:
@@ -2602,6 +3011,8 @@ Pay via payment request
 
 Requires LND built with `routerrpc` build tag
 
+Requires `offchain:write` permission
+
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 Specifying `messages` is not supported on LND 0.8.2 and below
 
@@ -2609,13 +3020,15 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
-      [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_timeout_height]: <Maximum Height of Payment Timeout Number>
       [messages]: [{
         type: <Message Type Number String>
         value: <Message Raw Value Hex Encoded String>
       }]
+      [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       request: <BOLT 11 Payment Request String>
@@ -2624,22 +3037,37 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
     @returns via cbk or Promise
     {
-      fee: <Fee Tokens Number>
-      fee_mtokens: <Total Fee Millitokens To Pay String>
+      fee: <Total Fee Tokens Paid Rounded Down Number>
+      fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
-        channel: <Standard Format Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
-        fee_mtokens: <Fee Millitokens String>
-        forward_mtokens: <Forward Millitokens String>
-        public_key: <Public Key Hex String>
-        timeout: <Timeout Block Height Number>
+        channel: <First Route Standard Format Channel Id String>
+        channel_capacity: <First Route Channel Capacity Tokens Number>
+        fee: <First Route Fee Tokens Rounded Down Number>
+        fee_mtokens: <First Route Fee Millitokens String>
+        forward_mtokens: <First Route Forward Millitokens String>
+        public_key: <First Route Public Key Hex String>
+        timeout: <First Route Timeout Block Height Number>
       }]
-      [id]: <Payment Hash Hex String>
-      mtokens: <Total Millitokens To Pay String>
-      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
-      safe_tokens: <Payment Tokens Rounded Up Number>
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens Paid String>
+      paths: [{
+        fee_mtokens: <Total Fee Millitokens Paid String>
+        hops: [{
+          channel: <First Route Standard Format Channel Id String>
+          channel_capacity: <First Route Channel Capacity Tokens Number>
+          fee: <First Route Fee Tokens Rounded Down Number>
+          fee_mtokens: <First Route Fee Millitokens String>
+          forward_mtokens: <First Route Forward Millitokens String>
+          public_key: <First Route Public Key Hex String>
+          timeout: <First Route Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Paid String>
+      }]
+      safe_fee: <Total Fee Tokens Paid Rounded Up Number>
+      safe_tokens: <Total Tokens Paid, Rounded Up Number>
       secret: <Payment Preimage Hex String>
-      tokens: <Tokens Paid Rounded Down Number>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens Paid Rounded Down Number>
     }
 
 Example:
@@ -2656,13 +3084,15 @@ Make a payment via a specified route
 
 Requires LND built with `routerrpc` build tag
 
-If no id is specified, a random id will be used
+If no id is specified, a random id will be used to send a test payment
+
+Requires `offchain:write`
 
 LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
 
     {
       [id]: <Payment Hash Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       routes: [{
         fee: <Total Fee Tokens To Pay Number>
@@ -2743,9 +3173,11 @@ Probe routes to find a successful route
 It's better to use `probeForRoute` instead of this method, but this method
 does not require the `routerrpc` build tag.
 
+Requires `offchain:write` permission
+
     {
       [limit]: <Simultaneous Attempt Limit Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       routes: [{
         fee: <Total Fee Tokens To Pay Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
@@ -2813,6 +3245,8 @@ Requires LND built with `routerrpc` build tag
 
 `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
+Requires `offchain:write` permission
+
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
     {
@@ -2825,7 +3259,7 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
       }]
       [is_ignoring_past_failures]: <Adjust Probe For Past Routing Failures Bool>
       [is_strict_hints]: <Only Route Through Specified Paths Bool>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
@@ -2878,13 +3312,14 @@ const {route} = await probeForRoute({destination, lnd, tokens});
 
 Verify and restore a channel from a single channel backup
 
+Requires `offchain:write` permission
+
     {
       backup: <Backup Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
-    {}
 
 Example:
 
@@ -2898,9 +3333,11 @@ await recoverFundsFromChannel({backup, lnd});
 
 Verify and restore channels from a multi-channel backup
 
+Requires `offchain:write` permission
+
     {
       backup: <Backup Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -2917,8 +3354,10 @@ await recoverFundsFromChannels({backup, lnd});
 
 Remove a peer if possible
 
+Requires `peers:remove` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       public_key: <Public Key Hex String>
     }
 
@@ -2963,9 +3402,12 @@ const restrictedMacaroon = restrictMacaroon({ip: '127.0.0.1', macaroon}).macaroo
 
 Get a route from a sequence of channels
 
+Either next hop destination in channels or final destination is required
+
     {
       channels: [{
         capacity: <Maximum Tokens Number>
+        [destination]: <Next Node Public Key Hex String>
         id: <Standard Format Channel Id String>
         policies: [{
           base_fee_mtokens: <Base Fee Millitokens String>
@@ -2976,8 +3418,8 @@ Get a route from a sequence of channels
           public_key: <Node Public Key String>
         }]
       }]
-      [cltv_delta]: <Final Cltv Delta Number>
-      destination: <Destination Public Key Hex String>
+      [cltv_delta]: <Final CLTV Delta Number>
+      [destination]: <Destination Public Key Hex String>
       height: <Current Block Height Number>
       mtokens: <Millitokens To Send String>
       [payment]: <Payment Identification Value Hex String>
@@ -3028,11 +3470,13 @@ const {route} = res;
 
 Send tokens in a blockchain transaction.
 
+Requires `onchain:write` permission
+
     {
       address: <Destination Chain Address String>
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
       [is_send_all]: <Send All Funds Bool>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [log]: <Log Function>
       [target_confirmations]: <Confirmations To Wait Number>
       tokens: <Tokens To Send Number>
@@ -3061,9 +3505,11 @@ await sendToChainAddresses({address, lnd, tokens});
 
 Send tokens to multiple destinations in a blockchain transaction.
 
+Requires `onchain:write` permission
+
     {
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [log]: <Log Function>
       send_to: [{
         address: <Address String>
@@ -3097,13 +3543,15 @@ Configure Autopilot settings
 Either `candidate_nodes` or `is_enabled` is required
 Candidate node scores range from 1 to 100,000,000
 
+Permissions `info:read`, `offchain:write`, `onchain:write` are required
+
     {
       [candidate_nodes]: [{
         public_key: <Node Public Key Hex String>
         score: <Score Number>
       }]
       [is_enabled]: <Enable Autopilot Bool>
-      lnd: <Authenticated LND gRPC Object>
+      lnd: <Authenticated LND Object>
     }
 
     @returns via cbk or Promise
@@ -3117,12 +3565,14 @@ await setAutopilot({is_enabled: false, lnd});
 
 ### settleHodlInvoice
 
-Settle hodl invoice
+Settle HODL invoice
 
-requires lnd built with invoicesrpc build tag
+Requires LND built with `invoicesrpc` build tag
+
+Requires `invoices:write` permission
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       secret: <Payment Preimage Hex String>
     }
 
@@ -3133,15 +3583,23 @@ Example:
 ```node
 const {randomBytes} = require('crypto');
 const {settleHodlInvoice} = require('ln-service');
-await settleHodlInvoice({lnd, secret: randomBytes(32).toString('hex')});
+
+const secret = randomBytes(32).toString('hex');
+
+// Use the sha256 hash of that secret as the id of a createHodlInvoice
+
+// Wait for the invoice to be held (subscribeToInvoice) and then settle:
+await settleHodlInvoice({lnd, secret});
 ```
 
 ### signMessage
 
 Sign a message
 
+Requires `message:write` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       message: <Message String>
     }
 
@@ -3163,6 +3621,8 @@ Sign transaction
 
 Requires LND built with `signerrpc` build tag
 
+Requires `signer:generate` permission
+
     {
       inputs: [{
         key_family: <Key Family Number>
@@ -3173,7 +3633,7 @@ Requires LND built with `signerrpc` build tag
         vin: <Input Index To Sign Number>
         witness_script: <Witness Script Hex String>
       }]
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       transaction: <Unsigned Transaction Hex String>
     }
 
@@ -3193,8 +3653,10 @@ const {signatures} = await signTransaction({inputs, lnd, transaction});
 
 Stop the Lightning daemon.
 
+Requires `info:write` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -3210,8 +3672,10 @@ await stopDaemon({lnd});
 
 Subscribe to backup snapshot updates
 
+Requires `offchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -3243,10 +3707,12 @@ sub.on('backup', ({backup}) => currentBackup = backup);
 
 Subscribe to blocks
 
-Requires lnd built with chainrpc build tag
+Requires LND built with `chainrpc` build tag
+
+Requires `onchain:read` permission
 
     {
-      lnd: <Authenticated LND gRPC Object>
+      lnd: <Authenticated LND Object>
     }
 
     @throws
@@ -3274,9 +3740,11 @@ sub.on('block', ({id}) => chainTipBlockHash = id);
 
 Subscribe to confirmation details about transactions sent to an address
 
-Requires lnd built with chainrpc build tag
-
 One and only one chain address or output script is required
+
+Requires LND built with `chainrpc` build tag
+
+Requires `onchain:read` permission
 
     {
       [bech32_address]: <Address String>
@@ -3318,13 +3786,15 @@ sub.on('confirmation', ({block}) => confirmationBlockHash = block);
 
 Subscribe to confirmations of a spend
 
-An LND built with the `chainrpc` build tag is required
-
 A chain address or raw output script is required
+
+Requires LND built with `chainrpc` build tag
+
+Requires `onchain:read` permission
 
     {
       [bech32_address]: <Bech32 P2WPKH or P2WSH Address String>
-      lnd: <Chain RPC LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       min_height: <Minimum Transaction Inclusion Blockchain Height Number>
       [output_script]: <Output Script AKA ScriptPub Hex String>
       [p2pkh_address]: <Pay to Public Key Hash Address String>
@@ -3362,12 +3832,14 @@ sub.on('conirmation', ({height}) => confirmationHeight = height);
 
 Subscribe to channel updates
 
+Requires `offchain:read` permission
+
 LND 0.9.0 and below do not emit `channel_opening` events.
 
 `local_given` and `remote_given` are not supported on LND 0.9.2 and below
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -3446,7 +3918,7 @@ const [openedChannel] = await once(sub, 'channel_opened');
 
 Subscribe to HTLC events
 
-Requires LND built with `routerrpc` build tag
+Requires `offchain:read` permission
 
 This method is not supported on LND 0.9.2 and below
 
@@ -3502,8 +3974,10 @@ sub.on('forward', forward => {
 
 Subscribe to graph updates
 
+Requires `info:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -3562,6 +4036,8 @@ Subscribe to an invoice
 
 LND built with `invoicesrpc` tag is required
 
+Requires `invoices:read` permission
+
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
 The `features` and `messages` arrays are not populated on LND 0.8.2 and below
@@ -3569,7 +4045,7 @@ The `mtokens` value is only supported on LND versions after 0.8.2
 
     {
       id: <Invoice Payment Hash Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -3643,11 +4119,13 @@ const [invoice] = await once(sub, 'invoice_updated');
 
 Subscribe to invoices
 
+Requires `invoices:read` permission
+
 The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 `features`, `messages` arrays aren't populated on LND version 0.8.2 and below
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -3712,13 +4190,15 @@ const [lastUpdatedInvoice] = await once(sub, 'invoice_updated');
 
 Subscribe to inbound channel open requests
 
-Note: LND 0.7.1 and lower do not support interactive channel acceptance.
-
 Note: listening to inbound channel requests will automatically fail all
 channel requests after a short delay.
 
 To return to default behavior of accepting all channel requests, remove all
 listeners to `channel_request`
+
+Requires `offchain:write`, `onchain:write` permissions
+
+Note: LND 0.7.1 and lower do not support interactive channel acceptance.
 
     {
       lnd: <Authenticated LND gRPC API Object>
@@ -3768,9 +4248,11 @@ Subscribe to the status of a past payment
 
 Requires LND built with `routerrpc` build tag
 
+Requires `offchain:read` permission
+
     {
       id: <Payment Request Hash Hex String>
-      lnd: <Authenticated Lnd gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -3827,6 +4309,8 @@ const {secret} = await once(sub, 'confirmed');
 Subscribe to the flight of a payment
 
 Requires LND built with `routerrpc` build tag
+
+Requires `offchain:write` permission
 
 Specifying `features` is not supported on LND 0.8.2 and below
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
@@ -3929,6 +4413,8 @@ Initiate and subscribe to the outcome of a payment request
 
 Requires LND built with `routerrpc` build tag
 
+Requires `offchain:write` permission
+
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
@@ -4019,6 +4505,8 @@ const [paid] = once(sub, 'confirmed');
 Subscribe to the attempts of paying via specified routes
 
 Requires LND built with `routerrpc` build tag
+
+Requires `offchain:write` permission
 
 LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
 
@@ -4200,6 +4688,8 @@ const [success] = await once(sub, 'success');
 
 Subscribe to peer connectivity events
 
+Requires `peers:read` permission
+
 LND 0.8.2 and below do not support peer subscriptions
 
     {
@@ -4240,6 +4730,8 @@ sub.on('connected', peer => lastConnected = peer.public_key);
 Subscribe to a probe attempt
 
 Requires LND built with `routerrpc` build tag
+
+Requires `offchain:write` permission
 
 `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
@@ -4381,6 +4873,8 @@ const [{route}] = await once(sub, 'probe_success');
 Subscribe to a probe attempt
 
 Requires LND built with `routerrpc` build tag
+
+Requires `offchain:write` permission
 
 This method is not supported on LND 0.8.2 or below.
 
@@ -4549,8 +5043,10 @@ const [{route}] = await once(sub, 'probe_success');
 
 Subscribe to transactions
 
+Requires `onchain:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -4737,8 +5233,10 @@ const isValid = (await verifyBackups({backup, channels, lnd})).is_valid;
 
 Verify a message was signed by a known pubkey
 
+Requires `message:read` permission
+
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       message: <Message String>
       signature: <Signature Hex String>
     }
@@ -4757,71 +5255,6 @@ const signature = 'badSignature';
 const signedBy = (await verifyMessage({lnd, message, signature})).signed_by;
 ```
 
-## Using as a Stand-Alone REST API Server
-
-    git clone https://github.com/alexbosworth/ln-service.git
-    cd ln-service
-    npm install
-
-### Configure
-
-In REST mode:
-
-For convenience in REST mode, you can make a `.env` file with `KEY=VALUE` pairs
-instead of setting environment variables.
-
-Environment variables:
-
-    export GRPC_SSL_CIPHER_SUITES="HIGH+ECDSA"
-    export LNSERVICE_CHAIN="bitcoin" // or litecoin
-    export LNSERVICE_LND_DIR="/PATH/TO/.lnd/"
-    export LNSERVICE_NETWORK="testnet" // or mainnet
-    export LNSERVICE_SECRET_KEY="REPLACE!WITH!SECRET!KEY!"
-
-.env file:
-    
-    GRPC_SSL_CIPHER_SUITES='HIGH+ECDSA'
-    LNSERVICE_CHAIN='bitcoin'
-    LNSERVICE_LND_DIR='/PATH/TO/.lnd/'
-    LNSERVICE_NETWORK='testnet'
-    LNSERVICE_SECRET_KEY='REPLACE!WITH!SECRET!KEY!'
-    
-Setting environment variables in Linux:
-
-- Edit `.bashrc` or `~/.profile`
-- `$ source ~/.bashrc` in the window you are running the service from
-
-Setting environment variables in MacOS:
-
-- Edit `~/.bash_profile`
-- `$ . ~/.bash_profile` in the window you are running the service from
-
-Run the service:
-
-    npm start
-
-### REST API
-
-Authentication is with Basic Authentication.  Make sure that the request has an
-authorization header that contains Base64 encoded credentials.
-
-    Authorization: Basic {{TOKEN_GOES_HERE_WITHOUT_BRACES}}
-
-To generate the Base64 encoded credentials in Chrome for example in the console
-you can:
-
-    > let username = 'test';
-    // username can be anything.
-    > let password = '1m5secret4F';
-    // password must match the LNSERVICE_SECRET_KEY in your env variables.
-    > btoa(`${username}:${password}`);
-    // dGVzdDoxbTVlY3JldDRG
-
-And then set the value of the Authorization header to the returned value
-`dGVzdDoxbTVlY3JldDRG`.
-
-Copy the result as the token in the above example.
-
 ## Tests
 
 Unit tests:
@@ -4830,9 +5263,9 @@ Unit tests:
 
 Integration tests:
 
-btcd and lnd are required to execute the integration tests.
+BTCD and LND are required to execute the integration tests.
 
-Lnd must be compiled with the sub-rpc tags to complete all tests.
+LND must be compiled with the relevant sub-rpc tags to complete all tests.
 
     $ npm run all-integration-tests
 

@@ -1,8 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const {getChannel} = require('lightning/lnd_methods');
 const {returnResult} = require('asyncjs-util');
-
-const getChannel = require('./../lightning/get_channel');
 
 const {isArray} = Array;
 const notFoundIndex = -1;

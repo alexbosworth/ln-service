@@ -1,14 +1,15 @@
 const asyncAuto = require('async/auto');
-const {isNumber} = require('lodash');
-const {isString} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 
-const decBase = 10;
+const isNumber = n => !isNaN(n);
+const isString = n => typeof n === 'string';
 
 /** Get network info
 
+  Requires `info:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise
@@ -75,15 +76,15 @@ module.exports = ({lnd}, cbk) => {
           }
 
           const medianChannelSize = networkInfo.median_channel_size_sat;
-          const total = parseInt(networkInfo.total_network_capacity, decBase);
-          const zombieCount = parseInt(networkInfo.num_zombie_chans, decBase);
+          const total = Number(networkInfo.total_network_capacity);
+          const zombieCount = Number(networkInfo.num_zombie_chans);
 
           return cbk(null, {
             average_channel_size: networkInfo.avg_channel_size,
             channel_count: networkInfo.num_channels,
-            max_channel_size: parseInt(networkInfo.max_channel_size, decBase),
-            median_channel_size: parseInt(medianChannelSize, decBase),
-            min_channel_size: parseInt(networkInfo.min_channel_size, decBase),
+            max_channel_size: Number(networkInfo.max_channel_size),
+            median_channel_size: Number(medianChannelSize),
+            min_channel_size: Number(networkInfo.min_channel_size),
             node_count: networkInfo.num_nodes,
             not_recently_updated_policy_count: zombieCount,
             total_capacity: total,

@@ -21,9 +21,11 @@ const tempChanFailType = 'temporary_channel_failure';
   It's better to use `probeForRoute` instead of this method, but this method
   does not require the `routerrpc` build tag.
 
+  Requires `offchain:write` permission
+
   {
     [limit]: <Simultaneous Attempt Limit Number>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     routes: [{
       fee: <Total Fee Tokens To Pay Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>

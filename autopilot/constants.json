@@ -1,8 +1,0 @@
-{
-  "externalType": "externalscore",
-  "maxScore": 100000000,
-  "prefAttachType": "preferential",
-  "unknownHeuristicErrorMessage": "2 UNKNOWN: heuristic with name externalscore not found",
-  "weightedType": "weightedcomb",
-  "wrongLnd": "12 UNIMPLEMENTED: unknown service autopilotrpc.Autopilot"
-}

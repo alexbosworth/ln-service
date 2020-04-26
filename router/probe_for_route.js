@@ -12,6 +12,8 @@ const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
   Requires LND built with `routerrpc` build tag
 
+  Requires `offchain:write` permission
+
   `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
   Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
@@ -26,7 +28,7 @@ const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
     }]
     [is_ignoring_past_failures]: <Adjust Probe For Past Routing Failures Bool>
     [is_strict_hints]: <Only Route Through Specified Paths Bool>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [max_fee]: <Maximum Fee Tokens Number>
     [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
     [max_timeout_height]: <Maximum Height of Payment Timeout Number>

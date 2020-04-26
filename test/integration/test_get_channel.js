@@ -3,9 +3,7 @@ const {test} = require('tap');
 const {createCluster} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
-const {openChannel} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
 const confirmationCount = 20;
 const {ceil} = Math;
@@ -16,26 +14,11 @@ test(`Get channel`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const controlToTarget = await openChannel({
-    lnd,
-    local_tokens: 1e6,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
-  await waitForPendingChannel({lnd, id: controlToTarget.transaction_id});
+  const [channel] = (await getChannels({lnd})).channels;
 
-  await cluster.generate({count: confirmationCount});
-
-  await waitForChannel({lnd, id: controlToTarget.transaction_id});
-
-  const {channels} = await getChannels({lnd});
-
-  const [channel] = channels;
-
-  const {id} = channel;
-
-  const details = await getChannel({id, lnd});
+  const details = await getChannel({lnd, id: channel.id});
 
   equal(details.capacity, channel.capacity, 'Capacity');
   equal(details.policies.length, [cluster.control, cluster.target].length);

@@ -10,20 +10,20 @@ const {ECPair} = require('bitcoinjs-lib');
 const {networks} = require('bitcoinjs-lib');
 const openPortFinder = require('portfinder');
 
-const {authenticatedLndGrpc} = require('./../../grpc');
+const {authenticatedLndGrpc} = require('./../../');
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
 const {getWalletInfo} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
-const {unauthenticatedLndGrpc} = require('./../../grpc');
+const {unauthenticatedLndGrpc} = require('./../../');
 
 const adminMacaroonFileName = 'admin.macaroon';
 const chainPass = 'pass';
 const chainRpcCertName = 'rpc.cert';
 const chainUser = 'user';
 const grpcs = ['', 'Autopilot', 'Chain', 'Invoices', 'Signer', 'Wallet'];
-const interval = retryCount => 10 * Math.pow(2, retryCount);
+const interval = retryCount => 50 * Math.pow(2, retryCount);
 const invoiceMacaroonFileName = 'invoice.macaroon';
 const {isArray} = Array;
 const lightningDaemonExecFileName = 'lnd';
@@ -41,7 +41,7 @@ const retryCreateSeedCount = 5;
 const {round} = Math;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 5500;
-const times = 20;
+const times = 30;
 
 /** Spawn an LND instance
 
@@ -371,7 +371,19 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
     delay: ['lnd', ({lnd}, cbk) => {
       return asyncRetry(
         {interval, times},
-        cbk => getWalletInfo({lnd}, cbk),
+        cbk => {
+          return getWalletInfo({lnd}, (err, res) => {
+            if (!!err) {
+              return cbk(err);
+            }
+
+            if (!res.is_synced_to_chain) {
+              return cbk([503, 'ExpectedNodeSyncToChain']);
+            }
+
+            return cbk(null, res);
+          });
+        },
         cbk
       );
     }],
@@ -384,6 +396,11 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
     const kill = () => {
       res.spawnChainDaemon.daemon.kill();
       res.spawnLightningDaemon.daemon.kill();
+
+      setTimeout(() => {
+        res.spawnLightningDaemon.daemon.kill('SIGKILL');
+      },
+      1000 * 3);
 
       return;
     };

@@ -6,6 +6,7 @@ const connectChainNode = promisify(require('./connect_chain_node'));
 const createCluster = promisify(require('./create_cluster'));
 const delay = promisify(setTimeout);
 const generateBlocks = promisify(require('./generate_blocks'));
+const getRawTransaction = require('./get_raw_transaction');
 const mineTransaction = promisify(require('./mine_transaction'));
 const setupChannel = require('./setup_channel');
 const spawnLnd = promisify(require('./spawn_lnd'));
@@ -22,6 +23,7 @@ module.exports = {
   createCluster,
   delay,
   generateBlocks,
+  getRawTransaction,
   mineTransaction,
   setupChannel,
   spawnLnd,

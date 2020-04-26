@@ -7,9 +7,11 @@ const defaultMinConfirmations = 1;
 
 /** Subscribe to confirmation details about transactions sent to an address
 
-  Requires lnd built with chainrpc build tag
-
   One and only one chain address or output script is required
+
+  Requires LND built with `chainrpc` build tag
+
+  Requires `onchain:read` permission
 
   {
     [bech32_address]: <Address String>

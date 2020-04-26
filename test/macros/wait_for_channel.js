@@ -13,6 +13,7 @@ const times = 20;
   {
     id: <Channel Transaction Id Hex String>
     lnd: <Authenticated LND gRPC API Object>
+    [vout]: <Channel Output Index Number>
   }
 
   @returns via cbk
@@ -42,7 +43,7 @@ const times = 20;
     unsettled_balance: <Unsettled Balance Tokens Number>
   }
 */
-module.exports = ({id, lnd}, cbk) => {
+module.exports = ({id, lnd, vout}, cbk) => {
   if (!id) {
     return cbk([400, 'ExpectedTransactionIdToWaitForChannelOpen']);
   }
@@ -58,7 +59,12 @@ module.exports = ({id, lnd}, cbk) => {
 
       // Channel
       channel: ['getChannels', ({getChannels}, cbk) => {
-        const chan = getChannels.channels.find(n => n.transaction_id === id);
+        const chan = getChannels.channels.find(channel => {
+          const txId = channel.transaction_id;
+          const txVout = channel.transaction_vout;
+
+          return txId === id && txVout === (vout || Number());
+        });
 
         if (!chan) {
           return cbk([503, 'FailedToFindChannelWithTransactionId']);

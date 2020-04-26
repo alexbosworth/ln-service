@@ -1,9 +1,7 @@
 const {chanFormat} = require('bolt07');
-const {isFinite} = require('lodash');
 
 const channelPolicyAsPolicy = require('./channel_policy_as_policy');
 
-const decBase = 10;
 const separatorChar = ':';
 
 /** Channel edge as channel
@@ -89,7 +87,7 @@ module.exports = args => {
     throw new Error('ExpectedTransactionIdForChannelOutpoint');
   }
 
-  if (!isFinite(parseInt(vout, decBase))) {
+  if (!vout) {
     throw new Error('ExpectedTransactionVoutForChannelOutpoint');
   }
 
@@ -106,10 +104,10 @@ module.exports = args => {
 
   return {
     id: chanFormat({number: args.channel_id}).channel,
-    capacity: parseInt(args.capacity, decBase),
+    capacity: Number(args.capacity),
     policies: [node1Policy, node2Policy],
     transaction_id: transactionId,
-    transaction_vout: parseInt(vout, decBase),
+    transaction_vout: Number(vout),
     updated_at: updatedAt,
   };
 };

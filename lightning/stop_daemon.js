@@ -11,8 +11,10 @@ const times = 10;
 
 /** Stop the Lightning daemon.
 
+  Requires `info:write` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

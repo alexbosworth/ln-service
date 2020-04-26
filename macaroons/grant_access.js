@@ -11,10 +11,12 @@ const notSupported = 'unknown service lnrpc.Lightning';
 
 /** Give access to the node by making a macaroon access credential
 
-  Note: granting access is not supported in LND versions 0.8.2 and below
+  Requires `macaroon:generate` permission
 
   Note: access once given cannot be revoked. Access is defined at the LND level
   and version differences in LND can result in expanded access.
+
+  Note: granting access is not supported in LND versions 0.8.2 and below
 
   {
     [is_ok_to_adjust_peers]: <Can Add or Remove Peers Bool>
@@ -35,11 +37,13 @@ const notSupported = 'unknown service lnrpc.Lightning';
     [is_ok_to_verify_bytes_signatures]: <Can Verify Signatures of Bytes Bool>
     [is_ok_to_verify_messages]: <Can Verify Messages From Node Keys Bool>
     lnd: <Authenticated LND gRPC API Object>
+    [permissions]: [<Entity:Action String>]
   }
 
   @returns via cbk or Promise
   {
     macaroon: <Base64 Encoded Macaroon String>
+    permissions: [<Entity:Action String>]
   }
 */
 module.exports = (args, cbk) => {
@@ -60,7 +64,9 @@ module.exports = (args, cbk) => {
 
       // Permissions to grant
       permissions: ['validate', ({}, cbk) => {
-        const access = keys(permissions).filter(n => !!args[permissions[n]]);
+        const access = []
+          .concat(keys(permissions).filter(n => !!args[permissions[n]]))
+          .concat(args.permissions || []);
 
         return cbk(null, access.map(permission => {
           const [entity, action] = permission.split(':');
@@ -90,7 +96,11 @@ module.exports = (args, cbk) => {
 
           const macaroon = Buffer.from(res.macaroon, 'hex').toString('base64');
 
-          return cbk(null, {macaroon});
+          const entityActions = permissions.map(permission => {
+            return `${permission.entity}:${permission.action}`;
+          });
+
+          return cbk(null, {macaroon, permissions: entityActions});
         });
       }],
     },

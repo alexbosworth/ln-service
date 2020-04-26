@@ -5,10 +5,12 @@ const {returnResult} = require('asyncjs-util');
 
   Requires LND compiled with `walletrpc` build tag
 
+  Requires `address:read` permission
+
   {
     family: <Key Family Number>
     index: <Key Index Number>
-    lnd: <Authenticated gRPC API LND Object>
+    lnd: <Authenticated API LND Object>
   }
 
   @returns via cbk or Promise

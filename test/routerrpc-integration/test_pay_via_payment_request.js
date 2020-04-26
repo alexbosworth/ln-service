@@ -1,40 +1,22 @@
-const {randomBytes} = require('crypto');
-
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
-const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
-const {getChannel} = require('./../../');
-const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
-const {getNetworkGraph} = require('./../../');
-const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
-const {openChannel} = require('./../../');
-const {pay} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
-const mtokPadding = '000';
 const tlvType = '67890';
 const tlvValue = '0102';
 const tokens = 100;
-const txIdHexLength = 32 * 2;
 
 // Paying an invoice should settle the invoice
-test(`Pay`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -106,14 +88,18 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
         channel_capacity: 1000000,
         fee: 1,
         fee_mtokens: '1000',
-        forward_mtokens: `${invoice.tokens}${mtokPadding}`,
+        forward: 100,
+        forward_mtokens: invoice.mtokens,
+        public_key: cluster.target.public_key,
       },
       {
         channel: remoteChan.id,
         channel_capacity: 1000000,
         fee: 0,
         fee_mtokens: '0',
+        forward: 100,
         forward_mtokens: '100000',
+        public_key: cluster.remote.public_key,
       },
     ];
 

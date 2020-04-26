@@ -19,6 +19,13 @@ const logFormat = ':method :url :status - :response-time ms - :user-agent';
     socket: <LND Socket String>
     stream: <Log Write Stream Object>
   }
+
+  @returns
+  {
+    app: <Express Application Object>
+    server: <Web Server Object>
+    wss: <WebSocket Server Object>
+  }
 */
 module.exports = ({bind, cert, log, path, port, socket, stream}) => {
   const app = express();

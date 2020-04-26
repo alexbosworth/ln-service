@@ -5,13 +5,15 @@ const scriptFromChainAddress = require('./script_from_chain_address');
 
 /** Subscribe to confirmations of a spend
 
-  An LND built with the `chainrpc` build tag is required
-
   A chain address or raw output script is required
+
+  Requires LND built with `chainrpc` build tag
+
+  Requires `onchain:read` permission
 
   {
     [bech32_address]: <Bech32 P2WPKH or P2WSH Address String>
-    lnd: <Chain RPC LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     min_height: <Minimum Transaction Inclusion Blockchain Height Number>
     [output_script]: <Output Script AKA ScriptPub Hex String>
     [p2pkh_address]: <Pay to Public Key Hash Address String>

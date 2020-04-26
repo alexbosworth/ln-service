@@ -14,14 +14,16 @@ const unimplementedError = 'unknown service signrpc.Signer';
 
   Key family and key index default to 6 and 0, which is the node identity key
 
-  Requires LND built with `signerrpc` build tag
+  Requires LND built with `signrpc` build tag
+
+  Requires `signer:generate` permission
 
   This method is not supported in LND v0.8.2 and below
 
   {
     [key_family]: <Key Family Number>
     [key_index]: <Key Index Number>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     partner_public_key: <Public Key Hex String>
   }
 

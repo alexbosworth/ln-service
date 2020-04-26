@@ -10,8 +10,12 @@ const pubKeyLength = 33;
 
 /** Get watchtower server info.
 
+  This method requires LND built with `watchtowerrpc` build tag
+
+  Requires `info:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

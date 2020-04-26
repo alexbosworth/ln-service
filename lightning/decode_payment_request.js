@@ -1,14 +1,12 @@
 const asyncAuto = require('async/auto');
 const {featureFlagDetails} = require('bolt09');
-const {isFinite} = require('lodash');
+const {parsePaymentRequest} = require('invoices');
 const {returnResult} = require('asyncjs-util');
 
-const {parsePaymentRequest} = require('./../bolt11');
 const {routeFromRouteHint} = require('./../routing');
 const {safeTokens} = require('./../bolt00');
 
 const bufToHex = n => !n.length ? undefined : n.toString('hex');
-const decBase = 10;
 const defaultExpireMs = 1000 * 60 * 60;
 const defaultMtokens = '0';
 const {isArray} = Array;
@@ -18,10 +16,12 @@ const {now} = Date;
 
 /** Get decoded payment request
 
+  Requires `offchain:read` permission
+
   LND 0.8.2 and previous versions do not return `features`, `payment`
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     request: <BOLT 11 Payment Request String>
   }
 
@@ -100,7 +100,7 @@ module.exports = ({lnd, request}, cbk) => {
             return cbk([503, 'ExpectedPaymentHashFromDecodePayReqResponse']);
           }
 
-          if (!isFinite(parseInt(res.num_satoshis, decBase))) {
+          if (!res.num_satoshis) {
             return cbk([503, 'ExpectedNumSatoshis', res]);
           }
 
@@ -121,8 +121,8 @@ module.exports = ({lnd, request}, cbk) => {
             return cbk([503, 'ExpectedPaymentRequestTimestamp', res]);
           }
 
-          const createdAtMs = parseInt(res.timestamp, decBase) * msPerSec;
-          const expiresInMs = parseInt(res.expiry, decBase) * msPerSec;
+          const createdAtMs = Number(res.timestamp) * msPerSec;
+          const expiresInMs = Number(res.expiry) * msPerSec;
 
           const expiryDateMs = createdAtMs + (expiresInMs || defaultExpireMs);
 
@@ -131,7 +131,7 @@ module.exports = ({lnd, request}, cbk) => {
 
           return cbk(null, {
             chain_address: res.fallback_addr || undefined,
-            cltv_delta: parseInt(res.cltv_expiry || 0, decBase) || undefined,
+            cltv_delta: Number(res.cltv_expiry || 0) || undefined,
             created_at: new Date(createdAtMs).toISOString(),
             description: res.description,
             description_hash: res.description_hash || undefined,

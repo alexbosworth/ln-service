@@ -1,5 +1,4 @@
 const {test} = require('tap');
-const {times} = require('lodash');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
@@ -25,8 +24,8 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.control.lnd,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({
@@ -45,8 +44,8 @@ test('Get forwards', async ({deepIs, end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     lnd: cluster.target.lnd,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    partner_public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await waitForPendingChannel({
@@ -63,8 +62,8 @@ test('Get forwards', async ({deepIs, end, equal}) => {
 
   await addPeer({
     lnd: cluster.control.lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await delay(2000);

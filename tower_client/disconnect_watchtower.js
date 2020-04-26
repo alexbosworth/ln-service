@@ -12,10 +12,12 @@ const type = 'tower_client';
 
 /** Disconnect a watchtower
 
-  Requires LND built with wtclientrpc build tag
+  Requires LND built with `wtclientrpc` build tag
+
+  Requires `offchain:write` permission
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     public_key: <Watchtower Public Key Hex String>
   }
 

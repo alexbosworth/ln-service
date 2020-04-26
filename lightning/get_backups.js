@@ -8,8 +8,10 @@ const method = 'exportAllChannelBackups';
 
 /** Get all channel backups
 
+  Requires `offchain:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

@@ -1,18 +1,18 @@
 const EventEmitter = require('events');
 
 const {chanFormat} = require('bolt07');
+const {getNode} = require('lightning/lnd_methods');
 
-const getNode = require('./get_node');
-
-const decBase = 10;
 const emptyTxId = Buffer.alloc(32);
 const {isArray} = Array;
 const msPerSec = 1e3;
 
 /** Subscribe to graph updates
 
+  Requires `info:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @throws
@@ -145,9 +145,9 @@ module.exports = ({lnd}) => {
 
       return eventEmitter.emit('channel_updated', {
         base_fee_mtokens: update.routing_policy.fee_base_msat,
-        capacity: parseInt(update.capacity, decBase) || undefined,
+        capacity: Number(update.capacity) || undefined,
         cltv_delta: update.routing_policy.time_lock_delta,
-        fee_rate: parseInt(update.routing_policy.fee_rate_milli_msat, decBase),
+        fee_rate: Number(update.routing_policy.fee_rate_milli_msat),
         id: chanFormat({number: update.chan_id}).channel,
         is_disabled: update.routing_policy.disabled,
         max_htlc_mtokens: update.routing_policy.max_htlc_msat,
@@ -194,7 +194,7 @@ module.exports = ({lnd}) => {
       }
 
       return eventEmitter.emit('channel_closed', {
-        capacity: parseInt(update.capacity, decBase),
+        capacity: Number(update.capacity),
         close_height: update.closed_height,
         id: chanFormat({number: update.chan_id}).channel,
         transaction_id: transactionId.toString('hex'),

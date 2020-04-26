@@ -42,8 +42,8 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     give_tokens: 1e5,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({
@@ -95,7 +95,6 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     equal(!!invoice.expires_at, true, 'Invoice has expiration date');
     equal(invoice.id, invoiceId, 'Invoice has id');
     equal(invoice.index, [invoice].length, 'Invoice index is returned');
-    equal(invoice.is_outgoing, false, 'Invoice is incoming');
     equal(invoice.secret, secret, 'Invoice secret');
     equal(invoice.tokens, tokens, 'Invoice tokens');
 

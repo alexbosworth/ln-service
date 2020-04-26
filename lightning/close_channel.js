@@ -1,10 +1,8 @@
+const {addPeer} = require('lightning/lnd_methods');
 const asyncAuto = require('async/auto');
 const {chanNumber} = require('bolt07');
-const {isFinite} = require('lodash');
+const {getChannel} = require('lightning/lnd_methods');
 const {returnResult} = require('asyncjs-util');
-
-const addPeer = require('./add_peer');
-const getChannel = require('./get_channel');
 
 /** Close a channel.
 
@@ -12,13 +10,15 @@ const getChannel = require('./get_channel');
 
   If cooperatively closing, pass a public key and socket to connect
 
+  Requires info:read, offchain:write, onchain:write, peers:write permissions
+
   `address` is not supported in LND v0.8.2 and below
 
   {
     [address]: <Request Sending Local Channel Funds To Address String>
     [id]: <Standard Format Channel Id String>
     [is_force_close]: <Is Force Close Bool>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [public_key]: <Peer Public Key String>
     [socket]: <Peer Socket String>
     [target_confirmations]: <Confirmation Target Number>

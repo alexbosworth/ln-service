@@ -1,7 +1,5 @@
 const asyncAuto = require('async/auto');
 const {featureFlagDetails} = require('bolt09');
-const {isBoolean} = require('lodash');
-const {isNumber} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 
 const {chainId} = require('./../bolt02');
@@ -11,10 +9,14 @@ const cannotConnectMessage = 'failed to connect to all addresses';
 const connectFailMessage = '14 UNAVAILABLE: channel is in state TRANSIENT_FAILURE';
 const connectionFailureLndErrorMessage = 'Connect Failed';
 const {isArray} = Array;
+const isBoolean = n => n === false || n === true;
+const isNumber = n => !isNaN(n);
 const lockedLndErrorMessage = 'unknown service lnrpc.Lightning';
 const msPerSec = 1e3;
 
 /** Get overall wallet info.
+
+  Requires `info:read` permission
 
   LND 0.8.2 and below do not return `features`
 

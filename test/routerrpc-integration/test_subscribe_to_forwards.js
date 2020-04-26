@@ -1,6 +1,5 @@
 const asyncRetry = require('async/retry');
 const {test} = require('tap');
-const {times} = require('lodash');
 
 const {addPeer} = require('./../../');
 const {cancelHodlInvoice} = require('./../../');

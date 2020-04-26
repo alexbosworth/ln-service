@@ -8,7 +8,7 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
 /** Sign a sha256 hash of arbitrary bytes
 
-  Requires LND built with `signerrpc` build tag
+  Requires LND built with `signrpc` build tag
 
   This method is not supported in LND v0.8.2 and below
 

@@ -6,13 +6,13 @@ const {isLnd} = require('./../grpc');
 const method = 'changePassword';
 const utf8 = 'utf8';
 
-/** Change password
+/** Change wallet password
 
-  Requires locked LND and unauthenticated LND gRPC connection
+  Requires locked LND and unauthenticated LND connection
 
   {
     current_password: <Current Password String>
-    lnd: <Unauthenticated LND gRPC API Object>
+    lnd: <Unauthenticated LND API Object>
     new_password: <New Password String>
   }
 

@@ -3,22 +3,15 @@ const {test} = require('tap');
 const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
 const cltvDelta = 144;
-const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
 const sweepBlockCount = 40;
 const tokens = 100;
 
@@ -28,41 +21,13 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal, rejects}) => {
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
-    lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({lnd, id: controlToTargetChannel.transaction_id});
-
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  await setupChannel({
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
-
-  await waitForPendingChannel({
-    lnd: cluster.target.lnd,
-    id: targetToRemoteChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    lnd: cluster.target.lnd,
-    id: targetToRemoteChannel.transaction_id,
+    generate: cluster.generate,
+    generator: cluster.target,
+    to: cluster.remote,
   });
 
   const {id, request, secret} = await createInvoice({lnd: cluster.remote.lnd});

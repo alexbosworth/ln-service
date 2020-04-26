@@ -16,6 +16,8 @@ const isPathNotFoundCode = code => !!pathNotFoundErrors[code];
 
 /** Query for routes
 
+  Requires `info:read` permission
+
   `max_timeout_height` is not supported in LND 0.7.1
 
   {

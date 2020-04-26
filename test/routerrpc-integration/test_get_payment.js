@@ -1,34 +1,16 @@
-const {randomBytes} = require('crypto');
-
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
-const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
-const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
-const {getNetworkGraph} = require('./../../');
 const {getPayment} = require('./../../');
-const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
-const {openChannel} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
-const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
-const mtokPadding = '000';
 const tokens = 100;
-const txIdHexLength = 32 * 2;
 
 // Paying an invoice should settle the invoice
 test(`Pay`, async ({deepIs, end, equal, rejects}) => {
@@ -41,7 +23,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
-  rejects(getPayment({lnd, id}), [404, 'SentPaymentNotFound'], 'Not found');
+  await rejects(getPayment({lnd, id}), [404, 'SentPaymentNotFound'], 'No res');
 
   try {
     await getPayment({lnd, id});
@@ -109,7 +91,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
         fee: 1,
         fee_mtokens: '1000',
         forward: invoice.tokens,
-        forward_mtokens: `${invoice.tokens}${mtokPadding}`,
+        forward_mtokens: invoice.mtokens,
         public_key: cluster.target.public_key,
       },
       {

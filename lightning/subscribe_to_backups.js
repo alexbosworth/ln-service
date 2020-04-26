@@ -4,8 +4,10 @@ const {backupsFromSnapshot} = require('./../backups');
 
 /** Subscribe to backup snapshot updates
 
+  Requires `offchain:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @throws

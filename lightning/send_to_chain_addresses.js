@@ -1,15 +1,18 @@
 const asyncAuto = require('async/auto');
-const {broadcastResponse} = require('./../push');
 const {returnResult} = require('asyncjs-util');
+
+const {broadcastResponse} = require('./../push');
 
 const initialConfirmationCount = 0;
 const {isArray} = Array;
 
 /** Send tokens to multiple destinations in a blockchain transaction.
 
+  Requires `onchain:write` permission
+
   {
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [log]: <Log Function>
     send_to: [{
       address: <Address String>

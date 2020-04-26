@@ -14,6 +14,8 @@ const outpointSeparator = ':';
 
   Multiple close type flags are supported.
 
+  Requires `offchain:read` permission
+
   `is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
   and below.
 
@@ -121,6 +123,7 @@ module.exports = (args, cbk) => {
             return cbk([503, 'ExpectedFinalTimeLockedBalanceForClosedChan']);
           }
 
+          const closer = chan.close_initiator;
           const finalTimeLock = Number(chan.time_locked_balance);
           const hasCloseTx = chan.closing_tx_hash !== emptyTxId;
           const hasId = chan.chan_id !== '0';
@@ -131,8 +134,8 @@ module.exports = (args, cbk) => {
 
           const chanId = !hasId ? null : chanFormat({number: chan.chan_id});
           const closeTxId = !hasCloseTx ? undefined : chan.closing_tx_hash;
-          const isLocalCooperativeClose = chan.close_initiator === 'LOCAL';
-          const isRemoteCooperativeClose = chan.close_initiator === 'REMOTE';
+          const isLocalCooperativeClose = closer === 'INITIATOR_LOCAL';
+          const isRemoteCooperativeClose = closer === 'INITIATOR_REMOTE';
 
           // Try and determine if the channel was opened by our peer
           if (chan.open_initiator === 'LOCAL') {

@@ -1,5 +1,32 @@
 # Versions
 
+## 48.0.0
+
+- `addPeer`: Add `retry_delay` to specify delay to retry connection
+- `authenticatedLndGrpc`: Add `router_legacy` for LND 0.9.2 and below
+- `authenticatedLndGrpc`: Add `version` for version server methods
+- `cancelPendingChannel`: Add method to cancel a pending opening channel
+- `fundPendingChannel`: Add method to pay to a pending open channel address
+- `getNetworkCentrality`: Add method to calculate node betweenness centrality
+- `getPayments`: Add `limit` and `token` methods for paging payments
+- `getWalletVersion`: Add method to determine the version of the LND wallet
+- `grantAccess`: Add `permissions` to directly specify and view permissions
+- `openChannels`: Add method to open channels with external funding
+- `payViaPaymentDetails`: Add `paths` to return all payment paths
+- `payViaPaymentRequest`: Add `paths` to return all payment paths
+- `subscribeToPayViaDetails`: Add `paths` to return all payment paths
+- `subscribeToPayViaRequest`: Add `paths` to return all payment paths
+
+## Breaking Changes
+
+Support for the REST server is eliminated. Use `grpcProxyServer` instead
+
+- `getPendingChainBalance`: limbo balance from pending channels is removed
+- `payViaPaymentDetails`: Attribute `hops` now returns only the first path hops
+- `payViaPaymentRequest`: Attribute `hops` now returns only the first path hops
+- `subscribeToPayViaDetails`: Attribute `hops` now returns only first path hops
+- `subscribeToPayViaRequest`:  Attribute `hops` now returns only first path hops
+
 ## 47.16.0
 
 - `getPendingChannels`: show initiator with `is_partner_initiated` attribute

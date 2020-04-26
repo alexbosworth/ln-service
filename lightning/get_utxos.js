@@ -10,8 +10,10 @@ const maxConfs = 999999999;
 
 /** Get unspent transaction outputs
 
+  Requires `onchain:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [max_confirmations]: <Maximum Confirmations Number>
     [min_confirmations]: <Minimum Confirmations Number>
   }
@@ -45,7 +47,7 @@ module.exports = (args, cbk) => {
       getUtxos: ['validate', ({}, cbk) => {
         return args.lnd.default.listUnspent({
           max_confs: args.max_confirmations || maxConfs,
-          min_confs: args.min_confirmations || 0,
+          min_confs: args.min_confirmations || Number(),
         },
         (err, res) => {
           if (!!err) {

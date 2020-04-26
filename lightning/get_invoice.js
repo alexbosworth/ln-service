@@ -18,12 +18,14 @@ const mtokensPerToken = BigInt('1000');
   The received value and the invoiced value may differ as invoices may be
   over-paid.
 
+  Requires `invoices:read` permission
+
   The `features` array is not populated on LND 0.8.2 and below
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
     id: <Payment Hash Id Hex String>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

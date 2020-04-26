@@ -1,3 +1,4 @@
+const asyncTimesSeries = require('async/timesSeries');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
@@ -5,16 +6,9 @@ const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getPayments} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
-const mtokPadding = '000';
 const tokens = 100;
 
 // Getting payments should return the list of payments
@@ -23,11 +17,7 @@ test('Get payments', async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
   const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
 
@@ -42,12 +32,29 @@ test('Get payments', async ({end, equal}) => {
   equal(payment.id, invoice.id, 'Id');
   equal(payment.is_confirmed, true, 'Confirmed');
   equal(payment.is_outgoing, true, 'Outgoing');
-  equal(payment.mtokens, `${tokens}${mtokPadding}`, 'Millitokens');
+  equal(payment.mtokens, (BigInt(tokens) * BigInt(1e3)).toString(), 'Mtoks');
   equal(payment.secret, invoice.secret, 'Payment secret');
   equal(payment.tokens, tokens, 'Paid tokens');
 
   if (!!payment.request) {
     equal(payment.request, invoice.request, 'Returns original pay request');
+  }
+
+  await asyncTimesSeries(4, async () => {
+    const {request} = await createInvoice({tokens, lnd: cluster.target.lnd});
+
+    const paid = await pay({lnd, request});
+  });
+
+  const page1 = await getPayments({lnd, limit: 2});
+
+  // LND 0.9.2 and below do not support payments paging
+  if (page1.payments.length === 2) {
+    const page2 = await getPayments({lnd, token: page1.next});
+
+    const page3 = await getPayments({lnd, token: page2.next});
+
+    equal(!!page3.next, false, 'There is no page 4');
   }
 
   await cluster.kill({});

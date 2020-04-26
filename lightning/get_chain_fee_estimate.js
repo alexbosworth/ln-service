@@ -9,8 +9,10 @@ const notFound = -1;
 
 /** Get a chain fee estimate for a prospective chain send
 
+  Requires `onchain:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     send_to: [{
       address: <Address String>
       tokens: <Tokens Number>

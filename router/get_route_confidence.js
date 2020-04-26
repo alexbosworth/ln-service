@@ -18,6 +18,8 @@ const unimplemented = 'QueryProbabilityNotImplemented';
 
   Requires LND built with `routerrpc` build tag
 
+  Requires `offchain:read` permission
+
   If `from` is not set, self is default
 
   {
@@ -26,7 +28,7 @@ const unimplemented = 'QueryProbabilityNotImplemented';
       forward_mtokens: <Forward Millitokens String>
       public_key: <Forward Edge Public Key Hex String>
     }]
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

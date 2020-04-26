@@ -1,9 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
-const {includes} = require('lodash');
 const {returnResult} = require('asyncjs-util');
 
-const decBase = 10;
 const {isArray} = Array;
 const outpointSeparator = ':';
 
@@ -12,10 +10,12 @@ const outpointSeparator = ':';
   Both is_closing and is_opening are returned as part of a channel because
   a channel may be opening, closing, or active.
 
+  Requires `offchain:read` permission
+
   `is_partner_initiated` is not accurate on LND 0.9.2 and below.
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise
@@ -88,12 +88,12 @@ module.exports = ({lnd}, cbk) => {
                 return {
                   is_incoming: htlc.incoming,
                   timelock_height: htlc.maturity_height,
-                  tokens: parseInt(htlc.amount, decBase),
+                  tokens: Number(htlc.amount),
                   transaction_id: txId,
-                  transaction_vout: parseInt(vout, decBase),
+                  transaction_vout: Number(vout),
                 };
               }),
-              recovered_tokens: parseInt(n.recovered_balance, decBase),
+              recovered_tokens: Number(n.recovered_balance),
               timelock_expiration: n.maturity_height,
             };
           });
@@ -103,8 +103,8 @@ module.exports = ({lnd}, cbk) => {
 
           res.pending_open_channels.forEach(n => {
             return opening[n.channel.channel_point] = {
-              transaction_fee: parseInt(n.commit_fee, decBase),
-              transaction_weight: parseInt(n.commit_weight, decBase),
+              transaction_fee: Number(n.commit_fee),
+              transaction_weight: Number(n.commit_weight),
             };
           });
 
@@ -173,8 +173,8 @@ module.exports = ({lnd}, cbk) => {
             is_closing: !chanOpen,
             is_opening: !!chanOpen,
             is_partner_initiated: !channel.initiated,
-            local_balance: parseInt(channel.local_balance, decBase),
-            local_reserve: parseInt(channel.local_chan_reserve_sat, decBase),
+            local_balance: Number(channel.local_balance),
+            local_reserve: Number(channel.local_chan_reserve_sat),
             partner_public_key: channel.remote_node_pub,
             pending_balance: pendingTokens || undefined,
             pending_payments: forced.pending_payments || undefined,
@@ -186,7 +186,7 @@ module.exports = ({lnd}, cbk) => {
             timelock_expiration: forced.timelock_expiration || undefined,
             transaction_fee: !chanOpen ? null : chanOpen.transaction_fee,
             transaction_id: transactionId,
-            transaction_vout: parseInt(vout, decBase),
+            transaction_vout: Number(vout),
             transaction_weight: !chanOpen ? null : chanOpen.transaction_weight,
           });
         },

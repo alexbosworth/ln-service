@@ -73,14 +73,18 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       channel_capacity: 1000000,
       fee: 1,
       fee_mtokens: '1000',
-      forward_mtokens: `${invoice.tokens}${mtokPadding}`,
+      forward: invoice.tokens,
+      forward_mtokens: (BigInt(invoice.tokens) * BigInt(1e3)).toString(),
+      public_key: cluster.target.public_key,
     },
     {
       channel: remoteChan.id,
       channel_capacity: 1000000,
       fee: 0,
       fee_mtokens: '0',
+      forward: invoice.tokens,
       forward_mtokens: '100000',
+      public_key: cluster.remote.public_key,
     },
   ];
 
@@ -98,43 +102,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       tokens: invoice.tokens,
     });
   } catch (err) {
-    deepIs(err, [
-      503,
-      'PaymentRejectedByDestination',
-      {
-        route: {
-          fee: 1,
-          fee_mtokens: '1000',
-          hops: [
-            {
-              channel: channel.id,
-              channel_capacity: 1000000,
-              fee: 1,
-              fee_mtokens: '1000',
-              forward: 100,
-              forward_mtokens: '100000',
-              public_key: cluster.target.public_key,
-              timeout: height + 43,
-            },
-            {
-              channel: remoteChan.id,
-              channel_capacity: 1000000,
-              fee: 0,
-              fee_mtokens: '0',
-              forward: 100,
-              forward_mtokens: '100000',
-              public_key: cluster.remote.public_key,
-              timeout: height + 43,
-            },
-          ],
-          mtokens: '101000',
-          safe_fee: 1,
-          safe_tokens: 101,
-          timeout: height + 40 + 43,
-          tokens: invoice.tokens + 1,
-        },
-      },
-    ]);
+    deepIs(err, [503, 'PaymentRejectedByDestination']);
   }
 
   try {
@@ -149,7 +117,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
     equal(tooSoonCltv, null, 'Should not be able to pay a too soon CLTV');
   } catch (err) {
-    deepIs(err, [503, 'FailedToFindPayableRouteToDestination'], 'Max cltv');
+    deepIs(err, [503, 'PaymentPathfindingFailedToFindPossibleRoute'], 'Fail');
   }
 
   try {

@@ -1,15 +1,9 @@
-const addPeer = require('./add_peer');
 const closeChannel = require('./close_channel');
-const createChainAddress = require('./create_chain_address');
 const decodePaymentRequest = require('./decode_payment_request');
 const deletePayments = require('./delete_payments');
-const getBackup = require('./get_backup');
 const getBackups = require('./get_backups');
-const getChainBalance = require('./get_chain_balance');
 const getChainFeeEstimate = require('./get_chain_fee_estimate');
 const getChainTransactions = require('./get_chain_transactions');
-const getChannel = require('./get_channel');
-const getChannelBalance = require('./get_channel_balance');
 const getClosedChannels = require('./get_closed_channels');
 const getFeeRates = require('./get_fee_rates');
 const getForwards = require('./get_forwards');
@@ -17,9 +11,7 @@ const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
 const getNetworkGraph = require('./get_network_graph');
 const getNetworkInfo = require('./get_network_info');
-const getNode = require('./get_node');
 const getPayments = require('./get_payments');
-const getPendingChainBalance = require('./get_pending_chain_balance');
 const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
 const getUtxos = require('./get_utxos');
@@ -37,7 +29,6 @@ const stopDaemon = require('./stop_daemon');
 const subscribeToBackups = require('./subscribe_to_backups');
 const subscribeToChannels = require('./subscribe_to_channels');
 const subscribeToGraph = require('./subscribe_to_graph');
-const subscribeToInvoices = require('./subscribe_to_invoices');
 const subscribeToOpenRequests = require('./subscribe_to_open_requests');
 const subscribeToPeers = require('./subscribe_to_peers');
 const subscribeToTransactions = require('./subscribe_to_transactions');
@@ -47,18 +38,12 @@ const verifyBackups = require('./verify_backups');
 const verifyMessage = require('./verify_message');
 
 module.exports = {
-  addPeer,
   closeChannel,
-  createChainAddress,
   decodePaymentRequest,
   deletePayments,
-  getBackup,
   getBackups,
-  getChainBalance,
   getChainFeeEstimate,
   getChainTransactions,
-  getChannel,
-  getChannelBalance,
   getClosedChannels,
   getFeeRates,
   getForwards,
@@ -66,9 +51,7 @@ module.exports = {
   getInvoices,
   getNetworkGraph,
   getNetworkInfo,
-  getNode,
   getPayments,
-  getPendingChainBalance,
   getPendingChannels,
   getRoutes,
   getUtxos,
@@ -86,7 +69,6 @@ module.exports = {
   subscribeToBackups,
   subscribeToChannels,
   subscribeToGraph,
-  subscribeToInvoices,
   subscribeToOpenRequests,
   subscribeToPeers,
   subscribeToTransactions,

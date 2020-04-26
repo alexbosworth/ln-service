@@ -9,10 +9,10 @@ const {isArray} = Array;
 
 /** Create a wallet seed
 
-  Requires unlocked lnd and unauthenticated LND gRPC API Object
+  Requires unlocked lnd and unauthenticated LND API Object
 
   {
-    lnd: <Unauthenticed LND gRPC API Object>
+    lnd: <Unauthenticated LND API Object>
     [passphrase]: <Seed Passphrase String>
   }
 

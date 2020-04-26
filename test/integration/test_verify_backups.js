@@ -4,6 +4,7 @@ const {createCluster} = require('./../macros');
 const {getBackups} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {verifyBackups} = require('./../../');
 const {waitForChannel} = require('./../macros');
@@ -20,25 +21,12 @@ test(`Test verify backups`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
+  const channelOpen = await setupChannel({
     lnd: cluster.target.lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: `${cluster.control.listen_ip}:${cluster.control.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.target.lnd,
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: giftTokens,
+    to: cluster.control,
   });
 
   const {backup} = await getBackups({lnd});

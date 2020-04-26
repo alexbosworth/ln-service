@@ -4,10 +4,12 @@ const blockHashByteLen = 32;
 
 /** Subscribe to blocks
 
-  Requires lnd built with chainrpc build tag
+  Requires LND built with `chainrpc` build tag
+
+  Requires `onchain:read` permission
 
   {
-    lnd: <Authenticated LND gRPC Object>
+    lnd: <Authenticated LND Object>
   }
 
   @throws

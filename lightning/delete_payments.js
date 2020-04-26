@@ -3,8 +3,10 @@ const {returnResult} = require('asyncjs-util');
 
 /** Delete all records of payments
 
+  Requires `offchain:write` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

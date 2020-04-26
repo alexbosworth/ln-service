@@ -7,13 +7,14 @@ const existsErr = 'unable to unpack single backups: channel already exists';
 
 /** Verify and restore a channel from a single channel backup
 
+  Requires `offchain:write` permission
+
   {
     backup: <Backup Hex String>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise
-  {}
 */
 module.exports = ({backup, lnd}, cbk) => {
   return new Promise((resolve, reject) => {

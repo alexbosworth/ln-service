@@ -1,15 +1,16 @@
 const EventEmitter = require('events');
 
 const {abs} = Math;
-const decBase = 10;
 const msPerSec = 1e3;
 
 /** Subscribe to transactions
 
+  Requires `onchain:read` permission
+
   In LND 0.7.1 `block_height` is not supported
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @throws
@@ -53,19 +54,17 @@ module.exports = ({lnd}) => {
       return eventEmitter.emit('error', new Error('ExpectedTxIdInTxEvent'));
     }
 
-    const createdAt = parseInt(tx.time_stamp, decBase);
-
     return eventEmitter.emit('chain_transaction', {
       block_id: tx.block_hash || undefined,
       confirmation_count: tx.num_confirmations,
       confirmation_height: tx.block_height || undefined,
-      created_at: new Date(createdAt * msPerSec).toISOString(),
-      fee: parseInt(tx.total_fees, decBase),
+      created_at: new Date(Number(tx.time_stamp) * msPerSec).toISOString(),
+      fee: Number(tx.total_fees),
       id: tx.tx_hash,
       is_confirmed: !!tx.block_hash,
-      is_outgoing: parseInt(tx.amount, decBase) < 0,
+      is_outgoing: Number(tx.amount) < Number(),
       output_addresses: tx.dest_addresses,
-      tokens: abs(parseInt(tx.amount, decBase)),
+      tokens: abs(Number(tx.amount)),
     });
   });
 

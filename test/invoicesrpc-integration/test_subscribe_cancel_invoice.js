@@ -32,8 +32,8 @@ test(`Subscribe to canceled invoice`, async ({deepIs, end, equal}) => {
     lnd,
     chain_fee_tokens_per_vbyte: defaultFee,
     local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    partner_public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
   });
 
   await waitForPendingChannel({

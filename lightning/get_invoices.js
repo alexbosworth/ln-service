@@ -5,17 +5,17 @@ const asyncMap = require('async/map');
 const {chanFormat} = require('bolt07');
 const {featureFlagDetails} = require('bolt09');
 const {htlcAsPayment} = require('lightning/lnd_responses');
-const {isBoolean} = require('lodash');
-const {isFinite} = require('lodash');
-const {isString} = require('lodash');
 const {returnResult} = require('asyncjs-util');
-const {sortBy} = require('lodash');
+
+const {sortBy} = require('./../arrays');
 
 const acceptedState = 'ACCEPTED';
 const canceledState = 'CANCELED';
 const decBase = 10;
 const defaultLimit = 100;
 const {isArray} = Array;
+const isBoolean = n => n === false || n === true;
+const isString = n => typeof n === 'string';
 const lastPageFirstIndexOffset = 1;
 const msPerSec = 1e3;
 const mtokensPerToken = BigInt('1000');
@@ -26,12 +26,14 @@ const {stringify} = JSON;
 
   If a next token is returned, pass it to get another page of invoices.
 
+  Requires `invoices:read` permission
+
   The `features` and `messages` arrays are not populated on LND before 0.8.2
   The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
   {
     [limit]: <Page Result Limit Number>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [token]: <Opaque Paging Token String>
   }
 
@@ -133,13 +135,13 @@ module.exports = ({limit, lnd, token}, cbk) => {
             return cbk([503, 'ExpectedLastIndexOffsetWhenRequestingInvoices']);
           }
 
-          const offset = parseInt(res.first_index_offset, decBase);
+          const offset = Number(res.first_index_offset);
 
           const token = stringify({offset, limit: resultsLimit});
 
           return cbk(null, {
-            token: offset === lastPageFirstIndexOffset ? undefined : token,
             invoices: res.invoices,
+            token: offset === lastPageFirstIndexOffset ? undefined : token,
           });
         });
       }],
@@ -147,7 +149,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
       // Mapped invoices
       mappedInvoices: ['listInvoices', ({listInvoices}, cbk) => {
         return asyncMap(listInvoices.invoices, (invoice, cbk) => {
-          const creationEpochDate = parseInt(invoice.creation_date, decBase);
+          const creationEpochDate = Number(invoice.creation_date);
           const descHash = invoice.description_hash;
           const expiresInMs = parseInt(invoice.expiry, decBase) * msPerSec;
           let settledDate = undefined;
@@ -164,7 +166,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             return cbk([503, 'ExpectedCltvExpiryForInvoice']);
           }
 
-          if (!isFinite(creationEpochDate)) {
+          if (!creationEpochDate) {
             return cbk([503, 'ExpectedCreationDateForInvoice']);
           }
 
@@ -249,8 +251,13 @@ module.exports = ({limit, lnd, token}, cbk) => {
         'mappedInvoices',
         ({listInvoices, mappedInvoices}, cbk) =>
       {
+        const invoices = sortBy({
+          array: mappedInvoices,
+          attribute: 'created_at',
+        });
+
         return cbk(null, {
-          invoices: sortBy(mappedInvoices, 'created_at').reverse(),
+          invoices: invoices.sorted.reverse(),
           next: !!mappedInvoices.length ? listInvoices.token : undefined,
         });
       }],

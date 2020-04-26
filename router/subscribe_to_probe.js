@@ -18,6 +18,8 @@ const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
   Requires LND built with `routerrpc` build tag
 
+  Requires `offchain:write` permission
+
   `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
 
   `confidence` is not supported in LND 0.7.1

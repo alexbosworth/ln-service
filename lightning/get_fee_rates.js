@@ -11,6 +11,8 @@ const transactionIdHexLength = 32 * 2;
 
 /** Get a rundown on fees for channels
 
+  Requires `offchain:read` permission
+
   `id` is not supported on LND 0.9.2 and below
 
   {

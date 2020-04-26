@@ -1,8 +1,6 @@
+const {addPeer} = require('lightning/lnd_methods');
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
-
-const addPeer = require('./add_peer');
-const {getFundingShim} = require('./../wallet');
 
 const defaultMinConfs = 1;
 const defaultMinHtlcMtokens = '1';
@@ -14,6 +12,8 @@ const minChannelTokens = 20000;
 
   If give_tokens is set, it is a gift and it does not alter the capacity
 
+  Requires `offchain:write`, `onchain:write`, `peers:write` permissions
+
   LND 0.8.2 and below do not support `cooperative_close_address`
 
   External funding requires LND compiled with `walletrpc` build tag
@@ -21,17 +21,9 @@ const minChannelTokens = 20000;
   {
     [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
     [cooperative_close_address]: <Restrict Cooperative Close To Address String>
-    [external_funding]: {
-      id: <Pending Channel Id Hex String>
-      key_family: <Funding Key HD Family Number>
-      key_index: <Funding Key HD Index Number>
-      partner_key: <Partner Multisig Public Key Hex String>
-      transaction: <Funding Transaction Hex String>
-      vout: <Funding Transaction Output Index Number>
-    }
     [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
     [is_private]: <Channel is Private Bool> // Defaults to false
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     local_tokens: <Local Tokens Number>
     [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
     [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
@@ -84,25 +76,6 @@ module.exports = (args, cbk) => {
         cbk);
       }],
 
-      // Get the funding shim for external funding
-      getShim: ['validate', ({}, cbk) => {
-        // Exit early when there is no external funding
-        if (!args.external_funding) {
-          return cbk();
-        }
-
-        return getFundingShim({
-          id: args.external_funding.id,
-          key_family: args.external_funding.key_family,
-          key_index: args.external_funding.key_index,
-          lnd: args.lnd,
-          partner_key: args.external_funding.partner_key,
-          transaction: args.external_funding.transaction,
-          vout: args.external_funding.vout,
-        },
-        cbk);
-      }],
-
       // Determine the minimum confs for spend utxos
       minConfs: ['validate', ({}, cbk) => {
         if (args.min_confirmations === undefined) {
@@ -113,17 +86,8 @@ module.exports = (args, cbk) => {
       }],
 
       // Open the channel
-      openChannel: [
-        'connect',
-        'getShim',
-        'minConfs',
-        ({getShim, minConfs}, cbk) =>
-      {
+      openChannel: ['connect', 'minConfs', ({minConfs}, cbk) => {
         let isAnnounced = false;
-
-        if (!!getShim && getShim.amt !== args.local_tokens.toString()) {
-          return cbk([400, 'ExpectedFundingShimUtxoToMatchChannelCapacity']);
-        }
 
         const options = {
           local_funding_amount: args.local_tokens,
@@ -141,10 +105,6 @@ module.exports = (args, cbk) => {
 
         if (!!args.cooperative_close_address) {
           options.close_address = args.cooperative_close_address;
-        }
-
-        if (!!args.external_funding) {
-          options.funding_shim = {shim: getShim};
         }
 
         if (!!args.give_tokens) {
@@ -213,6 +173,9 @@ module.exports = (args, cbk) => {
           switch (n.details) {
           case 'cannot open channel to self':
             return cbk([400, 'CannotOpenChannelToOwnNode']);
+
+          case 'channels cannot be created before the wallet is fully synced':
+            return cbk([503, 'WalletNotFullySynced']);
 
           case 'Multiple channels unsupported':
             return cbk([503, 'RemoteNodeDoesNotSupportMultipleChannels']);

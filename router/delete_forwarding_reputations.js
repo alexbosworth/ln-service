@@ -5,8 +5,10 @@ const {returnResult} = require('asyncjs-util');
 
   Requires LND built with `routerrpc` build tag
 
+  Requires `offchain:write` permission
+
   {
-    lnd: <Authenticated gRPC LND API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

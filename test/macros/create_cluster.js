@@ -20,7 +20,7 @@ const defaultVout = 0;
 const format = 'np2wpkh';
 const maturityBlockCount = 429;
 const retryMs = 20;
-const retryTimes = 50;
+const retryTimes = 1000;
 const seed = 'abandon tank dose ripple foil subway close flock laptop cabbage primary silent plastic unhappy west weird panda plastic brave prefer diesel glad jazz isolate';
 const tokens = 50e8;
 
@@ -322,6 +322,37 @@ module.exports = (args, cbk) => {
           lnd: target.lnd,
           public_key: remoteNode.public_key,
           socket: remote.socket,
+        },
+        cbk);
+      },
+      cbk);
+    }],
+
+    // Delay so that all the nodes can sync to the chain
+    syncToChain: [
+      'addRemotePeer',
+      'control',
+      'remote',
+      'target',
+      ({control, remote, target}, cbk) =>
+    {
+      return asyncEach([control, remote, target], (node, cbk) => {
+        if (!node) {
+          return cbk();
+        }
+
+        return asyncRetry({interval: retryMs, times: retryTimes}, cbk => {
+          return getWalletInfo({lnd: node.lnd}, (err, res) => {
+            if (!!err) {
+              return cbk(err);
+            }
+
+            if (!res.is_synced_to_chain) {
+              return cbk([503, 'NodeWaitingToSyncToChain']);
+            }
+
+            return cbk();
+          });
         },
         cbk);
       },

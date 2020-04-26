@@ -108,6 +108,11 @@ test('Get forwarding reputations', async ({deepIs, end, equal}) => {
 
     const [node] = nodes;
 
+    // LND 0.7.1 doesn't have node reputations
+    if (!node) {
+      return;
+    }
+
     equal(!!node.public_key, true, 'Temp fail node added');
 
     if (!!node.channels.length) {

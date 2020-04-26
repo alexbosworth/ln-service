@@ -5,6 +5,8 @@ const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Remove a peer if possible
 
+  Requires `peers:remove` permission
+
   {
     lnd: <Authenticated LND gRPC API Object>
     public_key: <Public Key Hex String>

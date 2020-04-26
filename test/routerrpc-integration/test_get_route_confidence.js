@@ -100,18 +100,19 @@ test('Get route confidence', async ({deepIs, end, equal}) => {
 
   const {nodes} = await getForwardingReputations({lnd});
 
-  equal(nodes.length > 0, true, 'Reputation should be generated');
+  // LND 0.7.1 does not have nodes reputation
+  if (!!nodes.length) {
+    const {routes} = await getRoutes({destination, lnd, tokens});
 
-  const {routes} = await getRoutes({destination, lnd, tokens});
+    equal(routes.length, 1, 'There should be a route');
 
-  equal(routes.length, 1, 'There should be a route');
+    if (!!routes.length) {
+      const [{hops}] = routes;
 
-  if (!!routes.length) {
-    const [{hops}] = routes;
+      const odds = (await getRouteConfidence({lnd, hops})).confidence;
 
-    const odds = (await getRouteConfidence({lnd, hops})).confidence;
-
-    equal((odds / 1e6) < 0.1, true, 'Due to failure, odds of success are low');
+      equal((odds / 1e6) < 0.1, true, 'Due to failure, odds of success are low');
+    }
   }
 
   await cluster.kill({});

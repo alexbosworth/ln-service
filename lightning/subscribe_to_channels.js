@@ -3,22 +3,22 @@ const EventEmitter = require('events');
 const {chanFormat} = require('bolt07');
 const {rpcChannelAsChannel} = require('lightning/lnd_responses');
 
-const getNode = require('./get_node');
 const updateTypes = require('./conf/channel_update_types');
 
-const decBase = 10;
 const emptyChanId = '0';
 const emptyTxId = Buffer.alloc(32).toString('hex');
 const outpointSeparator = ':';
 
 /** Subscribe to channel updates
 
+  Requires `offchain:read` permission
+
   LND 0.9.0 and below do not emit `channel_opening` events.
 
   `local_given` and `remote_given` are not supported on LND 0.9.2 and below
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @throws
@@ -187,11 +187,11 @@ module.exports = ({lnd}) => {
       const hasCloseTx = update[updateType].closing_tx_hash !== emptyTxId;
 
       eventEmitter.emit('channel_closed', {
-        capacity: parseInt(update[updateType].capacity, decBase),
+        capacity: Number(update[updateType].capacity),
         close_confirm_height: !!n.close_height ? n.close_height : undefined,
         close_transaction_id: hasCloseTx ? n.closing_tx_hash : undefined,
-        final_local_balance: parseInt(n.settled_balance, decBase),
-        final_time_locked_balance: parseInt(n.time_locked_balance, decBase),
+        final_local_balance: Number(n.settled_balance),
+        final_time_locked_balance: Number(n.time_locked_balance),
         id: hasId ? chanFormat({number: n.chan_id}).channel : undefined,
         is_breach_close: n.close_type === 'BREACH_CLOSE',
         is_cooperative_close: n.close_type === 'COOPERATIVE_CLOSE',
@@ -200,7 +200,7 @@ module.exports = ({lnd}) => {
         is_remote_force_close: n.close_type === 'REMOTE_FORCE_CLOSE',
         partner_public_key: n.remote_pubkey,
         transaction_id: txId,
-        transaction_vout: parseInt(txVout, decBase),
+        transaction_vout: Number(txVout),
       });
       break;
 

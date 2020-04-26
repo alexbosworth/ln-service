@@ -14,6 +14,8 @@ const sha256 = preimage => createHash('sha256').update(preimage).digest('hex');
 
 /** Send a channel payment.
 
+  Requires offchain:write permission
+
   {
     lnd: <Authenticated LND gRPC API Object>
     [log]: <Log Function> // Required if wss is set
@@ -95,6 +97,10 @@ module.exports = (args, cbk) => {
           }
 
           if (!!res && /UnknownPaymentHash/.test(res.payment_error)) {
+            return cbk([404, 'UnknownPaymentHash']);
+          }
+
+          if (!!res && res.payment_error === 'incorrect_payment_details') {
             return cbk([404, 'UnknownPaymentHash']);
           }
 

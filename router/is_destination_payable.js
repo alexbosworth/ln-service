@@ -1,13 +1,14 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
-
-const subscribeToPayViaDetails = require('./subscribe_to_pay_via_details');
+const subscribeToPayViaDetails = require('lightning/lnd_methods');
 
 const defaultTokens = 1;
 
 /** Determine if a payment destination is actually payable by probing it
 
   Requires LND built with `routerrpc` build tag
+
+  Requires `offchain:write` permission
 
   Note: on versions of LND prior to 0.7.1, is_payable will always be false
 
@@ -19,7 +20,7 @@ const defaultTokens = 1;
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Pay to Node with Public Key Hex String>
     [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [max_fee]: <Maximum Fee Tokens To Pay Number>
     [max_fee_mtokens]: <Maximum Fee Millitokens String>
     [max_timeout_height]: <Maximum Height of Payment Timeout Number>

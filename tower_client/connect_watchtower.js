@@ -11,8 +11,10 @@ const type = 'tower_client';
 
   This method requires LND built with `wtclientrpc` build tag
 
+  Requires `offchain:write` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     public_key: <Watchtower Public Key Hex String>
     socket: <Network Socket Address IP:PORT String>
   }

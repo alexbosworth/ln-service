@@ -3,7 +3,8 @@ const asyncMap = require('async/map');
 const BN = require('bn.js');
 const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
-const {sortBy} = require('lodash');
+
+const {sortBy} = require('./../arrays');
 
 const decBase = 10;
 const defaultLimit = 100;
@@ -20,13 +21,15 @@ const {stringify} = JSON;
 
   If a next token is returned, pass it to get additional page of results.
 
+  Requires `offchain:read` permission
+
   `mtokens` is not supported on LND v0.8.2 or lower
 
   {
     [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
     [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>
     [limit]: <Page Result Limit Number>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [token]: <Opaque Paging Token String>
   }
 
@@ -187,8 +190,13 @@ module.exports = ({after, before, limit, lnd, token}, cbk) => {
         'mappedForwards',
         ({listForwards, mappedForwards}, cbk) =>
       {
+        const forwards = sortBy({
+          array: mappedForwards,
+          attribute: 'created_at',
+        });
+
         return cbk(null, {
-          forwards: sortBy(mappedForwards, 'created_at').reverse(),
+          forwards: forwards.sorted.reverse(),
           next: !!mappedForwards.length ? listForwards.token : undefined,
         });
       }],

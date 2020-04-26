@@ -8,11 +8,13 @@ const weightPerVByte = 4;
 
 /** Get chain fee rate estimate
 
-  Requires lnd built with `walletrpc` tag
+  Requires LND built with `walletrpc` tag
+
+  Requires `onchain:read` permission
 
   {
     [confirmation_target]: <Future Blocks Confirmation Number>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise

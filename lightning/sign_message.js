@@ -3,8 +3,10 @@ const {returnResult} = require('asyncjs-util');
 
 /** Sign a message
 
+  Requires `message:write` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     message: <Message String>
   }
 

@@ -6,7 +6,7 @@ const asyncRetry = require('async/retry');
 const rpc = require('./rpc');
 
 const interval = retryCount => 2000 * Math.random();
-const retryTimes = 20;
+const retryTimes = 30;
 
 /** Connect to node
 

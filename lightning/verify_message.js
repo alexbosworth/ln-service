@@ -3,8 +3,10 @@ const {returnResult} = require('asyncjs-util');
 
 /** Verify a message was signed by a known pubkey
 
+  Requires `message:read` permission
+
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     message: <Message String>
     signature: <Signature Hex String>
   }

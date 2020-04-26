@@ -9,13 +9,15 @@ const weightPerVByte = 4;
 
 /** Subscribe to inbound channel open requests
 
-  Note: LND 0.7.1 and lower do not support interactive channel acceptance.
+  Requires `offchain:write`, `onchain:write` permissions
 
   Note: listening to inbound channel requests will automatically fail all
   channel requests after a short delay.
 
   To return to default behavior of accepting all channel requests, remove all
   listeners to `channel_request`
+
+  Note: LND 0.7.1 and lower do not support interactive channel acceptance.
 
   {
     lnd: <Authenticated LND gRPC API Object>

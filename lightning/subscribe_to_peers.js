@@ -7,6 +7,8 @@ const unimplementedMessage = 'unknown service lnrpc.Lightning';
 
 /** Subscribe to peer connectivity events
 
+  Requires `peers:read` permission
+
   LND 0.8.2 and below do not support peer subscriptions
 
   {

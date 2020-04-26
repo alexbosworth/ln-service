@@ -7,11 +7,13 @@ const initialConfirmationCount = 0;
 
 /** Send tokens in a blockchain transaction.
 
+  Requires `onchain:write` permission
+
   {
     address: <Destination Chain Address String>
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
     [is_send_all]: <Send All Funds Bool>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     [log]: <Log Function>
     [target_confirmations]: <Confirmations To Wait Number>
     tokens: <Tokens To Send Number>

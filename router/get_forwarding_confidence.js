@@ -12,11 +12,13 @@ const unimplementedError = 'unknown service routerrpc.Router';
 
   Requires LND built with `routerrpc` build tag
 
+  Requires `offchain:read` permission
+
   Note: this method is not supported in LND 0.8.2 and below.
 
   {
     from: <From Public Key Hex String>
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     mtokens: <Millitokens To Send String>
     to: <To Public Key Hex String>
   }

@@ -5,6 +5,8 @@ const isHex = n => !(n.length % 2) && /^[0-9A-F]*$/i.test(n);
 
 /** Verify a channel backup
 
+  Requires `offchain:read` permission
+
   {
     backup: <Individual Channel Backup Hex String>
     lnd: <Authenticated LND gRPC API Object>

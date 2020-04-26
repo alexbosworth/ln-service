@@ -12,8 +12,10 @@ const notFound = -1;
 
 /** Get chain transactions.
 
+  Requires `onchain:read` permission
+
   {
-    lnd: <Authenticated LND gRPC Object>
+    lnd: <Authenticated LND Object>
   }
 
   @returns via cbk or Promise

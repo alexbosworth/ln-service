@@ -7,10 +7,10 @@ const utf8 = 'utf8';
 
 /** Create a wallet
 
-  Requires unlocked lnd and unauthenticated LND gRPC API Object
+  Requires unlocked lnd and unauthenticated LND API Object
 
   {
-    lnd: <Unauthenticated LND gRPC API Object>
+    lnd: <Unauthenticated LND API Object>
     [passphrase]: <AEZSeed Encryption Passphrase String>
     password: <Wallet Password String>
     seed: <Seed Mnemonic String>
