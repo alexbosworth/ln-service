@@ -1,4 +1,4 @@
-const PriorityQueue = require('@datastructures-js/priority-queue');
+const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
 
 const policyFee = require('./policy_fee');
 
@@ -52,7 +52,7 @@ const queueStart = 1;
 module.exports = ({channels, end, ignore, mtokens, start}) => {
   const distances = {};
   const next = {};
-  const queue = new PriorityQueue();
+  const queue = new MinPriorityQueue();
 
   // Set all distances to Infinity, meaning the nodes cannot be reached
   channels.forEach(({policies}) => {
@@ -142,7 +142,7 @@ module.exports = ({channels, end, ignore, mtokens, start}) => {
 
   // Pull from the priority queue to check edges
   while (!queue.isEmpty()) {
-    const bestNode = queue.dequeue();
+    const bestNode = queue.dequeue().element;
 
     if (bestNode === start) {
       break;

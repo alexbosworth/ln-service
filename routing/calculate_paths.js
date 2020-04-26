@@ -1,4 +1,4 @@
-const PriorityQueue = require('@datastructures-js/priority-queue');
+const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
 
 const calculateHops = require('./calculate_hops');
 const isEqualPath = require('./is_equal_path');
@@ -45,7 +45,7 @@ const defaultLimit = 20;
   }
 */
 module.exports = ({channels, end, limit, mtokens, start}) => {
-  const candidatePaths = new PriorityQueue();
+  const candidatePaths = new MinPriorityQueue();
   const shortestPaths = [];
   const startingPath = calculateHops({channels, end, mtokens, start});
 
@@ -102,7 +102,7 @@ module.exports = ({channels, end, limit, mtokens, start}) => {
       break;
     }
 
-    shortestPaths.push(candidatePaths.dequeue());
+    shortestPaths.push(candidatePaths.dequeue().element);
   }
 
   const paths = shortestPaths.filter(n => !!n).map(n => ({hops: n.slice(1)}));
