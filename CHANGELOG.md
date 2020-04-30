@@ -1,6 +1,6 @@
 # Versions
 
-## 48.0.2
+## 48.0.3
 
 - `addPeer`: Add `retry_delay` to specify delay to retry connection
 - `authenticatedLndGrpc`: Add `router_legacy` for LND 0.9.2 and below
