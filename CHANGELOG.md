@@ -1,5 +1,9 @@
 # Versions
 
+## 48.0.4
+
+- `authenticatedLndGrpc`: Fix support for hex encoded macaroons
+
 ## 48.0.3
 
 - `addPeer`: Add `retry_delay` to specify delay to retry connection
