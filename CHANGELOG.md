@@ -1,5 +1,9 @@
 # Versions
 
+## 48.0.5
+
+- `getPayments`: Add support for add index
+
 ## 48.0.4
 
 - `authenticatedLndGrpc`: Fix support for hex encoded macaroons

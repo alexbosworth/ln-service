@@ -48,9 +48,15 @@ test('Get payments', async ({end, equal}) => {
 
   const page1 = await getPayments({lnd, limit: 2});
 
+  const [firstOfPage1] = page1.payments;
+
   // LND 0.9.2 and below do not support payments paging
   if (page1.payments.length === 2) {
     const page2 = await getPayments({lnd, token: page1.next});
+
+    const [firstOfPage2] = page2.payments;
+
+    equal(firstOfPage2.index, 3, 'Got payment index');
 
     const page3 = await getPayments({lnd, token: page2.next});
 

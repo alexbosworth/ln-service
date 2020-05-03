@@ -17,8 +17,9 @@ const {stringify} = JSON;
 
   Requires `offchain:read` permission
 
-  Payment `attempts` is not populated on LND 0.8.2 and below
+  Payment `index` is not returned on LND 0.9.2 and below
   Payment `limit` is not supported on LND 0.9.2 and below
+  Payment `attempts` is not populated on LND 0.8.2 and below
 
   {
     [limit]: <Page Result Limit Number>
@@ -57,6 +58,7 @@ const {stringify} = JSON;
           }
           message: <Error Message String>
         }
+        [index]: <Payment Add Index Number>
         is_confirmed: <Payment Attempt Succeeded Bool>
         is_failed: <Payment Attempt Failed Bool>
         is_pending: <Payment Attempt is Waiting For Resolution Bool>
@@ -86,6 +88,7 @@ const {stringify} = JSON;
       fee_mtokens: <Paid Routing Fee in Millitokens String>
       hops: [<First Route Hop Public Key Hex String>]
       id: <Payment Preimage Hash String>
+      [index]: <Payment Add Index Number>
       is_confirmed: <Payment is Confirmed Bool>
       is_outgoing: <Transaction Is Outgoing Bool>
       mtokens: <Millitokens Sent to Destination String>
