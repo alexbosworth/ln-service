@@ -1163,7 +1163,11 @@ Get chain transactions.
 
 Requires `onchain:read` permission
 
+`after` and `before` are not supported on LND 0.10.0 and below
+
     {
+      [after]: <Confirmed After Current Best Chain Block Height Number>
+      [before]: <Confirmed Before Current Best Chain Block Height Number>
       lnd: <Authenticated LND Object>
     }
 
@@ -1176,8 +1180,11 @@ Requires `onchain:read` permission
         created_at: <Created ISO 8601 Date String>
         [fee]: <Fees Paid Tokens Number>
         id: <Transaction Id String>
+        is_confirmed: <Is Confirmed Bool>
+        is_outgoing: <Transaction Outbound Bool>
         output_addresses: [<Address String>]
         tokens: <Tokens Including Fee Number>
+        [transaction]: <Raw Transaction Hex String>
       }]
     }
 
@@ -2411,6 +2418,45 @@ const tokens = 1000;
 const {routes} = await getRoutes({destination, lnd, tokens});
 ```
 
+### getSweepTransactions
+
+Get timelocked spend transactions related to channel closes
+
+Requires `onchain:read` permission
+
+This method is not suppoorted on LND 0.10.0 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      transactions: [{
+        [block_id]: <Block Hash String>
+        [confirmation_count]: <Confirmation Count Number>
+        [confirmation_height]: <Confirmation Block Height Number>
+        created_at: <Created ISO 8601 Date String>
+        [fee]: <Fees Paid Tokens Number>
+        id: <Transaction Id String>
+        is_confirmed: <Is Confirmed Bool>
+        is_outgoing: <Transaction Outbound Bool>
+        output_addresses: [<Address String>]
+        tokens: <Tokens Including Fee Number>
+        [transaction]: <Raw Transaction Hex String>
+      }]
+    }
+
+Example:
+
+```node
+const {getSweepTransactions} = require('ln-service');
+const {transactions} = await getSweepTransactions({lnd});
+
+// Calculate on-chain fees paid into sweep transactions
+const sweepFeesPaid = transactions.reduce((sum, n) => sum + (n.fee || 0), 0);
+```
+
 ### getTowerServerInfo
 
 Get watchtower server info.
@@ -2536,6 +2582,7 @@ LND 0.9.2 and below do not return `features`
       is_walletrpc_enabled: <Is Wallet RPC Enabled Bool>
       is_watchtowerrpc_enabled: <Is Watchtower Server RPC Enabled Bool>
       is_wtclientrpc_enabled: <Is Watchtower Client RPC Enabled Bool>
+      [version]: <Recognized LND Version String>
     }
 
 ```node
@@ -2934,6 +2981,10 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
 
+Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
+
+Specifying `outgoing_channels` is not supported on LND 0.10.0 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
@@ -2945,6 +2996,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [messages]: [{
         type: <Message Type Number String>
@@ -2952,6 +3004,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
       }]
       [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
+      [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       routes: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
@@ -3021,11 +3074,16 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
 
+Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
+
+Specifying `outgoing_channels` is not supported on LND 0.10.0 and below
+
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
       [messages]: [{
         type: <Message Type Number String>
@@ -3033,6 +3091,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
       }]
       [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
+      [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       request: <BOLT 11 Payment Request String>
       [tokens]: <Tokens To Pay Number>
@@ -4321,6 +4380,10 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
 
+Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
+
+Specifying `outgoing_channels` is not supported on LND 0.10.0 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
@@ -4332,6 +4395,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
       lnd: <Authenticated LND gRPC API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
       [messages]: [{
         type: <Message Type Number String>
@@ -4339,7 +4403,15 @@ Specifying `messages` is not supported on LND 0.8.2 and below
       }]
       [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
+      [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
+      [routes]: [[{
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+        [channel]: <Standard Format Channel Id String>
+        [cltv_delta]: <CLTV Blocks Delta Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+        public_key: <Forward Edge Public Key Hex String>
+      }]]
       [tokens]: <Tokens to Pay Number>
     }
 
@@ -4422,17 +4494,26 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
 `incoming_peer` is not supported on LND 0.8.2 and below
 
+Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
+
+Specifying `outgoing_channels` is not supported on LND 0.10.0 and below
+
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
+      }]
       [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
+      [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       request: <BOLT 11 Payment Request String>
-      [timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [tokens]: <Tokens To Pay Number>
     }
 
@@ -5061,14 +5142,16 @@ Requires `onchain:read` permission
     @event 'chain_transaction'
     {
       [block_id]: <Block Hash String>
-      confirmation_count: <Confirmation Count Number>
-      [confirmation_height]: <Block Best Chain Tip Height Number>
-      fee: <Fees Paid Tokens Number>
+      [confirmation_count]: <Confirmation Count Number>
+      [confirmation_height]: <Confirmation Block Height Number>
+      created_at: <Created ISO 8601 Date String>
+      [fee]: <Fees Paid Tokens Number>
       id: <Transaction Id String>
       is_confirmed: <Is Confirmed Bool>
       is_outgoing: <Transaction Outbound Bool>
-      [output_addresses]: [<Chain Address String>]
-      tokens: <Tokens Number>
+      output_addresses: [<Address String>]
+      tokens: <Tokens Including Fee Number>
+      [transaction]: <Raw Transaction Hex String>
     }
 
 Example:

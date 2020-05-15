@@ -18,7 +18,7 @@ const count = 10;
 const interval = 500;
 const race = promises => Promise.race(promises);
 const timeout = 1000 * 10;
-const times = 40;
+const times = 100;
 
 // Opening channels should open up channels
 test(`Open channel`, async ({end, equal}) => {

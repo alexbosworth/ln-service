@@ -32,6 +32,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     chain_fee_tokens_per_vbyte: defaultFee,
     give_tokens: giftTokens,
     local_tokens: channelCapacityTokens,
+    partner_csv_delay: 10,
     partner_public_key: cluster.target.public_key,
     socket: cluster.target.socket,
   });

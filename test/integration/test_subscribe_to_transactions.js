@@ -46,7 +46,7 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
 
     if (!tx.is_confirmed) {
       equal(tx.block_id, undefined, 'Tx is not confirmed in a block');
-      equal(tx.confirmation_count, 0, 'Tx has no confirmations');
+      equal(!!tx.confirmation_count, false, 'Tx has no confirmations');
 
       return;
     }

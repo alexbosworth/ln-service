@@ -4,12 +4,12 @@ const {getChainTransactions} = require('./../../');
 
 const makeExpected = overrides => {
   const transaction = {
-    block_id: 'block_hash',
+    block_id: Buffer.alloc(32).toString('hex'),
     confirmation_count: 1,
     confirmation_height: 1,
     created_at: '1970-01-01T00:00:01.000Z',
     fee: 1,
-    id: 'tx_hash',
+    id: Buffer.alloc(32).toString('hex'),
     is_confirmed: true,
     is_outgoing: false,
     output_addresses: ['address'],
@@ -28,13 +28,13 @@ const makeLnd = overrides => {
       getTransactions: ({}, cbk) => {
         const transaction = {
           amount: '1',
-          block_hash: 'block_hash',
+          block_hash: Buffer.alloc(32).toString('hex'),
           block_height: 1,
           dest_addresses: ['address'],
           num_confirmations: 1,
           time_stamp: '1',
           total_fees: '1',
-          tx_hash: 'tx_hash',
+          tx_hash: Buffer.alloc(32).toString('hex'),
         };
 
         Object.keys(overrides).forEach(k => transaction[k] = overrides[k]);

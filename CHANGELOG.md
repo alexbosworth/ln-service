@@ -1,5 +1,27 @@
 # Versions
 
+## 48.1.0
+
+- `getChainTransactions`: Add `after` and `before` to specify height ranges
+- `getSweepTransactions`: Add support for fetching 2nd level sweep transactions
+- `getWalletVersion`: Add `version` to return known release version strings
+- `payViaPaymentDetails`: Add support for specifying `max_paths`
+- `payViaPaymentDetails`: Add support for specifying `outgoing_channels`
+- `payViaPaymentRequest`: Add support for specifying `max_paths`
+- `payViaPaymentRequest`: Add support for specifying `outgoing_channels`
+- `subscribeToPayViaDetails`: Add support for specifying `max_paths`
+- `subscribeToPayViaDetails`: Add support for specifying `outgoing_channels`
+- `subscribeToPayViaRequest`: Add support for specifying `max_paths`
+- `subscribeToPayViaRequest`: Add support for specifying `outgoing_channels`
+- `subscribeToTransactions`: Change `confirmation_count` zero to undefined
+- `subscribeToTransactions`: Return `confirmation_height` attribute when defined
+- `subscribeToTransactions`: Return `created_at` attribute
+- `subscribeToTransactions`: Change `fee` zero fee to undefined
+- `subscribeToTransactions`: Add `output_addresses` attribute
+- `subscribeToTransactions`: Add `tokens` attribute
+- `subscribeToTransactions`: Add `transaction` attribute when defined
+- `subscribeToTransactions`: Suppress errors when there are no error listeners
+
 ## 48.0.5
 
 - `getPayments`: Add support for add index

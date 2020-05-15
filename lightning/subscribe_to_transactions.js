@@ -1,13 +1,14 @@
 const EventEmitter = require('events');
 
-const {abs} = Math;
-const msPerSec = 1e3;
+const {rpcTxAsTransaction} = require('lightning/lnd_responses');
+
+const {isArray} = Array;
 
 /** Subscribe to transactions
 
   Requires `onchain:read` permission
 
-  In LND 0.7.1 `block_height` is not supported
+  In LND 0.7.1 `confirmation_height` is not supported
 
   {
     lnd: <Authenticated LND API Object>
@@ -22,15 +23,16 @@ const msPerSec = 1e3;
   @event 'chain_transaction'
   {
     [block_id]: <Block Hash String>
-    confirmation_count: <Confirmation Count Number>
-    [confirmation_height]: <Block Best Chain Tip Height Number>
-    fee: <Fees Paid Tokens Number>
+    [confirmation_count]: <Confirmation Count Number>
+    [confirmation_height]: <Confirmation Block Height Number>
+    created_at: <Created ISO 8601 Date String>
+    [fee]: <Fees Paid Tokens Number>
     id: <Transaction Id String>
-    address: <address>
     is_confirmed: <Is Confirmed Bool>
     is_outgoing: <Transaction Outbound Bool>
-    [output_addresses]: [<Chain Address String>]
-    tokens: <Tokens Number>
+    output_addresses: [<Address String>]
+    tokens: <Tokens Including Fee Number>
+    [transaction]: <Raw Transaction Hex String>
   }
 */
 module.exports = ({lnd}) => {
@@ -41,35 +43,29 @@ module.exports = ({lnd}) => {
   const eventEmitter = new EventEmitter();
   const subscription = lnd.default.subscribeTransactions({});
 
+  const emitErr = err => {
+    // Exit early when there are no listeners on error
+    if (!eventEmitter.listenerCount('error')) {
+      return;
+    }
+
+    if (isArray(err)) {
+      return eventEmitter.emit('error', err);
+    }
+
+    return eventEmitter.emit('error', [503, 'UnexpectedChainTxSubErr', {err}]);
+  };
+
   subscription.on('data', tx => {
-    if (!tx) {
-      return eventEmitter.emit('error', new Error('ExpectedTxInDataEvent'));
+    try {
+      return eventEmitter.emit('chain_transaction', rpcTxAsTransaction(tx));
+    } catch (err) {
+      return emitErr([503, err.message]);
     }
-
-    if (!tx.time_stamp) {
-      return eventEmitter.emit('error', new Error('ExpectedTxTimeStamp'));
-    }
-
-    if (!tx.tx_hash) {
-      return eventEmitter.emit('error', new Error('ExpectedTxIdInTxEvent'));
-    }
-
-    return eventEmitter.emit('chain_transaction', {
-      block_id: tx.block_hash || undefined,
-      confirmation_count: tx.num_confirmations,
-      confirmation_height: tx.block_height || undefined,
-      created_at: new Date(Number(tx.time_stamp) * msPerSec).toISOString(),
-      fee: Number(tx.total_fees),
-      id: tx.tx_hash,
-      is_confirmed: !!tx.block_hash,
-      is_outgoing: Number(tx.amount) < Number(),
-      output_addresses: tx.dest_addresses,
-      tokens: abs(Number(tx.amount)),
-    });
   });
 
   subscription.on('end', () => eventEmitter.emit('end'));
-  subscription.on('error', err => eventEmitter.emit('error', err));
+  subscription.on('error', err => emitErr(err));
   subscription.on('status', status => eventEmitter.emit('status', status));
 
   return eventEmitter;

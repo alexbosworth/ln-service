@@ -1,20 +1,21 @@
 const asyncAuto = require('async/auto');
-const asyncMapSeries = require('async/mapSeries');
 const {returnResult} = require('asyncjs-util');
+const {rpcTxAsTransaction} = require('lightning/lnd_responses');
 
 const {isLnd} = require('./../grpc');
 
-const {abs} = Math;
-const decBase = 10;
 const {isArray} = Array;
-const msPerSec = 1e3;
-const notFound = -1;
+const offset = 1;
 
 /** Get chain transactions.
 
   Requires `onchain:read` permission
 
+  `after` and `before` are not supported on LND 0.10.0 and below
+
   {
+    [after]: <Confirmed After Current Best Chain Block Height Number>
+    [before]: <Confirmed Before Current Best Chain Block Height Number>
     lnd: <Authenticated LND Object>
   }
 
@@ -35,7 +36,7 @@ const notFound = -1;
     }]
   }
 */
-module.exports = ({lnd}, cbk) => {
+module.exports = ({after, before, lnd}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Check arguments
@@ -49,7 +50,11 @@ module.exports = ({lnd}, cbk) => {
 
       // Get transactions
       getTransactions: ['validate', ({}, cbk) => {
-        return lnd.default.getTransactions({}, (err, res) => {
+        return lnd.default.getTransactions({
+          end_height: !!before ? before - offset : undefined,
+          start_height: !!after ? after + offset : undefined,
+        },
+        (err, res) => {
           if (!!err) {
             return cbk([503, 'UnexpectedGetChainTransactionsError', {err}]);
           }
@@ -62,73 +67,16 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'ExpectedTransactionsList', res]);
           }
 
-          return cbk(null, res.transactions);
+          try {
+            const transactions = res.transactions.map(rpcTxAsTransaction);
+
+            return cbk(null, {transactions});
+          } catch (err) {
+            return cbk([503, err.message]);
+          }
         });
       }],
-
-      // Format transactions
-      formatted: ['getTransactions', ({getTransactions}, cbk) => {
-        return asyncMapSeries(getTransactions, (transaction, cbk) => {
-          if (!transaction.amount) {
-            return cbk([503, 'ExpectedTransactionAmountInChainTransaction']);
-          }
-
-          if (typeof transaction.block_hash !== 'string') {
-            return cbk([503, 'ExpectedTransactionBlockHashInChainTx']);
-          }
-
-          if (transaction.block_height === undefined) {
-            return cbk([503, 'ExpectedChainTransactionBlockHeightNumber']);
-          }
-
-          if (!isArray(transaction.dest_addresses)) {
-            return cbk([503, 'ExpectedChainTransactionDestinationAddresses']);
-          }
-
-          if (transaction.dest_addresses.findIndex(n => !n) !== notFound) {
-            return cbk([503, 'ExpectedDestinationAddressesInChainTx']);
-          }
-
-          if (transaction.num_confirmations === undefined) {
-            return cbk([503, 'ExpectedChainTransactionConfirmationsCount']);
-          }
-
-          if (!transaction.time_stamp) {
-            return cbk([503, 'ExpectedChainTransactionTimestamp']);
-          }
-
-          if (!transaction.total_fees) {
-            return cbk([503, 'ExpectedChainTransactionTotalFees']);
-          }
-
-          if (!transaction.tx_hash) {
-            return cbk([503, 'ExpectedChainTransactionId']);
-          }
-
-          const epochTime = parseInt(transaction.time_stamp, decBase);
-
-          return cbk(null, {
-            block_id: transaction.block_hash || undefined,
-            confirmation_count: transaction.num_confirmations || undefined,
-            confirmation_height: transaction.block_height || undefined,
-            created_at: new Date(epochTime * msPerSec).toISOString(),
-            fee: parseInt(transaction.total_fees, decBase) || undefined,
-            id: transaction.tx_hash,
-            is_confirmed: !!transaction.num_confirmations,
-            is_outgoing: (parseInt(transaction.amount, decBase) < 0),
-            output_addresses: transaction.dest_addresses,
-            tokens: abs(parseInt(transaction.amount, decBase)),
-            transaction: transaction.raw_tx_hex || undefined,
-          });
-        },
-        cbk);
-      }],
-
-      // Final transactions list
-      transactions: ['formatted', ({formatted}, cbk) => {
-        return cbk(null, {transactions: formatted});
-      }],
     },
-    returnResult({reject, resolve, of: 'transactions'}, cbk));
+    returnResult({reject, resolve, of: 'getTransactions'}, cbk));
   });
 };

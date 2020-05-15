@@ -9,6 +9,7 @@ const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
+const {getWalletVersion} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
@@ -79,6 +80,36 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
   equal(tx.is_outgoing, false, 'Transaction is incoming');
   deepIs(tx.output_addresses, [address], 'Address is returned');
   equal(tx.tokens, tokens - defaultFee, 'Chain tokens are returned');
+
+  try {
+    const {version} = await getWalletVersion({lnd});
+
+    if (version !== '0.10.0-beta') {
+      const onlyAfter = await getChainTransactions({
+        lnd,
+        after: tx.confirmation_height,
+      });
+
+      equal(onlyAfter.transactions.length, [].length, 'No transactions after');
+
+      const onlyBefore = await getChainTransactions({
+        lnd,
+        before: tx.confirmation_height,
+      });
+
+      equal(onlyBefore.transactions.length, [].length, 'No tx before');
+
+      const between = await getChainTransactions({
+        lnd,
+        after: tx.confirmation_height - 1,
+        before: tx.confirmation_height + 1,
+      });
+
+      deepIs(between.transactions.length, [tx].length, 'One transaction');
+    }
+  } catch (err) {
+    deepIs(err, [501, 'VersionMethodUnsupported'], 'Using legacy LND');
+  }
 
   kill();
 

@@ -10,6 +10,8 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
   Requires LND built with `signrpc` build tag
 
+  Requires `signer:read` permission
+
   This method is not supported in LND v0.8.2 and below
 
   {

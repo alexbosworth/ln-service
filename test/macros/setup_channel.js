@@ -18,6 +18,7 @@ const defaultFee = 1e3;
     [give]: <Gift Tokens Number>
     [hidden]: <Channel Is Private Bool>
     lnd: <Authenticated LND gRPC API Object>
+    [partner_csv_delay]: <Partner CSV Delay Number>
     to: {
       public_key: <Partner Public Key Hex String>
       socket: <Network Address String>
@@ -42,6 +43,7 @@ module.exports = (args, cbk) => {
           is_private: !!args.hidden,
           lnd: args.lnd,
           local_tokens: args.capacity || channelCapacityTokens,
+          partner_csv_delay: args.partner_csv_delay,
           partner_public_key: args.to.public_key,
           socket: args.to.socket,
         },

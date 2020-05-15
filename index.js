@@ -53,6 +53,7 @@ const {getRouteConfidence} = require('./router');
 const {getRouteThroughHops} = require('lightning/lnd_methods');
 const {getRouteToDestination} = require('lightning/lnd_methods');
 const {getRoutes} = require('./lightning');
+const {getSweepTransactions} = require('lightning/lnd_methods');
 const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('./lightning');
 const {getWalletInfo} = require('./lightning');
@@ -164,6 +165,7 @@ module.exports = {
   getRouteThroughHops,
   getRouteToDestination,
   getRoutes,
+  getSweepTransactions,
   getTowerServerInfo,
   getUtxos,
   getWalletInfo,
