@@ -3560,7 +3560,7 @@ Example:
 const {sendToChainAddress} = require('ln-service');
 const address = 'regularOnChainAddress';
 const tokens = 80085;
-await sendToChainAddresses({address, lnd, tokens});
+await sendToChainAddress({address, lnd, tokens});
 ```
 
 ### sendToChainAddresses
