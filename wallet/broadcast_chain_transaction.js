@@ -15,7 +15,10 @@ const type = 'wallet';
 
   Requires `onchain:write` permission
 
+  `description` is not supported on LND 0.10.1 and below
+
   {
+    [description]: <Transaction Label String>
     lnd: <Authenticated LND API Object>
     transaction: <Transaction Hex String>
   }
@@ -25,7 +28,7 @@ const type = 'wallet';
     id: <Transaction Id Hex String>
   }
 */
-module.exports = ({lnd, transaction}, cbk) => {
+module.exports = ({description, lnd, transaction}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Check arguments
@@ -44,6 +47,7 @@ module.exports = ({lnd, transaction}, cbk) => {
       // Publish transaction
       broadcast: ['validate', ({}, cbk) => {
         return lnd[type][method]({
+          label: description || undefined,
           tx_hex: bufFromHex(transaction),
         },
         (err, res) => {

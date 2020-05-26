@@ -1,4 +1,3 @@
-const {decodeChanId} = require('bolt07');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
@@ -6,19 +5,14 @@ const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
-const {getPendingChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
-const {openChannel} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {routeFromHops} = require('./../../routing');
+const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
 const description = 'x';
 const invoiceId = '7426ba0604c3f8682c7016b44673f85c5bd9da2fa6c1080810cf53ae320c9863';
 const mtok = '000';
@@ -30,58 +24,27 @@ const tokens = 1e4;
 
 // Subscribing to invoices should trigger invoice events
 test('Subscribe to invoices', async ({end, equal, fail}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
 
-  const destination = (await getWalletInfo({lnd})).public_key;
+  const destination = cluster.control.public_key;
 
   // Create a channel from the control to the target node
-  const controlToTargetChannel = await openChannel({
+  const controlToTargetChannel = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: 1e5,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
-
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  const channel = await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
+    generate: cluster.generate,
+    give: 1e5,
+    to: cluster.target,
   });
 
   // Create a channel from the target back to the control
-  const targetToControlChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: 1e5,
+  const targetToControlChannel = await setupChannel({
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: (await getWalletInfo({lnd})).public_key,
-    socket: cluster.control.socket,
-  });
-
-  await waitForPendingChannel({
-    id: targetToControlChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({
-    id: targetToControlChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: 1e5,
+    to: cluster.control,
   });
 
   let gotUnconfirmedInvoice = false;

@@ -5,9 +5,7 @@ const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getClosedChannels} = require('./../../');
-const {openChannel} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
 const confirmationCount = 6;
 const defaultFee = 1e3;
@@ -21,24 +19,11 @@ test(`Close channel`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    lnd: cluster.control.lnd,
-    local_tokens: maxChanTokens,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
-
-  await waitForPendingChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.control.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount});
-
-  await waitForChannel({
-    id: channelOpen.transaction_id,
-    lnd: cluster.control.lnd,
+  const channelOpen = await setupChannel({
+    lnd,
+    capacity: maxChanTokens,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
   const closing = await closeChannel({

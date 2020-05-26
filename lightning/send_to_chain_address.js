@@ -9,8 +9,11 @@ const initialConfirmationCount = 0;
 
   Requires `onchain:write` permission
 
+  `description` is not supported on LND 0.10.1 or below
+
   {
     address: <Destination Chain Address String>
+    [description]: <Transaction Label String>
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
     [is_send_all]: <Send All Funds Bool>
     lnd: <Authenticated LND API Object>
@@ -66,6 +69,7 @@ module.exports = (args, cbk) => {
         return args.lnd.default.sendCoins({
           addr: args.address,
           amount: args.tokens || undefined,
+          label: args.description || undefined,
           sat_per_byte: args.fee_tokens_per_vbyte || undefined,
           send_all: args.is_send_all || undefined,
           target_conf: args.target_confirmations || undefined,

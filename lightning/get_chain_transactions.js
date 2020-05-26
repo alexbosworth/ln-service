@@ -13,6 +13,8 @@ const offset = 1;
 
   `after` and `before` are not supported on LND 0.10.0 and below
 
+  `description` is not returned in LND 0.10.1 and below
+
   {
     [after]: <Confirmed After Current Best Chain Block Height Number>
     [before]: <Confirmed Before Current Best Chain Block Height Number>
@@ -26,6 +28,7 @@ const offset = 1;
       [confirmation_count]: <Confirmation Count Number>
       [confirmation_height]: <Confirmation Block Height Number>
       created_at: <Created ISO 8601 Date String>
+      [description]: <Transaction Label String>
       [fee]: <Fees Paid Tokens Number>
       id: <Transaction Id String>
       is_confirmed: <Is Confirmed Bool>

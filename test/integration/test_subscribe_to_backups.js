@@ -14,8 +14,8 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const giftTokens = 1e5;
-const interval = retryCount => 10 * Math.pow(2, retryCount);
-const times = 20;
+const interval = 250;
+const times = 50;
 
 // Subscribing to channel backups should trigger backup notifications
 test(`Subscribe to backups`, async ({end, equal}) => {
@@ -34,13 +34,15 @@ test(`Subscribe to backups`, async ({end, equal}) => {
     return got.channels = channels;
   });
 
-  channelOpen = await openChannel({
-    lnd: cluster.target.lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.control.public_key,
-    socket: cluster.control.socket,
+  channelOpen = await asyncRetry({interval, times}, async () => {
+    return await openChannel({
+      lnd: cluster.target.lnd,
+      chain_fee_tokens_per_vbyte: defaultFee,
+      give_tokens: giftTokens,
+      local_tokens: channelCapacityTokens,
+      partner_public_key: cluster.control.public_key,
+      socket: cluster.control.socket,
+    });
   });
 
   // Wait for generation to be over

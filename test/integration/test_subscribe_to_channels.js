@@ -36,14 +36,22 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   sub.on('channel_opening', update => channelAdding.push(update));
   sub.on('err', err => errors.push(err));
 
-  // Create a channel from the control to the target node
-  const channelOpen = await openChannel({
-    lnd,
-    socket,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giveTokens,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
+  const channelOpen = await asyncRetry({interval, times}, async () => {
+    await addPeer({
+      lnd,
+      public_key: cluster.target.public_key,
+      socket: cluster.target.socket,
+    });
+
+    // Create a channel from the control to the target node
+    return await openChannel({
+      lnd,
+      socket,
+      chain_fee_tokens_per_vbyte: defaultFee,
+      give_tokens: giveTokens,
+      local_tokens: channelCapacityTokens,
+      partner_public_key: cluster.target_node_public_key,
+    });
   });
 
   // Wait for the channel to confirm

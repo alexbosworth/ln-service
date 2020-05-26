@@ -305,7 +305,10 @@ Publish a raw blockchain transaction to Blockchain network peers
 
 Requires LND built with `walletrpc` tag
 
+`description` is not supported on LND 0.10.1 and below
+
     {
+      [description]: <Transaction Label String>
       lnd: <Authenticated LND API Object>
       transaction: <Transaction Hex String>
     }
@@ -1165,6 +1168,8 @@ Requires `onchain:read` permission
 
 `after` and `before` are not supported on LND 0.10.0 and below
 
+`description` is not returned in LND 0.10.1 and below
+
     {
       [after]: <Confirmed After Current Best Chain Block Height Number>
       [before]: <Confirmed Before Current Best Chain Block Height Number>
@@ -1178,6 +1183,7 @@ Requires `onchain:read` permission
         [confirmation_count]: <Confirmation Count Number>
         [confirmation_height]: <Confirmation Block Height Number>
         created_at: <Created ISO 8601 Date String>
+        [description]: <Transaction Label String>
         [fee]: <Fees Paid Tokens Number>
         id: <Transaction Id String>
         is_confirmed: <Is Confirmed Bool>
@@ -3534,8 +3540,11 @@ Send tokens in a blockchain transaction.
 
 Requires `onchain:write` permission
 
+`description` is not supported on LND 0.10.1 or below
+
     {
       address: <Destination Chain Address String>
+      [description]: <Transaction Label String>
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
       [is_send_all]: <Send All Funds Bool>
       lnd: <Authenticated LND API Object>
@@ -3569,7 +3578,10 @@ Send tokens to multiple destinations in a blockchain transaction.
 
 Requires `onchain:write` permission
 
+`description` is not supported in LND 0.10.1 and below
+
     {
+      [description]: <Transaction Label String>
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
       lnd: <Authenticated LND API Object>
       [log]: <Log Function>

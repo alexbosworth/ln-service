@@ -5,14 +5,9 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getForwards} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
 const limit = 1;
 const tokens = 100;
 
@@ -20,44 +15,17 @@ const tokens = 100;
 test('Get forwards', async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
-  const controlToTargetChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  await setupChannel({
+    generate: cluster.generate,
     lnd: cluster.control.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({
-    id: controlToTargetChannel.transaction_id,
-    lnd: cluster.control.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({
-    id: controlToTargetChannel.transaction_id,
-    lnd: cluster.control.lnd,
-  });
-
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  await setupChannel({
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    generate: cluster.generate,
+    generator: cluster.target,
+    to: cluster.remote,
   });
 
   await addPeer({

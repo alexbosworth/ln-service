@@ -4,7 +4,6 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
-const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {probeForRoute} = require('./../../');
@@ -25,8 +24,6 @@ test('Delete forwarding reputations', async ({deepIs, end, equal}) => {
     generate: cluster.generate,
     to: cluster.target,
   });
-
-  const [controlChannel] = (await getChannels({lnd})).channels;
 
   const targetToRemoteChan = await setupChannel({
     generate: cluster.generate,

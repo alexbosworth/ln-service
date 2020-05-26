@@ -8,6 +8,7 @@ const makeExpected = overrides => {
     confirmation_count: 1,
     confirmation_height: 1,
     created_at: '1970-01-01T00:00:01.000Z',
+    description: undefined,
     fee: 1,
     id: Buffer.alloc(32).toString('hex'),
     is_confirmed: true,

@@ -27,14 +27,16 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const channelOpen = await openChannel({
-    lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: giftTokens,
-    local_tokens: channelCapacityTokens,
-    partner_csv_delay: 10,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
+  const channelOpen = await asyncRetry({interval, times}, async () => {
+    return await openChannel({
+      lnd,
+      chain_fee_tokens_per_vbyte: defaultFee,
+      give_tokens: giftTokens,
+      local_tokens: channelCapacityTokens,
+      partner_csv_delay: 10,
+      partner_public_key: cluster.target.public_key,
+      socket: cluster.target.socket,
+    });
   });
 
   await getPendingChannels({lnd, id: channelOpen.transaction_id});

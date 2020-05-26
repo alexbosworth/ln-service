@@ -4,6 +4,8 @@ const blockHashByteLen = 32;
 
 /** Subscribe to blocks
 
+  This method will also immediately emit the current height and block id
+
   Requires LND built with `chainrpc` build tag
 
   Requires `onchain:read` permission
@@ -21,7 +23,7 @@ const blockHashByteLen = 32;
   @event 'block'
   {
     height: <Block Height Number>
-    id: <Block Hash String>
+    id: <Block Hash Hex String>
   }
 */
 module.exports = ({lnd}) => {

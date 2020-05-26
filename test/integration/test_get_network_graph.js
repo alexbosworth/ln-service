@@ -1,52 +1,39 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
-const {getChannels} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {getNode} = require('./../../');
-const {getWalletInfo} = require('./../../');
-const {openChannel} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
+const {setupChannel} = require('./../macros');
 
 const {ceil} = Math;
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
+const interval = 250;
+const times = 50;
 
 // Getting the network graph should return the public nodes and connections
 test(`Get network graph`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {control} = cluster;
+
   const {lnd} = control;
 
-  const controlToTargetChannel = await openChannel({
+  const expectedChannel = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
+  // Wait until the node shows up in the graph
+  const graph = await asyncRetry({interval, times}, async () => {
+    const networkGraph = await getNetworkGraph({lnd});
+
+    if (!networkGraph.nodes.find(n => n.public_key === control.public_key)) {
+      throw new Error('ExpectedToFindNodeInGraph');
+    }
+
+    return networkGraph;
   });
-
-  await cluster.generate({count: confirmationCount, node: control});
-
-  await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await delay(2000);
-
-  const [expectedChannel] = (await getChannels({lnd})).channels;
-  const expectedNode = await getWalletInfo({lnd});
-  const graph = await getNetworkGraph({lnd});
 
   const node = graph.nodes.find(n => n.public_key === control.public_key);
   const [channel] = graph.channels;
@@ -56,14 +43,12 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   if (!!nodeDetails && !!nodeDetails.channels.length) {
     const [chan] = nodeDetails.channels;
 
-    // chan.policies.forEach(policy => delete policy.updated_at);
-
     deepIs(chan, channel, 'Graph channel matches node details channel');
   }
 
-  equal(node.alias, expectedNode.public_key.slice(0, 20), 'Node alias is own');
+  equal(node.alias, control.public_key.slice(0, 20), 'Node alias is own');
   equal(node.color, '#3399ff', 'Node color is default');
-  equal(node.public_key, expectedNode.public_key, 'Node pubkey is own');
+  equal(node.public_key, control.public_key, 'Node pubkey is own');
   deepIs(node.sockets, [control.socket], 'Node socket returned');
   equal(new Date() - new Date(node.updated_at) < 1e5, true, 'Recent update');
 

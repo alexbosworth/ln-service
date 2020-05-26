@@ -5,11 +5,13 @@ const {test} = require('tap');
 const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {getChainBalance} = require('./../../');
+const {getChainTransactions} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 
 const chainAddressRowType = 'chain_address';
 const confirmationCount = 6;
+const description = 'description';
 const format = 'p2wpkh';
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const regtestBech32AddressHrp = 'bcrt';
@@ -29,6 +31,7 @@ test(`Send to chain address`, async ({end, equal}) => {
 
   const sent = await sendToChainAddress({
     address,
+    description,
     tokens,
     lnd: cluster.control.lnd,
   });
@@ -78,6 +81,17 @@ test(`Send to chain address`, async ({end, equal}) => {
     if (err[2].message !== '2 UNKNOWN: transaction output is dust') {
       throw err;
     }
+  }
+
+  const {transactions} = await getChainTransactions({
+    lnd: cluster.control.lnd,
+  });
+
+  const sentTransaction = transactions.find(n => n.id === sent.id);
+
+  // Transaction labels are not supported on LND 0.10.1 and below
+  if (!!sentTransaction.description) {
+    equal(sentTransaction.description, description, 'Got expected label');
   }
 
   await cluster.kill({});

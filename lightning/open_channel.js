@@ -170,6 +170,14 @@ module.exports = (args, cbk) => {
             return cbk([400, 'InsufficientFundsToCreateChannel', {err: n}]);
           }
 
+          if (/disconnected$/.test(n.details)) {
+            return cbk([503, 'RemotePeerDisconnected']);
+          }
+
+          if (/pending.channels.exceed.maximum/.test(n.details)) {
+            return cbk([503, 'PeerPendingChannelsExceedMaximumAllowable']);
+          }
+
           switch (n.details) {
           case 'cannot open channel to self':
             return cbk([400, 'CannotOpenChannelToOwnNode']);
@@ -177,15 +185,18 @@ module.exports = (args, cbk) => {
           case 'channels cannot be created before the wallet is fully synced':
             return cbk([503, 'WalletNotFullySynced']);
 
+          case 'multiple channels unsupported':
           case 'Multiple channels unsupported':
             return cbk([503, 'RemoteNodeDoesNotSupportMultipleChannels']);
 
           case 'peer disconnected':
             return cbk([503, 'RemotePeerDisconnected']);
 
+          case 'synchronizing blockchain':
           case 'Synchronizing blockchain':
             return cbk([503, 'RemoteNodeSyncing']);
 
+          case 'unable to send funding request message: peer exiting':
           case 'Unable to send funding request message: peer exiting':
             return cbk([503, 'RemotePeerExited']);
 

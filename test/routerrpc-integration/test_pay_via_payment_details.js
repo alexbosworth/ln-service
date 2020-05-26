@@ -1,5 +1,3 @@
-const {randomBytes} = require('crypto');
-
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
@@ -7,32 +5,16 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
-const {getChannel} = require('./../../');
-const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
-const {getNetworkGraph} = require('./../../');
-const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
-const {openChannel} = require('./../../');
-const {pay} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
-const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
-const mtokPadding = '000';
 const tlvData = '0000';
 const tlvType = '65537';
 const tokens = 100;
-const txIdHexLength = 32 * 2;
 
 // Paying an invoice should settle the invoice
 test(`Pay`, async ({deepIs, end, equal, rejects}) => {

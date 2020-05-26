@@ -76,8 +76,8 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   const {channels} = await getChannels({lnd: cluster.remote.lnd});

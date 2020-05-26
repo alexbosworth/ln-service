@@ -16,6 +16,7 @@ const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {routeFromHops} = require('./../../routing');
+const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -34,51 +35,23 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
+  const channel = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({lnd, id: controlToTargetChannel.transaction_id});
-
-  const [channel] = (await getChannels({lnd})).channels;
-
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  const remoteChan = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    to: cluster.remote,
   });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
 
   await delay(3000);

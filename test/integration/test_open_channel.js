@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {createChainAddress} = require('./../../');
@@ -19,14 +20,16 @@ test(`Open channel`, async ({end, equal}) => {
 
   const {address} = await createChainAddress({format, lnd});
 
-  const channelOpen = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    cooperative_close_address: address,
-    give_tokens: giftTokens,
-    lnd: cluster.control.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
+  const channelOpen = await asyncRetry({}, async () => {
+    return await openChannel({
+      lnd,
+      chain_fee_tokens_per_vbyte: defaultFee,
+      cooperative_close_address: address,
+      give_tokens: giftTokens,
+      local_tokens: channelCapacityTokens,
+      partner_public_key: cluster.target.public_key,
+      socket: cluster.target.socket,
+    });
   });
 
   equal(channelOpen.transaction_id.length, txIdHexLength, 'Channel tx id');

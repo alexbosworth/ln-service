@@ -1,4 +1,5 @@
 const asyncAuto = require('async/auto');
+const asyncRetry = require('async/retry');
 const {returnResult} = require('asyncjs-util');
 
 const {openChannel} = require('./../../');
@@ -8,6 +9,8 @@ const waitForPendingChannel = require('./wait_for_pending_channel');
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
+const interval = 200;
+const times = 50;
 
 /** Setup channel
 
@@ -37,15 +40,18 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Open channel
       chanOpen: cbk => {
-        return openChannel({
-          chain_fee_tokens_per_vbyte: defaultFee,
-          give_tokens: args.give,
-          is_private: !!args.hidden,
-          lnd: args.lnd,
-          local_tokens: args.capacity || channelCapacityTokens,
-          partner_csv_delay: args.partner_csv_delay,
-          partner_public_key: args.to.public_key,
-          socket: args.to.socket,
+        return asyncRetry({interval, times}, cbk => {
+          return openChannel({
+            chain_fee_tokens_per_vbyte: defaultFee,
+            give_tokens: args.give,
+            is_private: !!args.hidden,
+            lnd: args.lnd,
+            local_tokens: args.capacity || channelCapacityTokens,
+            partner_csv_delay: args.partner_csv_delay,
+            partner_public_key: args.to.public_key,
+            socket: args.to.socket,
+          },
+          cbk);
         },
         cbk);
       },

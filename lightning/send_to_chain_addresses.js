@@ -10,7 +10,10 @@ const {isArray} = Array;
 
   Requires `onchain:write` permission
 
+  `description` is not supported in LND 0.10.1 and below
+
   {
+    [description]: <Transaction Label String>
     [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
     lnd: <Authenticated LND API Object>
     [log]: <Log Function>
@@ -67,6 +70,7 @@ module.exports = (args, cbk) => {
 
         const send = {
           AddrToAmount,
+          label: args.description || undefined,
           sat_per_byte: args.fee_tokens_per_vbyte || undefined,
           target_conf: args.target_confirmations || undefined,
         };

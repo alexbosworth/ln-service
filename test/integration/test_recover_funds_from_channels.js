@@ -6,7 +6,6 @@ const {delay} = require('./../macros');
 const {getBackups} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {openChannel} = require('./../../');
 const {recoverFundsFromChannels} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {setupChannel} = require('./../macros');
@@ -29,15 +28,28 @@ test(`Recover funds with backup`, async ({end, equal}) => {
     nodes: [clone],
   });
 
+  let channelOpen;
   const {lnd} = cluster.control;
 
-  const channelOpen = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    give: giftTokens,
-    lnd: cluster.target.lnd,
-    to: cluster.control,
-  });
+  try {
+    channelOpen = await setupChannel({
+      generate: cluster.generate,
+      generator: cluster.target,
+      give: giftTokens,
+      lnd: cluster.target.lnd,
+      to: cluster.control,
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error setting up a channel');
+
+    clone.kill();
+
+    await waitForTermination({lnd: clone.lnd});
+
+    await cluster.kill({});
+
+    return end();
+  }
 
   await delay(3000);
 

@@ -1,5 +1,12 @@
 # Versions
 
+## 48.2.0
+
+- `broadcastChainTransaction`: Add support for transaction `description`
+- `getChainTransactions`: Add support for transaction `description`
+- `sendToChainAddress`: Add support for adding a `description`
+- `sendToChainAddresses`: Add support for adding a `description`
+
 ## 48.1.0
 
 - `getChainTransactions`: Add `after` and `before` to specify height ranges

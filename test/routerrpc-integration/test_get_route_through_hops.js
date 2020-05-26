@@ -6,39 +6,19 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
-const {getChannel} = require('./../../');
-const {getChannels} = require('./../../');
-const {getInvoice} = require('./../../');
 const {getRouteThroughHops} = require('./../../');
 const {getRoutes} = require('./../../');
-const {getWalletInfo} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
-const {openChannel} = require('./../../');
-const {payViaRoutes} = require('./../../');
-const {routeFromChannels} = require('./../../routing');
 const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
-const mtokPadding = '000';
-const regtestChain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
-const reserveRatio = 0.99;
 const tokens = 100;
-const txIdHexLength = 32 * 2;
 
 // Getting a route through hops should result in a route through specified hops
 test(`Get route through hops`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
-  const remoteLnd = cluster.remote.lnd;
-  const targetPubKey = cluster.target_node_public_key;
 
   const controlToTargetChan = await setupChannel({
     lnd,

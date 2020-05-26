@@ -82,9 +82,16 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
   equal(tx.tokens, tokens - defaultFee, 'Chain tokens are returned');
 
   try {
-    const {version} = await getWalletVersion({lnd});
+    const wallet = await getWalletVersion({lnd});
 
-    if (version !== '0.10.0-beta') {
+    const unsupportingCommits = {
+      'ae6e84ddfd3c4d2366e151a04aca3f78b4078ed5': true,
+      'e8833042799d71dba209fe305ce3ae105c154cfe': true,
+    };
+
+    const isVersion10 = wallet.version === '0.10.0-beta';
+
+    if (!unsupportingCommits[wallet.commit_hash] && !isVersion10) {
       const onlyAfter = await getChainTransactions({
         lnd,
         after: tx.confirmation_height,

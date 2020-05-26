@@ -9,16 +9,10 @@ const {createHodlInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
-const defaultFee = 1e3;
 const tokens = 100;
 
 // Create a hodl invoice, but cancel it
