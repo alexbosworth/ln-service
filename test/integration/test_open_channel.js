@@ -8,9 +8,11 @@ const {openChannel} = require('./../../');
 const channelCapacityTokens = 1e6;
 const defaultFee = 1e3;
 const defaultVout = 0;
-const giftTokens = 1000;
-const txIdHexLength = 32 * 2;
 const format = 'p2wpkh';
+const giftTokens = 1000;
+const interval = 250;
+const times = 100;
+const txIdHexLength = 32 * 2;
 
 // Opening a channel should open a channel
 test(`Open channel`, async ({end, equal}) => {
@@ -20,7 +22,7 @@ test(`Open channel`, async ({end, equal}) => {
 
   const {address} = await createChainAddress({format, lnd});
 
-  const channelOpen = await asyncRetry({}, async () => {
+  const channelOpen = await asyncRetry({interval, times}, async () => {
     return await openChannel({
       lnd,
       chain_fee_tokens_per_vbyte: defaultFee,

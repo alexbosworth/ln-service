@@ -102,6 +102,7 @@ const {subscribeToProbeForRoute} = require('lightning/lnd_methods');
 const {subscribeToTransactions} = require('./lightning');
 const {unauthenticatedLndGrpc} = require('lightning');
 const {unlockWallet} = require('./unlocker');
+const {updateChainTransaction} = require('lightning/lnd_methods');
 const {updateConnectedWatchtower} = require('./tower_client');
 const {updateRoutingFees} = require('./lightning');
 const {verifyBackup} = require('./lightning');
@@ -214,6 +215,7 @@ module.exports = {
   subscribeToTransactions,
   unauthenticatedLndGrpc,
   unlockWallet,
+  updateChainTransaction,
   updateConnectedWatchtower,
   updateRoutingFees,
   verifyBackup,

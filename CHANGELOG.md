@@ -1,5 +1,9 @@
 # Versions
 
+## 48.3.0
+
+- `updateChainTransaction`: Add support for updating chain transaction label
+
 ## 48.2.0
 
 - `broadcastChainTransaction`: Add support for transaction `description`

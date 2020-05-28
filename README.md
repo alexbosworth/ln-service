@@ -215,6 +215,7 @@ for `unlocker` methods.
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
+- [updateChainTransaction](#updateChainTransaction) - Update a chain transaction
 - [updateConnectedWatchtower](#updateConnectedWatchtower) - Update watchtower
 - [updateRoutingFees](#updateRoutingFees) - Change routing fees
 - [verifyBackup](#verifyBackup) - Verify a channel backup
@@ -5221,6 +5222,36 @@ Example:
 const {unauthenticatedLndGrpc, unlockWallet} = require('ln-service');
 const {lnd} = unauthenticatedLndGrpc({});
 await unlockWallet({lnd, password: 'walletSecretPassword'});
+```
+
+### updateChainTransaction
+
+Update an on-chain transaction record metadata
+
+Requires LND built with `walletrpc` build tag
+
+Requires `onchain:write` permission
+
+This method is not supported in LND 0.10.1 and below
+
+    {
+      description: <Transaction Label String>
+      id: <Transaction Id Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {getChainTransactions} = require('ln-service');
+
+const {transactions} = await getChainTransactions({lnd});
+
+const [{id}] = transactions;
+
+await updateChainTransaction({id, lnd, description: 'First transaction'});
 ```
 
 ### updateConnectedWatchtower
