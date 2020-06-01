@@ -777,7 +777,7 @@ Create an unsigned payment request
         [base_fee_mtokens]: <Base Fee Millitokens String>
         [channel]: <Standard Format Channel Id String>
         [cltv_delta]: <Final CLTV Expiration Blocks Delta Number>
-        [fee_rate]: <Fee Rate Millitokens Per Million Number>
+        [fee_rate]: <Fees Charged in Millitokens Per Million Number>
         public_key: <Forward Edge Public Key Hex String>
       }]]
       [tokens]: <Requested Chain Tokens Number> (note: can differ from mtokens)
@@ -1243,7 +1243,7 @@ Requires `info:read` permission
       policies: [{
         [base_fee_mtokens]: <Base Fee Millitokens String>
         [cltv_delta]: <Locktime Delta Number>
-        [fee_rate]: <Fees Charged Per Million Tokens Number>
+        [fee_rate]: <Fees Charged Per Million Millitokens Number>
         [is_disabled]: <Channel Is Disabled Bool>
         [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
@@ -1440,7 +1440,7 @@ Requires `offchain:read` permission
     {
       channels: [{
         base_fee: <Base Flat Fee in Tokens Number>
-        fee_rate: <Fee Rate In Tokens Per Million Number>
+        fee_rate: <Fee Rate in Millitokens Per Million Number>
         [id]: <Standard Format Channel Id String>
         transaction_id: <Channel Funding Transaction Id Hex String>
         transaction_vout: <Funding Outpoint Output Index Number>
@@ -1847,7 +1847,7 @@ LND 0.8.2 and below do not return `features`
         policies: [{
           [base_fee_mtokens]: <Base Fee Millitokens String>
           [cltv_delta]: <Locktime Delta Number>
-          [fee_rate]: <Fees Charged Per Million Tokens Number>
+          [fee_rate]: <Fees Charged Per Million Millitokens Number>
           [is_disabled]: <Channel Is Disabled Bool>
           [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
           [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
@@ -4651,7 +4651,7 @@ LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
           [policy]: {
             base_fee_mtokens: <Base Fee Millitokens String>
             cltv_delta: <Locktime Delta Number>
-            fee_rate: <Fees Charged Per Million Tokens Number>
+            fee_rate: <Fees Charged in Millitokens Per Million Number>
             [is_disabled]: <Channel is Disabled Bool>
             max_htlc_mtokens: <Maximum HLTC Millitokens value String>
             min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
@@ -4697,7 +4697,7 @@ LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
       [policy]: {
         base_fee_mtokens: <Base Fee Millitokens String>
         cltv_delta: <Locktime Delta Number>
-        fee_rate: <Fees Charged Per Million Tokens Number>
+        fee_rate: <Fees Charged in Millitokens Per Million Number>
         [is_disabled]: <Channel is Disabled Bool>
         max_htlc_mtokens: <Maximum HLTC Millitokens value String>
         min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
@@ -4922,7 +4922,7 @@ On LND 0.9.0, use subscribeToProbeForRoute instead
       [policy]: {
         base_fee_mtokens: <Base Fee Millitokens String>
         cltv_delta: <Locktime Delta Number>
-        fee_rate: <Fees Charged Per Million Tokens Number>
+        fee_rate: <Fees Charged in Millitokens Per Million Number>
         [is_disabled]: <Channel is Disabled Bool>
         max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
         min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
@@ -5084,7 +5084,7 @@ This method is not supported on LND 0.8.2 or below.
       [policy]: {
         base_fee_mtokens: <Base Fee Millitokens String>
         cltv_delta: <Locktime Delta Number>
-        fee_rate: <Fees Charged Per Million Tokens Number>
+        fee_rate: <Fees Charged in Millitokens Per Million Number>
         [is_disabled]: <Channel is Disabled Bool>
         max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
         min_htlc_mtokens: <Minimum HTLC Millitokens Value String>

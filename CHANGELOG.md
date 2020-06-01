@@ -1,6 +1,6 @@
 # Versions
 
-## 48.3.0
+## 48.3.1
 
 - `updateChainTransaction`: Add support for updating chain transaction label
 

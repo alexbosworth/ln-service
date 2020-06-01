@@ -23,7 +23,7 @@ const transactionIdHexLength = 32 * 2;
   {
     channels: [{
       base_fee: <Base Flat Fee in Tokens Number>
-      fee_rate: <Fee Rate In Tokens Per Million Number>
+      fee_rate: <Fee Rate in Millitokens Per Million Number>
       [id]: <Standard Format Channel Id String>
       transaction_id: <Channel Funding Transaction Id Hex String>
       transaction_vout: <Funding Outpoint Output Index Number>

@@ -7,7 +7,7 @@
     "@datastructures-js/priority-queue": "4.1.1",
     "async": "3.2.0",
     "asyncjs-util": "1.2.2",
-    "bitcoinjs-lib": "5.1.8",
+    "bitcoinjs-lib": "5.1.9",
     "bn.js": "5.1.2",
     "bolt07": "1.5.0",
     "bolt09": "0.0.2",
@@ -15,7 +15,7 @@
     "express": "4.17.1",
     "invoices": "1.0.2",
     "is-base64": "1.1.0",
-    "lightning": "2.0.6",
+    "lightning": "2.0.7",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.3.0"
@@ -60,5 +60,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "48.3.0"
+  "version": "48.3.1"
 }

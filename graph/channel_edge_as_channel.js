@@ -42,7 +42,7 @@ const separatorChar = ':';
     policies: [{
       [base_fee_mtokens]: <Base Fee Millitokens String>
       [cltv_delta]: <Locktime Delta Number>
-      [fee_rate]: <Fees Charged Per Million Tokens Number>
+      [fee_rate]: <Fees Charged in Millitokens Per Million Number>
       [is_disabled]: <Channel Is Disabled Bool>
       [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
       [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
