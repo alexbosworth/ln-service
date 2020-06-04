@@ -10,16 +10,12 @@ const {deleteForwardingReputations} = require('./../../');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getRoutes} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {subscribeToProbe} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
 const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
 const tokens = 1e6 / 2;
 
 // Subscribing to a a route probe should return route probe events
@@ -29,49 +25,19 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   const {lnd} = cluster.control;
 
   // Create a channel from the control to the target node
-  const controlToTargetChannel = await openChannel({
+  const controlToTargetChan = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens * 2,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    capacity: channelCapacityTokens * 2,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  const controlToTargetChan = await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  const [controlChannel] = (await getChannels({lnd})).channels;
-
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: Math.round(channelCapacityTokens / 2),
+  const targetToRemoteChan = await setupChannel({
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  const targetToRemoteChan = await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: Math.round(channelCapacityTokens / 2),
+    to: cluster.remote,
   });
 
   await addPeer({
@@ -114,7 +80,7 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
         forward: tokens,
         forward_mtokens: `${tokens}000`,
         public_key: cluster.target_node_public_key,
-        timeout: 528,
+        timeout: 500,
       },
       {
         channel: targetToRemoteChan.id,
@@ -124,13 +90,13 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
         forward: tokens,
         forward_mtokens: `${tokens}000`,
         public_key: cluster.remote_node_public_key,
-        timeout: 528,
+        timeout: 500,
       }
     ],
     mtokens: '500001500',
     safe_fee: 2,
     safe_tokens: 500002,
-    timeout: 568,
+    timeout: 540,
     tokens: 500001,
   });
 
@@ -158,25 +124,11 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   equal(tempChanFail.update.signature.length, 64 * 2, 'Has signature');
 
   // Create a new channel to increase total edge liquidity
-  const newChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  await setupChannel({
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
-
-  await waitForPendingChannel({
-    id: newChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  const bigChannel = await waitForChannel({
-    id: newChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    generate: cluster.generate,
+    generator: cluster.target,
+    to: cluster.remote,
   });
 
   await deleteForwardingReputations({lnd});
@@ -195,7 +147,7 @@ test('Subscribe to probe', async ({deepIs, end, equal}) => {
   equal(success.route.fee_mtokens, '1500', 'Successful route fee mtokens');
   equal(success.route.hops.length, 2, 'Successful route returned');
   equal(success.route.mtokens, '500001500', 'Successful route mtokens');
-  equal(success.route.timeout, 588, 'Successful route timeout');
+  equal(success.route.timeout, 546, 'Successful route timeout');
   equal(success.route.tokens, 500001, 'Successful route tokens');
   equal(success.update, undefined, 'Success extra update info');
 

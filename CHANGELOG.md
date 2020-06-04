@@ -1,5 +1,9 @@
 # Versions
 
+## 48.3.2
+
+- `getWalletVersion`: Add 0.10.1-beta recognition
+
 ## 48.3.1
 
 - `updateChainTransaction`: Add support for updating chain transaction label

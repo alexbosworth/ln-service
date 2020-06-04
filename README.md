@@ -11,6 +11,7 @@ through npm.
 
 Supported LND versions:
 
+- v0.10.1-beta
 - v0.10.0-beta
 - v0.9.2-beta
 - v0.9.1-beta

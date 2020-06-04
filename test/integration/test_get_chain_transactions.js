@@ -90,9 +90,10 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
       'e8833042799d71dba209fe305ce3ae105c154cfe': true,
     };
 
-    const isVersion10 = wallet.version === '0.10.0-beta';
+    const isV10 = wallet.version === '0.10.0-beta';
+    const isV101 = wallet.version === '0.10.1-beta';
 
-    if (!unsupportingCommits[wallet.commit_hash] && !isVersion10) {
+    if (!unsupportingCommits[wallet.commit_hash] && !isV10 && !isV101) {
       const onlyAfter = await getChainTransactions({
         lnd,
         after: tx.confirmation_height,

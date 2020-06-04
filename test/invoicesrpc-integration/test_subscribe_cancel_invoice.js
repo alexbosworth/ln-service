@@ -9,46 +9,21 @@ const {createHodlInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
 const tokens = 100;
 
 // Subscribe to canceled invoice should return invoice canceled event
 test(`Subscribe to canceled invoice`, async ({deepIs, end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await createCluster({is_remote_skipped: true});
   let currentInvoice;
+  const secret = randomBytes(32);
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
-    lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
-
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  const secret = randomBytes(32);
+  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
   const sub = subscribeToInvoice({
     id: createHash('sha256').update(secret).digest('hex'),
