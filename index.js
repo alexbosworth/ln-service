@@ -60,6 +60,7 @@ const {getWalletInfo} = require('./lightning');
 const {getWalletVersion} = require('lightning/lnd_methods');
 const {grantAccess} = require('./macaroons');
 const {isDestinationPayable} = require('./router');
+const {lockUtxo} = require('lightning/lnd_methods');
 const {openChannel} = require('./lightning');
 const {openChannels} = require('lightning/lnd_methods');
 const {parsePaymentRequest} = require('invoices');
@@ -101,6 +102,7 @@ const {subscribeToProbe} = require('./router');
 const {subscribeToProbeForRoute} = require('lightning/lnd_methods');
 const {subscribeToTransactions} = require('./lightning');
 const {unauthenticatedLndGrpc} = require('lightning');
+const {unlockUtxo} = require('lightning/lnd_methods');
 const {unlockWallet} = require('./unlocker');
 const {updateChainTransaction} = require('lightning/lnd_methods');
 const {updateConnectedWatchtower} = require('./tower_client');
@@ -173,6 +175,7 @@ module.exports = {
   getWalletVersion,
   grantAccess,
   isDestinationPayable,
+  lockUtxo,
   openChannel,
   openChannels,
   parsePaymentRequest,
@@ -214,6 +217,7 @@ module.exports = {
   subscribeToProbeForRoute,
   subscribeToTransactions,
   unauthenticatedLndGrpc,
+  unlockUtxo,
   unlockWallet,
   updateChainTransaction,
   updateConnectedWatchtower,

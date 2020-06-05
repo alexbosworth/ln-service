@@ -36,7 +36,7 @@ const msPerSec = 1e3;
     base_fee_mtokens: <Channel Base Fee Millitokens String>
     [capacity]: <Channel Capacity Tokens Number>
     cltv_delta: <Channel CLTV Delta Number>
-    fee_rate: <Channel Feel Rate In Millitokens Per Million Number>
+    fee_rate: <Channel Fee Rate In Millitokens Per Million Number>
     id: <Standard Format Channel Id String>
     is_disabled: <Channel Is Disabled Bool>
     [max_htlc_mtokens]: <Channel Maximum HTLC Millitokens String>

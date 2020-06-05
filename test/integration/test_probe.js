@@ -4,18 +4,11 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const {getChannels} = require('./../../');
 const {getRoutes} = require('./../../');
-const {openChannel} = require('./../../');
-const {pay} = require('./../../');
 const {probe} = require('./../../');
 const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
 
 // Probing for a route should return a route
 test('Probe', async ({end, equal}) => {
@@ -23,58 +16,28 @@ test('Probe', async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const controlToTargetChannel = await openChannel({
+  // The probe will go from control > target > remote
+  const controlChannel = await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens * 2,
-    partner_public_key: cluster.target_node_public_key,
-    socket: `${cluster.target.listen_ip}:${cluster.target.listen_port}`,
+    capacity: channelCapacityTokens * 2,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  const [controlChannel] = (await getChannels({lnd})).channels;
-
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: Math.round(channelCapacityTokens / 2),
+  // Target to remote channel will have too-few tokens to forward
+  const remoteChannel = await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: Math.round(channelCapacityTokens / 2),
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    to: cluster.remote,
   });
 
   await addPeer({
     lnd,
-    public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
+    public_key: cluster.remote.public_key,
+    socket: cluster.remote.socket,
   });
-
-  const {channels} = await getChannels({lnd: cluster.remote.lnd});
 
   const invoice = await createInvoice({
     lnd: cluster.remote.lnd,
@@ -83,6 +46,7 @@ test('Probe', async ({end, equal}) => {
 
   await delay(1000);
 
+  // A route will exist because control doesn't know the target>remote balance
   const {routes} = await getRoutes({
     lnd,
     destination: cluster.remote_node_public_key,
@@ -91,39 +55,25 @@ test('Probe', async ({end, equal}) => {
 
   const probeResults = await probe({lnd, routes, tokens: invoice.tokens});
 
+  // At target>remote there is a temporary channel failure due to liquidity
   equal(probeResults.temporary_failures.length, 1, 'Fails due to imbalance');
 
   const [fail] = probeResults.temporary_failures;
-  const [remoteChannel] = channels;
 
   equal(fail.public_key, cluster.remote_node_public_key, 'Fails to remote');
   equal(fail.channel, remoteChannel.id, 'Fails in target <> remote channel');
 
-  // Create a new channel to increase total edge liquidity
-
-  const newChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
+  // Create a new channel to increase target>remote total edge liquidity
+  await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: `${cluster.remote.listen_ip}:${cluster.remote.listen_port}`,
-  });
-
-  await waitForPendingChannel({
-    id: newChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    id: newChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    to: cluster.remote,
   });
 
   const success = await probe({lnd, routes, tokens: invoice.tokens});
 
+  // Now the payment can be completed successfully and a probe shows that
   const [hop1, hop2] = success.successes;
 
   equal(!!success.route, true, 'A route is found');

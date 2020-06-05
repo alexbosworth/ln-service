@@ -1,9 +1,10 @@
 const asyncAuto = require('async/auto');
-const {broadcastResponse} = require('./../push');
 const {returnResult} = require('asyncjs-util');
 
-const decBase = 10;
+const {broadcastResponse} = require('./../push');
+
 const initialConfirmationCount = 0;
+const lowBalanceErr = 'insufficient funds available to construct transaction';
 
 /** Send tokens in a blockchain transaction.
 
@@ -75,6 +76,10 @@ module.exports = (args, cbk) => {
           target_conf: args.target_confirmations || undefined,
         },
         (err, res) => {
+          if (!!err && err.details === lowBalanceErr) {
+            return cbk([503, 'InsufficientBalanceToSendToChainAddress']);
+          }
+
           if (!!err) {
             return cbk([503, 'UnexpectedSendCoinsError', {err}]);
           }
@@ -92,7 +97,7 @@ module.exports = (args, cbk) => {
             id: res.txid,
             is_confirmed: false,
             is_outgoing: true,
-            tokens: parseInt(args.tokens, decBase),
+            tokens: Number(args.tokens),
           };
 
           if (!!args.wss) {

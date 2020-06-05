@@ -175,6 +175,7 @@ for `unlocker` methods.
 - [grantAccess](#grantAccess) - Grant an access credential macaroon
 - [grpcProxyServer](#grpcProxyServer) - REST proxy server for calling to gRPC
 - [isDestinationPayable](#isDestinationPayable) - Check can pay to destination
+- [lockUtxo](#lockUtxo) - Lock a UTXO temporarily to prevent it being used
 - [openChannel](#openChannel) - Open a new channel
 - [openChannels](#openChannels) - Open channels with external funding
 - [parsePaymentRequest](#parsePaymentRequest) - Parse a BOLT11 Payment Request
@@ -215,6 +216,7 @@ for `unlocker` methods.
 - [subscribeToProbeForRoute](#subscribeToProbeForRoute) - Probe for a route
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
+- [unlockUtxo](#unlockUtxo) - Release a locked UTXO so that it can be used again
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
 - [updateChainTransaction](#updateChainTransaction) - Update a chain transaction
 - [updateConnectedWatchtower](#updateConnectedWatchtower) - Update watchtower
@@ -2749,6 +2751,46 @@ const {destination, tokens} = await decodePaymentRequest({lnd, request});
 const isPayable = (await isDestinationPayable({lnd, }))
 ```
 
+### lockUtxo
+
+Lock UTXO
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` build tag
+
+    {
+      lnd: <Authenticated LND gRPC API Object>
+      transaction_id: <Unspent Transaction Id Hex String>
+      transaction_vout: <Unspent Transaction Output Index Number>
+    }
+
+    @returns via cbk or Promise
+    {
+      expires_at: <Lock Expires At ISO 8601 Date String>
+      id: <Locking Id Hex String>
+    }
+
+Example:
+
+```node
+const {getUtxos, lockUtxo, sendToChainAddress} = require('ln-service');
+
+// Assume a wallet that has only one UTXO
+const [utxo] = (await getUtxos({lnd})).utxos;
+
+const locked = await lockUtxo({
+  lnd,
+  transaction_id: utxo.transaction_id,
+  transaction_vout: utxo.transaction_vout,
+});
+
+const futureUnlockDate = new Date(locked.expires_at);
+
+// This call will throw an error as LND will treat the UTXO as being locked
+await sendToChainAddress({address, lnd, tokens});
+```
+
 ### openChannel
 
 Open a new channel.
@@ -4067,7 +4109,7 @@ Requires `info:read` permission
       base_fee_mtokens: <Channel Base Fee Millitokens String>
       capacity: <Channel Capacity Tokens Number>
       cltv_delta: <Channel CLTV Delta Number>
-      fee_rate: <Channel Feel Rate In Millitokens Per Million Number>
+      fee_rate: <Channel Fee Rate In Millitokens Per Million Number>
       id: <Standard Format Channel Id String>
       is_disabled: <Channel Is Disabled Bool>
       [max_htlc_mtokens]: <Channel Maximum HTLC Millitokens String>
@@ -5204,6 +5246,57 @@ Example:
 const {createSeed, unauthenticatedLndGrpc} = require('ln-service');
 const {lnd} = unauthenticatedLndGrpc({});
 const {seed} = await createSeed({lnd});
+```
+
+### unlockUtxo
+
+Unlock UTXO
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` build tag
+
+    {
+      id: <Lock Id Hex String>
+      lnd: <Authenticated LND gRPC API Object>
+      transaction_id: <Unspent Transaction Id Hex String>
+      transaction_vout: <Unspent Transaction Output Index Number>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {getUtxos, lockUtxo, sendToChainAddress, unlockUtxo} = require('ln-service');
+
+// Assume a wallet that has only one UTXO
+const [utxo] = (await getUtxos({lnd})).utxos;
+
+const locked = await lockUtxo({
+  lnd,
+  transaction_id: utxo.transaction_id,
+  transaction_vout: utxo.transaction_vout,
+});
+
+const futureUnlockDate = new Date(locked.expires_at);
+
+try {
+  // This call will throw an error as LND will treat the UTXO as being locked
+  await sendToChainAddress({address, lnd, tokens});
+} catch (err) {
+  // Insufficient funds
+}
+
+await unlockUtxo({
+  lnd,
+  id: locked.id,
+  transaction_id: utxo.transaction_id,
+  transaction_vout: utxo.transaction_vout,
+});
+
+// This call will now succeed as LND will treat the UTXO as being unlocked
+await sendToChainAddress({address, lnd, tokens});
 ```
 
 ### unlockWallet

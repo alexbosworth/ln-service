@@ -1,5 +1,10 @@
 # Versions
 
+## 48.4.0
+
+- `lockUtxo`: Add method to obtain a temporary lock on a UTXO
+- `unlockUtxo`: Add method to release the temporary lock on a UTXO
+
 ## 48.3.3
 
 - `getWalletVersion`: Add 0.10.1-beta recognition
