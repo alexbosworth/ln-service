@@ -1,6 +1,6 @@
 # Versions
 
-## 48.3.2
+## 48.3.3
 
 - `getWalletVersion`: Add 0.10.1-beta recognition
 

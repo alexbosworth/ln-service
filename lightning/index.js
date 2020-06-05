@@ -14,7 +14,6 @@ const getNetworkInfo = require('./get_network_info');
 const getPayments = require('./get_payments');
 const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
-const getUtxos = require('./get_utxos');
 const getWalletInfo = require('./get_wallet_info');
 const openChannel = require('./open_channel');
 const pay = require('./pay');
@@ -54,7 +53,6 @@ module.exports = {
   getPayments,
   getPendingChannels,
   getRoutes,
-  getUtxos,
   getWalletInfo,
   openChannel,
   pay,
