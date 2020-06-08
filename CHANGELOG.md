@@ -1,6 +1,6 @@
 # Versions
 
-## 48.4.1
+## 48.4.2
 
 - `lockUtxo`: Add method to obtain a temporary lock on a UTXO
 - `unlockUtxo`: Add method to release the temporary lock on a UTXO
