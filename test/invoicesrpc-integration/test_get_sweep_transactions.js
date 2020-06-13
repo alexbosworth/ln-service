@@ -84,6 +84,13 @@ test(`Get sweep transactionos`, async ({deepIs, end, equal}) => {
         lnd: cluster.target.lnd,
       });
 
+      const [expectedTx] = expectedTargetSweeps.transactions;
+      const [targetTx] = target.transactions;
+
+      if (targetTx.confirmation_count !== expectedTx.confirmation_count) {
+        throw new Error('TargetDoesNotMatchExpectedConfirmationCount');
+      }
+
       equal(control.transactions.length, [control].length, 'Got single sweep');
 
       const [controlTx] = control.transactions;
