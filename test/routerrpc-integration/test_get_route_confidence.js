@@ -16,6 +16,7 @@ const {openChannel} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
+const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
@@ -33,49 +34,19 @@ test('Get route confidence', async ({deepIs, end, equal}) => {
   const {lnd} = cluster.control;
 
   // Create a channel from the control to the target node
-  const controlToTargetChannel = await openChannel({
+  await setupChannel({
     lnd,
-    chain_fee_tokens_per_vbyte: defaultFee,
-    local_tokens: channelCapacityTokens * 2,
-    partner_public_key: cluster.target_node_public_key,
-    socket: cluster.target.socket,
+    capacity: channelCapacityTokens * 2,
+    generate: cluster.generate,
+    to: cluster.target,
   });
 
-  await waitForPendingChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-
-  const controlToTargetChan = await waitForChannel({
-    lnd,
-    id: controlToTargetChannel.transaction_id,
-  });
-
-  const [controlChannel] = (await getChannels({lnd})).channels;
-
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    give_tokens: Math.round(channelCapacityTokens / 2),
+  await setupChannel({
+    generate: cluster.generate,
+    generator: cluster.target,
+    give: Math.round(channelCapacityTokens / 2),
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote_node_public_key,
-    socket: cluster.remote.socket,
-  });
-
-  await waitForPendingChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
-  });
-
-  // Generate to confirm the channel
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  const targetToRemoteChan = await waitForChannel({
-    id: targetToRemoteChannel.transaction_id,
-    lnd: cluster.target.lnd,
+    to: cluster.remote,
   });
 
   await addPeer({
@@ -111,7 +82,7 @@ test('Get route confidence', async ({deepIs, end, equal}) => {
 
       const odds = (await getRouteConfidence({lnd, hops})).confidence;
 
-      equal((odds / 1e6) < 0.1, true, 'Due to failure, odds of success are low');
+      equal((odds / 1e6) < 0.1, true, 'Due to fail, odds of success are low');
     }
   }
 

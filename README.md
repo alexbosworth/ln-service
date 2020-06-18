@@ -5029,7 +5029,7 @@ This method is not supported on LND 0.8.2 or below.
         [to_public_key]: <To Public Key Hex String>
       }]
       [incoming_peer]: <Incoming Peer Public Key Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Probe String>
       [max_timeout_height]: <Maximum CLTV Timeout Height Number>
@@ -5051,7 +5051,7 @@ This method is not supported on LND 0.8.2 or below.
         public_key: <Forward Edge Public Key Hex String>
       }]]
       [tokens]: <Tokens to Probe Number>
-      [total_mtokens]: <Total Millitokens of Shards String>
+      [total_mtokens]: <Total Millitokens Across Paths String>
     }
 
     @returns

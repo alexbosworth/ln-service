@@ -85,6 +85,7 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
     const wallet = await getWalletVersion({lnd});
 
     const unsupportingCommits = {
+      '1e04b7f54360427a23a5daf4a5a0648e6a81f3a6': true,
       '4f2221d56c8212ddc4f48a4e6a6ee57255e61195': true,
       'ae6e84ddfd3c4d2366e151a04aca3f78b4078ed5': true,
       'e8833042799d71dba209fe305ce3ae105c154cfe': true,

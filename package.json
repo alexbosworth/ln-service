@@ -10,12 +10,12 @@
     "bitcoinjs-lib": "5.1.10",
     "bn.js": "5.1.2",
     "bolt07": "1.5.1",
-    "bolt09": "0.0.2",
+    "bolt09": "0.1.0",
     "cors": "2.8.5",
     "express": "4.17.1",
-    "invoices": "1.0.3",
+    "invoices": "1.1.0",
     "is-base64": "1.1.0",
-    "lightning": "2.0.14",
+    "lightning": "2.0.15",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.3.0"
@@ -60,5 +60,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "48.4.4"
+  "version": "49.0.0"
 }

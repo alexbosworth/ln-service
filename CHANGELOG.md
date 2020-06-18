@@ -1,5 +1,23 @@
 # Versions
 
+## 49.0.0
+
+- `probeForRoute`: return `confidence` score of returned route
+- `probeForRoute`: allow specifying `features` of destination node
+- `probeForRoute`: allow specifying `incoming_peer` for the final hop forward
+- `probeForRoute`: allow specifying `messages` for messages to destination
+- `probeForRoute`: allow specifying `payment` to set the payment identifier
+- `probeForRoute`: allow specifying `total_mtokens` for updated payment protocol
+
+### Breaking Changes
+
+Method `probeForRoute` pathfinding drops support for options:
+
+- Specifying `is_ignoring_past_failures` is no longer supported in LND 0.10.0+
+- Specifying `is_strict_hints` is not supported in LND 0.10 or above
+
+Use `--ignore` and `--incoming_peer` instead of these options where possible.
+
 ## 48.4.4
 
 - `lockUtxo`: Add method to obtain a temporary lock on a UTXO
