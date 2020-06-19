@@ -1,6 +1,6 @@
 # Versions
 
-## 49.0.0
+## 49.0.1
 
 - `probeForRoute`: return `confidence` score of returned route
 - `probeForRoute`: allow specifying `features` of destination node
