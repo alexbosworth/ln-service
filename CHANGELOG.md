@@ -1,5 +1,9 @@
 # Versions
 
+## 49.0.2
+
+- `subscribeToChainAddress`: Propagate remove listeners to original subscription
+
 ## 49.0.1
 
 - `probeForRoute`: return `confidence` score of returned route

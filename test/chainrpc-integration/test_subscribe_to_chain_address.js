@@ -107,6 +107,9 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
     return;
   });
 
+  sub.removeAllListeners();
+  sub2.removeAllListeners();
+
   kill();
 
   await waitForTermination({lnd});

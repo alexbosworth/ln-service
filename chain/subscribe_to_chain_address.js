@@ -4,6 +4,8 @@ const scriptFromChainAddress = require('./script_from_chain_address');
 const {dummyTxId} = require('./constants');
 
 const defaultMinConfirmations = 1;
+const shutDownMessage = 'chain notifier shutting down';
+const sumOf = arr => arr.reduce((sum, n) => sum + n, Number());
 
 /** Subscribe to confirmation details about transactions sent to an address
 
@@ -77,10 +79,34 @@ module.exports = args => {
     txid: Buffer.from(args.transaction_id || dummyTxId, 'hex'),
   });
 
+  // Cancel the subscription when all listeners are removed
+  eventEmitter.on('removeListener', () => {
+    const events = ['confirmation', 'reorg'];
+
+    const listenerCounts = events.map(n => eventEmitter.listenerCount(n));
+
+    // Exit early when there are still listeners
+    if (!!sumOf(listenerCounts)) {
+      return;
+    }
+
+    sub.cancel();
+
+    return;
+  });
+
   sub.on('end', () => eventEmitter.emit('end'));
   sub.on('status', n => eventEmitter.emit('status', n));
 
   sub.on('error', err => {
+    if (err.details === shutDownMessage) {
+      sub.removeAllListeners();
+    }
+
+    if (!eventEmitter.listenerCount('error')) {
+      return;
+    }
+
     eventEmitter.emit('error', new Error('UnexpectedErrInTxSubscription'));
 
     return;
