@@ -202,6 +202,7 @@ for `unlocker` methods.
 - [subscribeToChainAddress](#subscribeToChainAddress) - Subscribe to receives
 - [subscribeToChainSpend](#subscribeToChainSpend) - Subscribe to chain spends
 - [subscribeToChannels](#subscribeToChannels) - Subscribe to channel statuses
+- [subscribeToForwardRequests](#subscribeToForwardRequests) - Interactive route 
 - [subscribeToForwards](#subscribeToForwards) - Subscribe to HTLC events
 - [subscribeToGraph](#subscribeToGraph) - Subscribe to network graph updates
 - [subscribeToInvoice](#subscribeToInvoice) - Subscribe to invoice updates
@@ -4030,6 +4031,49 @@ const {once} = require('events');
 const {subscribeToChannels} = require('ln-service');
 const sub = subscribeToChannels({lnd});
 const [openedChannel] = await once(sub, 'channel_opened');
+```
+
+### subscribeToForwardRequests
+
+Subscribe to requests to forward payments
+
+Requires `offchain:read`, `offchain:write` permission
+
+This method is not supported on LND 0.10.2 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    <EventEmitter Object>
+
+    @event 'forward_request`
+    {
+      accept: () => {}
+      hash: <Payment Hash Hex String>
+      in_channel: <Inbound Standard Format Channel Id String>
+      in_payment: <Inbound Channel Payment Id Number>
+      mtokens: <Millitokens to Forward To Next Peer String>
+      reject: <Reject Forward Function> () => {}
+      settle: <Short Circuit Function> ({secret: <Preimage Hex String}) => {}
+      tokens: <Tokens to Forward Rounded Down Number>
+      timeout: <CLTV Timeout Height Number>
+    }
+
+Example:
+
+```node
+const {subscribeToForwardRequests} = require('ln-service');
+const sub = subscribeToForwardRequests({lnd});
+
+sub.on('forward', forward => {
+  // Fail all forward requests
+  return forward.reject();
+});
 ```
 
 ### subscribeToForwards

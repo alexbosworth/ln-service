@@ -1,5 +1,9 @@
 # Versions
 
+## 49.1.0
+
+- `subscribeToForwardRequests`: Add method to control forwarding of HTLCs
+
 ## 49.0.2
 
 - `subscribeToChainAddress`: Propagate remove listeners to original subscription

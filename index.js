@@ -88,6 +88,7 @@ const {subscribeToBlocks} = require('./chain');
 const {subscribeToChainAddress} = require('./chain');
 const {subscribeToChainSpend} = require('./chain');
 const {subscribeToChannels} = require('./lightning');
+const {subscribeToForwardRequests} = require('lightning/lnd_methods');
 const {subscribeToForwards} = require('lightning/lnd_methods');
 const {subscribeToGraph} = require('./lightning');
 const {subscribeToInvoice} = require('lightning/lnd_methods');
@@ -203,6 +204,7 @@ module.exports = {
   subscribeToChainAddress,
   subscribeToChainSpend,
   subscribeToChannels,
+  subscribeToForwardRequests,
   subscribeToForwards,
   subscribeToGraph,
   subscribeToInvoice,
