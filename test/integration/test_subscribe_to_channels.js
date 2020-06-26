@@ -158,6 +158,8 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   equal(deactivated.transaction_id, channelOpen.transaction_id, 'Chan tx id');
   equal(deactivated.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
+  sub.removeAllListeners();
+
   await cluster.kill({});
 
   return;

@@ -8,6 +8,7 @@ const updateTypes = require('./conf/channel_update_types');
 const emptyChanId = '0';
 const emptyTxId = Buffer.alloc(32).toString('hex');
 const outpointSeparator = ':';
+const sumOf = arr => arr.reduce((sum, n) => sum + n, Number());
 
 /** Subscribe to channel updates
 
@@ -98,6 +99,27 @@ module.exports = ({lnd}) => {
 
   const eventEmitter = new EventEmitter();
   const subscription = lnd.default.subscribeChannelEvents({});
+
+  // Cancel the subscription when all listeners are removed
+  eventEmitter.on('removeListener', () => {
+    const events = [
+      'channel_active_changed',
+      'channel_closed',
+      'channel_opened',
+      'channel_opening',
+    ];
+
+    const listenerCounts = events.map(n => eventEmitter.listenerCount(n));
+
+    // Exit early when there are still listeners
+    if (!!sumOf(listenerCounts)) {
+      return;
+    }
+
+    subscription.cancel();
+
+    return;
+  });
 
   const error = err => {
     // Exit early when no one is listening to the error
