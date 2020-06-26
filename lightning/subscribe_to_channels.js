@@ -8,6 +8,7 @@ const updateTypes = require('./conf/channel_update_types');
 const emptyChanId = '0';
 const emptyTxId = Buffer.alloc(32).toString('hex');
 const outpointSeparator = ':';
+const shutDownMessage = 'Cancelled';
 const sumOf = arr => arr.reduce((sum, n) => sum + n, Number());
 
 /** Subscribe to channel updates
@@ -122,6 +123,10 @@ module.exports = ({lnd}) => {
   });
 
   const error = err => {
+    if (err.details === shutDownMessage) {
+      subscription.removeAllListeners();
+    }
+
     // Exit early when no one is listening to the error
     if (!eventEmitter.listenerCount('error')) {
       return;
