@@ -1,6 +1,6 @@
 # Versions
 
-## 49.1.1
+## 49.1.2
 
 - `subscribeToForwardRequests`: Add method to control forwarding of HTLCs
 

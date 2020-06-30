@@ -27,7 +27,7 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
 
     switch (version) {
     case '0.10.1-beta':
-    case '0.10.1-beta':
+    case '0.10.2-beta':
       await cluster.kill({});
 
       return end();
@@ -73,8 +73,6 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
 
     const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
 
-    sub.on('err', err => console.log("err", err));
-
     sub.on('forward_request', async forward => forward.reject());
 
     await rejects(
@@ -96,11 +94,17 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
     sub.once('forward_request', async forward => {
       const info = await getWalletInfo({lnd: cluster.target.lnd});
 
+      equal(forward.cltv_delta, 40, 'Forward has CLTV delta');
+      equal(forward.fee, 1, 'Forward has a routing fee');
+      equal(forward.fee_mtokens, '1000', 'Forward has precise routing fee');
       equal(forward.hash, invoice.id, 'Forward has payment hash');
       equal(forward.in_channel, channel.id, 'Forward has inbound channel')
-      equal(forward.in_payment, 1, 'Forward has payment index');
+      equal(forward.in_payment, [invoice].length, 'Forward has payment index');
+      equal(forward.messages.length, [].length, 'Forward has no messages');
       equal(forward.mtokens, invoice.mtokens, 'Forward has tokens out');
-      equal(forward.timeout, info.current_block_height + 43, 'Has timeout');
+      equal(forward.out_channel, remoteChan.id, 'Forward has outbound chan');
+      equal(forward.timeout, info.current_block_height + 83, 'Has timeout');
+      equal(forward.tokens, invoice.tokens, 'Forward has invoiced tokens');
 
       return forward.accept();
     });
@@ -111,11 +115,10 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
   {
     const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
+    const {secret} = invoice;
     const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
 
-    sub.on('forward_request', async forward => {
-      return forward.settle({secret: invoice.secret});
-    });
+    sub.on('forward_request', async ({settle}) => settle({secret}));
 
     const paid = await payViaPaymentRequest({lnd, request: invoice.request});
 
