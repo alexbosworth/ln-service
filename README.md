@@ -3364,17 +3364,17 @@ Requires `offchain:write` permission
 
 Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
-Route `confidence` is not returned in LND 0.10.0 or below
-Specifying `features` is not supported in LND 0.10.0 or below
-Specifying `incoming_peer` is not supported in LND 0.10.0 or below
-Specifying `is_ignoring_past_failures` isn't supported in LND 0.10.0 or above
-Specifying `is_strict_hints` is not supported in LND 0.10 or above
-Specifying `messages` is not supported in LND 0.10 or below
-Route `messages` are not returned in LND 0.10.0 or below
-Specifying `payment` is not supported in LND 0.10 or below
-Route `payment` is not returned in LND 0.10.0 or below
-Specifying `total_mtokens` is not supported in LND 0.10 or below
-Route `total_mtokens` is not returned in LND 0.10.0 or below
+    Route `confidence` is not returned in LND 0.10.0 or below
+    Specifying `features` is not supported in LND 0.10.0 or below
+    Specifying `incoming_peer` is not supported in LND 0.10.0 or below
+    Specifying `is_ignoring_past_failures` isn't supported in LND 0.10.0 or above
+    Specifying `is_strict_hints` is not supported in LND 0.10 or above
+    Specifying `messages` is not supported in LND 0.10 or below
+    Route `messages` are not returned in LND 0.10.0 or below
+    Specifying `payment` is not supported in LND 0.10 or below
+    Route `payment` is not returned in LND 0.10.0 or below
+    Specifying `total_mtokens` is not supported in LND 0.10 or below
+    Route `total_mtokens` is not returned in LND 0.10.0 or below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
