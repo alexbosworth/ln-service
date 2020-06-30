@@ -3849,7 +3849,7 @@ Requires `offchain:read` permission
 Example:
 
 ```node
-const {subscribeToBackups} = reuqire('ln-service');
+const {subscribeToBackups} = require('ln-service');
 const sub = subscribeToBackups({lnd});
 let currentBackup;
 sub.on('backup', ({backup}) => currentBackup = backup);
