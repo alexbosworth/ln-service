@@ -566,7 +566,9 @@ const {connectWatchtower, getTowerServerInfo} = require('ln-service');
 
 const {tower} = await getTowerServerInfo({lnd: towerServerLnd});
 
-await connectWatchtower({lnd, public_key: tower.public_key, socket: tower.socket});
+const [socket] = tower.sockets;
+
+await connectWatchtower({lnd, socket, public_key: tower.public_key});
 ```
 
 ### createChainAddress
