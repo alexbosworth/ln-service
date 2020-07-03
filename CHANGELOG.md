@@ -1,5 +1,10 @@
 # Versions
 
+## 49.2.0
+
+- `getChannels`: Add support for csv, dust value, max htlcs, max pending
+    amount, min htlc size
+
 ## 49.1.2
 
 - `subscribeToForwardRequests`: Add method to control forwarding of HTLCs

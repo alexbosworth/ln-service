@@ -2,6 +2,7 @@ const {createHash} = require('crypto');
 
 const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
+const asyncRetry = require('async/retry');
 const {chanFormat} = require('bolt07');
 const {featureFlagDetails} = require('bolt09');
 const {htlcAsPayment} = require('lightning/lnd_responses');
@@ -117,33 +118,36 @@ module.exports = ({limit, lnd, token}, cbk) => {
           }
         }
 
-        return lnd.default.listInvoices({
-          index_offset: offset || 0,
-          num_max_invoices: resultsLimit,
-          reversed: true,
-        },
-        (err, res) => {
-          if (!!err) {
-            return cbk([503, 'UnexpectedGetInvoicesError', {err}]);
-          }
+        return asyncRetry({}, cbk => {
+          return lnd.default.listInvoices({
+            index_offset: offset || 0,
+            num_max_invoices: resultsLimit,
+            reversed: true,
+          },
+          (err, res) => {
+            if (!!err) {
+              return cbk([503, 'UnexpectedGetInvoicesError', {err}]);
+            }
 
-          if (!res || !isArray(res.invoices)) {
-            return cbk([503, 'ExpectedInvoicesListInResponseToInvoicesQuery']);
-          }
+            if (!res || !isArray(res.invoices)) {
+              return cbk([503, 'ExpectedInvoicesListForInvoicesQuery']);
+            }
 
-          if (typeof res.last_index_offset !== 'string') {
-            return cbk([503, 'ExpectedLastIndexOffsetWhenRequestingInvoices']);
-          }
+            if (typeof res.last_index_offset !== 'string') {
+              return cbk([503, 'ExpectedLastIndexOffsetForInvoicesQuery']);
+            }
 
-          const offset = Number(res.first_index_offset);
+            const offset = Number(res.first_index_offset);
 
-          const token = stringify({offset, limit: resultsLimit});
+            const token = stringify({offset, limit: resultsLimit});
 
-          return cbk(null, {
-            invoices: res.invoices,
-            token: offset === lastPageFirstIndexOffset ? undefined : token,
+            return cbk(null, {
+              invoices: res.invoices,
+              token: offset === lastPageFirstIndexOffset ? undefined : token,
+            });
           });
-        });
+        },
+        cbk);
       }],
 
       // Mapped invoices

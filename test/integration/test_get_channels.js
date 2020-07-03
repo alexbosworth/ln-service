@@ -5,6 +5,7 @@ const {getChannels} = require('./../../');
 const {setupChannel} = require('./../macros');
 
 const giveTokens = 1e5;
+const remoteCsv = 40;
 
 // Getting channels should return the list of channels
 test(`Get channels`, async ({end, equal}) => {
@@ -17,6 +18,7 @@ test(`Get channels`, async ({end, equal}) => {
     lnd,
     generate: cluster.generate,
     give: giveTokens,
+    partner_csv_delay: remoteCsv,
     to: cluster.target,
   });
 
@@ -33,6 +35,19 @@ test(`Get channels`, async ({end, equal}) => {
   if (!!channel.remote_given) {
     equal(channel.local_given, Number(), 'Push tokens are reflected');
     equal(channel.remote_given, giveTokens, 'Push tokens are reflected');
+  }
+
+  if (channel.remote_csv === remoteCsv) {
+    equal(channel.local_csv, 144, 'Local CSV is returned');
+    equal(channel.local_dust, 573, 'Local dust limit is returned');
+    equal(channel.local_max_htlcs, 483, 'Local max htlcs are returned');
+    equal(channel.local_max_pending_mtokens, '990000000', 'Local max pending');
+    equal(channel.local_min_htlc_mtokens, '1000', 'Local min HTLC mtokens');
+    equal(channel.remote_csv, remoteCsv, 'Remote CSV is returned');
+    equal(channel.remote_dust, 573, 'Remote dust limit is returned');
+    equal(channel.remote_max_htlcs, 483, 'Remote max htlcs are returned');
+    equal(channel.remote_max_pending_mtokens, '990000000', 'Remote pending');
+    equal(channel.remote_min_htlc_mtokens, '1', 'Remote min HTLC mtokens');
   }
 
   equal(channel.capacity, 1000000, 'Channel capacity');

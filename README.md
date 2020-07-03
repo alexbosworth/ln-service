@@ -1275,12 +1275,23 @@ Get channels
 
 Requires `offchain:read` permission
 
-`is_static_remote_key` will be undefined on LND 0.7.1 and below
+    `is_static_remote_key` will be undefined on LND 0.7.1 and below
 
-`cooperative_close_address` is not supported on LND 0.8.2 and below
-`time_offline` and `time_online` will be undefined on 0.8.2 and below
+    `cooperative_close_address` is not supported on LND 0.8.2 and below
+    `time_offline` and `time_online` will be undefined on 0.8.2 and below
 
-`local_given` and `remote_given` are not supported on LND 0.9.2 and below
+    `local_given` and `remote_given` are not supported on LND 0.9.2 and below
+
+     `local_csv` is not supported on LND 0.10.1 and below
+     `local_dust` is not supported on LND 0.10.1 and below
+     `local_max_htlcs` is not supported on LND 0.10.1 and below
+     `local_max_pending_mtokens` is not supported on LND 0.10.1 and below
+     `local_min_htlc_mtokens` is not supported on LND 0.10.1 and below
+     `remote_csv` is not supported on LND 0.10.1 and below
+     `remote_dust` is not supported on LND 0.10.1 and below
+     `remote_max_htlcs` is not supported on LND 0.10.1 and below
+     `remote_max_pending_mtokens` is not supported on LND 0.10.1 and below
+     `remote_min_htlc_mtokens` is not supported on LND 0.10.1 and below
 
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
@@ -1306,7 +1317,12 @@ Requires `offchain:read` permission
         is_private: <Channel Is Private Bool>
         [is_static_remote_key]: <Remote Key Is Static Bool>
         local_balance: <Local Balance Tokens Number>
+        [local_csv]: <Local CSV Blocks Delay Number>
+        [local_dust]: <Remote Non-Enforceable Amount Tokens Number>
         [local_given]: <Local Initially Pushed Tokens Number>
+        [local_max_htlcs]: <Local Maximum Attached HTLCs Number>
+        [local_max_pending_mtokens]: <Local Maximum Pending Millitokens String>
+        [local_min_htlc_mtokens]: <Local Minimum HTLC Millitokens String>
         local_reserve: <Local Reserved Tokens Number>
         partner_public_key: <Channel Partner Public Key String>
         pending_payments: [{
@@ -1317,7 +1333,12 @@ Requires `offchain:read` permission
         }]
         received: <Received Tokens Number>
         remote_balance: <Remote Balance Tokens Number>
+        [remote_csv]: <Remote CSV Blocks Delay Number>
+        [remote_dust]: <Remote Non-Enforceable Amount Tokens Number>
         [remote_given]: <Remote Initially Pushed Tokens Number>
+        [remote_max_htlcs]: <Remote Maximum Attached HTLCs Number>
+        [remote_max_pending_mtokens]: <Remote Maximum Pending Millitokens String>
+        [remote_min_htlc_mtokens]: <Remote Minimum HTLC Millitokens String>
         remote_reserve: <Remote Reserved Tokens Number>
         sent: <Sent Tokens Number>
         [time_offline]: <Monitoring Uptime Channel Down Milliseconds Number>
