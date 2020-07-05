@@ -97,13 +97,15 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
     return end();
   }
 
-  await asyncRetry({interval: 1000}, async () => {
+  await asyncRetry({interval: 1000, times: 30}, async () => {
     if (controlForwards.length !== 6) {
       throw new Error('ExpectedFullListOfControlForwards');
     }
 
     return;
   });
+
+  [controlSub, remoteSub, targetSub].forEach(n => n.removeAllListeners());
 
   [controlForwards, targetForwards, remoteForwards].forEach(forwards => {
     return forwards.forEach(n => delete n.at);

@@ -1,5 +1,9 @@
 # Versions
 
+## 49.2.1
+
+- `subscribeToForwards`: Attempt to restart subscription if it is terminated
+
 ## 49.2.0
 
 - `getChannels`: Add support for csv, dust value, max htlcs, max pending
