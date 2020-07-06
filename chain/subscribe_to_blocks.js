@@ -38,6 +38,11 @@ module.exports = ({lnd}) => {
   sub.on('status', n => eventEmitter.emit('status', n));
 
   sub.on('error', err => {
+    // Exit early when there are no error listeners
+    if (!eventEmitter.listenerCount('error')) {
+      return;
+    }
+
     eventEmitter.emit('error', new Error('UnexpectedErrInBlocksSubscription'));
 
     return;

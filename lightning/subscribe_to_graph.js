@@ -248,8 +248,16 @@ module.exports = ({lnd}) => {
     return;
   });
 
+  subscription.on('error', err => {
+    // Exit early when there are no error listeners
+    if (!eventEmitter.listenerCount('error')) {
+      return;
+    }
+
+    return eventEmitter.emit('error', err);
+  });
+
   subscription.on('end', () => eventEmitter.emit('end'));
-  subscription.on('error', err => eventEmitter.emit('error', err));
   subscription.on('status', status => eventEmitter.emit('status', status));
 
   return eventEmitter;

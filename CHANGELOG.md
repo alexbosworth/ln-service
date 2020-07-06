@@ -1,6 +1,6 @@
 # Versions
 
-## 49.2.1
+## 49.2.2
 
 - `subscribeToForwards`: Attempt to restart subscription if it is terminated
 
