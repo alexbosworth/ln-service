@@ -5485,10 +5485,13 @@ await updateConnectedWatchtower({
 
 Update routing fees on a single channel or on all channels
 
+Setting both `base_fee_tokens` and `base_fee_mtokens` is not supported
+
 Updating the maximum htlc size is not supported on LND 0.7.1 and below
 Updating the minimum HTLC size is not supported on LND 0.8.2 and below
 
     {
+      [base_fee_mtokens]: <Base Fee Millitokens Charged Number>
       [base_fee_tokens]: <Base Fee Tokens Charged Number>
       [cltv_delta]: <HTLC CLTV Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>

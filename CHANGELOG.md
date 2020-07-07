@@ -1,5 +1,9 @@
 # Versions
 
+## 49.2.4
+
+- `updateRoutingFees`: Allow specifying `base_fee_mtokens` forwarding fee
+
 ## 49.2.3
 
 - `subscribeToForwards`: Attempt to restart subscription if it is terminated

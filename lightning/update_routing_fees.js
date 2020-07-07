@@ -6,9 +6,11 @@ const defaultCltvDelta = 40;
 const defaultFeeRate = 1;
 const feeRatio = 1e6;
 const {floor} = Math;
-const tokPerMtok = 1e3;
+const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
 
 /** Update routing fees on a single channel or on all channels
+
+  Setting both `base_fee_tokens` and `base_fee_mtokens` is not supported
 
   Requires `offchain:write` permission
 
@@ -16,6 +18,7 @@ const tokPerMtok = 1e3;
   Updating the minimum HTLC size is not supported on LND 0.8.2 and below
 
   {
+    [base_fee_mtokens]: <Base Fee Millitokens Charged Number>
     [base_fee_tokens]: <Base Fee Tokens Charged Number>
     [cltv_delta]: <HTLC CLTV Delta Number>
     [fee_rate]: <Fee Rate In Millitokens Per Million Number>
@@ -33,6 +36,10 @@ module.exports = (args, cbk) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
+        if (!!args.base_fee_mtokens && args.base_fee_tokens !== undefined) {
+          return cbk([400, 'ExpectedEitherBaseFeeMtokensOrTokensNotBoth']);
+        }
+
         if (!args.lnd || !args.lnd.default) {
           return cbk([400, 'ExpectedLndForRoutingFeesUpdate']);
         }
@@ -50,8 +57,19 @@ module.exports = (args, cbk) => {
         return cbk();
       },
 
-      updateFees: ['validate', ({}, cbk) => {
-        const baseFee = (args.base_fee_tokens || defaultBaseFee) * tokPerMtok;
+      // Determine what base fee rate to use
+      baseFeeMillitokens: ['validate', ({}, cbk) => {
+        if (!!args.base_fee_mtokens) {
+          return cbk(null, args.base_fee_mtokens);
+        }
+
+        const baseFeeTokens = args.base_fee_tokens || defaultBaseFee;
+
+        return cbk(null, tokensAsMtokens(baseFeeTokens));
+      }],
+
+      // Set the routing fee policy
+      updateFees: ['baseFeeMillitokens', ({baseFeeMillitokens}, cbk) => {
         const id = args.transaction_id || undefined;
         const vout = args.transaction_vout;
 
@@ -63,7 +81,7 @@ module.exports = (args, cbk) => {
         };
 
         return args.lnd.default.updateChannelPolicy({
-          base_fee_msat: baseFee.toString(),
+          base_fee_msat: baseFeeMillitokens,
           chan_point: !isGlobal ? chan : undefined,
           fee_rate: ((args.fee_rate || defaultFeeRate) / feeRatio),
           global: isGlobal || undefined,

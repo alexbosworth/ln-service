@@ -64,7 +64,7 @@ test(`Update routing fees`, async ({end, equal}) => {
 
     await updateRoutingFees({
       lnd,
-      base_fee_tokens: baseFeeTokens * n,
+      base_fee_mtokens: `${BigInt(baseFeeTokens) * BigInt(n) * BigInt(1e3)}`,
       cltv_delta: cltvDelta * n,
       fee_rate: feeRate * n,
     });
