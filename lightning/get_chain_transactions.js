@@ -11,7 +11,7 @@ const offset = 1;
 
   Requires `onchain:read` permission
 
-  `after` and `before` are not supported on LND 0.10.0 and below
+  `after` and `before` are not supported on LND 0.10.2 and below
 
   `description` is not returned in LND 0.10.1 and below
 

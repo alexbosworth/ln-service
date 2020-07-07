@@ -15,7 +15,7 @@
     "express": "4.17.1",
     "invoices": "1.1.0",
     "is-base64": "1.1.0",
-    "lightning": "2.0.21",
+    "lightning": "2.0.22",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.3.1"
