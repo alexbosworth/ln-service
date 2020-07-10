@@ -3,10 +3,11 @@ const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
 
+const {safeTokens} = require('./../bolt00');
+
 const emptyChannelId = '0';
 const notFound = -1;
 const outpointDivider = ':';
-const satsPerMSat = 1e3;
 const transactionIdHexLength = 32 * 2;
 
 /** Get a rundown on fees for channels
@@ -22,7 +23,8 @@ const transactionIdHexLength = 32 * 2;
   @returns via cbk or Promise
   {
     channels: [{
-      base_fee: <Base Flat Fee in Tokens Number>
+      base_fee: <Base Flat Fee Tokens Rounded Up Number>
+      base_fee_mtokens: <Base Flat Fee Millitokens String>
       fee_rate: <Fee Rate in Millitokens Per Million Number>
       [id]: <Standard Format Channel Id String>
       transaction_id: <Channel Funding Transaction Id Hex String>
@@ -99,7 +101,8 @@ module.exports = ({lnd}, cbk) => {
           }
 
           return cbk(null, {
-            base_fee: Number(channel.base_fee_msat) / satsPerMSat,
+            base_fee: safeTokens({mtokens: channel.base_fee_msat}).tokens,
+            base_fee_mtokens: channel.base_fee_msat,
             fee_rate: Number(channel.fee_per_mil),
             id: hasId ? chanFormat({number}).channel : undefined,
             transaction_id: txId,

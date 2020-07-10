@@ -1,5 +1,9 @@
 # Versions
 
+## 49.3.1
+
+- `getFeeRates`: Add support for `base_fee_mtokens` to show precise base fees
+
 ## 49.3.0
 
 - `getClosedChannels`: Add `close_balance_spent_by` to show close sweep tx

@@ -30,6 +30,7 @@ test(`Get fee rates`, async ({end, equal}) => {
   }
 
   equal(channel.base_fee, defaultFeeRate, 'Channel base fee');
+  equal(channel.base_fee_mtokens, (defaultFeeRate * 1000)+'', 'Base fee mtok');
   equal(channel.fee_rate, defaultBaseFee, 'Channel fee rate');
   equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
   equal(channel.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
