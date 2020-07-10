@@ -2,6 +2,7 @@ const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
 const {chanFormat} = require('bolt07');
 const {returnResult} = require('asyncjs-util');
+const {rpcResolutionAsResolution} = require('lightning/lnd_responses');
 
 const {isLnd} = require('./../grpc');
 
@@ -19,6 +20,10 @@ const outpointSeparator = ':';
   `is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
   and below.
 
+  `close_balance_spent_by` is not supported on LND 0.10.3 and below
+  `close_balance_vout` is not supported on LND 0.10.3 and below
+  `close_payments` is not supported on LND 0.10.3 and below
+
   {
     [is_breach_close]: <Only Return Breach Close Channels Bool>
     [is_cooperative_close]: <Only Return Cooperative Close Channels Bool>
@@ -32,7 +37,19 @@ const outpointSeparator = ':';
   {
     channels: [{
       capacity: <Closed Channel Capacity Tokens Number>
+      [close_balance_spent_by]: <Channel Balance Output Spent By Tx Id String>
+      [close_balance_vout]: <Channel Balance Close Tx Output Index Number>
       [close_confirm_height]: <Channel Close Confirmation Height Number>
+      close_payments: [{
+        is_outgoing: <Payment Is Outgoing Bool>
+        is_paid: <Payment Is Claimed With Preimage Bool>
+        is_pending: <Payment Resolution Is Pending Bool>
+        is_refunded: <Payment Timed Out And Went Back To Payer Bool>
+        [spent_by]: <Close Transaction Spent By Transaction Id Hex String>
+        tokens: <Associated Tokens Number>
+        transaction_id: <Transaction Id Hex String>
+        transaction_vout: <Transaction Output Index Number>
+      }]
       [close_transaction_id]: <Closing Transaction Id Hex String>
       final_local_balance: <Channel Close Final Local Balance Tokens Number>
       final_time_locked_balance: <Closed Channel Timelocked Tokens Number>
@@ -157,9 +174,25 @@ module.exports = (args, cbk) => {
             isPartnerClosed = true;
           }
 
+          const chanResolutions = chan.resolutions || [];
+
+          try {
+            chanResolutions.map(rpcResolutionAsResolution);
+          } catch (err) {
+            return cbk([503, err.message]);
+          }
+
+          const resolutions = chanResolutions.map(rpcResolutionAsResolution);
+
+          const {balance} = resolutions.find(n => n.balance) || {balance: {}};
+          const payments = resolutions.map(n => n.payment).filter(n => !!n);
+
           return cbk(null, {
             capacity: Number(chan.capacity),
+            close_balance_spent_by: balance.spent_by,
+            close_balance_vout: balance.transaction_vout,
             close_confirm_height: height,
+            close_payments: payments,
             close_transaction_id: closeTxId,
             final_local_balance: Number(chan.settled_balance),
             final_time_locked_balance: finalTimeLock,

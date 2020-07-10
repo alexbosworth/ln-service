@@ -10,7 +10,7 @@ const {isArray} = Array;
 
   Requires `onchain:write` permission
 
-  `description` is not supported in LND 0.10.1 and below
+  `description` is not supported in LND 0.10.3 and below
 
   {
     [description]: <Transaction Label String>

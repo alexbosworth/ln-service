@@ -41,7 +41,10 @@ const makeArgs = ({override}) => {
 const makeExpectedChannel = ({override}) => {
   const expected = {
     capacity: 1,
+    close_balance_vout: undefined,
+    close_balance_spent_by: undefined,
     close_confirm_height: 1,
+    close_payments: [],
     close_transaction_id: '00',
     final_local_balance: 1,
     final_time_locked_balance: 1,

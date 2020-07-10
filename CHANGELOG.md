@@ -1,5 +1,11 @@
 # Versions
 
+## 49.3.0
+
+- `getClosedChannels`: Add `close_balance_spent_by` to show close sweep tx
+- `getClosedChannels`: Add `close_balance_vout` to show close sweep txout
+- `getClosedChannels`: Add `close_payments` to show on-chain HTLCs
+
 ## 49.2.4
 
 - `updateRoutingFees`: Allow specifying `base_fee_mtokens` forwarding fee
