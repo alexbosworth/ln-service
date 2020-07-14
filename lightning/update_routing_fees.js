@@ -1,12 +1,16 @@
 const asyncAuto = require('async/auto');
 const {returnResult} = require('asyncjs-util');
 
+const {isLnd} = require('./../grpc');
+
 const defaultBaseFee = 1;
 const defaultCltvDelta = 40;
-const defaultFeeRate = 1;
+const defaultRate = 1;
 const feeRatio = 1e6;
 const {floor} = Math;
+const method = 'updateChannelPolicy';
 const tokensAsMtokens = tokens => (BigInt(tokens) * BigInt(1e3)).toString();
+const type = 'default';
 
 /** Update routing fees on a single channel or on all channels
 
@@ -40,7 +44,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedEitherBaseFeeMtokensOrTokensNotBoth']);
         }
 
-        if (!args.lnd || !args.lnd.default) {
+        if (!isLnd({method, type, lnd: args.lnd})) {
           return cbk([400, 'ExpectedLndForRoutingFeesUpdate']);
         }
 
@@ -63,14 +67,17 @@ module.exports = (args, cbk) => {
           return cbk(null, args.base_fee_mtokens);
         }
 
-        const baseFeeTokens = args.base_fee_tokens || defaultBaseFee;
+        if (args.base_fee_tokens === undefined) {
+          return cbk(null, tokensAsMtokens(defaultBaseFee));
+        }
 
-        return cbk(null, tokensAsMtokens(baseFeeTokens));
+        return cbk(null, tokensAsMtokens(args.base_fee_tokens));
       }],
 
       // Set the routing fee policy
       updateFees: ['baseFeeMillitokens', ({baseFeeMillitokens}, cbk) => {
         const id = args.transaction_id || undefined;
+        const rate = args.fee_rate === undefined ? defaultRate : args.fee_rate;
         const vout = args.transaction_vout;
 
         const isGlobal = !args.transaction_id && vout === undefined;
@@ -80,10 +87,10 @@ module.exports = (args, cbk) => {
           output_index: vout === undefined ? undefined : vout,
         };
 
-        return args.lnd.default.updateChannelPolicy({
+        return args.lnd[type][method]({
           base_fee_msat: baseFeeMillitokens,
           chan_point: !isGlobal ? chan : undefined,
-          fee_rate: ((args.fee_rate || defaultFeeRate) / feeRatio),
+          fee_rate: rate / feeRatio,
           global: isGlobal || undefined,
           max_htlc_msat: args.max_htlc_mtokens || undefined,
           min_htlc_msat: args.min_htlc_mtokens || undefined,

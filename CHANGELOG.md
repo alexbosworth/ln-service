@@ -1,5 +1,9 @@
 # Versions
 
+## 49.3.2
+
+- `updateRoutingFees`: Allow specifying zero `base_fee_tokens`, `fee_rate`
+
 ## 49.3.1
 
 - `getFeeRates`: Add support for `base_fee_mtokens` to show precise base fees
