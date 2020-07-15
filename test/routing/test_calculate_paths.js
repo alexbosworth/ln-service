@@ -1,4 +1,4 @@
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {calculatePaths} = require('./../../');
 const {graphAlpha} = require('./fixtures');

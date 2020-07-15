@@ -1,7 +1,7 @@
 const {readFileSync} = require('fs');
 
 const asyncRetry = require('async/retry');
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {broadcastChainTransaction} = require('./../../');
 const {chainSendTransaction} = require('./../macros');

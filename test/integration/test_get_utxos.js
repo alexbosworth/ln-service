@@ -1,6 +1,6 @@
 const {readFileSync} = require('fs');
 
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');

@@ -1,5 +1,5 @@
 const {Transaction} = require('bitcoinjs-lib');
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {broadcastChainTransaction} = require('./../../');
 

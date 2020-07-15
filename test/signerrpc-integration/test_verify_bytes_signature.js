@@ -1,4 +1,4 @@
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {signBytes} = require('./../../');
 const {spawnLnd} = require('./../macros');

@@ -1,4 +1,4 @@
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const chanPolicyAsPolicy = require('./../../graph/channel_policy_as_policy');
 
