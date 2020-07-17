@@ -10,7 +10,7 @@ const lowBalanceErr = 'insufficient funds available to construct transaction';
 
   Requires `onchain:write` permission
 
-  `description` is not supported on LND 0.10.3 or below
+  `description` is not supported on LND 0.10.4 or below
 
   {
     address: <Destination Chain Address String>

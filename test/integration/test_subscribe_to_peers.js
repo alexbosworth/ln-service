@@ -17,6 +17,8 @@ test(`Subscribe to peers`, async ({end, equal}) => {
 
   const sub = subscribeToPeers({lnd});
 
+  sub.on('error', () => {});
+
   const disconnect = removePeer({lnd, public_key: cluster.target.public_key});
   const receiveDisconnect = once(sub, 'disconnected');
 
@@ -39,9 +41,8 @@ test(`Subscribe to peers`, async ({end, equal}) => {
     const [connected] = connectMessage;
 
     equal(connected.public_key, cluster.target.public_key, 'Got connected');
-
-    sub.on('err', err => {});
   } catch (err) {
+    // LND 0.8.2 and below do not support peer subscriptions
     equal(err.message, 'SubscribeToPeersNotSupported', 'Not supported yet');
   }
 

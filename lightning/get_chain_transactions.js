@@ -11,9 +11,9 @@ const offset = 1;
 
   Requires `onchain:read` permission
 
-  `after` and `before` are not supported on LND 0.10.3 and below
+  `after` and `before` are not supported on LND 0.10.4 and below
 
-  `description` is not returned in LND 0.10.3 and below
+  `description` is not returned in LND 0.10.4 and below
 
   {
     [after]: <Confirmed After Current Best Chain Block Height Number>

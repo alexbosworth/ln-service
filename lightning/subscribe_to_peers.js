@@ -2,7 +2,9 @@ const EventEmitter = require('events');
 
 const {isLnd} = require('./../grpc');
 
+const events = ['connected', 'disconnected', 'error'];
 const method = 'subscribePeerEvents';
+const sumOf = arr => arr.reduce((sum, n) => sum + n, Number());
 const unimplementedMessage = 'unknown service lnrpc.Lightning';
 
 /** Subscribe to peer connectivity events
@@ -38,6 +40,22 @@ module.exports = ({lnd}) => {
 
   const emitter = new EventEmitter();
   const subscription = lnd.default[method]({});
+
+  // Cancel the subscription when all listeners are removed
+  emitter.on('removeListener', () => {
+    const listenerCounts = events.map(n => emitter.listenerCount(n));
+
+    // Exit early when there are still listeners
+    if (!!sumOf(listenerCounts)) {
+      return;
+    }
+
+    subscription.cancel();
+
+    subscription.removeAllListeners();
+
+    return;
+  });
 
   const emitError = err => {
     // Exit early when no one is listening to the error

@@ -56,7 +56,7 @@ test(`Send chain transaction`, async ({end, equal}) => {
   } catch (err) {
     const [code] = err;
 
-    equal(501, code, 'Method is not supported on LND 0.10.3 and below');
+    equal(501, code, 'Method is not supported on LND 0.10.4 and below');
 
     kill();
 

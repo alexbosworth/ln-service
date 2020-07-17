@@ -4,8 +4,10 @@ const {chanFormat} = require('bolt07');
 const {getNode} = require('lightning/lnd_methods');
 
 const emptyTxId = Buffer.alloc(32);
+const events = ['channel_closed', 'channel_updated', 'node_updated'];
 const {isArray} = Array;
 const msPerSec = 1e3;
+const sumOf = arr => arr.reduce((sum, n) => sum + n, Number());
 
 /** Subscribe to graph updates
 
@@ -63,6 +65,20 @@ module.exports = ({lnd}) => {
 
   const eventEmitter = new EventEmitter();
   const subscription = lnd.default.subscribeChannelGraph({});
+
+  // Cancel the subscription when all listeners are removed
+  eventEmitter.on('removeListener', () => {
+    const listenerCounts = events.map(n => eventEmitter.listenerCount(n));
+
+    // Exit early when there are still listeners
+    if (!!sumOf(listenerCounts)) {
+      return;
+    }
+
+    sub.cancel();
+
+    return;
+  });
 
   subscription.on('data', update => {
     const updatedAt = new Date().toISOString();

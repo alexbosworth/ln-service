@@ -1,6 +1,8 @@
 const EventEmitter = require('events');
 
 const blockHashByteLen = 32;
+const event = 'block';
+const {isBuffer} = Buffer;
 
 /** Subscribe to blocks
 
@@ -37,31 +39,51 @@ module.exports = ({lnd}) => {
   sub.on('end', () => eventEmitter.emit('end'));
   sub.on('status', n => eventEmitter.emit('status', n));
 
-  sub.on('error', err => {
+  // Cancel the subscription when all listeners are removed
+  eventEmitter.on('removeListener', () => {
+    // Exit early when there are still listeners on the subscription
+    if (!!eventEmitter.listenerCount(event)) {
+      return;
+    }
+
+    sub.cancel();
+
+    return;
+  });
+
+  const emitError = err => {
+    sub.cancel();
+
+    sub.removeAllListeners();
+
     // Exit early when there are no error listeners
     if (!eventEmitter.listenerCount('error')) {
       return;
     }
 
-    eventEmitter.emit('error', new Error('UnexpectedErrInBlocksSubscription'));
+    eventEmitter.emit('error', err);
 
     return;
+  };
+
+  sub.on('error', err => {
+    return emitError([503, 'UnexpectedErrInBlocksSubscription', {err}]);
   });
 
   sub.on('data', data => {
-    if (!Buffer.isBuffer(data.hash)) {
-      eventEmitter.emit('error', new Error('ExpectedBlockHashInAnnouncement'));
+    if (!isBuffer(data.hash)) {
+      return emitError([503, 'ExpectedBlockHashInAnnouncement']);
     }
 
     if (data.hash.length !== blockHashByteLen) {
-      eventEmitter.emit('error', new Error('UnexpectedBlockEventHashLength'));
+      return emitError([503, 'UnexpectedBlockEventHashLength']);
     }
 
     if (!data.height) {
-      eventEmitter.emit('error', new Error('ExpectedHeightInBlockEvent'));
+      return emitError([503, 'ExpectedHeightInBlockEvent']);
     }
 
-    eventEmitter.emit('block', {
+    eventEmitter.emit(event, {
       height: data.height,
       id: data.hash.toString('hex'),
     });

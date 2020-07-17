@@ -6,6 +6,8 @@ const {subscribeToBlocks} = require('./../../');
 
 const blockEmitter = new EventEmitter();
 
+blockEmitter.cancel = () => {};
+
 const tests = [
   {
     args: {lnd: {chain: {registerBlockEpochNtfn: ({}) => blockEmitter}}},

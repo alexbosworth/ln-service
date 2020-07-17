@@ -29,6 +29,7 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
     case '0.10.1-beta':
     case '0.10.2-beta':
     case '0.10.3-beta':
+    case '0.10.4-beta':
       await cluster.kill({});
 
       return end();

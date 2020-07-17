@@ -11,7 +11,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.10.3-beta to v0.10.0-beta
+- v0.10.4-beta to v0.10.0-beta
 - v0.9.2-beta to v0.9.0-beta
 - v0.8.2-beta to v0.8.0-beta
 - v0.7.1-beta
@@ -1168,9 +1168,9 @@ Get chain transactions.
 
 Requires `onchain:read` permission
 
-`after` and `before` are not supported on LND 0.10.3 and below
+`after` and `before` are not supported on LND 0.10.4 and below
 
-`description` is not returned in LND 0.10.3 and below
+`description` is not returned in LND 0.10.4 and below
 
     {
       [after]: <Confirmed After Current Best Chain Block Height Number>
@@ -1277,16 +1277,16 @@ Requires `offchain:read` permission
 
     `local_given` and `remote_given` are not supported on LND 0.9.2 and below
 
-     `local_csv` is not supported on LND 0.10.3 and below
-     `local_dust` is not supported on LND 0.10.3 and below
-     `local_max_htlcs` is not supported on LND 0.10.3 and below
-     `local_max_pending_mtokens` is not supported on LND 0.10.3 and below
-     `local_min_htlc_mtokens` is not supported on LND 0.10.3 and below
-     `remote_csv` is not supported on LND 0.10.3 and below
-     `remote_dust` is not supported on LND 0.10.3 and below
-     `remote_max_htlcs` is not supported on LND 0.10.3 and below
-     `remote_max_pending_mtokens` is not supported on LND 0.10.3 and below
-     `remote_min_htlc_mtokens` is not supported on LND 0.10.3 and below
+     `local_csv` is not supported on LND 0.10.4 and below
+     `local_dust` is not supported on LND 0.10.4 and below
+     `local_max_htlcs` is not supported on LND 0.10.4 and below
+     `local_max_pending_mtokens` is not supported on LND 0.10.4 and below
+     `local_min_htlc_mtokens` is not supported on LND 0.10.4 and below
+     `remote_csv` is not supported on LND 0.10.4 and below
+     `remote_dust` is not supported on LND 0.10.4 and below
+     `remote_max_htlcs` is not supported on LND 0.10.4 and below
+     `remote_max_pending_mtokens` is not supported on LND 0.10.4 and below
+     `remote_min_htlc_mtokens` is not supported on LND 0.10.4 and below
 
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
@@ -1364,9 +1364,9 @@ Requires `offchain:read` permission
 `is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
 and below.
 
-    `close_balance_spent_by` is not supported on LND 0.10.3 and below
-    `close_balance_vout` is not supported on LND 0.10.3 and below
-    `close_payments` is not supported on LND 0.10.3 and below
+    `close_balance_spent_by` is not supported on LND 0.10.4 and below
+    `close_balance_vout` is not supported on LND 0.10.4 and below
+    `close_payments` is not supported on LND 0.10.4 and below
 
     {
       [is_breach_close]: <Only Return Breach Close Channels Bool>
@@ -2469,7 +2469,7 @@ Get timelocked spend transactions related to channel closes
 
 Requires `onchain:read` permission
 
-This method is not suppoorted on LND 0.10.3 and below
+This method is not suppoorted on LND 0.10.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -3068,7 +3068,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
 Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
 
-Specifying `outgoing_channels` is not supported on LND 0.10.3 and below
+Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3161,7 +3161,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
 Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
 
-Specifying `outgoing_channels` is not supported on LND 0.10.3 and below
+Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
@@ -3652,7 +3652,7 @@ Send tokens in a blockchain transaction.
 
 Requires `onchain:write` permission
 
-`description` is not supported on LND 0.10.3 or below
+`description` is not supported on LND 0.10.4 or below
 
     {
       address: <Destination Chain Address String>
@@ -3690,7 +3690,7 @@ Send tokens to multiple destinations in a blockchain transaction.
 
 Requires `onchain:write` permission
 
-`description` is not supported in LND 0.10.3 and below
+`description` is not supported in LND 0.10.4 and below
 
     {
       [description]: <Transaction Label String>
@@ -4109,7 +4109,7 @@ selected internally to complete the forward.
 
 Requires `offchain:read`, `offchain:write` permission
 
-This method is not supported on LND 0.10.3 and below
+This method is not supported on LND 0.10.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -4560,7 +4560,7 @@ Specifying `messages` is not supported on LND 0.8.2 and below
 
 Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
 
-Specifying `outgoing_channels` is not supported on LND 0.10.3 and below
+Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -4674,7 +4674,7 @@ Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
 
 Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
 
-Specifying `outgoing_channels` is not supported on LND 0.10.3 and below
+Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
@@ -5448,7 +5448,7 @@ Requires LND built with `walletrpc` build tag
 
 Requires `onchain:write` permission
 
-This method is not supported in LND 0.10.3 and below
+This method is not supported in LND 0.10.4 and below
 
     {
       description: <Transaction Label String>

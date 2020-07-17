@@ -20,9 +20,9 @@ const outpointSeparator = ':';
   `is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
   and below.
 
-  `close_balance_spent_by` is not supported on LND 0.10.3 and below
-  `close_balance_vout` is not supported on LND 0.10.3 and below
-  `close_payments` is not supported on LND 0.10.3 and below
+  `close_balance_spent_by` is not supported on LND 0.10.4 and below
+  `close_balance_vout` is not supported on LND 0.10.4 and below
+  `close_payments` is not supported on LND 0.10.4 and below
 
   {
     [is_breach_close]: <Only Return Breach Close Channels Bool>

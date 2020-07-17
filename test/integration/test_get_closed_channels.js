@@ -142,7 +142,7 @@ test(`Close channel`, async ({end, equal}) => {
   const [, control] = (await getClosedChannels({lnd})).channels;
   const [, target] = targetChannels.channels;
 
-  // Exit early as close payments are not supported on LND 0.10.3 and lower
+  // Exit early as close payments are not supported on LND 0.10.4 and lower
   if (!control.close_payments.length) {
     await cluster.kill({});
 
