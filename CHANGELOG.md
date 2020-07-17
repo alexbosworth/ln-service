@@ -1,6 +1,6 @@
 # Versions
 
-## 49.3.5
+## 49.3.6
 
 - `updateRoutingFees`: Allow specifying zero `base_fee_tokens`, `fee_rate`
 

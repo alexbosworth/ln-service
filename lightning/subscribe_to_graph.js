@@ -75,7 +75,7 @@ module.exports = ({lnd}) => {
       return;
     }
 
-    sub.cancel();
+    subscription.cancel();
 
     return;
   });
