@@ -1,5 +1,6 @@
 const {readFileSync} = require('fs');
 
+const asyncRetry = require('async/retry');
 const {test} = require('@alexbosworth/tap');
 
 const {chainSendTransaction} = require('./../macros');
@@ -19,7 +20,7 @@ const tokens = 1e8;
 
 // Getting utxos should list out the utxos
 test(`Get utxos`, async ({deepIs, end, equal, fail}) => {
-  const node = await spawnLnd({});
+  const node = await asyncRetry({}, async () => await spawnLnd({}));
 
   const cert = readFileSync(node.chain_rpc_cert);
   const host = node.listen_ip;
