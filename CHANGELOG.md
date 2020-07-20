@@ -1,5 +1,10 @@
 # Versions
 
+## 49.4.0
+
+- `getRouteThroughHops`: Add support for specifying MPP records and TLV messages
+- `routeFromChannels`: Add support for specifying TLV messages
+
 ## 49.3.7
 
 - `updateRoutingFees`: Allow specifying zero `base_fee_tokens`, `fee_rate`

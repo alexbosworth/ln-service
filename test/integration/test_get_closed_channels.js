@@ -19,7 +19,7 @@ const maxChanTokens = Math.pow(2, 24) - 1;
 const times = 1000;
 
 // Getting closed channels should return closed channels
-test(`Close channel`, async ({end, equal}) => {
+test(`Get closed channels`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;

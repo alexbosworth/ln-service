@@ -26,6 +26,10 @@ const {isArray} = Array;
     [cltv_delta]: <Final CLTV Delta Number>
     [destination]: <Destination Public Key Hex String>
     height: <Current Block Height Number>
+    [messages]: [{
+      type: <Message Type Number String>
+      value: <Message Raw Value Hex Encoded String>
+    }]
     mtokens: <Millitokens To Send String>
     [payment]: <Payment Identification Value Hex String>
     [total_mtokens]: <Sum of Shards Millitokens String>
@@ -48,6 +52,10 @@ const {isArray} = Array;
         forward_mtokens: <Forward Millitokens String>
         [public_key]: <Public Key Hex String>
         timeout: <Timeout Block Height Number>
+      }]
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
       }]
       mtokens: <Total Fee-Inclusive Millitokens String>
       [payment]: <Payment Identification Value Hex String>
@@ -84,6 +92,7 @@ module.exports = args => {
     height: args.height,
     hops: path.hops,
     initial_cltv: path.initial_cltv || defaultInitialCltvDelta,
+    messages: args.messages,
     mtokens: args.mtokens,
     payment: args.payment,
     total_mtokens: args.total_mtokens,

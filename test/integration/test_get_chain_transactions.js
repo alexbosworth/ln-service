@@ -88,6 +88,7 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
       '0d5b0fefa4d9082f7964836f5e58c3a6bda8e471': true,
       '1e04b7f54360427a23a5daf4a5a0648e6a81f3a6': true,
       '4f2221d56c8212ddc4f48a4e6a6ee57255e61195': true,
+      '86114c575c2dff9dff1e1bb4df961c64aea9fc1c': true,
       'ae6e84ddfd3c4d2366e151a04aca3f78b4078ed5': true,
       'd62c575f8499a314eb27f12462d20500b6bda2c7': true,
       'e8833042799d71dba209fe305ce3ae105c154cfe': true,

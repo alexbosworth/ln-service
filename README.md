@@ -2258,34 +2258,45 @@ Requires `offchain:read` permission
 
 This method is not supported by LND v0.7.1
 
-  {
-    [cltv_delta]: <Final CLTV Delta Number>
-    lnd: <Authenticated LND API Object>
-    [mtokens]: <Millitokens to Send String>
-    [outgoing_channel]: <Outgoing Channel Id String>
-    public_keys: [<Public Key Hex String>]
-  }
-
-  @returns via cbk or Promise
-  {
-    route: {
-      fee: <Route Fee Tokens Number>
-      fee_mtokens: <Route Fee Millitokens String>
-      hops: [{
-        channel: <Standard Format Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
-        fee: <Fee Number>
-        fee_mtokens: <Fee Millitokens String>
-        forward: <Forward Tokens Number>
-        forward_mtokens: <Forward Millitokens String>
-        public_key: <Forward Edge Public Key Hex String>
-        timeout: <Timeout Block Height Number>
+    {
+      [cltv_delta]: <Final CLTV Delta Number>
+      lnd: <Authenticated LND API Object>
+      [mtokens]: <Millitokens to Send String>
+      [outgoing_channel]: <Outgoing Channel Id String>
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
       }]
-      mtokens: <Total Fee-Inclusive Millitokens String>
-      timeout: <Route Timeout Height Number>
-      tokens: <Total Fee-Inclusive Tokens Number>
+      [payment]: <Payment Identifier Hex String>
+      public_keys: [<Public Key Hex String>]
+      [tokens]: <Tokens to Send Number>
+      [total_mtokens]: <Payment Total Millitokens String>
     }
-  }
+
+    @returns via cbk or Promise
+    {
+      route: {
+        fee: <Route Fee Tokens Number>
+        fee_mtokens: <Route Fee Millitokens String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Forward Edge Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Fee-Inclusive Millitokens String>
+        [payment]: <Payment Identifier Hex String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Tokens Rounded Up Number>
+        timeout: <Route Timeout Height Number>
+        tokens: <Total Fee-Inclusive Tokens Number>
+        [total_mtokens]: <Payment Total Millitokens String>
+      }
+    }
 
 Example:
 
@@ -3601,6 +3612,10 @@ Either next hop destination in channels or final destination is required
       [cltv_delta]: <Final CLTV Delta Number>
       [destination]: <Destination Public Key Hex String>
       height: <Current Block Height Number>
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
+      }]
       mtokens: <Millitokens To Send String>
       [payment]: <Payment Identification Value Hex String>
       [total_mtokens]: <Sum of Shards Millitokens String>
@@ -3623,6 +3638,10 @@ Either next hop destination in channels or final destination is required
           forward_mtokens: <Forward Millitokens String>
           [public_key]: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
+        }]
+        [messages]: [{
+          type: <Message Type Number String>
+          value: <Message Raw Value Hex Encoded String>
         }]
         mtokens: <Total Fee-Inclusive Millitokens String>
         [payment]: <Payment Identification Value Hex String>
