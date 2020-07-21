@@ -22,7 +22,7 @@ const timeout = 250 * 10;
 const times = 100;
 
 // Opening channels should open up channels
-test(`Open channel`, async ({end, equal}) => {
+test(`Open channels`, async ({end, equal}) => {
   await asyncRetry({interval, times}, async () => {
     const cluster = await createCluster({});
 

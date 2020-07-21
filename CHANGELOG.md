@@ -1,6 +1,6 @@
 # Versions
 
-## 49.4.0
+## 49.4.1
 
 - `getRouteThroughHops`: Add support for specifying MPP records and TLV messages
 - `routeFromChannels`: Add support for specifying TLV messages
