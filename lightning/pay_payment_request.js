@@ -57,7 +57,7 @@ module.exports = (args, cbk) => {
 
         if (!!args.outgoing_channel) {
           try {
-            chanNumber({channel}).number;
+            chanNumber({channel: args.outgoing_channel}).number;
           } catch (err) {
             return cbk([400, 'UnexpectedFormatForOutgoingChannelId', {err}]);
           }
@@ -87,7 +87,9 @@ module.exports = (args, cbk) => {
           payment_request: args.request,
         };
 
-        if (!!args.outgoing_channel) {
+        const channel = args.outgoing_channel;
+
+        if (!!channel) {
           params.outgoing_chan_id = chanNumber({channel}).number;
         }
 

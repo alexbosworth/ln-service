@@ -25,10 +25,10 @@
     "@alexbosworth/request": "2.88.3",
     "@alexbosworth/tap": "14.10.9",
     "bip66": "1.1.5",
-    "portfinder": "1.0.27",
+    "portfinder": "1.0.28",
     "psbt": "1.1.4",
     "rimraf": "3.0.2",
-    "uuid": "8.2.0",
+    "uuid": "8.3.0",
     "varuint-bitcoin": "1.1.2"
   },
   "engines": {
@@ -60,5 +60,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "49.4.1"
+  "version": "49.4.2"
 }

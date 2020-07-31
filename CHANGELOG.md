@@ -1,5 +1,9 @@
 # Versions
 
+## 49.4.2
+
+- `payViaPaymentRequest`: Fix validation of `outgoing_channel`
+
 ## 49.4.1
 
 - `getRouteThroughHops`: Add support for specifying MPP records and TLV messages
