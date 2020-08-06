@@ -1,4 +1,4 @@
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const betaChannels = require('./fixtures/graph_beta').channels;
 const charlieChannels = require('./fixtures/graph_charlie').channels;

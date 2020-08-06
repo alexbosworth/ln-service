@@ -1,4 +1,4 @@
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {signMessage} = require('./../../');
 const {spawnLnd} = require('./../macros');

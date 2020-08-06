@@ -1,6 +1,6 @@
 const {randomBytes} = require('crypto');
 
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');

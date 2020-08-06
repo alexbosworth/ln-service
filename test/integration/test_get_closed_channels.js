@@ -1,5 +1,5 @@
 const asyncRetry = require('async/retry');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
@@ -99,7 +99,7 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   const claimInvoice = await createHodlInvoice({
     lnd,
-    cltv_delta: 14,
+    cltv_delta: 18,
     tokens: 1e5,
   });
 

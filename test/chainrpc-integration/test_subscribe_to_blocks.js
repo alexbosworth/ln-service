@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const {readFileSync} = require('fs');
 
 const asyncRetry = require('async/retry');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');

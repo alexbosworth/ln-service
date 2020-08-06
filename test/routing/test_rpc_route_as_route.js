@@ -1,4 +1,4 @@
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const rpcRouteAsRoute = require('./../../routing/rpc_route_as_route');
 

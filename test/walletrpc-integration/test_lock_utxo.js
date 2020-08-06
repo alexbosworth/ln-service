@@ -1,6 +1,6 @@
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');

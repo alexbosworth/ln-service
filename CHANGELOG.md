@@ -1,6 +1,6 @@
 # Versions
 
-## 49.4.2
+## 49.4.3
 
 - `payViaPaymentRequest`: Fix validation of `outgoing_channel`
 

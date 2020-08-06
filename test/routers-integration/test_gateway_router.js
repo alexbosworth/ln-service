@@ -5,7 +5,7 @@ const {Writable} = require('stream');
 const {getPortPromise} = require('portfinder');
 const {lndGateway} = require('lightning');
 const request = require('@alexbosworth/request');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 const websocket = require('ws');
 
 const {generateBlocks} = require('./../macros');

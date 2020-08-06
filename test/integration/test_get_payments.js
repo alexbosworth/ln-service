@@ -1,5 +1,5 @@
 const asyncTimesSeries = require('async/timesSeries');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');

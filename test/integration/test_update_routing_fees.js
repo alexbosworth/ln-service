@@ -1,4 +1,4 @@
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {delay} = require('./../macros');
 const {createCluster} = require('./../macros');
@@ -8,7 +8,7 @@ const {updateRoutingFees} = require('./../../');
 
 const baseFeeTokens = 9;
 const channelCapacityTokens = 1e6;
-const cltvDelta = 10;
+const cltvDelta = 18;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const feeRate = 0;

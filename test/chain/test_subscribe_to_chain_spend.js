@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 const {Transaction} = require('bitcoinjs-lib');
 
 const {subscribeToChainSpend} = require('./../../');

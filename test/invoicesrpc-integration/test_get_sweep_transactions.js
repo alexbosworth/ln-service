@@ -2,7 +2,7 @@ const {createHash} = require('crypto');
 const {randomBytes} = require('crypto');
 
 const asyncRetry = require('async/retry');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
@@ -17,7 +17,7 @@ const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
 
-const blockDelay = 10;
+const blockDelay = 18;
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;

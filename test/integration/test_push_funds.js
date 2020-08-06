@@ -1,6 +1,6 @@
 const asyncRetry = require('async/retry');
 const {decodeChanId} = require('bolt07');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');

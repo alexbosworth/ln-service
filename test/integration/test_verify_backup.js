@@ -1,5 +1,5 @@
 const asyncRetry = require('async/retry');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {getBackup} = require('./../../');

@@ -1,5 +1,5 @@
 const {address} = require('bitcoinjs-lib');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {authenticatedLndGrpc} = require('./../../');
 const {createChainAddress} = require('./../../');

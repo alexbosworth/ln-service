@@ -1,7 +1,7 @@
 const asyncRetry = require('async/retry');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 const {transactionAsPsbt} = require('psbt');
 
 const {addPeer} = require('./../../');

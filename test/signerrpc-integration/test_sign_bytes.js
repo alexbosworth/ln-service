@@ -1,5 +1,5 @@
 const {decode} = require('bip66');
-const {test} = require('@alexbosworth/tap');
+const {test} = require('tap');
 
 const {createSignedRequest} = require('./../../');
 const {createUnsignedRequest} = require('./../../');
