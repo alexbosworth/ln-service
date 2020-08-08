@@ -4171,7 +4171,7 @@ Example:
 const {subscribeToForwardRequests} = require('ln-service');
 const sub = subscribeToForwardRequests({lnd});
 
-sub.on('forward', forward => {
+sub.on('forward_request', forward => {
   // Fail all forward requests
   return forward.reject();
 });
