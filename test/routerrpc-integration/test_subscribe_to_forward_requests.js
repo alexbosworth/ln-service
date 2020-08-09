@@ -75,7 +75,7 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
 
     const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
 
-    sub.on('forward_request', async forward => forward.reject());
+    sub.on('forward_request', forward => forward.reject());
 
     await rejects(
       payViaPaymentRequest({lnd, request: invoice.request}),

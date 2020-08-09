@@ -1,4 +1,3 @@
-const closeChannel = require('./close_channel');
 const decodePaymentRequest = require('./decode_payment_request');
 const deletePayments = require('./delete_payments');
 const getBackups = require('./get_backups');
@@ -15,7 +14,6 @@ const getPayments = require('./get_payments');
 const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
 const getWalletInfo = require('./get_wallet_info');
-const openChannel = require('./open_channel');
 const pay = require('./pay');
 const probe = require('./probe');
 const recoverFundsFromChannel = require('./recover_funds_from_channel');
@@ -37,7 +35,6 @@ const verifyBackups = require('./verify_backups');
 const verifyMessage = require('./verify_message');
 
 module.exports = {
-  closeChannel,
   decodePaymentRequest,
   deletePayments,
   getBackups,
@@ -54,7 +51,6 @@ module.exports = {
   getPendingChannels,
   getRoutes,
   getWalletInfo,
-  openChannel,
   pay,
   probe,
   recoverFundsFromChannel,

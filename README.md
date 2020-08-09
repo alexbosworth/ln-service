@@ -602,6 +602,7 @@ Setting `mtokens` will not work on LND versions 0.8.2 and below
     {
       [cltv_delta]: <Final CLTV Delta Number>
       [description]: <Invoice Description String>
+      [description_hash]: <Hashed Description of Payment Hex String>
       [expires_at]: <Expires At ISO 8601 Date String>
       [id]: <Payment Hash Hex String>
       [is_fallback_included]: <Is Fallback Address Included Bool>
@@ -665,6 +666,7 @@ Requires `address:write`, `invoices:write` permission
     {
       [cltv_delta]: <CLTV Delta Number>
       [description]: <Invoice Description String>
+      [description_hash]: <Hashed Description of Payment Hex String>
       [expires_at]: <Expires At ISO 8601 Date String>
       [is_fallback_included]: <Is Fallback Address Included Bool>
       [is_fallback_nested]: <Is Fallback Address Nested Bool>
@@ -4171,7 +4173,7 @@ Example:
 const {subscribeToForwardRequests} = require('ln-service');
 const sub = subscribeToForwardRequests({lnd});
 
-sub.on('forward', forward => {
+sub.on('forward_request', forward => {
   // Fail all forward requests
   return forward.reject();
 });

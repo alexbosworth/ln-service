@@ -1,5 +1,10 @@
 # Versions
 
+## 49.5.0
+
+- `createHodlInvoice`: Add support for `description_hash`
+- `createInvoice`: Add support for `description_hash`
+
 ## 49.4.3
 
 - `payViaPaymentRequest`: Fix validation of `outgoing_channel`
