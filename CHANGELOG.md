@@ -1,6 +1,6 @@
 # Versions
 
-## 49.5.0
+## 49.5.1
 
 - `createHodlInvoice`: Add support for `description_hash`
 - `createInvoice`: Add support for `description_hash`
