@@ -8,7 +8,6 @@ const getFeeRates = require('./get_fee_rates');
 const getForwards = require('./get_forwards');
 const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
-const getNetworkGraph = require('./get_network_graph');
 const getNetworkInfo = require('./get_network_info');
 const getPayments = require('./get_payments');
 const getPendingChannels = require('./get_pending_channels');
@@ -25,7 +24,6 @@ const signMessage = require('./sign_message');
 const stopDaemon = require('./stop_daemon');
 const subscribeToBackups = require('./subscribe_to_backups');
 const subscribeToChannels = require('./subscribe_to_channels');
-const subscribeToGraph = require('./subscribe_to_graph');
 const subscribeToOpenRequests = require('./subscribe_to_open_requests');
 const subscribeToPeers = require('./subscribe_to_peers');
 const subscribeToTransactions = require('./subscribe_to_transactions');
@@ -45,7 +43,6 @@ module.exports = {
   getForwards,
   getInvoice,
   getInvoices,
-  getNetworkGraph,
   getNetworkInfo,
   getPayments,
   getPendingChannels,
@@ -62,7 +59,6 @@ module.exports = {
   stopDaemon,
   subscribeToBackups,
   subscribeToChannels,
-  subscribeToGraph,
   subscribeToOpenRequests,
   subscribeToPeers,
   subscribeToTransactions,

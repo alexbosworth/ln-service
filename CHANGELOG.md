@@ -1,5 +1,10 @@
 # Versions
 
+## 49.6.0
+
+- `subscribeToGraph`: Correct consistency issues in event values
+- `subscribeToGraph`: Add support for `features` in node announcements
+
 ## 49.5.1
 
 - `createHodlInvoice`: Add support for `description_hash`

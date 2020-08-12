@@ -15,7 +15,7 @@
     "express": "4.17.1",
     "invoices": "1.1.2",
     "is-base64": "1.1.0",
-    "lightning": "2.0.32",
+    "lightning": "2.0.33",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.3.1"
@@ -25,7 +25,7 @@
     "@alexbosworth/request": "2.88.3",
     "bip66": "1.1.5",
     "portfinder": "1.0.28",
-    "psbt": "1.1.4",
+    "psbt": "1.1.5",
     "rimraf": "3.0.2",
     "tap": "14.10.8",
     "uuid": "8.3.0",
@@ -60,5 +60,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "49.5.1"
+  "version": "49.6.0"
 }

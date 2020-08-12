@@ -4269,18 +4269,27 @@ Requires `info:read` permission
 
     @event 'channel_closed'
     {
-      capacity: <Channel Capacity Tokens Number>
+      [capacity]: <Channel Capacity Tokens Number>
       close_height: <Channel Close Confirmed Block Height Number>
       id: <Standard Format Channel Id String>
-      transaction_id: <Channel Transaction Id String>
-      transaction_vout: <Channel Transaction Output Index Number>
+      [transaction_id]: <Channel Transaction Id String>
+      [transaction_vout]: <Channel Transaction Output Index Number>
       updated_at: <Update Received At ISO 8601 Date String>
     }
+
+    @event 'error'
+    <Subscription Error>
 
     @event 'node_updated'
     {
       alias: <Node Alias String>
       color: <Node Color String>
+      features: [{
+        bit: <BOLT 09 Feature Bit Number>
+        is_known: <Feature is Known Bool>
+        is_required: <Feature Support is Required Bool>
+        type: <Feature Type String>
+      }]
       public_key: <Node Public Key String>
       [sockets]: [<Network Host And Port String>]
       updated_at: <Update Received At ISO 8601 Date String>
