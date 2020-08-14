@@ -23,7 +23,6 @@ const sendToChainAddresses = require('./send_to_chain_addresses');
 const signMessage = require('./sign_message');
 const stopDaemon = require('./stop_daemon');
 const subscribeToBackups = require('./subscribe_to_backups');
-const subscribeToChannels = require('./subscribe_to_channels');
 const subscribeToOpenRequests = require('./subscribe_to_open_requests');
 const subscribeToPeers = require('./subscribe_to_peers');
 const subscribeToTransactions = require('./subscribe_to_transactions');
@@ -58,7 +57,6 @@ module.exports = {
   signMessage,
   stopDaemon,
   subscribeToBackups,
-  subscribeToChannels,
   subscribeToOpenRequests,
   subscribeToPeers,
   subscribeToTransactions,

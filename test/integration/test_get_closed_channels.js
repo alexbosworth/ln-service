@@ -14,7 +14,7 @@ const {subscribeToInvoice} = require('./../../');
 const all = promise => Promise.all(promise);
 const confirmationCount = 6;
 const defaultFee = 1e3;
-const interval = 200;
+const interval = 100;
 const maxChanTokens = Math.pow(2, 24) - 1;
 const times = 1000;
 
@@ -38,10 +38,10 @@ test(`Get closed channels`, async ({end, equal}) => {
     transaction_vout: channelOpen.transaction_vout,
   });
 
-  await cluster.generate({count: confirmationCount});
-
   // Wait for channel to close
   await asyncRetry({interval, times}, async () => {
+    await cluster.generate({});
+
     const {channels} = await getClosedChannels({lnd});
 
     if (!channels.length) {

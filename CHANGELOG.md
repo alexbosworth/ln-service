@@ -1,5 +1,10 @@
 # Versions
 
+## 49.7.0
+
+- `subscribeToChannels`: Make `channel_closed` consistent w/`getClosedChannels`
+- `subscribeToChannels`: Make `channel_opened` values consistent w/`getChannels`
+
 ## 49.6.0
 
 - `subscribeToGraph`: Correct consistency issues in event values

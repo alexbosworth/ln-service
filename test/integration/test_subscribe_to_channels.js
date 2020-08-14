@@ -4,16 +4,14 @@ const {test} = require('tap');
 const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const {openChannel} = require('./../../');
 const {removePeer} = require('./../../');
 const {subscribeToChannels} = require('./../../');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
 const defaultFee = 1e3;
 const giveTokens = 1e5;
-const interval = retryCount => 10 * Math.pow(2, retryCount);
+const interval = 100;
 const times = 20;
 
 // Subscribing to channels should trigger channel events
@@ -34,7 +32,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   sub.on('channel_closed', update => channelClosed.push(update));
   sub.on('channel_opened', update => channelOpened.push(update));
   sub.on('channel_opening', update => channelAdding.push(update));
-  sub.on('err', err => errors.push(err));
+  sub.on('error', err => errors.push(err));
 
   const channelOpen = await asyncRetry({interval, times}, async () => {
     await addPeer({
@@ -57,7 +55,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   // Wait for the channel to confirm
   await asyncRetry({interval, times}, async () => {
     // Generate to confirm the tx
-    await cluster.generate({count: 1, node: cluster.control});
+    await cluster.generate({});
 
     if (!channelOpened.length) {
       throw new Error('ExpectedChannelOpened');
