@@ -11,6 +11,7 @@ through npm.
 
 Supported LND versions:
 
+- v0.11.0-beta
 - v0.10.4-beta to v0.10.0-beta
 - v0.9.2-beta to v0.9.0-beta
 - v0.8.2-beta to v0.8.0-beta
@@ -1631,7 +1632,8 @@ The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     @returns via cbk or Promise
     {
-      chain_address: <Fallback Chain Address String>
+      [chain_address]: <Fallback Chain Address String>
+      cltv_delta: <CLTV Delta Number>
       [confirmed_at]: <Settled at ISO 8601 Date String>
       created_at: <ISO 8601 Date String>
       description: <Description String>
