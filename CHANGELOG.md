@@ -1,5 +1,11 @@
 # Versions
 
+## 49.8.0
+
+- `getAccessIds`: Add method to list macaroon root ids granted access
+- `grantAccess`: Add support for `id` to specify a root id number for a macaroon
+- `revokeAccess`: Add method to revoke access to macaroons with a root id number
+
 ## 49.7.0
 
 - `subscribeToChannels`: Make `channel_closed` consistent w/`getClosedChannels`

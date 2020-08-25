@@ -21,6 +21,7 @@ const {deletePayments} = require('./lightning');
 const {diffieHellmanComputeSecret} = require('./sign');
 const {disconnectWatchtower} = require('./tower_client');
 const {fundPendingChannels} = require('lightning/lnd_methods');
+const {getAccessIds} = require('lightning/lnd_methods');
 const {getAutopilot} = require('lightning/lnd_methods');
 const {getBackup} = require('lightning/lnd_methods');
 const {getBackups} = require('./lightning');
@@ -58,7 +59,7 @@ const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('lightning/lnd_methods');
 const {getWalletInfo} = require('./lightning');
 const {getWalletVersion} = require('lightning/lnd_methods');
-const {grantAccess} = require('./macaroons');
+const {grantAccess} = require('lightning/lnd_methods');
 const {isDestinationPayable} = require('./router');
 const {lockUtxo} = require('lightning/lnd_methods');
 const {openChannel} = require('lightning/lnd_methods');
@@ -74,6 +75,7 @@ const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
 const {removePeer} = require('./lightning');
 const {restrictMacaroon} = require('./macaroons');
+const {revokeAccess} = require('lightning/lnd_methods');
 const {routeFromChannels} = require('./routing');
 const {sendToChainAddress} = require('./lightning');
 const {sendToChainAddresses} = require('./lightning');
@@ -137,6 +139,7 @@ module.exports = {
   diffieHellmanComputeSecret,
   disconnectWatchtower,
   fundPendingChannels,
+  getAccessIds,
   getAutopilot,
   getBackup,
   getBackups,
@@ -190,6 +193,7 @@ module.exports = {
   recoverFundsFromChannels,
   removePeer,
   restrictMacaroon,
+  revokeAccess,
   routeFromChannels,
   sendToChainAddress,
   sendToChainAddresses,

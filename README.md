@@ -132,6 +132,7 @@ for `unlocker` methods.
 - [diffieHellmanComputeSecret](#diffieHellmanComputeSecret) - Get DH shared key
 - [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
 - [fundPendingChannels](#fundPendingChannels) - Fund pending open channels
+- [getAccessIds](#getAccessIds) - Get granted macaroon root access ids
 - [getAutopilot](#getAutopilot) - Get autopilot status or node scores
 - [getBackup](#getBackup) - Get a backup of a channel
 - [getBackups](#getBackups) - Get a backup for all channels
@@ -185,6 +186,7 @@ for `unlocker` methods.
 - [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
 - [removePeer](#removePeer) - Disconnect from a connected peer
 - [restrictMacaroon](#restrictMacaroon) - Add limitations to a macaroon
+- [revokeAccess](#revokeAccess) - Revoke all access macaroons given to an id
 - [routeFromChannels](#routeFromChannels) - Convert channel series to a route
 - [sendToChainAddress](#sendToChainAddress) - Send on-chain to an address
 - [sendToChainAddresses](#sendToChainAddresses) - Send on-chain to addresses
@@ -996,6 +998,37 @@ const channels = pending.map(n => n.id);
 
 // Fund the pending open channels request
 await fundPendingChannels({channels, lnd, funding: psbt});
+```
+
+### getAccessIds
+
+Get outstanding access ids given out
+
+Note: this method is not supported in LND versions 0.11.0 and below
+
+Requires `macaroon:read` permission
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      ids: [<Root Access Id Number>]
+    }
+
+Example:
+
+```node
+const {getAccessIds, grantAccess} = require('ln-service');
+
+// Create a macaroon that can be used to make off-chain payments
+const {macaroon} = await grantAccess({lnd, id: '1', is_ok_to_pay: true});
+
+// Get outstanding ids
+const {ids} = await getAccessIds({lnd});
+
+// The specified id '1' will appear in the ids array
 ```
 
 ### getAutopilot
@@ -2660,6 +2693,8 @@ const hasInvoicesRpc = (await getWalletVersion({lnd})).is_invoicesrpc_enabled;
 
 Give access to the node by making a macaroon access credential
 
+Specify `id` to allow for revoking future access
+
 Requires `macaroon:generate` permission
 
 Note: access once given cannot be revoked. Access is defined at the LND level
@@ -2667,7 +2702,10 @@ and version differences in LND can result in expanded access.
 
 Note: granting access is not supported in LND versions 0.8.2 and below
 
+Note: `id` is not supported in LND versions 0.11.0 and below
+
     {
+      [id]: <Macaroon Id Positive Numeric String>
       [is_ok_to_adjust_peers]: <Can Add or Remove Peers Bool>
       [is_ok_to_create_chain_addresses]: <Can Make New Addresses Bool>
       [is_ok_to_create_invoices]: <Can Create Lightning Invoices Bool>
@@ -3595,6 +3633,35 @@ const {restrictMacaroon} = require('ln-service');
 
 // Limit a macaroon to be only usable on localhost
 const restrictedMacaroon = restrictMacaroon({ip: '127.0.0.1', macaroon}).macaroon;
+```
+
+### revokeAccess
+
+Revoke an access token given out in the past
+
+Note: this method is not supported in LND versions 0.11.0 and below
+
+Requires `macaroon:write` permission
+
+    {
+      id: <Access Token Macaroon Root Id Positive Integer String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {grantAccess, revokeAccess} = require('ln-service');
+
+// Create a macaroon that can be used to make off-chain payments
+const {macaroon} = await grantAccess({lnd, id: '1', is_ok_to_pay: true});
+
+// Revoke the access granted to the id
+await revokeAccess({lnd, id: '1'})
+
+// The macaroon and any others on the same id can no longer be used
 ```
 
 ### routeFromChannels
