@@ -2711,12 +2711,14 @@ Note: `id` is not supported in LND versions 0.11.0 and below
       [is_ok_to_create_invoices]: <Can Create Lightning Invoices Bool>
       [is_ok_to_create_macaroons]: <Can Create Macaroons Bool>
       [is_ok_to_derive_keys]: <Can Derive Public Keys Bool>
+      [is_ok_to_get_access_ids]: <Can List Access Ids Bool>
       [is_ok_to_get_chain_transactions]: <Can See Chain Transactions Bool>
       [is_ok_to_get_invoices]: <Can See Invoices Bool>
       [is_ok_to_get_wallet_info]: <Can General Graph and Wallet Information Bool>
       [is_ok_to_get_payments]: <Can Get Historical Lightning Transactions Bool>
       [is_ok_to_get_peers]: <Can Get Node Peers Information Bool>
       [is_ok_to_pay]: <Can Send Funds or Edit Lightning Payments Bool>
+      [is_ok_to_revoke_access_ids]: <Can Revoke Access Ids Bool>
       [is_ok_to_send_to_chain_addresses]: <Can Send Coins On Chain Bool>
       [is_ok_to_sign_bytes]: <Can Sign Bytes From Node Keys Bool>
       [is_ok_to_sign_messages]: <Can Sign Messages From Node Key Bool>

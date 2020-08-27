@@ -1,4 +1,3 @@
-const {address} = require('bitcoinjs-lib');
 const {test} = require('tap');
 
 const {authenticatedLndGrpc} = require('./../../');
@@ -8,9 +7,6 @@ const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
 const format = 'np2wpkh';
-const p2shAddressVersion = 196;
-const pkHashByteLength = 20;
-const regtestBech32AddressHrp = 'bcrt';
 
 // Granting access should result in access granted
 test(`Get access credentials`, async ({deepIs, end, equal, rejects}) => {
@@ -55,9 +51,17 @@ test(`Get access credentials`, async ({deepIs, end, equal, rejects}) => {
     socket: spawned.lnd_socket,
   });
 
-  const err = [503, 'UnexpectedErrorCreatingAddress'];
+  await rejects(
+    grantAccess({lnd: makeAddress.lnd, is_ok_to_create_chain_addresses: true}),
+    [403, 'PermissionDeniedToBakeMacaroon'],
+    'Cannot grant access using a non-generate macaroon'
+  );
 
-  rejects(createChainAddress({format, lnd: canPay.lnd}), err, 'Fail access');
+  await rejects(
+    createChainAddress({format, lnd: canPay.lnd}),
+    [503, 'UnexpectedErrorCreatingAddress'],
+    'Cannot create a chain address using an offchain pay macaroon'
+  );
 
   const {address} = await createChainAddress({format, lnd: makeAddress.lnd});
 
