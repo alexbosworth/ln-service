@@ -55,10 +55,10 @@
     "invoices-integration-tests": "tap --no-coverage -t 90 test/invoicesrpc-integration/*.js",
     "router-integration-tests": "tap --no-coverage -j 2 -t 90 test/routerrpc-integration/*.js",
     "signer-integration-tests": "tap --no-coverage test/signerrpc-integration/*.js",
-    "test": "tap test/backups/*.js test/bolt00/*.js test/bolt02/*.js test/chain/*.js test/graph/*.js test/invoices/*.js test/macaroons/*.js test/router/*.js test/routing/*.js test/signer/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js",
+    "test": "tap test/backups/*.js test/bolt00/*.js test/bolt02/*.js test/chain/*.js test/graph/*.js test/invoices/*.js test/router/*.js test/routing/*.js test/signer/*.js test/towers/*.js test/unlocker/*.js test/wallet/*.js",
     "tower_client-integration-tests": "tap --no-coverage test/tower_clientrpc-integration/*.js",
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "49.8.1"
+  "version": "49.8.2"
 }
