@@ -1,6 +1,6 @@
 # Versions
 
-## 49.8.2
+## 49.8.3
 
 - `getAccessIds`: Add method to list macaroon root ids granted access
 - `grantAccess`: Add support for `id` to specify a root id number for a macaroon
