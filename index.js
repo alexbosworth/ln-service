@@ -40,6 +40,7 @@ const {getForwardingReputations} = require('./router');
 const {getForwards} = require('lightning/lnd_methods');
 const {getInvoice} = require('./lightning');
 const {getInvoices} = require('./lightning');
+const {getMethods} = require('lightning/lnd_methods');
 const {getNetworkCentrality} = require('lightning/lnd_methods');
 const {getNetworkGraph} = require('lightning/lnd_methods');
 const {getNetworkInfo} = require('./lightning');
@@ -158,6 +159,7 @@ module.exports = {
   getForwards,
   getInvoice,
   getInvoices,
+  getMethods,
   getNetworkCentrality,
   getNetworkGraph,
   getNetworkInfo,

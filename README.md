@@ -151,6 +151,7 @@ for `unlocker` methods.
 - [getForwards](#getForwards) - Get forwarded routed payments
 - [getInvoice](#getInvoice) - Get a previously created invoice
 - [getInvoices](#getInvoices) - Get all previously created invoice
+- [getMethods](#getMethods) - Get available methods and associated permissions
 - [getNetworkCentrality](#getNetworkCentrality) - Get centrality score for nodes
 - [getNetworkGraph](#getNetworkGraph) - Get the channels and nodes of the graph
 - [getNetworkInfo](#getNetworkInfo) - Get high-level graph info
@@ -1783,6 +1784,41 @@ Example:
 ```node
 const {getInvoices} = require('ln-service');
 const {invoices} = await getInvoices({lnd});
+```
+
+### getMethods
+
+Get the list of all methods and their associated requisite permissions
+
+Note: this method is not supported in LND versions 0.11.0 and below
+
+Requires `info:read` permission
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      methods: [{
+        endpoint: <Method Endpoint Path String>
+        permissions: <Entity:Action String>]
+      }]
+    }
+
+Example:
+
+```node
+const {getMethods} = require('ln-service');
+const perrmissions = ['info:read'];
+
+const {methods} = await getMethods({lnd});
+
+// Calculate allowed methods for permissions set
+const allowedMethods = methods.filter(method => {
+  // A method is allowed if all of its permissions are included
+  return !method.permissions.find(n => !permissions.includes(n));
+});
 ```
 
 ### getNetworkCentrality

@@ -1,5 +1,9 @@
 # Versions
 
+## 49.9.0
+
+- `getMethods`: Add method to list available methods and related permissions
+
 ## 49.8.3
 
 - `getAccessIds`: Add method to list macaroon root ids granted access
