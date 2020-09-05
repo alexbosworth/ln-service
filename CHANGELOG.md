@@ -1,6 +1,6 @@
 # Versions
 
-## 49.9.0
+## 49.9.1
 
 - `getMethods`: Add method to list available methods and related permissions
 

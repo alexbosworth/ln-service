@@ -12,9 +12,9 @@ through npm.
 Supported LND versions:
 
 - v0.11.0-beta
-- v0.10.4-beta to v0.10.0-beta
-- v0.9.2-beta to v0.9.0-beta
-- v0.8.2-beta to v0.8.0-beta
+- v0.10.0-beta to v0.10.4-beta
+- v0.9.0-beta to v0.9.2-beta
+- v0.8.0-beta to v0.8.2-beta
 - v0.7.1-beta
 
 ## Installing LND
