@@ -1,5 +1,10 @@
 # Versions
 
+## 49.9.2
+
+- `createUnsignedRequest`: Add support for empty descriptions
+- `parsePaymentRequest`: Improve consistency with `decodePaymentRequest`
+
 ## 49.9.1
 
 - `getMethods`: Add method to list available methods and related permissions

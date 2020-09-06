@@ -59,7 +59,7 @@ module.exports = ({bind, cert, log, path, port, socket, stream, tls}) => {
 
     secure.listen(tls.port);
 
-    log(`Listening for TLS: ${tls.port}`);
+    log(null, `Listening for TLS: ${tls.port}`);
   }
 
   app.use(cors());
