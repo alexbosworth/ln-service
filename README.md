@@ -4143,7 +4143,7 @@ const {subscribeToChainSpend} = require('ln-service');
 const address = 'bech32Address';
 let confirmationHeight;
 const sub = subscribeToChainSpend({lnd, bech32_address: address});
-sub.on('conirmation', ({height}) => confirmationHeight = height);
+sub.on('confirmation', ({height}) => confirmationHeight = height);
 ```
 
 ### subscribeToChannels
