@@ -38,8 +38,7 @@ test(`Sign bytes`, async ({end, equal}) => {
       destination: spawned.public_key,
       hrp: unsigned.hrp,
       signature: Buffer.concat([rValue, s]).toString('hex'),
-      tags: unsigned.tags,
-      tokens: 1,
+      tags: unsigned.tags
     });
 
     const decoded = await decodePaymentRequest({request, lnd: spawned.lnd});
