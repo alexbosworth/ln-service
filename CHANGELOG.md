@@ -1,6 +1,6 @@
 # Versions
 
-## 49.9.2
+## 49.9.3
 
 - `createUnsignedRequest`: Add support for empty descriptions
 - `parsePaymentRequest`: Improve consistency with `decodePaymentRequest`

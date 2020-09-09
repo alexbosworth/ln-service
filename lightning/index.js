@@ -10,7 +10,6 @@ const getInvoice = require('./get_invoice');
 const getInvoices = require('./get_invoices');
 const getNetworkInfo = require('./get_network_info');
 const getPayments = require('./get_payments');
-const getPendingChannels = require('./get_pending_channels');
 const getRoutes = require('./get_routes');
 const getWalletInfo = require('./get_wallet_info');
 const pay = require('./pay');
@@ -44,7 +43,6 @@ module.exports = {
   getInvoices,
   getNetworkInfo,
   getPayments,
-  getPendingChannels,
   getRoutes,
   getWalletInfo,
   pay,

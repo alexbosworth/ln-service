@@ -193,6 +193,7 @@ for `unlocker` methods.
 - [sendToChainAddresses](#sendToChainAddresses) - Send on-chain to addresses
 - [setAutopilot](#setAutopilot) - Turn autopilot on and set autopilot scores
 - [settleHodlInvoice](#settleHodlInvoice) - Accept a HODL HTLC invoice
+- [signBytes](#signBytes) -  Sign over arbitrary bytes with node keys
 - [signMessage](#signMessage) - Sign a message with the node identity key
 - [signTransaction](#signTransaction) - Sign an on-chain transaction
 - [stopDaemon](#stopDaemon) - Stop lnd
@@ -3908,6 +3909,40 @@ const secret = randomBytes(32).toString('hex');
 
 // Wait for the invoice to be held (subscribeToInvoice) and then settle:
 await settleHodlInvoice({lnd, secret});
+```
+
+### signBytes
+
+Sign a sha256 hash of arbitrary bytes
+
+Requires LND built with `signrpc` build tag
+
+This method is not supported in LND v0.8.2 and below
+
+    {
+      key_family: <Key Family Number>
+      key_index: <Key Index Number>
+      lnd: <Authenticated LND gRPC API Object>
+      preimage: <Bytes To Hash and Sign Hex Encoded String>
+    }
+
+    @returns via cbk or Promise
+    {
+      signature: <Signature Hex String>
+    }
+
+Example:
+
+```node
+const {signBytes} = require('ln-service');
+
+// Get signature for preimage using node identity key
+const {signature} = await signBytes({
+  lnd,
+  key_family: 6,
+  key_index: 0,
+  preimage: '00',
+});
 ```
 
 ### signMessage
