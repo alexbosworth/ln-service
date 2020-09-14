@@ -2,8 +2,6 @@ const decodePaymentRequest = require('./decode_payment_request');
 const deletePayments = require('./delete_payments');
 const getBackups = require('./get_backups');
 const getChainFeeEstimate = require('./get_chain_fee_estimate');
-const getChainTransactions = require('./get_chain_transactions');
-const getClosedChannels = require('./get_closed_channels');
 const getFeeRates = require('./get_fee_rates');
 const getForwards = require('./get_forwards');
 const getInvoice = require('./get_invoice');
@@ -35,8 +33,6 @@ module.exports = {
   deletePayments,
   getBackups,
   getChainFeeEstimate,
-  getChainTransactions,
-  getClosedChannels,
   getFeeRates,
   getForwards,
   getInvoice,
