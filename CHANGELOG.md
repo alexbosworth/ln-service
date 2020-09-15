@@ -1,5 +1,10 @@
 # Versions
 
+## 49.10.0
+
+- `getPeers`: Return `last_reconnected` to indicate last reconnection date
+- `getPeers`: Return `reconnection_rate` to indicate frequency of reconnections
+
 ## 49.9.4
 
 - `createUnsignedRequest`: Add support for empty descriptions
