@@ -1,5 +1,10 @@
 # Versions
 
+## 49.11.0
+
+- `addPeer`: Allow specifying a `timeout` in milliseconds to abort a connect attempt
+- `openChannels`: Fix giving tokens to peers
+
 ## 49.10.0
 
 - `getPeers`: Return `last_reconnected` to indicate last reconnection date

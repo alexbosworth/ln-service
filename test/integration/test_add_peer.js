@@ -24,6 +24,7 @@ test(`Add a peer`, async ({end, equal}) => {
       lnd,
       public_key: cluster.remote.public_key,
       socket: cluster.remote.socket,
+      timeout: 1,
     });
 
     const {peers} = await getPeers({lnd});

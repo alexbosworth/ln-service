@@ -241,6 +241,8 @@ Add a peer if possible (not self, or already connected)
 
 Requires `peers:write` permission
 
+`timeout` is not supported in LND 0.11.0 and below
+
     {
       [is_temporary]: <Add Peer as Temporary Peer Bool> // Default: false
       lnd: <Authenticated LND API Object>
@@ -248,6 +250,7 @@ Requires `peers:write` permission
       [retry_count]: <Retry Count Number>
       [retry_delay]: <Delay Retry By Milliseconds Number>
       socket: <Host Network Address And Optional Port String> // ip:port
+      [timeout]: <Connection Attempt Timeout Milliseconds Number>
     }
 
     @returns via cbk or Promise
