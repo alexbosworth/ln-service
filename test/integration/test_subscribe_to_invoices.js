@@ -1,3 +1,4 @@
+const {routeFromHops} = require('bolt07');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
@@ -8,7 +9,6 @@ const {getChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {payViaRoutes} = require('./../../');
-const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');
 

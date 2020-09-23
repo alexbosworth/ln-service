@@ -7,7 +7,6 @@ const {getInvoice} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {payViaPaymentRequest} = require('./../../');
-const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 

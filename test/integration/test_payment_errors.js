@@ -1,5 +1,6 @@
 const asyncRetry = require('async/retry');
 const {decodeChanId} = require('bolt07');
+const {routeFromHops} = require('bolt07');
 const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
@@ -10,7 +11,6 @@ const {getChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {pay} = require('./../../');
-const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
 
 const interval = retryCount => 50 * Math.pow(2, retryCount);

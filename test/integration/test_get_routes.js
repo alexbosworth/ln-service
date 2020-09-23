@@ -1,4 +1,5 @@
 const asyncRetry = require('async/retry');
+const {routeFromHops} = require('bolt07');
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
@@ -10,7 +11,6 @@ const {getNetworkGraph} = require('./../../');
 const {getRoutes} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {pay} = require('./../../');
-const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 

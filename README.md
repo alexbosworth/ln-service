@@ -241,7 +241,7 @@ Add a peer if possible (not self, or already connected)
 
 Requires `peers:write` permission
 
-`timeout` is not supported in LND 0.11.0 and below
+`timeout` is not supported in LND 0.11.1 and below
 
     {
       [is_temporary]: <Add Peer as Temporary Peer Bool> // Default: false
@@ -1009,7 +1009,7 @@ await fundPendingChannels({channels, lnd, funding: psbt});
 
 Get outstanding access ids given out
 
-Note: this method is not supported in LND versions 0.11.0 and below
+Note: this method is not supported in LND versions 0.11.1 and below
 
 Requires `macaroon:read` permission
 
@@ -1794,7 +1794,7 @@ const {invoices} = await getInvoices({lnd});
 
 Get the list of all methods and their associated requisite permissions
 
-Note: this method is not supported in LND versions 0.11.0 and below
+Note: this method is not supported in LND versions 0.11.1 and below
 
 Requires `info:read` permission
 
@@ -2153,7 +2153,7 @@ Requires `peers:read` permission
 
 LND 0.8.2 and below do not return `features`
 
-LND 0.11.0 and below do not return `last_reconnected` or `reconnection_rate`
+LND 0.11.1 and below do not return `last_reconnected` or `reconnection_rate`
 
     {
       lnd: <Authenticated LND API Object>
@@ -2557,45 +2557,6 @@ const {getRoutes} = require('ln-service');
 const destination = 'destinationPublicKeyHexString';
 const tokens = 1000;
 const {routes} = await getRoutes({destination, lnd, tokens});
-```
-
-### getSweepTransactions
-
-Get timelocked spend transactions related to channel closes
-
-Requires `onchain:read` permission
-
-This method is not suppoorted on LND 0.10.4 and below
-
-    {
-      lnd: <Authenticated LND API Object>
-    }
-
-    @returns via cbk or Promise
-    {
-      transactions: [{
-        [block_id]: <Block Hash String>
-        [confirmation_count]: <Confirmation Count Number>
-        [confirmation_height]: <Confirmation Block Height Number>
-        created_at: <Created ISO 8601 Date String>
-        [fee]: <Fees Paid Tokens Number>
-        id: <Transaction Id String>
-        is_confirmed: <Is Confirmed Bool>
-        is_outgoing: <Transaction Outbound Bool>
-        output_addresses: [<Address String>]
-        tokens: <Tokens Including Fee Number>
-        [transaction]: <Raw Transaction Hex String>
-      }]
-    }
-
-Example:
-
-```node
-const {getSweepTransactions} = require('ln-service');
-const {transactions} = await getSweepTransactions({lnd});
-
-// Calculate on-chain fees paid into sweep transactions
-const sweepFeesPaid = transactions.reduce((sum, n) => sum + (n.fee || 0), 0);
 ```
 
 ### getTowerServerInfo

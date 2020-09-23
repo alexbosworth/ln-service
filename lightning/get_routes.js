@@ -3,12 +3,12 @@ const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
 const {getChannel} = require('lightning/lnd_methods');
 const {returnResult} = require('asyncjs-util');
+const {routeFromChannels} = require('bolt07');
 
 const {getIgnoredEdges} = require('./../routing');
 const getWalletInfo = require('./get_wallet_info');
 const {ignoreAsIgnoredEdges} = require('./../routing');
 const {queryRoutes} = require('./../routing');
-const {routeFromChannels} = require('./../routing');
 const {safeTokens} = require('./../bolt00');
 const {sortBy} = require('./../arrays');
 

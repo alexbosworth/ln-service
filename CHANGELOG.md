@@ -1,6 +1,6 @@
 # Versions
 
-## 49.11.0
+## 49.11.1
 
 - `addPeer`: Allow specifying a `timeout` in milliseconds to abort a connect attempt
 - `openChannels`: Fix giving tokens to peers

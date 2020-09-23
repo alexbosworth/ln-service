@@ -11,7 +11,6 @@ const {hopsFromChannels} = require('./../../routing');
 const {parsePaymentRequest} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {routeFromHops} = require('./../../routing');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
