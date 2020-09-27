@@ -1250,6 +1250,16 @@ Get balance across channels.
 
 Requires `offchain:read` permission
 
+`channel_balance_mtokens` is not supported on LND 0.11.1 and below
+
+`inbound` and `inbound_mtokens` are not supported on LND 0.11.1 and below
+
+`pending_inbound` is not supported on LND 0.11.1 and below
+
+`unsettled_balance` is not supported on LND 0.11.1 and below
+
+`unsettled_balance_mtokens` is not supported on LND 0.11.1 and below
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -1257,7 +1267,13 @@ Requires `offchain:read` permission
     @returns via cbk or Promise
     {
       channel_balance: <Channels Balance Tokens Number>
-      pending_balance: <Pending Channels Balance Tokens Number>
+      [channel_balance_mtokens]: <Channels Balance Millitokens String>
+      [inbound]: <Inbound Liquidity Tokens Number>
+      [inbound_mtokens]: <Inbound Liquidity Millitokens String>
+      pending_balance: <Pending On-Chain Channels Balance Tokens Number>
+      [pending_inbound]: <Pending On-Chain Inbound Liquidity Tokens Number>
+      [unsettled_balance]: <In-Flight Tokens Number>
+      [unsettled_balance_mtokens]: <In-Flight Millitokens Number>
     }
 
 Example:

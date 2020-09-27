@@ -1,5 +1,13 @@
 # Versions
 
+## 49.12.0
+
+- `getChannelBalance`: Add support for `channel_balance_mtokens` to show local mtokens
+- `getChannelBalance`: Add support for `inbound`, `inbound_mtokens` to show remote balance
+- `getChannelBalance`: Add support for `pending_inbound` to show pending remote balance
+- `getChannelBalance`: Add support for `unsettled_balance` to show HTLCs balance
+- `getChannelBalance`: Add support for `unsettled_balance_mtokens` to show HTLCs balance
+
 ## 49.11.1
 
 - `addPeer`: Allow specifying a `timeout` in milliseconds to abort a connect attempt
