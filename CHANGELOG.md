@@ -1,5 +1,9 @@
 # Versions
 
+## 49.12.1
+
+- `probeForRoute`: Add support for specifying only `mtokens` in a probe for a route
+
 ## 49.12.0
 
 - `getChannelBalance`: Add support for `channel_balance_mtokens` to show local mtokens

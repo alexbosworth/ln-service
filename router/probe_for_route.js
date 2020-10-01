@@ -119,7 +119,7 @@ module.exports = (args, cbk) => {
           return cbk([400, 'ExpectedAuthenticatedLndToProbeForRoute']);
         }
 
-        if (!args.tokens) {
+        if (!args.mtokens && !args.tokens) {
           return cbk([400, 'ExpectedTokensValueToProbeForRoute']);
         }
 
