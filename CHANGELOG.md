@@ -1,5 +1,9 @@
 # Versions
 
+## 49.12.2
+
+- `probeForRoute`: Fix specifying `total_mtokens` when probing for a route
+
 ## 49.12.1
 
 - `probeForRoute`: Add support for specifying only `mtokens` in a probe for a route

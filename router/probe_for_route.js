@@ -170,6 +170,7 @@ module.exports = (args, cbk) => {
           payment: args.payment,
           routes: args.routes,
           tokens: args.tokens,
+          total_mtokens: args.total_mtokens,
         });
 
         const finished = (err, res) => {
