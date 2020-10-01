@@ -661,7 +661,7 @@ sub.on('invoice_updated', async invoice => {
   }
 
   // Use the secret to claim the funds
-  await settleHodlInvoice(({lnd, secret: secret.toString('hex')}));
+  await settleHodlInvoice({lnd, secret: secret.toString('hex')});
 });
 ```
 
@@ -5353,7 +5353,7 @@ This method is not supported on LND 0.8.2 or below.
       [mtokens]: <Millitokens to Probe String>
       [outgoing_channel]: <Outgoing Channel Id String>
       [path_timeout_ms]: <Skip Individual Path Attempt After Milliseconds Number>
-      [payment]: <Payment Identifier Hex Strimng>
+      [payment]: <Payment Identifier Hex String>
       [probe_timeout_ms]: <Fail Entire Probe After Milliseconds Number>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
