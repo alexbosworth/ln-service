@@ -5,12 +5,15 @@ const {broadcastResponse} = require('./../push');
 
 const initialConfirmationCount = 0;
 const {isArray} = Array;
+const unconfirmedConfCount = 0;
 
 /** Send tokens to multiple destinations in a blockchain transaction.
 
   Requires `onchain:write` permission
 
   `description` is not supported in LND 0.10.4 and below
+
+  `utxo_confirmations` is not supported on LND 0.11.1 or below
 
   {
     [description]: <Transaction Label String>
@@ -22,6 +25,7 @@ const {isArray} = Array;
       tokens: <Tokens Number>
     }]
     [target_confirmations]: <Confirmations To Wait Number>
+    [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
     [wss]: [<Web Socket Server Object>]
   }
 
@@ -71,7 +75,9 @@ module.exports = (args, cbk) => {
         const send = {
           AddrToAmount,
           label: args.description || undefined,
+          min_confs: args.utxo_confirmations || undefined,
           sat_per_byte: args.fee_tokens_per_vbyte || undefined,
+          spend_unconfirmed: args.utxo_confirmations === unconfirmedConfCount,
           target_conf: args.target_confirmations || undefined,
         };
 

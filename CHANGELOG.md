@@ -1,5 +1,10 @@
 # Versions
 
+## 49.13.0
+
+- `sendToChainAddress`: Add `utxo_confirmations` to set confs required for UTXO selection
+- `sendToChainAddresses`: Add `utxo_confirmations` to set confs required for UTXO selection
+
 ## 49.12.2
 
 - `probeForRoute`: Fix specifying `total_mtokens` when probing for a route

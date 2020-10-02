@@ -3771,6 +3771,8 @@ Requires `onchain:write` permission
 
 `description` is not supported on LND 0.10.4 or below
 
+`utxo_confirmations` is not supported on LND 0.11.1 or below
+
     {
       address: <Destination Chain Address String>
       [description]: <Transaction Label String>
@@ -3780,6 +3782,7 @@ Requires `onchain:write` permission
       [log]: <Log Function>
       [target_confirmations]: <Confirmations To Wait Number>
       tokens: <Tokens To Send Number>
+      [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
       [wss]: [<Web Socket Server Object>]
     }
 
@@ -3809,6 +3812,8 @@ Requires `onchain:write` permission
 
 `description` is not supported in LND 0.10.4 and below
 
+`utxo_confirmations` is not supported on LND 0.11.1 or below
+
     {
       [description]: <Transaction Label String>
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
@@ -3819,6 +3824,7 @@ Requires `onchain:write` permission
         tokens: <Tokens Number>
       }]
       [target_confirmations]: <Confirmations To Wait Number>
+      [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
       [wss]: [<Web Socket Server Object>]
     }
 

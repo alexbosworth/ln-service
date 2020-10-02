@@ -5,12 +5,15 @@ const {broadcastResponse} = require('./../push');
 
 const initialConfirmationCount = 0;
 const lowBalanceErr = 'insufficient funds available to construct transaction';
+const unconfirmedConfCount = 0;
 
 /** Send tokens in a blockchain transaction.
 
   Requires `onchain:write` permission
 
   `description` is not supported on LND 0.10.4 or below
+
+  `utxo_confirmations` is not supported on LND 0.11.1 or below
 
   {
     address: <Destination Chain Address String>
@@ -21,6 +24,7 @@ const lowBalanceErr = 'insufficient funds available to construct transaction';
     [log]: <Log Function>
     [target_confirmations]: <Confirmations To Wait Number>
     tokens: <Tokens To Send Number>
+    [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
     [wss]: [<Web Socket Server Object>]
   }
 
@@ -70,9 +74,11 @@ module.exports = (args, cbk) => {
         return args.lnd.default.sendCoins({
           addr: args.address,
           amount: args.tokens || undefined,
+          min_confs: args.utxo_confirmations || undefined,
           label: args.description || undefined,
           sat_per_byte: args.fee_tokens_per_vbyte || undefined,
           send_all: args.is_send_all || undefined,
+          spend_unconfirmed: args.utxo_confirmations === unconfirmedConfCount,
           target_conf: args.target_confirmations || undefined,
         },
         (err, res) => {
