@@ -1,5 +1,10 @@
 # Versions
 
+## 49.14.0
+
+- `fundPsbt`: Setup a PSBT with internal funding or an internal change output
+- `signPsbt`: Finalize and sign a PSBT where internal keys are specified
+
 ## 49.13.0
 
 - `sendToChainAddress`: Add `utxo_confirmations` to set confs required for UTXO selection

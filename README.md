@@ -11,7 +11,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.11.0-beta
+- v0.11.0-beta to v0.11.1-beta
 - v0.10.0-beta to v0.10.4-beta
 - v0.9.0-beta to v0.9.2-beta
 - v0.8.0-beta to v0.8.2-beta
@@ -132,6 +132,7 @@ for `unlocker` methods.
 - [diffieHellmanComputeSecret](#diffieHellmanComputeSecret) - Get DH shared key
 - [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
 - [fundPendingChannels](#fundPendingChannels) - Fund pending open channels
+- [fundPsbt](#fundPsbt) - Create an unsigned PSBT with funding inputs and spending outputs
 - [getAccessIds](#getAccessIds) - Get granted macaroon root access ids
 - [getAutopilot](#getAutopilot) - Get autopilot status or node scores
 - [getBackup](#getBackup) - Get a backup of a channel
@@ -195,6 +196,7 @@ for `unlocker` methods.
 - [settleHodlInvoice](#settleHodlInvoice) - Accept a HODL HTLC invoice
 - [signBytes](#signBytes) -  Sign over arbitrary bytes with node keys
 - [signMessage](#signMessage) - Sign a message with the node identity key
+- [signPsbt](#signPsbt) - Sign and finalize an unsigned PSBT using internal keys
 - [signTransaction](#signTransaction) - Sign an on-chain transaction
 - [stopDaemon](#stopDaemon) - Stop lnd
 - [subscribeToBackups](#subscribeToBackups) - Subscribe to channel backups
@@ -234,6 +236,8 @@ for `unlocker` methods.
 - [invoices](https://npmjs.com/package/invoices) - bolt11 request utilities
 - [lightning](https://npmjs.com/package/lightning) - general lightning utilities
 - [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
+- [probing](https://npmjs.com/package/probing) - payment probing utilities
+- [psbt](https://www.npmjs.com/package/psbt) - BIP 174 PSBT utilities
 
 ### addPeer
 
@@ -1003,6 +1007,65 @@ const channels = pending.map(n => n.id);
 
 // Fund the pending open channels request
 await fundPendingChannels({channels, lnd, funding: psbt});
+```
+
+### fundPsbt
+
+Lock and optionally select inputs to a partially signed transaction
+
+Specify outputs or PSBT with the outputs encoded
+
+If there are no inputs passed, internal UTXOs will be selected and locked
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` tag
+
+This method is not supported in LND 0.11.1 and below
+
+    {
+      [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
+      [inputs]: [{
+        transaction_id: <Unspent Transaction Id Hex String>
+        transaction_vout: <Unspent Transaction Output Index Number>
+      }]
+      lnd: <Authenticated LND API Object>
+      [outputs]: [{
+        address: <Chain Address String>
+        tokens: <Send Tokens Tokens Number>
+      }]
+      [target_confirmations]: <Confirmations To Wait Number>
+      [psbt]: <Existing PSBT Hex String>
+    }
+
+    @returns via cbk or Promise
+    {
+      inputs: [{
+        [lock_expires_at]: <UTXO Lock Expires At ISO 8601 Date String>
+        [lock_id]: <UTXO Lock Id Hex String>
+        transaction_id: <Unspent Transaction Id Hex String>
+        transaction_vout: <Unspent Transaction Output Index Number>
+      }]
+      outputs: [{
+        is_change: <Spends To a Generated Change Output Bool>
+        output_script: <Output Script Hex String>
+        tokens: <Send Tokens Tokens Number>
+      }]
+      psbt: <Unsigned PSBT Hex String>
+    }
+
+Example:
+
+```node
+const {fundPsbt} = require('ln-service');
+
+const address = 'chainAddress';
+const tokens = 1000000;
+
+// Create an unsigned PSBT that sends 1mm to a chain address
+const {psbt} = await fundPsbt({lnd, outputs: [{address, tokens}]});
+
+// This PSBT can be used with signPsbt to sign and finalize for broadcast
 ```
 
 ### getAccessIds
@@ -3956,6 +4019,42 @@ Example:
 ```node
 const {signMessage} = require('ln-service');
 const {signature} = await signMessage({lnd, message: 'hello world'});
+```
+
+### signPsbt
+
+Sign a PSBT to produce a finalized PSBT that is ready to broadcast
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` tag
+
+This method is not supported in LND 0.11.1 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+      psbt: <Funded PSBT Hex String>
+    }
+
+    @returns via cbk or Promise
+    {
+      psbt: <Finalized PSBT Hex String>
+      transaction: <Signed Raw Transaction Hex String>
+    }
+
+Example:
+
+```node
+const {fundPsbt, signPsbt} = require('ln-service');
+
+const address = 'chainAddress';
+const tokens = 1000000;
+
+// Create an unsigned PSBT that sends 1mm to a chain address
+const {psbt} = await fundPsbt({lnd, outputs: [{address, tokens}]});
+
+// Get a fully signed transaction from the unsigned PSBT
+const {transaction} = await signPsbt({lnd, psbt});
 ```
 
 ### signTransaction

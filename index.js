@@ -21,6 +21,7 @@ const {deletePayments} = require('./lightning');
 const {diffieHellmanComputeSecret} = require('./sign');
 const {disconnectWatchtower} = require('./tower_client');
 const {fundPendingChannels} = require('lightning/lnd_methods');
+const {fundPsbt} = require('lightning/lnd_methods');
 const {getAccessIds} = require('lightning/lnd_methods');
 const {getAutopilot} = require('lightning/lnd_methods');
 const {getBackup} = require('lightning/lnd_methods');
@@ -84,6 +85,7 @@ const {setAutopilot} = require('lightning/lnd_methods');
 const {settleHodlInvoice} = require('lightning/lnd_methods');
 const {signBytes} = require('./sign');
 const {signMessage} = require('./lightning');
+const {signPsbt} = require('lightning/lnd_methods');
 const {signTransaction} = require('./sign');
 const {stopDaemon} = require('./lightning');
 const {subscribeToBackups} = require('./lightning');
@@ -140,6 +142,7 @@ module.exports = {
   diffieHellmanComputeSecret,
   disconnectWatchtower,
   fundPendingChannels,
+  fundPsbt,
   getAccessIds,
   getAutopilot,
   getBackup,
@@ -203,6 +206,7 @@ module.exports = {
   settleHodlInvoice,
   signBytes,
   signMessage,
+  signPsbt,
   signTransaction,
   stopDaemon,
   subscribeToBackups,
