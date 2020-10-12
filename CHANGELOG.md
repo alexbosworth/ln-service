@@ -1,6 +1,6 @@
 # Versions
 
-## 49.14.0
+## 49.14.1
 
 - `fundPsbt`: Setup a PSBT with internal funding or an internal change output
 - `signPsbt`: Finalize and sign a PSBT where internal keys are specified
