@@ -34,12 +34,41 @@ module.exports = ({lnd}) => {
   const eventEmitter = new EventEmitter();
   const subscription = lnd.default.subscribeChannelBackups({});
 
+  // Cancel the subscription when all listeners are removed
+  eventEmitter.on('removeListener', () => {
+    // Exit early when there are still listeners
+    if (!!eventEmitter.listenerCount('backup')) {
+      return;
+    }
+
+    subscription.cancel();
+
+    subscription.removeAllListeners();
+
+    return;
+  });
+
+  const emitError = err => {
+    subscription.cancel();
+
+    subscription.removeAllListeners();
+
+    // Exit early when there are no error listeners
+    if (!eventEmitter.listenerCount('error')) {
+      return;
+    }
+
+    eventEmitter.emit('error', err);
+
+    return;
+  };
+
   subscription.on('data', snapshot => {
     return backupsFromSnapshot(snapshot, (err, res) => {
       if (!!err) {
         const [code, message] = err;
 
-        return eventEmitter('error', new Error(message));
+        return emitError(new Errror(message));
       }
 
       return eventEmitter.emit('backup', res);
@@ -47,7 +76,7 @@ module.exports = ({lnd}) => {
   });
 
   subscription.on('end', () => eventEmitter.emit('end'));
-  subscription.on('error', err => eventEmitter.emit('error', err));
+  subscription.on('error', err => emitError(err));
   subscription.on('status', status => eventEmitter.emit('status', status));
 
   return eventEmitter;

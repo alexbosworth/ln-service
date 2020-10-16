@@ -1,5 +1,10 @@
 # Versions
 
+## 49.14.2
+
+- `subscribeToBackups`: Improve error handling and subscription removal
+- `subscribeToTransactions`: Improve error handling and subscription removal
+
 ## 49.14.1
 
 - `fundPsbt`: Setup a PSBT with internal funding or an internal change output

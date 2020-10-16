@@ -3970,6 +3970,8 @@ Sign a sha256 hash of arbitrary bytes
 
 Requires LND built with `signrpc` build tag
 
+Requires `signer:generate` permission
+
 This method is not supported in LND v0.8.2 and below
 
     {

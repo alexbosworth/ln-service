@@ -43,6 +43,20 @@ module.exports = ({lnd}) => {
   const eventEmitter = new EventEmitter();
   const subscription = lnd.default.subscribeTransactions({});
 
+  // Cancel the subscription when all listeners are removed
+  eventEmitter.on('removeListener', () => {
+    // Exit early when there are still listeners
+    if (!!eventEmitter.listenerCount('chain_transaction')) {
+      return;
+    }
+
+    subscription.cancel();
+
+    subscription.removeAllListeners();
+
+    return;
+  });
+
   const emitErr = err => {
     // Exit early when there are no listeners on error
     if (!eventEmitter.listenerCount('error')) {
