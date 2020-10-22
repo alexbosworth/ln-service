@@ -11,8 +11,6 @@ const unconfirmedConfCount = 0;
 
   Requires `onchain:write` permission
 
-  `description` is not supported in LND 0.10.4 and below
-
   `utxo_confirmations` is not supported on LND 0.11.1 or below
 
   {

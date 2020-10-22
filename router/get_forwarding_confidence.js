@@ -14,8 +14,6 @@ const unimplementedError = 'unknown service routerrpc.Router';
 
   Requires `offchain:read` permission
 
-  Note: this method is not supported in LND 0.8.2 and below.
-
   {
     from: <From Public Key Hex String>
     lnd: <Authenticated LND API Object>

@@ -14,20 +14,7 @@ test(`Get access credentials`, async ({deepIs, end, equal, rejects}) => {
 
   const {lnd, kill} = spawned;
 
-  try {
-    await grantAccess({lnd, is_ok_to_create_chain_addresses: true});
-  } catch (err) {
-    const [, type] = err;
-
-    // Avoid this test on LND 0.8.2 and below
-    if (type === 'GrantAccessMethodNotSupported') {
-      kill();
-
-      await waitForTermination({lnd});
-
-      return end();
-    }
-  }
+  await grantAccess({lnd, is_ok_to_create_chain_addresses: true});
 
   const makeChainAddresses = await grantAccess({
     lnd,

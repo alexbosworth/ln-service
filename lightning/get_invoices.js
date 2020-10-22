@@ -29,9 +29,6 @@ const {stringify} = JSON;
 
   Requires `invoices:read` permission
 
-  The `features` and `messages` arrays are not populated on LND before 0.8.2
-  The `payments` array of HTLCs is only populated on LND versions after 0.7.1
-
   {
     [limit]: <Page Result Limit Number>
     lnd: <Authenticated LND API Object>

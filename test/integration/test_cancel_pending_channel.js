@@ -20,17 +20,6 @@ test(`Cancel pending channel`, async ({end, equal}) => {
 
   const toCancel = await race([delay(timeout), openChannels({channels, lnd})]);
 
-  // Externally funding channels is not supported on LND 0.9.2 and below
-  if (!!toCancel) {
-    const [{id}] = toCancel.pending;
-
-    await cancelPendingChannel({id, lnd});
-
-    const pending = (await getPendingChannels({lnd})).pending_channels;
-
-    equal(pending.length, [].length, 'Channel canceled');
-  }
-
   await cluster.kill({});
 
   return end();

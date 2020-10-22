@@ -66,11 +66,8 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
 
   const pendingEvent = channelAdding.pop();
 
-  // LND 0.9.0 and below do not support pending open events
-  if (!!pendingEvent) {
-    equal(pendingEvent.transaction_id, channelOpen.transaction_id, 'Got txid');
-    equal(pendingEvent.transaction_vout, channelOpen.transaction_vout, 'Vout');
-  }
+  equal(pendingEvent.transaction_id, channelOpen.transaction_id, 'Got txid');
+  equal(pendingEvent.transaction_vout, channelOpen.transaction_vout, 'Vout');
 
   const openEvent = channelOpened.pop();
 

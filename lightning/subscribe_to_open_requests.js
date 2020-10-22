@@ -17,10 +17,8 @@ const weightPerVByte = 4;
   To return to default behavior of accepting all channel requests, remove all
   listeners to `channel_request`
 
-  Note: LND 0.7.1 and lower do not support interactive channel acceptance.
-
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @throws

@@ -12,8 +12,6 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
 
   Requires `signer:read` permission
 
-  This method is not supported in LND v0.8.2 and below
-
   {
     lnd: <Authenticated LND gRPC API Object>
     preimage: <Message Preimage Bytes Hex Encoded String>

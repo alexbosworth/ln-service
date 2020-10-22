@@ -80,22 +80,18 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const [waitClose] = (await getPendingChannels({lnd})).pending_channels;
 
-  // LND 0.7.1 did not populate reserve values
-  if (!!waitClose.local_reserve) {
-    equal(waitClose.local_reserve, 10000, 'Local reserve of closing channel');
-    equal(waitClose.remote_reserve, 10000, 'Remote reserve');
-  }
-
   equal(waitClose.close_transaction_id, undefined, 'Waiting for close tx');
   equal(waitClose.is_active, false, 'Not active yet');
   equal(waitClose.is_closing, true, 'Channel is closing');
   equal(waitClose.is_opening, false, 'Not opening channel');
   equal(waitClose.local_balance, 980950, 'Local balance of channel');
+  equal(waitClose.local_reserve, 10000, 'Local reserve of closing channel');
   equal(waitClose.partner_public_key, cluster.target_node_public_key, 'Pkey');
   equal(waitClose.pending_balance, 980950, 'Tokens return to local wallet');
   equal(waitClose.pending_payments, undefined, 'No pending payments data');
   equal(waitClose.received, 0, 'Nothing received');
   equal(waitClose.recovered_tokens, undefined, 'Funds not recovered yet');
+  equal(waitClose.remote_reserve, 10000, 'Remote reserve');
   equal(waitClose.sent, 0, 'No sent tokens');
   equal(waitClose.timelock_expiration, undefined, 'No timelock data');
   equal(waitClose.transaction_fee, null, 'No tx fee data');

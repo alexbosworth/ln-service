@@ -17,10 +17,6 @@ const {stringify} = JSON;
 
   Requires `offchain:read` permission
 
-  Payment `index` is not returned on LND 0.9.2 and below
-  Payment `limit` is not supported on LND 0.9.2 and below
-  Payment `attempts` is not populated on LND 0.8.2 and below
-
   {
     [limit]: <Page Result Limit Number>
     lnd: <Authenticated LND API Object>
@@ -153,11 +149,6 @@ module.exports = ({limit, lnd, token}, cbk) => {
 
           const lastOffset = Number(res.last_index_offset);
           const offset = Number(res.first_index_offset);
-
-          // On LND 0.9.2 and below, there is no paging of payments
-          if (!lastOffset && !offset) {
-            return cbk(null, {payments: res.payments});
-          }
 
           const token = stringify({offset, limit: resultsLimit});
 

@@ -12,10 +12,6 @@ through npm.
 Supported LND versions:
 
 - v0.11.0-beta to v0.11.1-beta
-- v0.10.0-beta to v0.10.4-beta
-- v0.9.0-beta to v0.9.2-beta
-- v0.8.0-beta to v0.8.2-beta
-- v0.7.1-beta
 
 ## Installing LND
 
@@ -150,6 +146,7 @@ for `unlocker` methods.
 - [getForwardingConfidence](#getForwardingConfidence) - Get pairwise confidence
 - [getForwardingReputations](#getForwardingReputations) - Get graph reputations
 - [getForwards](#getForwards) - Get forwarded routed payments
+- [getIdentity](#getIdentity) - Get the node's identity key
 - [getInvoice](#getInvoice) - Get a previously created invoice
 - [getInvoices](#getInvoices) - Get all previously created invoice
 - [getMethods](#getMethods) - Get available methods and associated permissions
@@ -166,7 +163,6 @@ for `unlocker` methods.
 - [getRouteConfidence](#getRouteConfidence) - Get confidence in a route
 - [getRouteThroughHops](#getRouteThroughHops) - Get a route through nodes
 - [getRouteToDestination](#getRouteToDestination) - Get a route to a destination
-- [getRoutes](#getRoutes) - Find payable routes to a target destination
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
@@ -316,8 +312,6 @@ const wallet = await lnService.getWalletInfo({lnd});
 Publish a raw blockchain transaction to Blockchain network peers
 
 Requires LND built with `walletrpc` tag
-
-`description` is not supported on LND 0.10.1 and below
 
     {
       [description]: <Transaction Label String>
@@ -470,8 +464,6 @@ const await cancelHodlInvoice({id, lnd});
 
 Cancel an external funding pending channel
 
-PSBT funded channels are not supported in LND 0.9.2 and below
-
     {
       id: <Pending Channel Id Hex String>
       lnd: <Authenticated LND API Object>
@@ -522,9 +514,7 @@ Either an id or a transaction id / transaction output index is required
 
 If cooperatively closing, pass a public key and socket to connect
 
-Requires info:read, offchain:write, onchain:write, peers:write permissions
-
-`address` is not supported in LND v0.8.2 and below
+Requires `info:read`, `offchain:write`, `onchain:write`, `peers:write` permissions
 
     {
       [address]: <Request Sending Local Channel Funds To Address String>
@@ -608,8 +598,6 @@ Warning: make sure to cancel the created invoice before its CLTV timeout.
 Requires LND built with `invoicesrpc` tag
 
 Requires `address:write`, `invoices:write` permission
-
-Setting `mtokens` will not work on LND versions 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -848,8 +836,6 @@ Get decoded payment request
 
 Requires `offchain:read` permission
 
-LND 0.8.2 and previous versions do not return `features`, `payment`
-
     {
       lnd: <Authenticated LND API Object>
       request: <BOLT 11 Payment Request String>
@@ -897,8 +883,6 @@ Delete all forwarding reputations
 
 Requires `offchain:write` permission
 
-Requires LND built with `routerrpc` build tag
-
     {
       lnd: <Authenticated LND API Object>
     }
@@ -944,8 +928,6 @@ Key family and key index default to 6 and 0, which is the node identity key
 Requires LND built with `signerrpc` build tag
 
 Requires `signer:generate` permission
-
-This method is not supported in LND v0.8.2 and below
 
     {
       [key_family]: <Key Family Number>
@@ -1272,10 +1254,6 @@ Get chain transactions.
 
 Requires `onchain:read` permission
 
-`after` and `before` are not supported on LND 0.10.4 and below
-
-`description` is not returned in LND 0.10.4 and below
-
     {
       [after]: <Confirmed After Current Best Chain Block Height Number>
       [before]: <Confirmed Before Current Best Chain Block Height Number>
@@ -1390,24 +1368,6 @@ Get channels
 
 Requires `offchain:read` permission
 
-    `is_static_remote_key` will be undefined on LND 0.7.1 and below
-
-    `cooperative_close_address` is not supported on LND 0.8.2 and below
-    `time_offline` and `time_online` will be undefined on 0.8.2 and below
-
-    `local_given` and `remote_given` are not supported on LND 0.9.2 and below
-
-     `local_csv` is not supported on LND 0.10.4 and below
-     `local_dust` is not supported on LND 0.10.4 and below
-     `local_max_htlcs` is not supported on LND 0.10.4 and below
-     `local_max_pending_mtokens` is not supported on LND 0.10.4 and below
-     `local_min_htlc_mtokens` is not supported on LND 0.10.4 and below
-     `remote_csv` is not supported on LND 0.10.4 and below
-     `remote_dust` is not supported on LND 0.10.4 and below
-     `remote_max_htlcs` is not supported on LND 0.10.4 and below
-     `remote_max_pending_mtokens` is not supported on LND 0.10.4 and below
-     `remote_min_htlc_mtokens` is not supported on LND 0.10.4 and below
-
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
       [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -1430,7 +1390,7 @@ Requires `offchain:read` permission
         is_opening: <Channel Is Opening Bool>
         is_partner_initiated: <Channel Partner Opened Channel Bool>
         is_private: <Channel Is Private Bool>
-        [is_static_remote_key]: <Remote Key Is Static Bool>
+        is_static_remote_key: <Remote Key Is Static Bool>
         local_balance: <Local Balance Tokens Number>
         [local_csv]: <Local CSV Blocks Delay Number>
         [local_dust]: <Remote Non-Enforceable Amount Tokens Number>
@@ -1480,13 +1440,6 @@ Get closed out channels
 Multiple close type flags are supported.
 
 Requires `offchain:read` permission
-
-`is_partner_closed` and `is_partner_initiated` are not supported on LND 0.9.1
-and below.
-
-    `close_balance_spent_by` is not supported on LND 0.10.4 and below
-    `close_balance_vout` is not supported on LND 0.10.4 and below
-    `close_payments` is not supported on LND 0.10.4 and below
 
     {
       [is_breach_close]: <Only Return Breach Close Channels Bool>
@@ -1588,10 +1541,8 @@ Get a rundown on fees for channels
 
 Requires `offchain:read` permission
 
-`id` is not supported on LND 0.9.2 and below
-
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1599,7 +1550,7 @@ Requires `offchain:read` permission
       channels: [{
         base_fee: <Base Flat Fee Tokens Rounded Up Number>
         base_fee_mtokens: <Base Flat Fee Millitokens String>
-        [id]: <Standard Format Channel Id String>
+        id: <Standard Format Channel Id String>
         transaction_id: <Channel Funding Transaction Id Hex String>
         transaction_vout: <Funding Outpoint Output Index Number>
       }]
@@ -1615,10 +1566,6 @@ const {channels} = await getFeeRates({lnd});
 ### getForwardingConfidence
 
 Get the confidence in being able to send between a direct pair of nodes
-
-Requires LND built with `routerrpc` build tag
-
-Note: this method is not supported in LND 0.8.2 and below.
 
     {
       from: <From Public Key Hex String>
@@ -1648,13 +1595,7 @@ const {confidence} = await getForwardingConfidence({from, lnd, mtokens, to});
 
 Get the set of forwarding reputations
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:read` permission
-
-Note: In LND v0.7.1 channels reputations are returned.
-Note: In LND v0.8.0 peers reputations are returned.
-Note: after LND v0.8.2 confidence is not returned per peer.
 
     {
       [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
@@ -1699,8 +1640,6 @@ If a next token is returned, pass it to get additional page of results.
 
 Requires `offchain:read` permission
 
-`mtokens` is not supported on LND v0.8.2 or lower
-
     {
       [after]: <Get Only Payments Forwarded At Or After ISO 8601 Date String>
       [before]: <Get Only Payments Forwarded Before ISO 8601 Date String>
@@ -1716,7 +1655,7 @@ Requires `offchain:read` permission
         fee: <Fee Tokens Charged Number>
         fee_mtokens: <Approximated Fee Millitokens Charged String>
         incoming_channel: <Incoming Standard Format Channel Id String>
-        [mtokens]: <Forwarded Millitokens String>
+        mtokens: <Forwarded Millitokens String>
         outgoing_channel: <Outgoing Standard Format Channel Id String>
         tokens: <Forwarded Tokens Number>
       }]
@@ -1730,6 +1669,32 @@ const {getForwards} = require('ln-service');
 const {forwards} = await getForwards({lnd});
 ```
 
+### getIdentity
+
+Lookup the identity key for a node
+
+LND with `walletrpc` build tag and `address:read` permission is suggested
+
+Otherwise, `info:read` permission is required
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      public_key: <Node Identity Public Key Hex String>
+    }
+
+Example:
+
+```node
+const {getIdentity} = require('ln-service');
+
+// Derive the identity public key of the backing LND node
+const nodePublicKey = (await getIdentity({lnd})).public_key;
+```
+
 ### getInvoice
 
 Lookup a channel invoice.
@@ -1738,9 +1703,6 @@ The received value and the invoiced value may differ as invoices may be
 over-paid.
 
 Requires `invoices:read` permission
-
-The `features` array is not populated on LND 0.8.2 and below
-The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     {
       id: <Payment Hash Id Hex String>
@@ -1805,9 +1767,6 @@ Get all created invoices.
 If a next token is returned, pass it to get another page of invoices.
 
 Requires `invoices:read` permission
-
-The `features` and `messages` arrays are not populated on LND before 0.8.2
-The `payments` array of HTLCs is only populated on LND versions after 0.7.1
 
     {
       [limit]: <Page Result Limit Number>
@@ -1912,8 +1871,6 @@ Scores are from 0 to 1,000,000.
 
 Requires `info:read` permission
 
-This method is not supported in LND 0.9.2 and below
-
     {
       lnd: <Authenticated LND API Object>
     }
@@ -1939,8 +1896,6 @@ const centrality = await getNetworkCentrality({lnd});
 Get the network graph
 
 Requires `info:read` permission
-
-LND 0.8.2 and below do not return `features`
 
     {
       lnd: <Authenticated LND API Object>
@@ -2022,8 +1977,6 @@ Get information about a node
 
 Requires `info:read` permission
 
-LND 0.8.2 and below do not return `features`
-
     {
       [is_omitting_channels]: <Omit Channels from Node Bool>
       lnd: <Authenticated LND API Object>
@@ -2078,8 +2031,6 @@ const nodeDetails = await getNode({lnd, public_key: publicKey});
 
 Get the status of a past payment
 
-Requires LND compiled with `routerrpc` build tag
-
 Requires `offchain:read` permission
 
     {
@@ -2133,10 +2084,6 @@ const payment = await getPayment({id, lnd});
 Get payments made through channels.
 
 Requires `offchain:read` permission
-
-Payment `index` is not returned on LND 0.9.2 and below
-Payment `limit` is not supported on LND 0.9.2 and below
-Payment `attempts` is not populated on LND 0.8.2 and below
 
     {
       [limit]: <Page Result Limit Number>
@@ -2230,8 +2177,6 @@ Get connected peers.
 
 Requires `peers:read` permission
 
-LND 0.8.2 and below do not return `features`
-
 LND 0.11.1 and below do not return `last_reconnected` or `reconnection_rate`
 
     {
@@ -2300,8 +2245,6 @@ Both `is_closing` and `is_opening` are returned as part of a channel because a
 channel may be opening, closing, or active.
 
 Requires `offchain:read` permission
-
-`is_partner_initiated` is not accurate on LND 0.9.2 and below.
 
     {
       lnd: <Authenticated LND API Object>
@@ -2378,8 +2321,6 @@ const publicKey = (await getPublicKey({family: 1, index: 1, lnd}).public_key);
 
 Get routing confidence of successfully routing a payment to a destination
 
-Requires LND built with `routerrpc` build tag
-
 If `from` is not set, self is default
 
 Requires `offchain:read` permission
@@ -2401,22 +2342,20 @@ Requires `offchain:read` permission
 Example:
 
 ```node
-const {getRouteConfidence, getRoutes} = require('ln-service');
+const {getRouteConfidence, getRouteToDestination} = require('ln-service');
 const destination = 'destinationPublicKeyHexString';
-const [{hops}] = await getRoutes({destination, lnd, tokens: 80085});
+
+const {route} = await getRouteToDestination({destination, lnd, tokens: 80085});
+
 // Confidence in payment success
-const {confidence} = (await getRouteConfidence({hops, lnd}));
+const {confidence} = (await getRouteConfidence({lnd, hops: route.hops}));
 ```
 
 ### getRouteThroughHops
 
 Get an outbound route that goes through specific hops
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:read` permission
-
-This method is not supported by LND v0.7.1
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2480,8 +2419,6 @@ Get a route to a destination.
 Call this iteratively after failed route attempts to get new routes
 
 Requires `info:read` permission
-
-Do not use this method on LND 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2558,86 +2495,6 @@ const {route} = await getRouteToDestination({destination, lnd, tokens});
 await payViaRoutes({lnd, routes: [route]});
 ```
 
-### getRoutes
-
-Get routes a payment can travel towards a destination
-
-When paying to a private route, make sure to pass the final destination in
-addition to routes.
-
-`is_adjusted_for_past_failures` will turn on past-fail adjusted pathfinding
-
-Setting both `start` and `outgoing_channel` is not supported
-
-Requires `info:read` permission
-
-`confidence` is not supported in LND 0.7.1
-`max_timeout_height` is not supported in LND 0.7.1
-
-Specifying `payment` identifier and `total_mtokens` isn't in LND 0.8.2, below
-
-On LND versions higher than 0.8.2, use getRouteToDestination instead
-
-    {
-      [cltv_delta]: <Final CLTV Delta Number>
-      [destination]: <Final Send Destination Hex Encoded Public Key String>
-      [get_channel]: <Custom Get Channel Function>
-      [ignore]: [{
-        [channel]: <Channel Id String>
-        from_public_key: <Public Key Hex String>
-        [to_public_key]: <To Public Key Hex String>
-      }]
-      [is_adjusted_for_past_failures]: <Routes are Failures-Adjusted Bool>
-      [is_strict_hints]: <Only Route Through Specified Routes Paths Bool>
-      lnd: <Authenticated LND API Object>
-      [max_fee]: <Maximum Fee Tokens Number>
-      [max_timeout_height]: <Max CLTV Timeout Number>
-      [outgoing_channel]: <Outgoing Channel Id String>
-      [routes]: [[{
-        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
-        [channel]: <Standard Format Channel Id String>
-        [channel_capacity]: <Channel Capacity Tokens Number>
-        [cltv_delta]: <CLTV Delta Blocks Number>
-        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
-        public_key: <Forward Edge Public Key Hex String>
-      }]]
-      [start]: <Starting Node Public Key Hex String>
-      [tokens]: <Tokens to Send Number>
-    }
-
-    @returns via cbk or Promise
-    {
-      routes: [{
-        [confidence]: <Route Confidence Score Out Of One Million Number>
-        fee: <Route Fee Tokens Number>
-        fee_mtokens: <Route Fee Millitokens String>
-        hops: [{
-          channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          fee: <Fee Number>
-          fee_mtokens: <Fee Millitokens String>
-          forward: <Forward Tokens Number>
-          forward_mtokens: <Forward Millitokens String>
-          public_key: <Forward Edge Public Key Hex String>
-          timeout: <Timeout Block Height Number>
-        }]
-        mtokens: <Total Fee-Inclusive Millitokens String>
-        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
-        safe_tokens: <Payment Tokens Rounded Up Number>
-        timeout: <Final CLTV Delta Number>
-        tokens: <Total Fee-Inclusive Tokens Number>
-      }]
-    }
-
-Example:
-
-```node
-const {getRoutes} = require('ln-service');
-const destination = 'destinationPublicKeyHexString';
-const tokens = 1000;
-const {routes} = await getRoutes({destination, lnd, tokens});
-```
-
 ### getTowerServerInfo
 
 Get watchtower server info.
@@ -2704,8 +2561,6 @@ Get overall wallet info.
 
 Requires `info:read` permission
 
-LND 0.8.2 and below do not return `features`
-
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -2746,8 +2601,6 @@ Tags are self-reported by LND and are not guaranteed to be accurate
 
 Requires `info:read` permission
 
-LND 0.9.2 and below do not return `features`
-
     {
       lnd: <Authenticated LND API Object>
     }
@@ -2783,8 +2636,6 @@ Requires `macaroon:generate` permission
 
 Note: access once given cannot be revoked. Access is defined at the LND level
 and version differences in LND can result in expanded access.
-
-Note: granting access is not supported in LND versions 0.8.2 and below
 
 Note: `id` is not supported in LND versions 0.11.0 and below
 
@@ -2888,13 +2739,7 @@ const nodeInfo = await getWalletInfo({lnd});
 
 Determine if a payment destination is actually payable by probing it
 
-Requires lnd built with routerrpc build tag
-
 Requires `offchain:write` permission
-
-Note: on versions of lnd prior to 0.7.1, is_payable will always be false
-
-`incoming_peer` is not supported on LND 0.8.2 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -2938,6 +2783,7 @@ Requires `onchain:write` permission
 Requires LND built with `walletrpc` build tag
 
     {
+      [id]: <Lock Identifier Hex String>
       lnd: <Authenticated LND gRPC API Object>
       transaction_id: <Unspent Transaction Id Hex String>
       transaction_vout: <Unspent Transaction Output Index Number>
@@ -2979,8 +2825,6 @@ If give_tokens is set, it is a gift and it does not alter the capacity
 
 Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 
-LND 0.8.2 and below do not support `cooperative_close_address`
-
     {
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
       [cooperative_close_address]: <Restrict Cooperative Close To Address String>
@@ -3016,13 +2860,10 @@ Open one or more channels
 
 Requires `offchain:write`, `onchain:write` permissions
 
-This method requires external funding of channels, which is not supported in
-LND versions 0.9.2 and below.
-
-After getting the addresses and tokens to fund, use fundChannels within ten
+After getting the addresses and tokens to fund, use `fundChannels` within ten
 minutes to fund the channels.
 
-If you do not fund the channels, be sure to cancelPendingChannel on each
+If you do not fund the channels, be sure to `cancelPendingChannel`s on each
 channel that was not funded.
 
     {
@@ -3197,21 +3038,9 @@ await pay({lnd, request});
 
 Pay via payment details
 
-Requires LND built with `routerrpc` build tag
-
 If no id is specified, a random id will be used.
 
 Requires `offchain:write` permission
-
-Specifying `features` is not supported on LND 0.8.2 and below
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
-Specifying `messages` is not supported on LND 0.8.2 and below
-
-`incoming_peer` is not supported on LND 0.8.2 and below
-
-Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
-
-Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3293,18 +3122,7 @@ await payViaPaymentDetails({destination, id, lnd, tokens});
 
 Pay via payment request
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:write` permission
-
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
-Specifying `messages` is not supported on LND 0.8.2 and below
-
-`incoming_peer` is not supported on LND 0.8.2 and below
-
-Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
-
-Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
@@ -3372,13 +3190,9 @@ await payViaPaymentRequest({lnd, request});
 
 Make a payment via a specified route
 
-Requires LND built with `routerrpc` build tag
-
 If no id is specified, a random id will be used to send a test payment
 
-Requires `offchain:write`
-
-LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
+Requires `offchain:write` permission
 
     {
       [id]: <Payment Hash Hex String>
@@ -3449,109 +3263,18 @@ LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
 Example:
 
 ```node
-const {getRoutes, payViaRoutes} = require('ln-service');
+const {getRouteToDestination, payViaRoutes} = require('ln-service');
 const destination = 'destinationPublicKeyHexString';
 const tokens = 80085;
-const {routes} = await getRoutes({destination, lnd, tokens});
-const preimage = (await payViaRoutes({lnd, routes})).secret;
-```
-
-### probe
-
-Probe routes to find a successful route
-
-It's better to use `probeForRoute` instead of this method, but this method
-does not require the `routerrpc` build tag.
-
-Requires `offchain:write` permission
-
-    {
-      [limit]: <Simultaneous Attempt Limit Number>
-      lnd: <Authenticated LND API Object>
-      routes: [{
-        fee: <Total Fee Tokens To Pay Number>
-        fee_mtokens: <Total Fee Millitokens To Pay String>
-        hops: [{
-          channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          fee: <Fee Number>
-          fee_mtokens: <Fee Millitokens String>
-          forward: <Forward Tokens Number>
-          forward_mtokens: <Forward Millitokens String>
-          [public_key]: <Public Key Hex String>
-          timeout: <Timeout Block Height Number>
-        }]
-      }]
-      [timeout]: <Probe Timeout Milliseconds Number>
-    }
-
-    @returns via cbk or Promise
-    {
-      generic_failures: [{
-        channel: <Standard Format Channel Id String>
-        public_key: <Failed Edge Public Key Hex String>
-      }]
-      [route]: {
-        fee: <Total Fee Tokens To Pay Number>
-        fee_mtokens: <Total Fee Millitokens To Pay String>
-        hops: [{
-          channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          fee: <Fee Number>
-          fee_mtokens: <Fee Millitokens String>
-          forward: <Forward Tokens Number>
-          forward_mtokens: <Forward Millitokens String>
-          [public_key]: <Public Key Hex String>
-          timeout: <Timeout Block Height Number>
-        }]
-      }
-      stuck: [{
-        channel: <Standard Format Channel Id String>
-        public_key: <Public Key Hex String>
-      }]
-      successes: [{
-        channel: <Standard Format Channel Id String>
-        public_key: <Public Key Hex String>
-      }]
-      temporary_failures: [{
-        channel: <Standard Format Channel Id String>
-        public_key: <Public Key Hex String>
-      }]
-    }
-
-Example:
-
-```node
-const {getRoutes, probe} = require('ln-service');
-const destination = 'destinationPublicKeyHexString';
-const tokens = 80085;
-const {routes} = await getRoutes({destination, lnd, tokens});
-const {route} = await probe({lnd, routes});
+const {route} = await getRouteToDestination({destination, lnd, tokens});
+const preimage = (await payViaRoutes({lnd, routes: [route]})).secret;
 ```
 
 ### probeForRoute
 
 Probe to find a successful route
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:write` permission
-
-`is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
-
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
-
-    Route `confidence` is not returned in LND 0.10.0 or below
-    Specifying `features` is not supported in LND 0.10.0 or below
-    Specifying `incoming_peer` is not supported in LND 0.10.0 or below
-    Specifying `is_ignoring_past_failures` isn't supported in LND 0.10.0 or above
-    Specifying `is_strict_hints` is not supported in LND 0.10 or above
-    Specifying `messages` is not supported in LND 0.10 or below
-    Route `messages` are not returned in LND 0.10.0 or below
-    Specifying `payment` is not supported in LND 0.10 or below
-    Route `payment` is not returned in LND 0.10.0 or below
-    Specifying `total_mtokens` is not supported in LND 0.10 or below
-    Route `total_mtokens` is not returned in LND 0.10.0 or below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3832,8 +3555,6 @@ Send tokens in a blockchain transaction.
 
 Requires `onchain:write` permission
 
-`description` is not supported on LND 0.10.4 or below
-
 `utxo_confirmations` is not supported on LND 0.11.1 or below
 
     {
@@ -3872,8 +3593,6 @@ await sendToChainAddress({address, lnd, tokens});
 Send tokens to multiple destinations in a blockchain transaction.
 
 Requires `onchain:write` permission
-
-`description` is not supported in LND 0.10.4 and below
 
 `utxo_confirmations` is not supported on LND 0.11.1 or below
 
@@ -3971,8 +3690,6 @@ Sign a sha256 hash of arbitrary bytes
 Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
-
-This method is not supported in LND v0.8.2 and below
 
     {
       key_family: <Key Family Number>
@@ -4278,20 +3995,6 @@ Subscribe to channel updates
 
 Requires `offchain:read` permission
 
-LND 0.9.0 and below do not emit `channel_opening` events.
-
-`is_partner_closed` and `is_partner_initiated` are not supported on LND
-0.9.1 and below.
-
-`local_given` and `remote_given` are not supported on LND 0.9.2 and below
-
-`close_balance_spent_by` is not supported on LND 0.10.4 and below
-
-`close_balance_vout` is not supported on LND 0.10.4 and below
-
-`close_payments` is not supported on LND 0.10.4 and below
-
-
     {
       lnd: <Authenticated LND API Object>
     }
@@ -4353,7 +4056,7 @@ LND 0.9.0 and below do not emit `channel_opening` events.
       is_opening: <Channel Is Opening Bool>
       is_partner_initiated: <Channel Partner Opened Channel Bool>
       is_private: <Channel Is Private Bool>
-      [is_static_remote_key]: <Remote Key Is Static Bool>
+      is_static_remote_key: <Remote Key Is Static Bool>
       local_balance: <Local Balance Tokens Number>
       [local_given]: <Local Initially Pushed Tokens Number>
       local_reserve: <Local Reserved Tokens Number>
@@ -4397,8 +4100,6 @@ Note that the outbound channel is only the requested channel, another may be
 selected internally to complete the forward.
 
 Requires `offchain:read`, `offchain:write` permission
-
-This method is not supported on LND 0.10.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -4448,8 +4149,6 @@ sub.on('forward_request', forward => {
 Subscribe to HTLC events
 
 Requires `offchain:read` permission
-
-This method is not supported on LND 0.9.2 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -4576,11 +4275,6 @@ LND built with `invoicesrpc` tag is required
 
 Requires `invoices:read` permission
 
-The `payments` array of HTLCs is only populated on LND versions after 0.7.1
-
-The `features` and `messages` arrays are not populated on LND 0.8.2 and below
-The `mtokens` value is only supported on LND versions after 0.8.2
-
     {
       id: <Invoice Payment Hash Hex String>
       lnd: <Authenticated LND API Object>
@@ -4659,9 +4353,6 @@ Subscribe to invoices
 
 Requires `invoices:read` permission
 
-The `payments` array of HTLCs is only populated on LND versions after 0.7.1
-`features`, `messages` arrays aren't populated on LND version 0.8.2 and below
-
     {
       lnd: <Authenticated LND API Object>
     }
@@ -4736,8 +4427,6 @@ listeners to `channel_request`
 
 Requires `offchain:write`, `onchain:write` permissions
 
-Note: LND 0.7.1 and lower do not support interactive channel acceptance.
-
     {
       lnd: <Authenticated LND gRPC API Object>
     }
@@ -4783,8 +4472,6 @@ sub.on('channel_request', channel => {
 ### subscribeToPastPayment
 
 Subscribe to the status of a past payment
-
-Requires LND built with `routerrpc` build tag
 
 Requires `offchain:read` permission
 
@@ -4846,19 +4533,7 @@ const {secret} = await once(sub, 'confirmed');
 
 Subscribe to the flight of a payment
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:write` permission
-
-Specifying `features` is not supported on LND 0.8.2 and below
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
-Specifying `messages` is not supported on LND 0.8.2 and below
-
-`incoming_peer` is not supported on LND 0.8.2 and below
-
-Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
-
-Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -4962,17 +4637,7 @@ const [paid] = await once(sub, 'confirmed');
 
 Initiate and subscribe to the outcome of a payment request
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:write` permission
-
-Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
-
-`incoming_peer` is not supported on LND 0.8.2 and below
-
-Specifying `max_paths` is not suppoorted on LND 0.9.2 and below
-
-Specifying `outgoing_channels` is not supported on LND 0.10.4 and below
 
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
@@ -5064,11 +4729,7 @@ const [paid] = once(sub, 'confirmed');
 
 Subscribe to the attempts of paying via specified routes
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:write` permission
-
-LND 0.8.2 and below do not support `messages`, `total_mtokens`, `payment`
 
     {
       [id]: <Payment Hash Hex String>
@@ -5238,9 +4899,9 @@ Example:
 
 ```node
 const {once} = require('events');
-const {getRoutes, subscribeToPayViaRoutes} = require('ln-service');
-const {routes} = getRoutes({destination, lnd, tokens});
-const sub = subscribeToPayViaRoutes({lnd, routes});
+const {getRouteToDestination, subscribeToPayViaRoutes} = require('ln-service');
+const {route} = getRouteToDestination({destination, lnd, tokens});
+const sub = subscribeToPayViaRoutes({lnd, routes: [route]});
 const [success] = await once(sub, 'success');
 ```
 
@@ -5249,8 +4910,6 @@ const [success] = await once(sub, 'success');
 Subscribe to peer connectivity events
 
 Requires `peers:read` permission
-
-LND 0.8.2 and below do not support peer subscriptions
 
     {
       lnd: <Authenticated LND gRPC API Object>
@@ -5285,158 +4944,11 @@ let lastConnectedPeer;
 sub.on('connected', peer => lastConnected = peer.public_key);
 ```
 
-### subscribeToProbe
-
-Subscribe to a probe attempt
-
-Requires LND built with `routerrpc` build tag
-
-Requires `offchain:write` permission
-
-`is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
-
-`confidence` is not supported in LND 0.7.1
-
-On LND 0.9.0, use subscribeToProbeForRoute instead
-
-    {
-      [cltv_delta]: <Final CLTV Delta Number>
-      destination: <Destination Public Key Hex String>
-      [ignore]: [{
-        [channel]: <Channel Id String>
-        from_public_key: <Public Key Hex String>
-        [to_public_key]: <To Public Key Hex String>
-      }]
-      [is_ignoring_past_failures]: <Ignore Past Failures When Finding Path Bool>
-      [is_strict_hints]: <Only Route Through Specified Paths Bool>
-      lnd: <Authenticated LND gRPC API Object>
-      [max_fee_mtokens]: <Maximum Fee Millitokens to Probe String>
-      [max_timeout_height]: <Maximum CLTV Timeout Height Number>
-      [mtokens]: <Millitokens to Probe String>
-      [outgoing_channel]: <Outgoing Channel Id String>
-      [path_timeout_ms]: <Skip Path Attempt After Milliseconds Number>
-      [probe_timeout_ms]: <Fail Probe After Milliseconds Number>
-      [routes]: [[{
-        [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
-        [channel_capacity]: <Channel Capacity Tokens Number>
-        [channel]: <Standard Format Channel Id String>
-        [cltv_delta]: <CLTV Blocks Delta Number>
-        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
-        public_key: <Forward Edge Public Key Hex String>
-      }]]
-      tokens: <Tokens Number>
-    }
-
-    @returns
-    <Probe Subscription Event Emitter Object>
-
-    @event 'error'
-    [<Failure Code Number>, <Failure Message String>]
-
-    @event 'probe_success'
-    {
-      route: {
-        [confidence]: <Route Confidence Score Out Of One Million Number>
-        fee: <Total Fee Tokens To Pay Number>
-        fee_mtokens: <Total Fee Millitokens To Pay String>
-        hops: [{
-          channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          fee: <Fee Number>
-          fee_mtokens: <Fee Millitokens String>
-          forward: <Forward Tokens Number>
-          forward_mtokens: <Forward Millitokens String>
-          public_key: <Public Key Hex String>
-          timeout: <Timeout Block Height Number>
-        }]
-        mtokens: <Total Millitokens To Pay String>
-        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
-        safe_tokens: <Payment Sending Tokens Rounded Up Number>
-        timeout: <Expiration Block Height Number>
-        tokens: <Total Tokens To Pay Number>
-      }
-    }
-
-    @event 'probing'
-    {
-      route: {
-        fee: <Total Fee Tokens To Pay Number>
-        fee_mtokens: <Total Fee Millitokens To Pay String>
-        hops: [{
-          channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          fee: <Fee Number>
-          fee_mtokens: <Fee Millitokens String>
-          forward: <Forward Tokens Number>
-          forward_mtokens: <Forward Millitokens String>
-          public_key: <Public Key Hex String>
-          timeout: <Timeout Block Height Number>
-        }]
-        mtokens: <Total Millitokens To Pay String>
-        timeout: <Expiration Block Height Number>
-        tokens: <Total Tokens To Pay Number>
-      }
-    }
-
-    @event 'routing_failure'
-    {
-      [channel]: <Standard Format Channel Id String>
-      [mtokens]: <Millitokens String>
-      [policy]: {
-        base_fee_mtokens: <Base Fee Millitokens String>
-        cltv_delta: <Locktime Delta Number>
-        fee_rate: <Fees Charged in Millitokens Per Million Number>
-        [is_disabled]: <Channel is Disabled Bool>
-        max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
-        min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
-      }
-      public_key: <Public Key Hex String>
-      reason: <Failure Reason String>
-      route: {
-        fee: <Total Fee Tokens To Pay Number>
-        fee_mtokens: <Total Fee Millitokens To Pay String>
-        hops: [{
-          channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          fee: <Fee Number>
-          fee_mtokens: <Fee Millitokens String>
-          forward: <Forward Tokens Number>
-          forward_mtokens: <Forward Millitokens String>
-          public_key: <Public Key Hex String>
-          timeout: <Timeout Block Height Number>
-        }]
-        mtokens: <Total Millitokens To Pay String>
-        timeout: <Expiration Block Height Number>
-        tokens: <Total Tokens To Pay Number>
-      }
-      [update]: {
-        chain: <Chain Id Hex String>
-        channel_flags: <Channel Flags Number>
-        extra_opaque_data: <Extra Opaque Data Hex String>
-        message_flags: <Message Flags Number>
-        signature: <Channel Update Signature Hex String>
-      }
-    }
-
-Example:
-
-```node
-const {once} = require('events');
-const {subscribeToProbe} = require('ln-service');
-const destination = 'destinationPublicKeyHexString';
-const sub = subscribeToProbe({destination, lnd, tokens: 80085});
-const [{route}] = await once(sub, 'probe_success');
-```
-
 ### subscribeToProbeForRoute
 
 Subscribe to a probe attempt
 
-Requires LND built with `routerrpc` build tag
-
 Requires `offchain:write` permission
-
-This method is not supported on LND 0.8.2 or below.
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -5746,8 +5258,6 @@ Requires LND built with `walletrpc` build tag
 
 Requires `onchain:write` permission
 
-This method is not supported in LND 0.10.4 and below
-
     {
       description: <Transaction Label String>
       id: <Transaction Id Hex String>
@@ -5800,9 +5310,6 @@ await updateConnectedWatchtower({
 Update routing fees on a single channel or on all channels
 
 Setting both `base_fee_tokens` and `base_fee_mtokens` is not supported
-
-Updating the maximum htlc size is not supported on LND 0.7.1 and below
-Updating the minimum HTLC size is not supported on LND 0.8.2 and below
 
     {
       [base_fee_mtokens]: <Base Fee Millitokens Charged Number>

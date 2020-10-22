@@ -89,10 +89,7 @@ test(`Send to chain address`, async ({end, equal}) => {
 
   const sentTransaction = transactions.find(n => n.id === sent.id);
 
-  // Transaction labels are not supported on LND 0.10.4 and below
-  if (!!sentTransaction.description) {
-    equal(sentTransaction.description, description, 'Got expected label');
-  }
+  equal(sentTransaction.description, description, 'Got expected label');
 
   await cluster.kill({});
 

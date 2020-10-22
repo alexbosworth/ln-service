@@ -1,10 +1,7 @@
 const asyncAuto = require('async/auto');
 const asyncTimeout = require('async/timeout');
-const {getWalletVersion} = require('lightning/lnd_methods');
 const {returnResult} = require('asyncjs-util');
 const {subscribeToProbeForRoute} = require('lightning/lnd_methods');
-
-const subscribeToProbe = require('./subscribe_to_probe');
 
 const defaultProbeTimeoutMs = 1000 * 60;
 const {isArray} = Array;
@@ -13,25 +10,7 @@ const notImplemented = 501;
 
 /** Probe to find a successful route
 
-  Requires LND built with `routerrpc` build tag
-
   Requires `offchain:write` permission
-
-  `is_ignoring_past_failures` will turn off LND 0.7.1+ past failure pathfinding
-
-  Specifying `max_fee_mtokens`/`mtokens` is not supported in LND 0.8.2 or below
-
-  Route `confidence` is not returned in LND 0.10.0 or below
-  Specifying `features` is not supported in LND 0.10.0 or below
-  Specifying `incoming_peer` is not supported in LND 0.10.0 or below
-  Specifying `is_ignoring_past_failures` isn't supported in LND 0.10.0 or above
-  Specifying `is_strict_hints` is not supported in LND 0.10 or above
-  Specifying `messages` is not supported in LND 0.10 or below
-  Route `messages` are not returned in LND 0.10.0 or below
-  Specifying `payment` is not supported in LND 0.10 or below
-  Route `payment` is not returned in LND 0.10.0 or below
-  Specifying `total_mtokens` is not supported in LND 0.10 or below
-  Route `total_mtokens` is not returned in LND 0.10.0 or below
 
   {
     [cltv_delta]: <Final CLTV Delta Number>
@@ -126,32 +105,13 @@ module.exports = (args, cbk) => {
         return cbk();
       },
 
-      // Query for version to determine if this LND doesn't support getVersion
-      getVersion: ['validate', ({}, cbk) => {
-        return getWalletVersion({lnd: args.lnd}, err => {
-          // On versions of LND before 0.10.0 getWalletVersion is not supported
-          if (isArray(err) && err.slice().shift() === notImplemented) {
-            return cbk(null, {is_legacy: true});
-          }
-
-          if (!!err) {
-            return cbk(err);
-          }
-
-          return cbk(null, {});
-        });
-      }],
-
       // Start probe and return a successful route if found
-      probe: ['getVersion', ({getVersion}, cbk) => {
+      probe: ['validate', ({}, cbk) => {
         const result = {};
         let isFinished = false;
-        const isLegacy = getVersion.is_legacy;
         let timeout;
 
-        const method = isLegacy ? subscribeToProbe : subscribeToProbeForRoute;
-
-        const sub = method({
+        const sub = subscribeToProbeForRoute({
           cltv_delta: args.cltv_delta,
           destination: args.destination,
           features: args.features,

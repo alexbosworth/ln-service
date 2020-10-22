@@ -50,18 +50,15 @@ test('Get payments', async ({end, equal}) => {
 
   const [firstOfPage1] = page1.payments;
 
-  // LND 0.9.2 and below do not support payments paging
-  if (page1.payments.length === 2) {
-    const page2 = await getPayments({lnd, token: page1.next});
+  const page2 = await getPayments({lnd, token: page1.next});
 
-    const [firstOfPage2] = page2.payments;
+  const [firstOfPage2] = page2.payments;
 
-    equal(firstOfPage2.index, 3, 'Got payment index');
+  equal(firstOfPage2.index, 3, 'Got payment index');
 
-    const page3 = await getPayments({lnd, token: page2.next});
+  const page3 = await getPayments({lnd, token: page2.next});
 
-    equal(!!page3.next, false, 'There is no page 4');
-  }
+  equal(!!page3.next, false, 'There is no page 4');
 
   await cluster.kill({});
 

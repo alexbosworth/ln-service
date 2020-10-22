@@ -1,5 +1,29 @@
 # Versions
 
+## 50.0.0
+
+Due to security issues, versions of LND lower than v0.11.0 should not be used and are no longer
+supported.
+
+- `getChannels`: `is_static_remote_key` is now always defined
+- `getChannels`: `local_csv`, `local_dust`, `local_max_htlcs` are now always defined
+- `getChannels`: `local_max_pending_mtokens`, `local_min_htlc_mtokens` are now defined
+- `getChannels`: `remote_csv`, `remote_dust`, `remote_max_htlcs` are now always defined
+- `getChannels`: `remote_max_pending_mtokens`, `remote_min_htlc_mtokens` are now defined
+- `getChannels`: `time_offline` and `time_online` is now always defined
+- `getFeeRates`: `id` is now always defined
+- `getForwards`: `mtokens` is now always defined
+- `getIdentity`: Convenience method added to get the backing node's identity public key
+- `lockUtxo`: Specifying a custom id for a UTXO lock is now supported
+- `subscribeToChannels`: `is_static_remote_key` is now always defined
+
+### Breaking Changes
+
+- Versions of LND v0.7.1 through v0.10.4 are no longer supported
+- `getRoutes`: method is removed, use `getRouteToDestination` instead
+- `probe`: method is removed, use `probeForRoute` instead
+- `subscribeToProbe`: method is removed, use `subscribeToProbeForRoute` instead
+
 ## 49.14.2
 
 - `subscribeToBackups`: Improve error handling and subscription removal
@@ -461,7 +485,7 @@ amount spent as millitokens.
 
 ## 46.1.0
 
-- `getChannels`: `is_static_remote_key` added  to indicate static remote keys
+- `getChannels`: `is_static_remote_key` added to indicate static remote keys
 - `subscribeToOpenRequests`: Added method to listen and accept/reject open channel requests
 
 ## 46.0.1

@@ -10,12 +10,6 @@ const defaultTokens = 1;
 
   Requires `offchain:write` permission
 
-  Note: on versions of LND prior to 0.7.1, is_payable will always be false
-
-  `max_fee_mtokens` and `mtokens` are not supported on LND below 0.8.2
-
-  `incoming_peer` is not supported on LND 0.8.2 and below
-
   {
     [cltv_delta]: <Final CLTV Delta Number>
     destination: <Pay to Node with Public Key Hex String>

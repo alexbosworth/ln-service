@@ -61,28 +61,9 @@ test(`Open channels`, async ({end, equal}) => {
         return;
       });
 
-      const isEnded = await asyncRetry({interval, times}, async () => {
-        try {
-          pending = (await openChannels({channels, lnd})).pending;
-
-          return false;
-        } catch (err) {
-          const [, code] = err;
-
-          if (code !== 'InsufficientBalanceToOpenChannels') {
-            throw err;
-          }
-
-          // PSBT funded channels are not supported in LND 0.9.2 and below
-          await cluster.kill({});
-
-          return true;
-        }
+      await asyncRetry({interval, times}, async () => {
+        pending = (await openChannels({channels, lnd})).pending;
       });
-
-      if (!!isEnded) {
-        return;
-      }
 
       // Normally funding would involve an un-broadcast transaction
       await sendToChainAddresses({lnd, send_to: pending});

@@ -10,7 +10,7 @@ const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getNetworkGraph} = require('./../../');
-const {getRoutes} = require('./../../');
+const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
@@ -107,7 +107,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
 
   await delay(3000);
 
-  const {routes} = await getRoutes({
+  const {route} = await getRouteToDestination({
     destination,
     lnd,
     tokens: invoice2.tokens,
@@ -117,7 +117,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   try {
     await pay({
       lnd: cluster.control.lnd,
-      path: {routes, id: randomBytes(32).toString('hex')},
+      path: {routes: [route], id: randomBytes(32).toString('hex')},
     });
   } catch (err) {
     const [code, message] = err;
@@ -129,7 +129,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   // Test paying regularly to a destination
   const directPay = await pay({
     lnd: cluster.control.lnd,
-    path: {routes, id: invoice2.id},
+    path: {routes: [route], id: invoice2.id},
   });
 
   await cluster.kill({});

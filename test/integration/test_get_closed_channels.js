@@ -72,15 +72,8 @@ test(`Get closed channels`, async ({end, equal}) => {
     equal(channel.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
   }
 
-  // Partner closed is not supported on 0.9.0 or earlier
-  if (!!channel && channel.is_partner_closed !== undefined) {
-    equal(channel.is_partner_closed, false, 'Partner did not close the chan');
-  }
-
-  // Partner initiated is not supported on 0.9.0 or earlier
-  if (!!channel && channel.is_partner_initiated !== undefined) {
-    equal(channel.is_partner_initiated, false, 'Partner did not open channel');
-  }
+  equal(channel.is_partner_closed, false, 'Partner did not close the chan');
+  equal(channel.is_partner_initiated, false, 'Partner did not open channel');
 
   // Setup a force close to show force close channel output
   const toForceClose = await setupChannel({
@@ -141,13 +134,6 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   const [, control] = (await getClosedChannels({lnd})).channels;
   const [, target] = targetChannels.channels;
-
-  // Exit early as close payments are not supported on LND 0.10.4 and lower
-  if (!control.close_payments.length) {
-    await cluster.kill({});
-
-    return end();
-  }
 
   equal(control.close_balance_vout !== undefined, true, 'Has balance vout');
   equal(!!control.close_balance_spent_by, true, 'Has close balance spend');

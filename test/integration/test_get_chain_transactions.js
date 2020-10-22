@@ -81,48 +81,29 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
   deepIs(tx.output_addresses, [address], 'Address is returned');
   equal(tx.tokens, tokens - defaultFee, 'Chain tokens are returned');
 
-  try {
-    const wallet = await getWalletVersion({lnd});
+  const wallet = await getWalletVersion({lnd});
 
-    const unsupportingCommits = {
-      '0d5b0fefa4d9082f7964836f5e58c3a6bda8e471': true,
-      '1e04b7f54360427a23a5daf4a5a0648e6a81f3a6': true,
-      '4f2221d56c8212ddc4f48a4e6a6ee57255e61195': true,
-      '86114c575c2dff9dff1e1bb4df961c64aea9fc1c': true,
-      'ae6e84ddfd3c4d2366e151a04aca3f78b4078ed5': true,
-      'd62c575f8499a314eb27f12462d20500b6bda2c7': true,
-      'e8833042799d71dba209fe305ce3ae105c154cfe': true,
-    };
+  const onlyAfter = await getChainTransactions({
+    lnd,
+    after: tx.confirmation_height,
+  });
 
-    const isV10 = wallet.version === '0.10.0-beta';
-    const isV101 = wallet.version === '0.10.1-beta';
+  equal(onlyAfter.transactions.length, [].length, 'No transactions after');
 
-    if (!unsupportingCommits[wallet.commit_hash] && !isV10 && !isV101) {
-      const onlyAfter = await getChainTransactions({
-        lnd,
-        after: tx.confirmation_height,
-      });
+  const onlyBefore = await getChainTransactions({
+    lnd,
+    before: tx.confirmation_height,
+  });
 
-      equal(onlyAfter.transactions.length, [].length, 'No transactions after');
+  equal(onlyBefore.transactions.length, [].length, 'No tx before');
 
-      const onlyBefore = await getChainTransactions({
-        lnd,
-        before: tx.confirmation_height,
-      });
+  const between = await getChainTransactions({
+    lnd,
+    after: tx.confirmation_height - 1,
+    before: tx.confirmation_height + 1,
+  });
 
-      equal(onlyBefore.transactions.length, [].length, 'No tx before');
-
-      const between = await getChainTransactions({
-        lnd,
-        after: tx.confirmation_height - 1,
-        before: tx.confirmation_height + 1,
-      });
-
-      deepIs(between.transactions.length, [tx].length, 'One transaction');
-    }
-  } catch (err) {
-    deepIs(err, [501, 'VersionMethodUnsupported'], 'Using legacy LND');
-  }
+  deepIs(between.transactions.length, [tx].length, 'One transaction');
 
   kill();
 

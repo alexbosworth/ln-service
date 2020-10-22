@@ -10,7 +10,7 @@ const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
-const {getRoutes} = require('./../../');
+const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
@@ -96,7 +96,7 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     tokens: invoice.tokens,
   });
 
-  const {routes} = await getRoutes({
+  const {route} = await getRouteToDestination({
     lnd,
     destination: decodedRequest.destination,
     routes: decodedRequest.routes,
@@ -104,11 +104,10 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
   });
 
   const {destination} = decodedRequest;
-  const [route] = routes;
 
   // Pay invoice, but with an invalid id
   try {
-    await payViaRoutes({lnd, routes});
+    await payViaRoutes({lnd, routes: [route]});
   } catch (err) {
     const [code, message, {failures}] = err;
 
@@ -169,9 +168,9 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     equal(lowFeeErrMessage, 'FeeInsufficient', 'Low fee returns low fee msg');
   }
 
-  routes[0].messages = [{type: tlvType, value: tlvValue}];
+  route.messages = [{type: tlvType, value: tlvValue}];
 
-  const payment = await payViaRoutes({id, lnd, routes});
+  const payment = await payViaRoutes({id, lnd, routes: [route]});
 
   const paidInvoice = await getInvoice({id, lnd: cluster.remote.lnd});
 

@@ -22,29 +22,24 @@ test(`Subscribe to peers`, async ({end, equal}) => {
   const disconnect = removePeer({lnd, public_key: cluster.target.public_key});
   const receiveDisconnect = once(sub, 'disconnected');
 
-  try {
-    const [disconectMessage] = await all([receiveDisconnect, disconnect]);
+  const [disconectMessage] = await all([receiveDisconnect, disconnect]);
 
-    const [disconnected] = disconectMessage;
+  const [disconnected] = disconectMessage;
 
-    equal(disconnected.public_key, cluster.target.public_key, 'Got d/c event');
+  equal(disconnected.public_key, cluster.target.public_key, 'Got d/c event');
 
-    const connect = addPeer({
-      lnd,
-      public_key: cluster.target.public_key,
-      socket: cluster.target.socket,
-    });
-    const receiveConnectMessage = once(sub, 'connected');
+  const connect = addPeer({
+    lnd,
+    public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
+  });
+  const receiveConnectMessage = once(sub, 'connected');
 
-    const [connectMessage] = await all([receiveConnectMessage, connect]);
+  const [connectMessage] = await all([receiveConnectMessage, connect]);
 
-    const [connected] = connectMessage;
+  const [connected] = connectMessage;
 
-    equal(connected.public_key, cluster.target.public_key, 'Got connected');
-  } catch (err) {
-    // LND 0.8.2 and below do not support peer subscriptions
-    equal(err.message, 'SubscribeToPeersNotSupported', 'Not supported yet');
-  }
+  equal(connected.public_key, cluster.target.public_key, 'Got connected');
 
   await cluster.kill({});
 

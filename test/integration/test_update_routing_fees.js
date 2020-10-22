@@ -49,15 +49,9 @@ test(`Update routing fees`, async ({end, equal}) => {
   equal(policy.cltv_delta, cltvDelta, 'CLTV delta updated');
   equal(policy.fee_rate, feeRate, 'Fee rate updated');
 
-  // LND 0.7.1 and below do not support updating max htlc mtokens
-  if (policy.max_htlc_mtokens !== '990000000') {
-    equal(policy.max_htlc_mtokens, '10000', 'Max HTLC tokens updated');
-  }
+  equal(policy.max_htlc_mtokens, '10000', 'Max HTLC tokens updated');
 
-  // LND 0.8.2 and below do not support updating min htlc mtokens
-  if (policy.min_htlc_mtokens !== '1000') {
-    equal(policy.min_htlc_mtokens, '2000', 'Min HTLC tokens updated');
-  }
+  equal(policy.min_htlc_mtokens, '2000', 'Min HTLC tokens updated');
 
   {
     const lnd = cluster.target.lnd;

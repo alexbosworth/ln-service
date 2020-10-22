@@ -5,7 +5,6 @@ const {returnResult} = require('asyncjs-util');
 
 const {safeTokens} = require('./../bolt00');
 
-const emptyChannelId = '0';
 const notFound = -1;
 const outpointDivider = ':';
 const transactionIdHexLength = 32 * 2;
@@ -14,10 +13,8 @@ const transactionIdHexLength = 32 * 2;
 
   Requires `offchain:read` permission
 
-  `id` is not supported on LND 0.9.2 and below
-
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @returns via cbk or Promise
@@ -26,7 +23,7 @@ const transactionIdHexLength = 32 * 2;
       base_fee: <Base Flat Fee Tokens Rounded Up Number>
       base_fee_mtokens: <Base Flat Fee Millitokens String>
       fee_rate: <Fee Rate in Millitokens Per Million Number>
-      [id]: <Standard Format Channel Id String>
+      id: <Standard Format Channel Id String>
       transaction_id: <Channel Funding Transaction Id Hex String>
       transaction_vout: <Funding Outpoint Output Index Number>
     }]
@@ -88,23 +85,11 @@ module.exports = ({lnd}, cbk) => {
             return cbk([503, 'ExpectedFeeRatePerMillion']);
           }
 
-          const number = channel.chan_id;
-
-          const hasId = number !== emptyChannelId;
-
-          if (hasId) {
-            try {
-              chanFormat({number});
-            } catch (err) {
-              throw new Error('ExpectedNumericFormatChannelIdInFeeReport');
-            }
-          }
-
           return cbk(null, {
             base_fee: safeTokens({mtokens: channel.base_fee_msat}).tokens,
             base_fee_mtokens: channel.base_fee_msat,
             fee_rate: Number(channel.fee_per_mil),
-            id: hasId ? chanFormat({number}).channel : undefined,
+            id: chanFormat({number: channel.chan_id}).channel,
             transaction_id: txId,
             transaction_vout: Number(index),
           });

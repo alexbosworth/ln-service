@@ -21,27 +21,6 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
 
   const {lnd} = cluster.control;
 
-  try {
-    const {version} = await getWalletVersion({lnd});
-
-    switch (version) {
-    case '0.10.1-beta':
-    case '0.10.2-beta':
-    case '0.10.3-beta':
-    case '0.10.4-beta':
-      await cluster.kill({});
-
-      return end();
-
-    default:
-      break;
-    }
-  } catch (err) {
-    await cluster.kill({});
-
-    return end();
-  }
-
   const channel = await setupChannel({
     lnd,
     generate: cluster.generate,

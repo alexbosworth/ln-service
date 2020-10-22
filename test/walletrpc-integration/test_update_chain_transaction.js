@@ -51,21 +51,9 @@ test(`Send chain transaction`, async ({end, equal}) => {
 
   const {id} = await broadcastChainTransaction({transaction, lnd: node.lnd});
 
-  try {
-    await updateChainTransaction({description, lnd, id});
-  } catch (err) {
-    const [code] = err;
-
-    equal(501, code, 'Method is not supported on LND 0.10.4 and below');
-
-    kill();
-
-    await waitForTermination({lnd});
-
-    return end();
-  }
-
   await asyncRetry({}, async () => {
+    await updateChainTransaction({description, id, lnd});
+
     const {transactions} = await getChainTransactions({lnd});
 
     const [tx] = transactions;

@@ -8,7 +8,7 @@ const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteThroughHops} = require('./../../');
-const {getRoutes} = require('./../../');
+const {getRouteToDestination} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
@@ -61,70 +61,44 @@ test(`Get route through hops`, async ({deepIs, end, equal}) => {
     tokens: invoice.tokens,
   });
 
-  const {routes} = await getRoutes({
+  const {route} = await getRouteToDestination({
     lnd,
+    cltv_delta: decodedRequest.cltv_delta,
     destination: decodedRequest.destination,
     routes: decodedRequest.routes,
     tokens: invoice.tokens,
   });
 
-  const [route] = routes;
+  const res = await getRouteThroughHops({
+    lnd,
+    cltv_delta: decodedRequest.cltv_delta + 6,
+    messages: [{type: '1000000', value: '01'}],
+    mtokens: (BigInt(invoice.tokens) * BigInt(1e3)).toString(),
+    payment: decodedRequest.payment,
+    public_keys: route.hops.map(n => n.public_key),
+    total_mtokens: invoice.mtokens,
+  });
 
-  try {
-    const res = await getRouteThroughHops({
-      lnd,
-      cltv_delta: invoice.cltv_delta,
-      messages: [{type: '1000000', value: '01'}],
-      mtokens: (BigInt(invoice.tokens) * BigInt(1e3)).toString(),
-      payment: decodedRequest.payment,
-      public_keys: route.hops.map(n => n.public_key),
-      total_mtokens: invoice.mtokens,
-    });
+  await payViaRoutes({lnd, id: invoice.id, routes: [res.route]});
 
-    await payViaRoutes({lnd, id: invoice.id, routes: [res.route]});
+  const got = await getInvoice({lnd: cluster.remote.lnd, id: invoice.id});
 
-    const isTenOrAbove = await (async () => {
-      try {
-        return !!(await getWalletVersion({lnd}));
-      } catch (err) {
-        return false;
-      }
-    })();
+  delete res.route.confidence;
+  delete route.confidence;
 
-    if (isTenOrAbove) {
-      const got = await getInvoice({lnd: cluster.remote.lnd, id: invoice.id});
+  route.messages = [{type: '1000000', value: '01'}];
+  route.payment = decodedRequest.payment;
+  route.total_mtokens = decodedRequest.mtokens;
 
-      delete res.route.confidence;
-      delete route.confidence;
+  deepIs(res.route, route, 'Constructed route to destination');
 
-      route.messages = [{type: '1000000', value: '01'}];
-      route.payment = decodedRequest.payment;
-      route.total_mtokens = decodedRequest.mtokens;
+  const {payments} = got;
 
-      deepIs(res.route, route, 'Constructed route to destination');
+  const [payment] = payments;
 
-      const {payments} = got;
+  equal(payment.total_mtokens, invoice.mtokens, 'Got MPP total mtokens');
 
-      const [payment] = payments;
-
-      equal(payment.total_mtokens, invoice.mtokens, 'Got MPP total mtokens');
-
-      deepIs(payment.messages, route.messages, 'Remote got TLV messages');
-    } else {
-      delete res.route.confidence;
-      delete res.route.messages;
-      delete res.route.payment;
-      delete res.route.total_mtokens;
-      delete route.confidence;
-      delete route.messages;
-      delete route.payment;
-      delete route.total_mtokens;
-
-      deepIs(res.route, route, 'Constructed route to destination');
-    }
-  } catch (err) {
-    deepIs(err, [501, 'ExpectedRouterRpcWithGetRouteMethod'], 'Unimplemented');
-  }
+  deepIs(payment.messages, route.messages, 'Remote got TLV messages');
 
   await cluster.kill({});
 

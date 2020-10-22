@@ -6,7 +6,6 @@ const ignoreFromRoutingFailure = require('./ignore_from_routing_failure');
 const isDestinationPayable = require('./is_destination_payable');
 const probeForRoute = require('./probe_for_route');
 const rpcRouteFromRoute = require('./rpc_route_from_route');
-const subscribeToProbe = require('./subscribe_to_probe');
 
 module.exports = {
   deleteForwardingReputations,
@@ -17,5 +16,4 @@ module.exports = {
   isDestinationPayable,
   probeForRoute,
   rpcRouteFromRoute,
-  subscribeToProbe,
 };

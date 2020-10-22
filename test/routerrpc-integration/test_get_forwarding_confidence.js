@@ -6,7 +6,7 @@ const {createInvoice} = require('./../../');
 const {getChannels} = require('./../../');
 const {getForwardingConfidence} = require('./../../');
 const {getForwardingReputations} = require('./../../');
-const {getRoutes} = require('./../../');
+const {getRouteToDestination} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
@@ -65,7 +65,7 @@ test('Get forwarding confidence', async ({deepIs, end, equal}) => {
   const destination = cluster.remote.public_key;
 
   // Allow time for graph sync to complete
-  await waitForRoute({destination, lnd, tokens});
+  const {routes} = await waitForRoute({destination, lnd, tokens});
 
   try {
     await probeForRoute({
@@ -80,33 +80,27 @@ test('Get forwarding confidence', async ({deepIs, end, equal}) => {
 
   equal(nodes.length > 0, true, 'Reputation should be generated');
 
-  const {routes} = await getRoutes({destination, lnd, tokens});
+  const [{hops}] = routes;
 
-  equal(routes.length, 1, 'There should be a route');
+  const [from, to] = hops;
 
-  if (!!routes.length) {
-    const [{hops}] = routes;
+  const successHop = await getForwardingConfidence({
+    lnd,
+    from: cluster.control.public_key,
+    mtokens: '1',
+    to: cluster.target.public_key,
+  });
 
-    const [from, to] = hops;
+  equal(successHop.confidence, 950000, 'High confidence in A -> B');
 
-    const successHop = await getForwardingConfidence({
-      lnd,
-      from: cluster.control.public_key,
-      mtokens: '1',
-      to: cluster.target.public_key,
-    });
+  const failedHop = await getForwardingConfidence({
+    lnd,
+    from: cluster.target.public_key,
+    mtokens: from.forward_mtokens,
+    to: cluster.remote.public_key,
+  });
 
-    equal(successHop.confidence, 950000, 'High confidence in A -> B');
-
-    const failedHop = await getForwardingConfidence({
-      lnd,
-      from: cluster.target.public_key,
-      mtokens: from.forward_mtokens,
-      to: cluster.remote.public_key,
-    });
-
-    equal(failedHop.confidence < 1e3, true, 'Low confidence in B -> C');
-  }
+  equal(failedHop.confidence < 1e3, true, 'Low confidence in B -> C');
 
   await cluster.kill({});
 

@@ -7,7 +7,6 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToForwards} = require('./../../');
@@ -19,15 +18,6 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
   const cluster = await createCluster({});
 
   const testSub = subscribeToForwards({lnd: cluster.control.lnd});
-
-  // LND v0.9.2 and below do not support this method
-  try {
-    await getWalletVersion({lnd: cluster.control.lnd});
-  } catch (err) {
-    await cluster.kill({})
-
-    return end();
-  }
 
   await setupChannel({
     generate: cluster.generate,

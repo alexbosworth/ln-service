@@ -4,7 +4,7 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
-const {getRoutes} = require('./../../');
+const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
@@ -52,14 +52,14 @@ test('Rebalance', async ({end, equal}) => {
 
   const [inChannelId] = (await getChannels({lnd})).channels.map(({id}) => id);
 
-  const {routes} = await getRoutes({
+  const {route} = await getRouteToDestination({
     lnd,
     tokens,
     destination: cluster.control.public_key,
     outgoing_channel: inChannelId,
   });
 
-  const selfPay = await pay({lnd, path: {routes, id: invoice.id}});
+  const selfPay = await pay({lnd, path: {id: invoice.id, routes: [route]}});
 
   equal(selfPay.secret, invoice.secret, 'Payment made to self');
 

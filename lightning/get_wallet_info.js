@@ -18,8 +18,6 @@ const msPerSec = 1e3;
 
   Requires `info:read` permission
 
-  LND 0.8.2 and below do not return `features`
-
   {
     lnd: <Authenticated LND gRPC API Object>
   }

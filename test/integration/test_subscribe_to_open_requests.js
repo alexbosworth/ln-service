@@ -24,22 +24,12 @@ const times = 10;
 // Subscribing to open requests should trigger channel open notifications
 test(`Subscribe to open requests`, async ({end, equal, fail}) => {
   const cluster = await createCluster({is_remote_skipped: true});
-  let initError;
 
   const {lnd} = cluster.control;
 
   const failSub = subscribeToOpenRequests({lnd: cluster.control.lnd});
 
-  failSub.on('error', n => initError = n);
-
   await delay(3000);
-
-  // LND 0.7.1 does not support interactive channel acceptance
-  if (initError && initError.message === 'ChannelAcceptanceNotSupported') {
-    await cluster.kill({});
-
-    return end();
-  }
 
   failSub.on('channel_request', ({reject}) => reject());
 

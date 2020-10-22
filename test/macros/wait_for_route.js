@@ -1,6 +1,6 @@
 const asyncRetry = require('async/retry');
 
-const {getRoutes} = require('./../../');
+const {getRouteToDestination} = require('./../../');
 
 const interval = retryCount => 50 * Math.pow(2, retryCount);
 const times = 15;
@@ -56,16 +56,22 @@ module.exports = ({destination, lnd, routes, tokens}, cbk) => {
   }
 
   return asyncRetry({interval, times}, cbk => {
-    return getRoutes({destination, lnd, routes, tokens}, (err, res) => {
+    return getRouteToDestination({
+      destination,
+      lnd,
+      routes,
+      tokens,
+    },
+    (err, res) => {
       if (!!err) {
         return cbk(err);
       }
 
-      if (!res.routes.length) {
-        return cbk([503, 'ExpectedRoutesToBeReturned']);
+      if (!res.route) {
+        return cbk([503, 'ExpectedRouteToBeReturned']);
       }
 
-      return cbk(null, {routes: res.routes});
+      return cbk(null, {routes: [res.route]});
     });
   },
   cbk);

@@ -18,8 +18,6 @@ const unimplementedError = 'unknown service signrpc.Signer';
 
   Requires `signer:generate` permission
 
-  This method is not supported in LND v0.8.2 and below
-
   {
     [key_family]: <Key Family Number>
     [key_index]: <Key Index Number>

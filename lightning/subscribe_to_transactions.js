@@ -8,8 +8,6 @@ const {isArray} = Array;
 
   Requires `onchain:read` permission
 
-  In LND 0.7.1 `confirmation_height` is not supported
-
   {
     lnd: <Authenticated LND API Object>
   }

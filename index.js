@@ -51,11 +51,10 @@ const {getPayments} = require('./lightning');
 const {getPeers} = require('lightning/lnd_methods');
 const {getPendingChainBalance} = require('lightning/lnd_methods');
 const {getPendingChannels} = require('lightning/lnd_methods');
-const {getPublicKey} = require('./wallet');
+const {getPublicKey} = require('lightning/lnd_methods');
 const {getRouteConfidence} = require('./router');
 const {getRouteThroughHops} = require('lightning/lnd_methods');
 const {getRouteToDestination} = require('lightning/lnd_methods');
-const {getRoutes} = require('./lightning');
 const {getSweepTransactions} = require('lightning/lnd_methods');
 const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('lightning/lnd_methods');
@@ -71,7 +70,6 @@ const {pay} = require('./lightning');
 const {payViaPaymentDetails} = require('lightning/lnd_methods');
 const {payViaPaymentRequest} = require('lightning/lnd_methods');
 const {payViaRoutes} = require('lightning/lnd_methods');
-const {probe} = require('./lightning');
 const {probeForRoute} = require('./router');
 const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
@@ -104,7 +102,6 @@ const {subscribeToPayViaDetails} = require('lightning/lnd_methods');
 const {subscribeToPayViaRequest} = require('lightning/lnd_methods');
 const {subscribeToPayViaRoutes} = require('lightning/lnd_methods');
 const {subscribeToPeers} = require('./lightning');
-const {subscribeToProbe} = require('./router');
 const {subscribeToProbeForRoute} = require('lightning/lnd_methods');
 const {subscribeToTransactions} = require('./lightning');
 const {unauthenticatedLndGrpc} = require('lightning');
@@ -176,7 +173,6 @@ module.exports = {
   getRouteConfidence,
   getRouteThroughHops,
   getRouteToDestination,
-  getRoutes,
   getSweepTransactions,
   getTowerServerInfo,
   getUtxos,
@@ -192,7 +188,6 @@ module.exports = {
   payViaPaymentDetails,
   payViaPaymentRequest,
   payViaRoutes,
-  probe,
   probeForRoute,
   recoverFundsFromChannel,
   recoverFundsFromChannels,
@@ -225,7 +220,6 @@ module.exports = {
   subscribeToPayViaRequest,
   subscribeToPayViaRoutes,
   subscribeToPeers,
-  subscribeToProbe,
   subscribeToProbeForRoute,
   subscribeToTransactions,
   unauthenticatedLndGrpc,

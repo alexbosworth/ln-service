@@ -18,9 +18,6 @@ const type = 'default';
 
   Requires `offchain:write` permission
 
-  Updating the maximum HTLC size is not supported on LND 0.7.1 and below
-  Updating the minimum HTLC size is not supported on LND 0.8.2 and below
-
   {
     [base_fee_mtokens]: <Base Fee Millitokens Charged Number>
     [base_fee_tokens]: <Base Fee Tokens Charged Number>

@@ -1,6 +1,5 @@
 const asyncAuto = require('async/auto');
 const {featureFlagDetails} = require('bolt09');
-const {parsePaymentRequest} = require('invoices');
 const {returnResult} = require('asyncjs-util');
 
 const {routeFromRouteHint} = require('./../routing');
@@ -17,8 +16,6 @@ const {now} = Date;
 /** Get decoded payment request
 
   Requires `offchain:read` permission
-
-  LND 0.8.2 and previous versions do not return `features`, `payment`
 
   {
     lnd: <Authenticated LND API Object>
@@ -69,20 +66,8 @@ module.exports = ({lnd, request}, cbk) => {
         return cbk();
       },
 
-      // Get payment request values
-      values: ['validate', ({}, cbk) => {
-        try {
-          // Native parsing is used to get millitokens in LND 0.8.2 and prior
-          const parsed = parsePaymentRequest({request});
-
-          return cbk(null, parsed);
-        } catch (err) {
-          return cbk([503, 'FailedToParsePaymentRequest', {err}]);
-        }
-      }],
-
       // Decode payment request
-      decode: ['values', ({values}, cbk) => {
+      decode: ['validate', ({}, cbk) => {
         return lnd.default.decodePayReq({pay_req: request}, (err, res) => {
           if (!!err) {
             return cbk([503, 'UnexpectedDecodePaymentRequestError', {err}]);
@@ -126,9 +111,6 @@ module.exports = ({lnd, request}, cbk) => {
 
           const expiryDateMs = createdAtMs + (expiresInMs || defaultExpireMs);
 
-          // LND versions 0.8.2 and below do not return precision
-          const mtokens = res.num_msat !== '0' ? res.num_msat : values.mtokens;
-
           return cbk(null, {
             chain_address: res.fallback_addr || undefined,
             cltv_delta: Number(res.cltv_expiry || 0) || undefined,
@@ -145,13 +127,13 @@ module.exports = ({lnd, request}, cbk) => {
             })),
             id: res.payment_hash,
             is_expired: now() > expiryDateMs,
-            mtokens: mtokens || defaultMtokens,
+            mtokens: res.num_msat,
             payment: bufToHex(res.payment_addr) || undefined,
             routes: res.route_hints.map(route => routeFromRouteHint({
               destination: res.destination,
               hop_hints: route.hop_hints,
             })),
-            safe_tokens: safeTokens({mtokens: mtokens || defaultMtokens}).safe,
+            safe_tokens: safeTokens({mtokens: res.num_msat}).safe,
             tokens: Number(res.num_satoshis),
           });
         });

@@ -11,10 +11,8 @@ const unimplementedMessage = 'unknown service lnrpc.Lightning';
 
   Requires `peers:read` permission
 
-  LND 0.8.2 and below do not support peer subscriptions
-
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
   }
 
   @throws

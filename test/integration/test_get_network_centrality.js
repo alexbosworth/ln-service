@@ -13,18 +13,7 @@ const times = 100;
 test(`Get network centrality`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({});
 
-  try {
-    await getNetworkCentrality({lnd: cluster.control.lnd});
-  } catch (err) {
-    const [, code] = err;
-
-    // On LND 0.9.2 and below, this method is not supported
-    equal(code, 'ExpectedServerSupportForNodeMetricsMethod', 'Unsupported');
-
-    await cluster.kill({});
-
-    return end();
-  }
+  await getNetworkCentrality({lnd: cluster.control.lnd});
 
   const {control} = cluster;
   const {remote} = cluster;

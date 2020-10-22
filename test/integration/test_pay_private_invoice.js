@@ -10,7 +10,7 @@ const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
-const {getRoutes} = require('./../../');
+const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
@@ -83,14 +83,14 @@ test(`Pay private invoice`, async ({deepIs, end, equal}) => {
 
   const decodedRequest = await decodePaymentRequest({lnd, request});
 
-  const {routes} = await getRoutes({
+  const {route} = await getRouteToDestination({
     lnd,
     destination: decodedRequest.destination,
     routes: decodedRequest.routes,
     tokens: invoice.tokens,
   });
 
-  const payment = await pay({lnd, path: {id, routes}});
+  const payment = await pay({lnd, path: {id, routes: [route]}});
 
   const paidInvoice = await getInvoice({id, lnd: cluster.remote.lnd});
 

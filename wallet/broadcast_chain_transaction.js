@@ -15,8 +15,6 @@ const type = 'wallet';
 
   Requires `onchain:write` permission
 
-  `description` is not supported on LND 0.10.4 and below
-
   {
     [description]: <Transaction Label String>
     lnd: <Authenticated LND API Object>

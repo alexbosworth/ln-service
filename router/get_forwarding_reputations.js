@@ -19,10 +19,6 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
   Requires `offchain:read` permission
 
-  Note: In LND v0.7.1 channels reputations are returned.
-  Note: In LND v0.8.0 peers reputations are returned.
-  Note: after LND v0.8.2 confidence is not returned per peer.
-
   {
     [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
     lnd: <Authenticated LND API Object>
@@ -200,17 +196,6 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
 
         return cbk(null, pairs.map(pair => {
           const confidence = probabilityAsConfidence(pair.success_prob);
-
-          // Only after LND 0.8.2 there is history for pairs
-          if (!pair.history || !Number(pair.history.fail_time)) {
-            return {
-              confidence: confidence || undefined,
-              last_failed_forward_at: timeAsDate(pair.last_fail_time || '0'),
-              min_relevant_tokens: Number(pair.min_penalize_amt_sat || '0'),
-              public_key: pair.node_from.toString('hex'),
-              to_public_key: pair.node_to.toString('hex'),
-            };
-          }
 
           const isFail = !pair.history.last_attempt_successful;
 

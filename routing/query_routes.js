@@ -18,8 +18,6 @@ const isPathNotFoundCode = code => !!pathNotFoundErrors[code];
 
   Requires `info:read` permission
 
-  `max_timeout_height` is not supported in LND 0.7.1
-
   {
     [destination]: <Destination Public Key Hex String>
     [ignores]: [{

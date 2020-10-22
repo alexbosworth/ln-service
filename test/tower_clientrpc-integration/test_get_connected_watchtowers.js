@@ -22,17 +22,8 @@ test(`Connect watchtower`, async ({end, equal, match}) => {
   let control;
   let tower;
 
-  try {
-    control = await spawnLnd({watchers: true});
-    tower = await spawnLnd({tower: true});
-  } catch (err) {
-    const [, errMessage] = err;
-
-    // LND 0.7.1 does not support wtclient
-    if (errMessage === 'ExpectedLightningDaemon') {
-      return end();
-    }
-  }
+  control = await spawnLnd({watchers: true});
+  tower = await spawnLnd({tower: true});
 
   const info = (await getTowerServerInfo({lnd: tower.lnd})).tower;
   const {lnd} = control;
