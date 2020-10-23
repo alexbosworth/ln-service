@@ -39,6 +39,7 @@ const {getFeeRates} = require('./lightning');
 const {getForwardingConfidence} = require('./router');
 const {getForwardingReputations} = require('./router');
 const {getForwards} = require('lightning/lnd_methods');
+const {getIdentity} = require('lightning/lnd_methods');
 const {getInvoice} = require('./lightning');
 const {getInvoices} = require('./lightning');
 const {getMethods} = require('lightning/lnd_methods');
@@ -157,6 +158,7 @@ module.exports = {
   getForwardingConfidence,
   getForwardingReputations,
   getForwards,
+  getIdentity,
   getInvoice,
   getInvoices,
   getMethods,

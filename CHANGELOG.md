@@ -1,6 +1,6 @@
 # Versions
 
-## 50.0.0
+## 50.0.1
 
 Due to security issues, versions of LND lower than v0.11.0 should not be used and are no longer
 supported.
