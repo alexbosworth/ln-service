@@ -1,5 +1,9 @@
 # Versions
 
+## 50.1.1
+
+- `subscribeToBlocks`: Fix block `hash` endian output
+
 ## 50.1.0
 
 - `getHeight`: method added to get the current block height
