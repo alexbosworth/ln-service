@@ -1,11 +1,9 @@
 const {test} = require('tap');
 
-const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {parsePaymentRequest} = require('./../../');

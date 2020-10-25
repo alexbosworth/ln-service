@@ -5,9 +5,9 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
+const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
@@ -41,7 +41,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
     socket: cluster.remote.socket,
   });
 
-  const height = (await getWalletInfo({lnd})).current_block_height;
+  const height = (await getHeight({lnd})).current_block_height;
   const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
 
   const {features} = await decodePaymentRequest({

@@ -2,7 +2,7 @@ const {test} = require('tap');
 
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
-const {getWalletInfo} = require('./../../');
+const {getIdentity} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
@@ -40,7 +40,7 @@ tests.forEach(({description, expected}) => {
     equal(!!decoded.created_at, true, 'Created at date');
     equal(decoded.description, expected.description, 'Decode description');
     equal(decoded.description_hash, expected.description_hash, 'Desc hash');
-    equal(decoded.destination, (await getWalletInfo({lnd})).public_key, 'Pk');
+    equal(decoded.destination, (await getIdentity({lnd})).public_key, 'Pk');
     equal(!!decoded.expires_at, true, 'Expiration date decoded');
     equal(decoded.id, expected.id, 'Decoded payment hash');
     equal(decoded.mtokens, expected.mtokens, 'Decode millitokens');

@@ -6,8 +6,6 @@ const defaultTokens = 1;
 
 /** Determine if a payment destination is actually payable by probing it
 
-  Requires LND built with `routerrpc` build tag
-
   Requires `offchain:write` permission
 
   {

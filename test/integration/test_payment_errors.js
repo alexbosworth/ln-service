@@ -8,7 +8,8 @@ const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
-const {getWalletInfo} = require('./../../');
+const {getHeight} = require('./../../');
+const {getIdentity} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
@@ -39,7 +40,7 @@ test('Payment errors', async ({end, equal}) => {
     to: cluster.control,
   });
 
-  const height = (await getWalletInfo({lnd})).current_block_height;
+  const height = (await getHeight({lnd})).current_block_height;
   const invoice = await createInvoice({lnd, tokens});
   const mtokens = `${tokens}${mtok}`;
 
@@ -48,7 +49,7 @@ test('Payment errors', async ({end, equal}) => {
 
   const [inChanId, outChanId] = channels.map(({id}) => id).sort();
 
-  const destination = (await getWalletInfo({lnd})).public_key;
+  const destination = (await getIdentity({lnd})).public_key;
 
   try {
     let route;

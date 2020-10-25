@@ -4,8 +4,8 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {getChannels} = require('./../../');
+const {getHeight} = require('./../../');
 const {getPayment} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
@@ -74,7 +74,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
     equal(payment.mtokens, '101000', 'Paid mtokens');
     equal(payment.secret, invoice.secret, 'Paid for invoice secret');
 
-    const height = (await getWalletInfo({lnd})).current_block_height;
+    const height = (await getHeight({lnd})).current_block_height;
 
     payment.hops.forEach(n => {
       equal(n.timeout === height + 40 || n.timeout === height + 43, true);

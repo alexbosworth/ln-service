@@ -2,7 +2,7 @@ const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
 const {returnResult} = require('asyncjs-util');
 
-const getWalletInfo = require('./get_wallet_info');
+const {getWalletInfo} = require('lightning/lnd_methods');
 
 const connectionFailureMessage = 'FailedToConnectToDaemon';
 const interval = retryCount => 10 * Math.pow(2, retryCount);

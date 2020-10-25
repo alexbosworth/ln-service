@@ -5,7 +5,6 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getPayments} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 

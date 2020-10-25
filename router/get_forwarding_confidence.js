@@ -10,8 +10,6 @@ const unimplementedError = 'unknown service routerrpc.Router';
 
 /** Get the confidence in being able to send between a direct pair of nodes
 
-  Requires LND built with `routerrpc` build tag
-
   Requires `offchain:read` permission
 
   {

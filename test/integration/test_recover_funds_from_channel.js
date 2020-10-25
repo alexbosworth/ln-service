@@ -4,7 +4,6 @@ const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {getBackup} = require('./../../');
 const {getPendingChannels} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {recoverFundsFromChannel} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {spawnLnd} = require('./../macros');

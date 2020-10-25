@@ -6,7 +6,7 @@ const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
-const {getWalletInfo} = require('./../../');
+const {getHeight} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
@@ -66,7 +66,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
       const [payment] = invoice.payments;
 
-      const currentHeight = (await getWalletInfo({lnd})).current_block_height;
+      const currentHeight = (await getHeight({lnd})).current_block_height;
 
       equal(payment.canceled_at, undefined, 'Payment was not canceled');
       equal(!!payment.confirmed_at, true, 'Payment settle date returned');
@@ -116,7 +116,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
   sub.on('error', () => {});
 
-  const height = (await getWalletInfo({lnd})).current_block_height;
+  const height = (await getHeight({lnd})).current_block_height;
   invoice = await createInvoice({description, lnd, secret, tokens});
 
   const inChanId = (await getChannels({lnd})).channels

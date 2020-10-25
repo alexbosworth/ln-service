@@ -146,6 +146,7 @@ for `unlocker` methods.
 - [getForwardingConfidence](#getForwardingConfidence) - Get pairwise confidence
 - [getForwardingReputations](#getForwardingReputations) - Get graph reputations
 - [getForwards](#getForwards) - Get forwarded routed payments
+- [getHeight](#getHeight) - Get the current best chain height and block hash
 - [getIdentity](#getIdentity) - Get the node's identity key
 - [getInvoice](#getInvoice) - Get a previously created invoice
 - [getInvoices](#getInvoices) - Get all previously created invoice
@@ -379,10 +380,10 @@ Calculate hops between start and end nodes
 Example:
 
 ```node
-const {calculateHops, getNetworkGraph, getWalletInfo} = require('ln-service');
+const {calculateHops, getNetworkGraph, getIdentity} = require('ln-service');
 const {channels} = await getNetworkGraph;
 const end = 'destinationPublicKeyHexString';
-const start = (await getWalletInfo({lnd})).public_key;_
+const start = (await getIdentity({lnd})).public_key;_
 const const {hops} = calculateHops({channels, end, start, mtokens: '1000'});
 ```
 
@@ -430,10 +431,10 @@ Calculate multiple routes to a destination
 Example:
 
 ```node
-const {calculatePaths, getNetworkGraph, getWalletInfo} = require('ln-service');
+const {calculatePaths, getNetworkGraph, getIdentity} = require('ln-service');
 const {channels} = await getNetworkGraph;
 const end = 'destinationPublicKeyHexString';
-const start = (await getWalletInfo({lnd})).public_key;
+const start = (await getIdentity({lnd})).public_key;
 const const {paths} = calculatePaths({channels, end, start, mtokens: '1000'});
 ```
 
@@ -1667,6 +1668,33 @@ Example:
 ```node
 const {getForwards} = require('ln-service');
 const {forwards} = await getForwards({lnd});
+```
+
+### getHeight
+
+Lookup the current best block height
+
+LND with `chainrpc` build tag and `onchain:read` permission is suggested
+
+Otherwise, `info:read` permission is required
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      current_block_hash: <Best Chain Hash Hex String>
+      current_block_height: <Best Chain Height Number>
+    }
+
+Example:
+
+```node
+const {getHeight} = require('ln-service');
+
+// Check for the current best chain block height
+const height = (await getHeight({lnd})).current_block_height;
 ```
 
 ### getIdentity
@@ -3539,11 +3567,11 @@ Example:
 
 ```node
 const {getChannel, getChannels, routeFromChannels} = require('ln-service');
-const {getWalletInfo} = require('ln-service');
+const {getHeight} = require('ln-service');
 const [{id}] = await getChannels({lnd});
 const channels = [(await getChannel({lnd, id}))];
 const destination = 'destinationNodePublicKeyHexString';
-const height = (await getWalletInfo({lnd})).current_block_height;
+const height = (await getHeight({lnd})).current_block_height;
 const mtokens = '1000';
 const res = routeFromChannels({channels, destination, height, mtokens});
 const {route} = res;

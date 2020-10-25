@@ -2,7 +2,6 @@ const {test} = require('tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
-const {createInvoice} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {getRouteConfidence} = require('./../../');
 const {probeForRoute} = require('./../../');

@@ -6,7 +6,6 @@ const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 
 const chainAddressRowType = 'chain_address';

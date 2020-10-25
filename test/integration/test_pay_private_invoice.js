@@ -11,7 +11,6 @@ const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');

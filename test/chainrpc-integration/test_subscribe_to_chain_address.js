@@ -7,7 +7,7 @@ const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const {getWalletInfo} = require('./../../');
+const {getHeight} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {spawnLnd} = require('./../macros');
 const {subscribeToChainAddress} = require('./../../');
@@ -33,7 +33,7 @@ test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
   const {lnd} = node;
   const user = node.chain_rpc_user;
 
-  const startHeight = (await getWalletInfo({lnd})).current_block_height;
+  const startHeight = (await getHeight({lnd})).current_block_height;
 
   const {address} = await createChainAddress({format, lnd});
 

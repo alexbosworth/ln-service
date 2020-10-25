@@ -3,8 +3,6 @@ const {returnResult} = require('asyncjs-util');
 
 /** Delete all forwarding reputations
 
-  Requires LND built with `routerrpc` build tag
-
   Requires `offchain:write` permission
 
   {

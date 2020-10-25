@@ -15,8 +15,6 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
 /** Get the set of forwarding reputations
 
-  Requires LND built with `routerrpc` build tag
-
   Requires `offchain:read` permission
 
   {

@@ -3,7 +3,6 @@ const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {subscribeToBackups} = require('./../../');

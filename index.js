@@ -39,6 +39,7 @@ const {getFeeRates} = require('./lightning');
 const {getForwardingConfidence} = require('./router');
 const {getForwardingReputations} = require('./router');
 const {getForwards} = require('lightning/lnd_methods');
+const {getHeight} = require('lightning/lnd_methods');
 const {getIdentity} = require('lightning/lnd_methods');
 const {getInvoice} = require('./lightning');
 const {getInvoices} = require('./lightning');
@@ -59,7 +60,7 @@ const {getRouteToDestination} = require('lightning/lnd_methods');
 const {getSweepTransactions} = require('lightning/lnd_methods');
 const {getTowerServerInfo} = require('./tower_server');
 const {getUtxos} = require('lightning/lnd_methods');
-const {getWalletInfo} = require('./lightning');
+const {getWalletInfo} = require('lightning/lnd_methods');
 const {getWalletVersion} = require('lightning/lnd_methods');
 const {grantAccess} = require('lightning/lnd_methods');
 const {isDestinationPayable} = require('./router');
@@ -88,7 +89,7 @@ const {signPsbt} = require('lightning/lnd_methods');
 const {signTransaction} = require('./sign');
 const {stopDaemon} = require('./lightning');
 const {subscribeToBackups} = require('./lightning');
-const {subscribeToBlocks} = require('./chain');
+const {subscribeToBlocks} = require('lightning/lnd_methods');
 const {subscribeToChainAddress} = require('./chain');
 const {subscribeToChainSpend} = require('./chain');
 const {subscribeToChannels} = require('lightning/lnd_methods');
@@ -158,6 +159,7 @@ module.exports = {
   getForwardingConfidence,
   getForwardingReputations,
   getForwards,
+  getHeight,
   getIdentity,
   getInvoice,
   getInvoices,

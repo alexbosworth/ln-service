@@ -3,8 +3,8 @@ const {test} = require('tap');
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
+const {getIdentity} = require('./../../');
 const {getNode} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {updateRoutingFees} = require('./../../');
 
@@ -59,7 +59,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
   const controlListenIp = cluster.control.listen_ip;
   const controlListenPort = cluster.control.listen_port;
 
-  const controlPublicKey = (await getWalletInfo({lnd})).public_key;
+  const controlPublicKey = (await getIdentity({lnd})).public_key;
 
   const node = await getNode({lnd, public_key: controlPublicKey});
 

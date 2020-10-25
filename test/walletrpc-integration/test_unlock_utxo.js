@@ -8,7 +8,6 @@ const {delay} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
 const {getUtxos} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {lockUtxo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 const {unlockUtxo} = require('./../../');

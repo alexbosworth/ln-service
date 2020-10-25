@@ -9,7 +9,6 @@ const {fundPsbt} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
 const {getUtxos} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 
 const chainAddressRowType = 'chain_address';

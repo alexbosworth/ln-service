@@ -8,7 +8,6 @@ const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getNetworkGraph} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {getAutopilot} = require('./../../');
 const {openChannel} = require('./../../');
 const {setAutopilot} = require('./../../');

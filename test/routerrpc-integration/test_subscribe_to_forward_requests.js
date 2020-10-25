@@ -4,8 +4,8 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
+const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {payViaPaymentRequest} = require('./../../');
@@ -72,7 +72,7 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
     const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
 
     sub.once('forward_request', async forward => {
-      const info = await getWalletInfo({lnd: cluster.target.lnd});
+      const info = await getHeight({lnd: cluster.target.lnd});
 
       equal(forward.cltv_delta, 40, 'Forward has CLTV delta');
       equal(forward.fee, 1, 'Forward has a routing fee');

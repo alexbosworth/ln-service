@@ -1,5 +1,9 @@
 # Versions
 
+## 50.1.0
+
+- `getHeight`: method added to get the current block height
+
 ## 50.0.1
 
 Due to security issues, versions of LND lower than v0.11.0 should not be used and are no longer

@@ -9,9 +9,9 @@ const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
+const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {payViaRoutes} = require('./../../');
@@ -131,7 +131,7 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
     channels: [await getChannel({lnd, id: channel.id}), toRemote],
     cltv_delta: 40,
     destination: decodedRequest.destination,
-    height: (await getWalletInfo({lnd})).current_block_height,
+    height: (await getHeight({lnd})).current_block_height,
     mtokens: '100000',
   });
 

@@ -9,9 +9,9 @@ const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
+const {getHeight} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
@@ -69,7 +69,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   equal(paid.secret, invoice.secret, 'Paid for invoice secret');
   equal(paid.tokens, invoice.tokens + 1, 'Paid correct number of tokens');
 
-  const height = (await getWalletInfo({lnd})).current_block_height;
+  const height = (await getHeight({lnd})).current_block_height;
 
   paid.hops.forEach(n => {
     equal(n.timeout === height + 40 || n.timeout === height + 43, true);

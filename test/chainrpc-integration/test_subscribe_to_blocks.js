@@ -6,7 +6,7 @@ const {test} = require('tap');
 
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
-const {getWalletInfo} = require('./../../');
+const {getHeight} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
@@ -23,7 +23,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
   const {kill, lnd} = spawned;
 
   const sub = subscribeToBlocks({lnd});
-  const startHeight = (await getWalletInfo({lnd})).current_block_height;
+  const startHeight = (await getHeight({lnd})).current_block_height;
 
   sub.on('error', err => {});
 
@@ -36,7 +36,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
 
     // Wait for generation to be over
     await asyncRetry({interval, times}, async () => {
-      const currentHeight = (await getWalletInfo({lnd})).current_block_height;
+      const currentHeight = (await getHeight({lnd})).current_block_height;
 
       if (currentHeight - startHeight !== confirmationCount) {
         throw new Error('ExpectedEndOfGeneration');

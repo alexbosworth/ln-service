@@ -13,7 +13,6 @@ const {changePassword} = require('./../../');
 const {createSeed} = require('./../../');
 const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
-const {getWalletInfo} = require('./../../');
 const {authenticatedLndGrpc} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
 const {stopDaemon} = require('./../../');

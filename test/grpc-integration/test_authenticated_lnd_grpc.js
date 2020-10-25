@@ -1,7 +1,7 @@
 const {test} = require('tap');
 
 const {authenticatedLndGrpc} = require('./../../');
-const {getWalletInfo} = require('./../../');
+const {getIdentity} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
@@ -26,8 +26,8 @@ test(`Lightning daemon`, async ({end, equal}) => {
     socket: spawned.lnd_socket,
   });
 
-  const base64Result = await getWalletInfo({lnd: base64Lnd.lnd});
-  const hexResult = await getWalletInfo({lnd: hexLnd.lnd});
+  const base64Result = await getIdentity({lnd: base64Lnd.lnd});
+  const hexResult = await getIdentity({lnd: hexLnd.lnd});
 
   equal(base64Result.public_key.length, pubKeyHexLength, 'Expected b64 info');
   equal(hexResult.public_key.length, pubKeyHexLength, 'Expected hex info');

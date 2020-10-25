@@ -5,8 +5,8 @@ const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {getChainBalance} = require('./../../');
+const {getHeight} = require('./../../');
 const {getUtxos} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 const {subscribeToChainSpend} = require('./../../');
 
@@ -23,7 +23,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
-  const startHeight = (await getWalletInfo({lnd})).current_block_height;
+  const startHeight = (await getHeight({lnd})).current_block_height;
 
   const {address} = await createChainAddress({
     format,

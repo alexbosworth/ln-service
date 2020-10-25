@@ -4,7 +4,7 @@ const {returnResult} = require('asyncjs-util');
 
 const getForwardingConfidence = require('./get_forwarding_confidence');
 const getForwardingReputations = require('./get_forwarding_reputations');
-const {getWalletInfo} = require('./../lightning');
+const {getIdentity} = require('lightning/lnd_methods');
 
 const combine = (a, b) => Math.round(a / 1e6 * b / 1e6);
 const decBase = 10;
@@ -15,8 +15,6 @@ const oddsDenominator = BigInt(1e6);
 const unimplemented = 'QueryProbabilityNotImplemented';
 
 /** Get confidence of successfully routing a payment to a destination
-
-  Requires LND built with `routerrpc` build tag
 
   Requires `offchain:read` permission
 
@@ -63,7 +61,7 @@ module.exports = ({from, hops, lnd}, cbk) => {
           return cbk(null, {public_key: from});
         }
 
-        return getWalletInfo({lnd}, cbk);
+        return getIdentity({lnd}, cbk);
       }],
 
       // Forwarding edges
