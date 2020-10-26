@@ -1,5 +1,15 @@
 # Versions
 
+## 50.2.0
+
+- `pay`: Fix method to use non-deprecated APIs
+- `pay`: Add `incoming_peer` argument to specify last forwarding node
+- `pay`: Add `max_fee_mtokens` argument to specify maximum fees in mtokens
+- `pay`: Add `max_paths` argument to enable multi-path payments
+- `pay`: Add `messages`argument to pass messages to the destination
+- `pay`: Add `mtokens` argument to specify the amount to pay in mtokens
+- `pay`: Add `outgoing_channels` to specify multiple outgoing channels to pay out of
+
 ## 50.1.1
 
 - `subscribeToBlocks`: Fix block `hash` endian output
@@ -29,6 +39,7 @@ supported.
 
 - Versions of LND v0.7.1 through v0.10.4 are no longer supported
 - `getRoutes`: method is removed, use `getRouteToDestination` instead
+- `pay`: `wss` is no longer supported
 - `probe`: method is removed, use `probeForRoute` instead
 - `subscribeToProbe`: method is removed, use `subscribeToProbeForRoute` instead
 

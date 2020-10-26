@@ -94,6 +94,9 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal, rejects}) => {
       'Channel balance is updated');
     }
 
+    delete invoice.confirmed_index;
+    delete invoice.index;
+
     deepIs(invoice, held, 'Invoice is held');
 
     const {secret} = await pay({lnd, request, timeout, tokens});

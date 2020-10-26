@@ -83,14 +83,20 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     {
       channel: channel.id,
       channel_capacity: 1000000,
+      fee: 1,
       fee_mtokens: '1000',
+      forward: 100,
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
+      public_key: cluster.target.public_key,
     },
     {
       channel: remoteChan.id,
       channel_capacity: 1000000,
+      fee: 0,
       fee_mtokens: '0',
+      forward: 100,
       forward_mtokens: '100000',
+      public_key: cluster.remote.public_key,
     },
   ];
 

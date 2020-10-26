@@ -113,8 +113,8 @@ test(`Subscribe to canceled invoice`, async ({deepIs, end, equal}) => {
 
   const [errCode, errMsg] = payErr;
 
-  equal(errCode, 404, 'Expected error code for canceled invoice');
-  equal(errMsg, 'UnknownPaymentHash', 'Expected error message for invoice');
+  equal(errCode, 503, 'Expected error code for canceled invoice');
+  equal(errMsg, 'PaymentRejectedByDestination', 'Expected rejected message');
 
   await delay(5000);
 

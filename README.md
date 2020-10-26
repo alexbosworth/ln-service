@@ -287,7 +287,6 @@ Both the cert and macaroon expect the entire serialized LND generated file
         default: <Default API Methods Object>
         invoices: <Invoices API Methods Object>
         router: <Router API Methods Object>
-        router_legacy: <Legacy Router API Methods Object>
         signer: <Signer Methods API Object>
         tower_client: <Watchtower Client Methods Object>
         tower_server: <Watchtower Server Methods API Object>
@@ -3002,11 +3001,19 @@ hops is required to form the route.
 Requires `offchain:write` permission
 
     {
+      [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
-      [log]: <Log Function> // Required if wss is set
       [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
+      [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Max CLTV Timeout Number>
+      [messages]: [{
+        type: <Message Type Number String>
+        value: <Message Raw Value Hex Encoded String>
+      }]
+      [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Pay Through Outbound Standard Channel Id String>
+      [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [path]: {
         id: <Payment Hash Hex String>
         routes: [{
@@ -3022,7 +3029,12 @@ Requires `offchain:write` permission
             [public_key]: <Public Key Hex String>
             timeout: <Timeout Block Height Number>
           }]
+          [messages]: [{
+            type: <Message Type Number String>
+            value: <Message Raw Value Hex Encoded String>
+          }]
           mtokens: <Total Millitokens To Pay String>
+          [payment]: <Payment Identifier Hex String>
           timeout: <Expiration Block Height Number>
           tokens: <Total Tokens To Pay Number>
         }]
@@ -3030,7 +3042,6 @@ Requires `offchain:write` permission
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       [request]: <BOLT 11 Payment Request String>
       [tokens]: <Total Tokens To Pay to Payment Request Number>
-      [wss]: [<Web Socket Server Object>]
     }
 
     @returns via cbk or Promise
@@ -3048,9 +3059,9 @@ Requires `offchain:write` permission
       is_confirmed: <Is Confirmed Bool>
       is_outgoing: <Is Outoing Bool>
       mtokens: <Total Millitokens Sent String>
-      secret: <Payment Secret Preimage Hex String>
       safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
       safe_tokens: <Payment Tokens Rounded Up Number>
+      secret: <Payment Secret Preimage Hex String>
       tokens: <Total Tokens Sent Number>
     }
 

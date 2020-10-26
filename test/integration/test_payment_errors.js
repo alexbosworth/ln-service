@@ -87,8 +87,7 @@ test('Payment errors', async ({end, equal}) => {
     if (Array.isArray(err)) {
       const [, code, context] = err;
 
-      equal(code, 'RejectedUnacceptableFee', 'Pay fails due to low fee');
-      equal((context || {}).channel, channels.find(n => !n.local_balance).id);
+      equal(code, 'FeeInsufficient', 'Pay fails due to low fee');
     } else {
       equal(err, null, 'Expected array type error');
     }

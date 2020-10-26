@@ -72,8 +72,8 @@ test(`Cancel back a hodl invoice`, async ({deepIs, end, equal}) => {
 
   const [code, message] = cancelErr;
 
-  equal(code, 404, 'Canceled back HODL HTLC results in unknown payment hash');
-  equal(message, 'UnknownPaymentHash', 'Get back unknown payment hash error');
+  equal(code, 503, 'Canceled back HODL HTLC results in unknown payment hash');
+  equal(message, 'PaymentRejectedByDestination', 'Got back unknownhash error');
 
   return;
 });
