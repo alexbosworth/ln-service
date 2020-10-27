@@ -223,6 +223,7 @@ for `unlocker` methods.
 - [updateRoutingFees](#updateRoutingFees) - Change routing fees
 - [verifyBackup](#verifyBackup) - Verify a channel backup
 - [verifyBackups](#verifyBackups) - Verify a set of channel backups
+- [verifyBytesSignature](#verifyBytesSignature) - Verify a signature over bytes
 - [verifyMessage](#verifyMessage) - Verify a message signed by a node identity
 
 ## Additional Libraries
@@ -5419,6 +5420,45 @@ Example:
 const {getBackups, verifyBackups} = require('ln-service');
 const {backup, channels} = await getBackups({lnd});
 const isValid = (await verifyBackups({backup, channels, lnd})).is_valid;
+```
+
+### verifyBytesSignature
+
+Verify signature of arbitrary bytes
+
+Requires LND built with `signrpc` build tag
+
+Requires `signer:read` permission
+
+    {
+      lnd: <Authenticated LND API Object>
+      preimage: <Message Preimage Bytes Hex Encoded String>
+      public_key: <Signature Valid For Public Key Hex String>
+      signature: <Signature Hex String>
+    }
+
+    @returns via cbk or Promise
+    {
+      is_valid: <Signature is Valid Bool>
+    }
+
+Example:
+
+```node
+const {getIdentity, signBytes, verifyBytesSignature} = require('ln-service');
+
+const preimage = Buffer.from('hello world').toString('hex');
+
+// Sign the hash of the string "hello world"
+const {signature} = await signBytes({lnd, preimage, key_family: 6, key_index: 0});
+
+// Verify that the signature is good for the public key over the preimage
+const validity = await verifyBytesSignature({
+  lnd,
+  preimage,
+  signature,
+  public_key: (await getIdentity({lnd})).public_key,
+});
 ```
 
 ### verifyMessage

@@ -13,7 +13,7 @@ const unimplementedError = '12 UNIMPLEMENTED: unknown service signrpc.Signer';
   Requires `signer:read` permission
 
   {
-    lnd: <Authenticated LND gRPC API Object>
+    lnd: <Authenticated LND API Object>
     preimage: <Message Preimage Bytes Hex Encoded String>
     public_key: <Signature Valid For Public Key Hex String>
     signature: <Signature Hex String>
