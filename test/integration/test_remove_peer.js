@@ -21,7 +21,7 @@ test(`Remove a peer`, async ({end, equal}) => {
   const [control, target] = lnds;
 
   const cert = readFileSync(control.chain_rpc_cert);
-  const connect = `${target.listen_ip}:${target.chain_listen_port}`;
+  const connect = `127.0.0.1:${target.chain_listen_port}`;
   const host = control.listen_ip;
   const pass = control.chain_rpc_pass;
   const port = control.chain_rpc_port;
@@ -43,7 +43,7 @@ test(`Remove a peer`, async ({end, equal}) => {
   await addPeer({
     lnd: control.lnd,
     public_key: targetNode.public_key,
-    socket: `${target.listen_ip}:${target.listen_port}`,
+    socket: `127.0.0.1:${target.listen_port}`,
   });
 
   await delay(1000);

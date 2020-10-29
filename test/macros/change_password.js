@@ -174,7 +174,7 @@ module.exports = ({network}, cbk) => {
       try {
         return cbk(null, unauthenticatedLndGrpc({
           cert: cert.toString('base64'),
-          socket: `${localhost}:${getPorts.rpc}`,
+          socket: `localhost:${getPorts.rpc}`,
         }).lnd);
       } catch (err) {
         return cbk([503, 'FailedToInstantiateNonAuthenticatedLnd', {err}]);
@@ -195,7 +195,7 @@ module.exports = ({network}, cbk) => {
 
         const {lnd} = unauthenticatedLndGrpc({
           cert: cert.toString('base64'),
-          socket: `${localhost}:${getPorts.rpc}`,
+          socket: `localhost:${getPorts.rpc}`,
         });
 
         return createSeed({lnd, passphrase: lightningSeedPassphrase}, cbk);
@@ -259,7 +259,7 @@ module.exports = ({network}, cbk) => {
       return cbk(null, {
         macaroon,
         cert: readFileSync(certPath).toString('base64'),
-        host: `${localhost}:${getPorts.rpc}`,
+        host: `localhost:${getPorts.rpc}`,
       });
     }],
 
@@ -278,7 +278,7 @@ module.exports = ({network}, cbk) => {
 
     // Stop LND
     stopLnd: ['lnd', async ({lnd}) => {
-      const interval = retryCount => 50 * Math.pow(2, retryCount);
+      const interval = 200;
       const times = 15;
 
       return await asyncRetry({interval, times}, async () => {
@@ -364,7 +364,7 @@ module.exports = ({network}, cbk) => {
       try {
         return cbk(null, unauthenticatedLndGrpc({
           cert,
-          socket: `${localhost}:${getPorts.rpc}`,
+          socket: `localhost:${getPorts.rpc}`,
         }).lnd);
       } catch (err) {
         return cbk([503, 'FailedToLaunchLightningDaemon', err]);

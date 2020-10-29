@@ -18,7 +18,7 @@ test(`Get wallet info`, async ({deepEqual, end, equal}) => {
 
   const result = await getWalletInfo({lnd});
 
-  const expectedUri = `${pubKey}@${spawned.listen_ip}:${spawned.listen_port}`;
+  const expectedUri = `${pubKey}@127.0.0.1:${spawned.listen_port}`;
 
   equal(result.active_channels_count, 0, 'Expected channels count');
   equal(!!result.alias, true, 'Expected alias');

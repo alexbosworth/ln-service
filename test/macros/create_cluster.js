@@ -141,7 +141,7 @@ module.exports = (args, cbk) => {
 
       return connectChainNode({
         cert: controlCert,
-        connect: `${remote.listen_ip}:${remote.chain_listen_port}`,
+        connect: `127.0.0.1:${remote.chain_listen_port}`,
         host: control.listen_ip,
         pass: control.chain_rpc_pass,
         port: control.chain_rpc_port,
@@ -154,7 +154,7 @@ module.exports = (args, cbk) => {
       return asyncEach(args.nodes || [], (node, cbk) => {
         return connectChainNode({
           cert: readFileSync(node.chain_rpc_cert),
-          connect: `${target.listen_ip}:${target.chain_listen_port}`,
+          connect: `127.0.0.1:${target.chain_listen_port}`,
           host: node.listen_ip,
           pass: node.chain_rpc_pass,
           port: node.chain_rpc_port,
@@ -174,7 +174,7 @@ module.exports = (args, cbk) => {
     {
       return connectChainNode({
         cert: controlCert,
-        connect: `${target.listen_ip}:${target.chain_listen_port}`,
+        connect: `127.0.0.1:${target.chain_listen_port}`,
         host: control.listen_ip,
         pass: control.chain_rpc_pass,
         port: control.chain_rpc_port,

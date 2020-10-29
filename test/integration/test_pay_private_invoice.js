@@ -34,34 +34,33 @@ test(`Pay private invoice`, async ({deepIs, end, equal}) => {
   const {lnd} = cluster.control;
   const remoteLnd = cluster.remote.lnd;
 
+  await addPeer({
+    lnd,
+    public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
+  });
+
   const channel = await setupChannel({
     lnd,
     generate: cluster.generate,
     to: cluster.target,
   });
 
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    is_private: true,
+  await addPeer({
     lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote.public_key,
+    public_key: cluster.remote.public_key,
     socket: cluster.remote.socket,
   });
 
-  await waitForPendingChannel({
+  const remoteChannel = await setupChannel({
+    capacity: channelCapacityTokens,
+    generate: cluster.generate,
+    generator: cluster.target,
+    hidden: true,
     lnd: cluster.target.lnd,
-    id: targetToRemoteChannel.transaction_id,
+    to: cluster.remote,
   });
 
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  await waitForChannel({
-    lnd: cluster.target.lnd,
-    id: targetToRemoteChannel.transaction_id,
-  });
-
-  const [remoteChannel] = (await getChannels({lnd: remoteLnd})).channels;
 
   await addPeer({
     lnd,

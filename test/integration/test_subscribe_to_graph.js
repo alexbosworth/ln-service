@@ -101,14 +101,14 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     alias: cluster.control.public_key.substring(0, 20),
     color: '#3399ff',
     public_key: cluster.control.public_key,
-    sockets: [cluster.control.socket],
+    sockets: [`127.0.0.1:${cluster.control.listen_port}`],
   };
 
   const expectedTarget = {
     alias: cluster.target.public_key.substring(0, 20),
     color: '#3399ff',
     public_key: cluster.target.public_key,
-    sockets: [cluster.target.socket],
+    sockets: [`127.0.0.1:${cluster.target.listen_port}`],
   };
 
   const gotControl = nodeUpdated

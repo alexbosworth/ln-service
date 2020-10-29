@@ -29,13 +29,13 @@ test(`Get access credentials`, async ({deepIs, end, equal, rejects}) => {
   const canPay = authenticatedLndGrpc({
     cert: spawned.lnd_cert,
     macaroon: (await grantAccess({lnd, is_ok_to_pay: true})).macaroon,
-    socket: spawned.socket,
+    socket: `localhost:${spawned.rpc_port}`,
   });
 
   const makeAddress = authenticatedLndGrpc({
     cert: spawned.lnd_cert,
     macaroon: makeChainAddresses.macaroon,
-    socket: spawned.lnd_socket,
+    socket: `localhost:${spawned.rpc_port}`,
   });
 
   await rejects(

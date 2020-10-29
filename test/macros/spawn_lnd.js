@@ -33,7 +33,7 @@ const lightningTlsCertFileName = 'tls.cert';
 const lightningTlsKeyFileName = 'tls.key';
 const lightningWalletPassword = 'password';
 const lndWalletUnlockerService = 'Unlocker';
-const localhost = '127.0.0.1';
+const localhost = 'localhost';
 const maxSpawnChainDaemonAttempts = 10;
 const {random} = Math;
 const readMacaroonFileName = 'readonly.macaroon';
@@ -69,6 +69,7 @@ const times = 30;
     lnd_socket: <LND RPC Socket String>
     mining_key: <Mining Rewards Private Key WIF Encoded String>
     public_key: <Node Public Key Hex String>
+    rpc_port: <RPC Port Number>
     seed: <Node Seed Phrase String>
     socket: <LND RPC Network Socket String>
   }
@@ -420,7 +421,7 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
       chain_rpc_pass: chainPass,
       chain_rpc_port: res.spawnChainDaemon.rpc_port,
       chain_rpc_user: chainUser,
-      listen_ip: localhost,
+      listen_ip: '127.0.0.1',
       listen_port: res.getPorts.listen,
       lnd: res.lnd,
       lnd_cert: res.wallet.cert,
@@ -428,8 +429,9 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
       lnd_socket: res.wallet.socket,
       mining_key: res.miningKey.private_key,
       public_key: res.delay.public_key,
+      rpc_port: res.getPorts.rpc,
       seed: res.createSeed.seed,
-      socket: `${localhost}:${res.getPorts.listen}`,
+      socket: `127.0.0.1:${res.getPorts.listen}`,
     });
   });
 };

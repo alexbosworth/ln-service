@@ -5,8 +5,8 @@ const {returnResult} = require('asyncjs-util');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 
-const interval = retryCount => 10 * Math.pow(2, retryCount);
-const times = 20;
+const interval = 100;
+const times = 500;
 
 /** Wait for channel to be open
 

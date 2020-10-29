@@ -17,27 +17,17 @@ const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
 
-const blockDelay = 18;
+const blockDelay = 50;
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const tokens = 100;
 
 // Setup an HTLC and then don't resolve it but go to chain and get sweeps
-test(`Get sweep transactionos`, async ({deepIs, end, equal}) => {
+test(`Get sweep transactions`, async ({deepIs, end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
-
-  try {
-    await getSweepTransactions({lnd});
-  } catch (err) {
-    deepIs(err, [501, 'BackingLndDoesNotSupportListingSweeps']);
-
-    await cluster.kill({});
-
-    return end();
-  }
 
   await setupChannel({
     lnd,

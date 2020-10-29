@@ -99,7 +99,6 @@ test(`Get a route to a destination`, async ({deepIs, end, equal}) => {
     destination: cluster.target.public_key,
     features: invDetails.features,
     lnd: cluster.remote.lnd,
-    max_timeout_height: 2400,
     messages: [message],
     payment: invDetails.payment,
     tokens: invDetails.tokens / [cluster.control, cluster.remote].length,

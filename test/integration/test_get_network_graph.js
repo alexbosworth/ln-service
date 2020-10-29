@@ -49,7 +49,7 @@ test(`Get network graph`, async ({deepIs, end, equal}) => {
   equal(node.alias, control.public_key.slice(0, 20), 'Node alias is own');
   equal(node.color, '#3399ff', 'Node color is default');
   equal(node.public_key, control.public_key, 'Node pubkey is own');
-  deepIs(node.sockets, [control.socket], 'Node socket returned');
+  deepIs(node.sockets, [`127.0.0.1:${control.listen_port}`], 'Node socket');
   equal(new Date() - new Date(node.updated_at) < 1e5, true, 'Recent update');
 
   channel.policies.forEach(policy => {

@@ -91,7 +91,7 @@ test(`Get node`, async ({deepIs, end, equal}) => {
   equal(node.alias, controlPublicKey.slice(0, defaultAliasLength), 'Alias');
   equal(node.color, '#3399ff', 'Color');
   equal(node.sockets.length, 1, 'Socket');
-  equal(socket.socket, `${controlListenIp}:${controlListenPort}`, 'Ip, port');
+  equal(socket.socket, `127.0.0.1:${controlListenPort}`, 'Ip, port');
   equal(socket.type, 'tcp', 'Socket type');
   equal(node.updated_at.length, 24, 'Update date');
 

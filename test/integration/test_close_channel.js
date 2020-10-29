@@ -2,7 +2,6 @@ const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const {setupChannel} = require('./../macros');
 
 // Closing a channel should close the channel
@@ -48,8 +47,6 @@ test(`Close channel`, async ({end, equal}) => {
   } catch (err) {
     equal(err, null, 'Expected no error coop closing');
   }
-
-  await delay(3000);
 
   await cluster.kill({});
 

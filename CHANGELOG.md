@@ -1,5 +1,11 @@
 # Versions
 
+## 50.2.1
+
+Update `grpc` dependency to native JS version.
+
+- `pay`: Fix unhandled error in failure condition
+
 ## 50.2.0
 
 - `pay`: Fix method to use non-deprecated APIs
