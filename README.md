@@ -1369,6 +1369,9 @@ Get channels
 
 Requires `offchain:read` permission
 
+`in_channel`, `in_payment`, `is_forward`, `out_channel`, `out_payment`,
+`payment` are not supported on LND 0.11.1 and below
+
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
       [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -1403,7 +1406,13 @@ Requires `offchain:read` permission
         partner_public_key: <Channel Partner Public Key String>
         pending_payments: [{
           id: <Payment Preimage Hash Hex String>
+          [in_channel]: <Forward Inbound From Channel Id String>
+          [in_payment]: <Payment Index on Inbound Channel Number>
+          [is_forward]: <Payment is a Forward Bool>
           is_outgoing: <Payment Is Outgoing Bool>
+          [out_channel]: <Forward Outbound To Channel Id String>
+          [out_payment]: <Payment Index on Outbound Channel Number>
+          [payment]: <Payment Attempt Id Number>
           timeout: <Chain Height Expiration Number>
           tokens: <Payment Tokens Number>
         }]

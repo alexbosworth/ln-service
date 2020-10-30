@@ -1,5 +1,10 @@
 # Versions
 
+## 50.3.0
+
+- `getChannels`: Add support for `in_channel`, `in_payment`, `is_forward`, `out_channel`,
+    `out_payment`, and `payment` fields to surface forwarding details
+
 ## 50.2.1
 
 Update `grpc` dependency to native JS version.
