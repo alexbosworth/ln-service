@@ -1,4 +1,9 @@
+const fetch = require('node-fetch');
+const http = require('http');
 const https = require('https');
+
+const asyncAuto = require('async/auto');
+const {returnResult} = require('asyncjs-util');
 
 const defaultTimeout = 1000 * 30;
 const agents = {};
@@ -7,7 +12,7 @@ let requests = 0;
 /** Call JSON RPC
 
   {
-    cert: <Cert Buffer Object>
+    [cert]: <Cert Buffer Object>
     cmd: <Command String>
     host: <Host Name String>
     params: [<Parameter Object>]
@@ -17,66 +22,60 @@ let requests = 0;
     user: <Username String>
   }
 
-  @returns via cbk
+  @returns via cbk or Promise
   <Result Object>
 */
 module.exports = (args, cbk) => {
-  const service = `${args.host}:${args.port}`;
+  return new Promise((resolve, reject) => {
+    return asyncAuto({
+      // Check arguments
+      validate: cbk => {
+        return cbk();
+      },
 
-  const post = JSON.stringify({
-    id: `${++requests}`,
-    method: args.cmd,
-    params: args.params,
-  });
-
-  const req = https.request({
-    auth: `${args.user}:${args.pass}`,
-    ca: [args.cert],
-    cert: args.cert,
-    ecdhCurve: 'auto',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': post.length,
-    },
-    hostname: args.host,
-    key: args.key,
-    method: 'POST',
-    path: '/',
-    port: args.port,
-  },
-  res => {
-    let data = '';
-
-    res.setEncoding('utf8');
-
-    res.on('data', chunk => data += chunk);
-
-    res.on('end', () => {
-      switch (res.statusCode) {
-      case 401:
-        return cbk([401, 'InvalidAuthenticationForRpc']);
-
-      default:
-        try {
-          return cbk(null, JSON.parse(data).result);
-        } catch (err) {
-          return cbk([503, 'InvalidDataResponseForRpcCall']);
+      // Derive an HTTP agent as necessary for using a self-signed cert
+      agent: ['validate', async ({}) => {
+        // Exit early when there is no cert and this is a regular HTTP request
+        if (!args.cert) {
+          return new http.Agent({});
         }
-      }
-    });
+
+        return new https.Agent({
+          ca: [args.cert],
+          cert: args.cert,
+          ecdhCurve: 'auto',
+        });
+      }],
+
+      // Send request to the server
+      request: ['agent', async ({agent}) => {
+        const credentials = Buffer.from(`${args.user}:${args.pass}`);
+        const scheme = !!args.cert ? 'https' : 'http';
+
+        try {
+          const response = await fetch(
+            `${scheme}://${args.host}:${args.port}/`,
+            {
+              agent,
+              body: JSON.stringify({
+                id: `${++requests}`,
+                method: args.cmd,
+                params: args.params,
+              }),
+              headers: {
+                'Authorization': `Basic ${credentials.toString('base64')}`,
+                'Content-Type': 'application/json',
+              },
+              method: 'POST',
+            },
+          );
+
+          return (await response.json()).result;
+        } catch (err) {
+          throw [503, 'UnexpectedErrorFromRpcService', {err}];
+        }
+      }],
+    },
+    returnResult({reject, resolve, of: 'request'}, cbk));
   });
-
-  req.on('error', err => cbk([503, 'FailedToCallRpc', err.message]));
-
-  req.setTimeout(args.timeout || defaultTimeout, () => {
-    req.abort();
-
-    return cbk([503, 'RpcOperationTimedOut']);
-  });
-
-  req.write(post);
-
-  req.end()
-
-  return;
 };

@@ -1,4 +1,5 @@
 const {join} = require('path');
+const {readFile} = require('fs');
 const {readFileSync} = require('fs');
 const {spawn} = require('child_process');
 
@@ -19,10 +20,9 @@ const spawnChainDaemon = require('./spawn_chain_daemon');
 const {unauthenticatedLndGrpc} = require('./../../');
 
 const adminMacaroonFileName = 'admin.macaroon';
-const chainPass = 'pass';
+const chainPass = '0k39BVOdg4uuS7qNCG2jbIXNpwU7d3Ft87PpHPPoCfk=';
 const chainRpcCertName = 'rpc.cert';
-const chainUser = 'user';
-const grpcs = ['', 'Autopilot', 'Chain', 'Invoices', 'Signer', 'Wallet'];
+const chainUser = 'bitcoinrpc';
 const interval = retryCount => 50 * Math.pow(2, retryCount);
 const invoiceMacaroonFileName = 'invoice.macaroon';
 const {isArray} = Array;
@@ -78,27 +78,34 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
-      const ports = ['listen', 'rest', 'rpc', 'tower'];
+      return asyncRetry({interval: n => round(random() * 100), times: 1000}, cbk => {
+        let i = 0;
+        const ports = ['listen', 'rest', 'rpc', 'tower'];
 
-      return asyncMapSeries(ports, (_, cbk) => {
-        const port = startPortRange + round(random() * 5000);
+        return asyncMapSeries(ports, (_, cbk) => {
+          const port = startPortRange + (++i * 1000) + round(random() * 1000);
 
-        const stopPort = port + 20000;
+          const stopPort = port + 20000;
 
-        return setTimeout(() => {
-          return openPortFinder.getPort({port, stopPort}, cbk);
+          return setTimeout(() => {
+            return openPortFinder.getPort({port, stopPort}, cbk);
+          },
+          round(random() * 100));
         },
-        50);
+        (err, ports) => {
+          if (!!err || !isArray(ports) || !ports.length) {
+            return setTimeout(() => {
+              return cbk([500, 'FailedToFindOpenPortsWhenSpawningLnd', {err}]);
+            },
+            round(random() * 1000));
+          }
+
+          const [listen, rest, rpc, tower] = ports;
+
+          return cbk(null, {listen, rest, rpc, tower});
+        });
       },
-      (err, ports) => {
-        if (!!err || !isArray(ports) || !ports.length) {
-          return cbk([500, 'FailedToFindOpenPortsWhenSpawningLnd', {err}]);
-        }
-
-        const [listen, rest, rpc, tower] = ports;
-
-        return cbk(null, {listen, rest, rpc, tower});
-      });
+      cbk);
     },
 
     // Make a private key for mining rewards
@@ -124,14 +131,34 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
       cbk);
     }],
 
+    // Get the chain daemon cert
+    getChainDaemonCert: ['spawnChainDaemon', ({spawnChainDaemon}, cbk) => {
+      return asyncRetry({interval, times}, cbk => {
+        return readFile(spawnChainDaemon.rpc_cert, (err, data) => {
+          if (!!err) {
+            return cbk([503, 'FailedToGetChainDaemonRpcCert', {err}]);
+          }
+
+          return cbk(null, data);
+        });
+      },
+      cbk);
+    }],
+
     // Generate a block to prevent lnd from getting stuck
-    generateBlock: ['spawnChainDaemon', ({spawnChainDaemon}, cbk) => {
+    generateBlock: [
+      'getChainDaemonCert',
+      'miningKey',
+      'spawnChainDaemon',
+      ({getChainDaemonCert, miningKey, spawnChainDaemon}, cbk) =>
+    {
       return asyncRetry({interval, times}, cbk => {
         try {
           return generateBlocks({
-            cert: readFileSync(spawnChainDaemon.rpc_cert),
+            cert: getChainDaemonCert,
             count: 1,
             host: localhost,
+            key: miningKey.public_key,
             pass: chainPass,
             port: spawnChainDaemon.rpc_port,
             user: chainUser,
@@ -149,7 +176,7 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
       'generateBlock',
       'getPorts',
       'spawnChainDaemon',
-      ({getPorts, spawnChainDaemon}, cbk) =>
+      ({generateBlock, getPorts, spawnChainDaemon}, cbk) =>
     {
       return asyncRetry({interval, times}, cbk => {
         const {dir} = spawnChainDaemon;
@@ -163,11 +190,6 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
           '--bitcoin.minhtlc', '1000',
           '--bitcoin.node', 'btcd',
           '--bitcoin.regtest',
-          '--btcd.dir', dir,
-          '--btcd.rpccert', join(dir, chainRpcCertName),
-          '--btcd.rpchost', `${localhost}:${spawnChainDaemon.rpc_port}`,
-          '--btcd.rpcpass', chainPass,
-          '--btcd.rpcuser', chainUser,
           '--datadir', dir,
           '--debuglevel', 'trace',
           '--externalip', `${localhost}:${getPorts.listen}`,
@@ -185,6 +207,16 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
           '--trickledelay', 1,
           '--unsafe-disconnect',
         ];
+
+        const btcdArgs = [
+          '--btcd.dir', dir,
+          '--btcd.rpccert', join(dir, chainRpcCertName),
+          '--btcd.rpchost', `${localhost}:${spawnChainDaemon.rpc_port}`,
+          '--btcd.rpcpass', chainPass,
+          '--btcd.rpcuser', chainUser,
+        ];
+
+        btcdArgs.forEach(n => arguments.push(n));
 
         const towerArgs = [
           '--watchtower.active',
@@ -248,7 +280,7 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
       cbk);
     }],
 
-    // Get the cert
+    // Get the LND cert
     cert: [
       'spawnChainDaemon',
       'spawnLightningDaemon',
@@ -406,6 +438,24 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
       return;
     };
 
+    const generate = ({count}) => new Promise(async (resolve, reject) => {
+      try {
+        return await asyncRetry({interval, times}, async () => {
+          return resolve(await generateBlocks({
+            count,
+            cert: res.getChainDaemonCert,
+            host: localhost,
+            key: res.miningKey.public_key,
+            pass: chainPass,
+            port: res.spawnChainDaemon.rpc_port,
+            user: chainUser,
+          }));
+        });
+      } catch (err) {
+        return reject(err);
+      }
+    });
+
     process.setMaxListeners(20);
 
     process.on('uncaughtException', err => {
@@ -415,9 +465,11 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
     });
 
     return cbk(null, {
+      generate,
       kill,
       chain_listen_port: res.spawnChainDaemon.listen_port,
       chain_rpc_cert: res.spawnChainDaemon.rpc_cert,
+      chain_rpc_cert_file: res.getChainDaemonCert,
       chain_rpc_pass: chainPass,
       chain_rpc_port: res.spawnChainDaemon.rpc_port,
       chain_rpc_user: chainUser,

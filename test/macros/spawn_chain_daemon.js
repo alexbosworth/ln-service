@@ -1,5 +1,4 @@
 const {join} = require('path');
-const {readFileSync} = require('fs');
 const {tmpdir} = require('os');
 
 const removeDir = require('rimraf');
@@ -23,7 +22,7 @@ const btcsuiteTypeDaemon = require('./btcsuite_type_daemon');
     daemon: <Daemon Child Process Object>
     dir: <Data Dir Path String>
     listen_port: <Listen Port Number>
-    rpc_cert: <RPC Cert Path String>
+    [rpc_cert]: <RPC Cert Path String>
     rpc_port: <RPC Port Number>
   }
 */

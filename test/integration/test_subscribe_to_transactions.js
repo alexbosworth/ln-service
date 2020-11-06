@@ -3,6 +3,7 @@ const {test} = require('tap');
 const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
+const {getHeight} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 const {subscribeToTransactions} = require('./../../');
 
@@ -17,6 +18,7 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
   const {lnd} = cluster.target;
 
   let isConfirmed = false;
+  const startHeight = (await getHeight({lnd})).current_block_height
   const sub = subscribeToTransactions({lnd: cluster.control.lnd});
 
   sub.on('error', () => {});
@@ -56,7 +58,7 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
     equal(!!tx.block_id, true, 'Tx is confirmed in a block');
     equal(tx.confirmation_count, [tx].length, 'Tx has a confirmation');
 
-    equal(tx.confirmation_height, 443, 'Block height is returned');
+    equal(tx.confirmation_height, startHeight+1, 'Block height is returned');
 
     return end();
   });

@@ -19,6 +19,12 @@ test(`Subscribe to peers`, async ({end, equal}) => {
 
   sub.on('error', () => {});
 
+  await addPeer({
+    lnd,
+    public_key: cluster.target.public_key,
+    socket: cluster.target.socket,
+  });
+
   const disconnect = removePeer({lnd, public_key: cluster.target.public_key});
   const receiveDisconnect = once(sub, 'disconnected');
 

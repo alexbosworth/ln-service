@@ -5,6 +5,7 @@ const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
+const {getHeight} = require('./../../');
 const {getPeers} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {openChannel} = require('./../../');
@@ -26,6 +27,8 @@ test(`Get pending channels`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
+
+  const startHeight = (await getHeight({lnd})).current_block_height
 
   const channelOpen = await asyncRetry({interval, times}, async () => {
     return await openChannel({
@@ -139,7 +142,7 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(forceClose.recovered_tokens, undefined, 'No recovered amount');
   equal(forceClose.remote_balance, 0, 'No remote balance');
   equal(forceClose.sent, 0, 'No sent amount');
-  equal(forceClose.timelock_expiration, 607, 'Funds are timelocked');
+  equal(forceClose.timelock_expiration, startHeight + 165, 'Funds timelocked');
   equal(forceClose.transaction_id, channelOpen.transaction_id, 'Chan-Txid');
   equal(forceClose.transaction_vout, channelOpen.transaction_vout, 'ChanVout');
 

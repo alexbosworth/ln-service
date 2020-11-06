@@ -1,10 +1,10 @@
 const {once} = require('events');
-const {readFileSync} = require('fs');
+const {Readable} = require('stream');
 const {Writable} = require('stream');
 
+const fetch = require('node-fetch');
 const {getPortPromise} = require('portfinder');
 const {lndGateway} = require('lightning');
-const request = require('@alexbosworth/request');
 const {test} = require('tap');
 const websocket = require('ws');
 
@@ -39,7 +39,24 @@ test('Gateway proxies requests to LND', async ({end, equal}) => {
 
   const {lnd} = lndGateway({
     macaroon,
-    request,
+    request: async (args, cbk) => {
+      try {
+        const result =  await fetch(args.uri, {
+          body: Readable.from(args.body),
+          headers: {
+            'authorization': `Bearer ${args.auth.bearer}`,
+            'content-type': 'application/cbor',
+          },
+          method: 'POST',
+        });
+
+        const body = Buffer.from(await result.arrayBuffer());
+
+        return cbk(null, {statusCode: result.status}, body);
+      } catch (err) {
+        return cbk(err);
+      }
+    },
     websocket,
     url: `http://localhost:${port}${path}`,
   });
@@ -49,21 +66,11 @@ test('Gateway proxies requests to LND', async ({end, equal}) => {
   sub.on('error', err => {});
 
   // Generate a block and wait for the block event to be emitted
-  const [, [{height}]] = await all([
-    generateBlocks({
-      cert: readFileSync(spawned.chain_rpc_cert),
-      count: 1,
-      host: spawned.listen_ip,
-      pass: spawned.chain_rpc_pass,
-      port: spawned.chain_rpc_port,
-      user: spawned.chain_rpc_user,
-    }),
-    once(sub, 'block'),
-  ]);
+  const [, [{height}]] = await all([spawned.generate({}), once(sub, 'block')]);
 
   const gotInfo = await getWalletInfo({lnd});
 
-  equal(height, gotInfo.current_block_height, 'Got subscribe data');
+  equal(height >= gotInfo.current_block_height, true, 'Got subscribe data');
   equal(gotInfo.public_key, spawned.public_key, 'Got request data');
 
   wss.close();

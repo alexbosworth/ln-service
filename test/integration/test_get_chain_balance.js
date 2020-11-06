@@ -1,5 +1,3 @@
-const {readFileSync} = require('fs');
-
 const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
@@ -25,7 +23,7 @@ const tokens = 1e8;
 test(`Get the chain balance`, async ({end, equal}) => {
   const node = await spawnLnd({});
 
-  const cert = readFileSync(node.chain_rpc_cert);
+  const cert = node.chain_rpc_cert_file;
   const host = node.listen_ip;
   const {kill} = node;
   const pass = node.chain_rpc_pass;
@@ -43,7 +41,7 @@ test(`Get the chain balance`, async ({end, equal}) => {
   }
 
   // Generate some funds for LND
-  const {blocks} = await generateBlocks({cert, count, host, pass, port, user});
+  const {blocks} = await node.generate({count});
 
   const [block] = blocks;
 

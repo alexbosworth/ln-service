@@ -164,6 +164,7 @@ for `unlocker` methods.
 - [getRouteConfidence](#getRouteConfidence) - Get confidence in a route
 - [getRouteThroughHops](#getRouteThroughHops) - Get a route through nodes
 - [getRouteToDestination](#getRouteToDestination) - Get a route to a destination
+- [getSweepTransactions](#getSweepTransactions) - Get transactions sweeping to self
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
@@ -2532,6 +2533,46 @@ const {route} = await getRouteToDestination({destination, lnd, tokens});
 await payViaRoutes({lnd, routes: [route]});
 ```
 
+### getSweepTransactions
+
+Get self-transfer spend transactions related to channel closes
+
+Requires `onchain:read` permission
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      transactions: [{
+        [block_id]: <Block Hash String>
+        [confirmation_count]: <Confirmation Count Number>
+        [confirmation_height]: <Confirmation Block Height Number>
+        created_at: <Created ISO 8601 Date String>
+        [fee]: <Fees Paid Tokens Number>
+        id: <Transaction Id String>
+        is_confirmed: <Is Confirmed Bool>
+        is_outgoing: <Transaction Outbound Bool>
+        output_addresses: [<Address String>]
+        spends: [{
+          [tokens]: <Output Tokens Number>
+          transaction_id: <Spend Transaction Id Hex String>
+          transaction_vout: <Spend Transaction Output Index Number>
+        }]
+        tokens: <Tokens Including Fee Number>
+        [transaction]: <Raw Transaction Hex String>
+      }]
+    }
+
+Example:
+
+```node
+const {getSweepTransactions} = require('ln-service');
+
+const {transactions} = await getSweepTransactions({lnd});
+```
+
 ### getTowerServerInfo
 
 Get watchtower server info.
@@ -4150,6 +4191,8 @@ selected internally to complete the forward.
 
 Requires `offchain:read`, `offchain:write` permission
 
+`onion` is not supported in LND 0.11.1 and below
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -4174,6 +4217,7 @@ Requires `offchain:read`, `offchain:write` permission
         value: <Raw Value Hex String>
       }]
       mtokens: <Millitokens to Forward To Next Peer String>
+      [onion]: <Hex Serialized Next-Hop Onion Packet To Forward String>
       out_channel: <Requested Outbound Channel Standard Format Id String>
       reject: <Reject Forward Function> () => {}
       settle: <Short Circuit Function> ({secret: <Preimage Hex String}) => {}

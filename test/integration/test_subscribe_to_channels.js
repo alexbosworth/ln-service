@@ -4,6 +4,7 @@ const {test} = require('tap');
 const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
+const {getHeight} = require('./../../');
 const {openChannel} = require('./../../');
 const {removePeer} = require('./../../');
 const {subscribeToChannels} = require('./../../');
@@ -27,6 +28,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   const {socket} = cluster.target;
 
   const sub = subscribeToChannels({lnd});
+  const startHeight = (await getHeight({lnd})).current_block_height
 
   sub.on('channel_active_changed', update => activeChanged.push(update));
   sub.on('channel_closed', update => channelClosed.push(update));
@@ -84,7 +86,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   equal(openEvent.capacity, channelCapacityTokens, 'Channel open capacity');
   equal(openEvent.commit_transaction_fee, 9050, 'Channel commit tx fee');
   equal(openEvent.commit_transaction_weight, 724, 'Commit tx weight');
-  equal(openEvent.id, '443x1x0', 'Channel id is returned');
+  equal(openEvent.id, `${startHeight+1}x1x0`, 'Channel id is returned');
   equal(openEvent.is_active, true, 'Channel is active');
   equal(openEvent.is_closing, false, 'Channel is not inactive');
   equal(openEvent.is_opening, false, 'Channel is no longer opening');
@@ -131,7 +133,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
   equal(!!closeEvent.close_transaction_id, true, 'Tx id');
   equal(closeEvent.final_local_balance, 890950, 'Close final local balance');
   equal(closeEvent.final_time_locked_balance, 0, 'Close final locked balance');
-  equal(closeEvent.id, '443x1x0', 'Close channel id');
+  equal(closeEvent.id, `${startHeight+1}x1x0`, 'Close channel id');
   equal(closeEvent.is_breach_close, false, 'Not breach close');
   equal(closeEvent.is_cooperative_close, true, 'Cooperative close');
   equal(closeEvent.is_funding_cancel, false, 'Not funding cancel');

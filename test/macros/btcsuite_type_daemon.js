@@ -1,5 +1,4 @@
 const {join} = require('path');
-const {readFileSync} = require('fs');
 const {spawn} = require('child_process');
 
 const asyncAuto = require('async/auto');
@@ -103,8 +102,8 @@ module.exports = (args, cbk) => {
         '--rpccert', join(args.dir, 'rpc.cert'),
         '--rpckey', join(args.dir, 'rpc.key'),
         '--rpclisten', `${localhost}:${rpcPort}`,
-        '--rpcpass', 'pass',
-        '--rpcuser', 'user',
+        '--rpcpass', '0k39BVOdg4uuS7qNCG2jbIXNpwU7d3Ft87PpHPPoCfk=',
+        '--rpcuser', 'bitcoinrpc',
         '--txindex',
       ]);
 

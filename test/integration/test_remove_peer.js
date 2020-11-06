@@ -1,5 +1,3 @@
-const {readFileSync} = require('fs');
-
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
@@ -20,7 +18,7 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   const [control, target] = lnds;
 
-  const cert = readFileSync(control.chain_rpc_cert);
+  const cert = control.chain_rpc_cert_file;
   const connect = `127.0.0.1:${target.chain_listen_port}`;
   const host = control.listen_ip;
   const pass = control.chain_rpc_pass;
@@ -30,7 +28,7 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   await connectChainNode({cert, connect, host, pass, port, user});
 
-  await generateBlocks({cert, host, pass, port, user, count: maturityCount});
+  await control.generate({count: maturityCount});
 
   const controlWallet = await getWalletInfo({lnd: control.lnd});
   const targetWallet = await getWalletInfo({lnd: target.lnd});

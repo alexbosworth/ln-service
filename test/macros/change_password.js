@@ -1,4 +1,5 @@
 const {join} = require('path');
+const {readFile} = require('fs');
 const {readFileSync} = require('fs');
 const {spawn} = require('child_process');
 
@@ -20,9 +21,10 @@ const {unauthenticatedLndGrpc} = require('./../../');
 const {unlockWallet} = require('./../../');
 
 const adminMacaroonFileName = 'admin.macaroon';
-const chainPass = 'pass';
+const chainPass = '0k39BVOdg4uuS7qNCG2jbIXNpwU7d3Ft87PpHPPoCfk=';
 const chainRpcCertName = 'rpc.cert';
-const chainUser = 'user';
+const chainUser = 'bitcoinrpc';
+const interval = 100;
 const invoiceMacaroonFileName = 'invoice.macaroon';
 const lightningDaemonExecFileName = 'lnd';
 const lightningDaemonLogPath = 'logs/';
@@ -37,6 +39,7 @@ const readMacaroonFileName = 'readonly.macaroon';
 const retryCreateSeedCount = 5;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
+const times = 100;
 
 /** Run a change password test
 
@@ -96,15 +99,42 @@ module.exports = ({network}, cbk) => {
       cbk);
     }],
 
-    // Generate a block
-    generateBlock: ['spawnChainDaemon', ({spawnChainDaemon}, cbk) => {
-      return generateBlocks({
-        cert: readFileSync(spawnChainDaemon.rpc_cert),
-        count: 1,
-        host: localhost,
-        pass: chainPass,
-        port: spawnChainDaemon.rpc_port,
-        user: chainUser,
+    // Get the chain daemon cert
+    getChainDaemonCert: ['spawnChainDaemon', ({spawnChainDaemon}, cbk) => {
+      return asyncRetry({interval, times}, cbk => {
+        return readFile(spawnChainDaemon.rpc_cert, (err, data) => {
+          if (!!err) {
+            return cbk([503, 'FailedToGetChainDaemonRpcCert', {err}]);
+          }
+
+          return cbk(null, data);
+        });
+      },
+      cbk);
+    }],
+
+    // Generate a block to prevent lnd from getting stuck
+    generateBlock: [
+      'getChainDaemonCert',
+      'miningKey',
+      'spawnChainDaemon',
+      ({getChainDaemonCert, miningKey, spawnChainDaemon}, cbk) =>
+    {
+      return asyncRetry({interval, times}, cbk => {
+        try {
+          return generateBlocks({
+            cert: getChainDaemonCert,
+            count: 1,
+            host: localhost,
+            key: miningKey.public_key,
+            pass: chainPass,
+            port: spawnChainDaemon.rpc_port,
+            user: chainUser,
+          },
+          cbk);
+        } catch (err) {
+          return cbk([503, 'FailedToGenerateBlockWhenSpawningLnd', {err}]);
+        }
       },
       cbk);
     }],

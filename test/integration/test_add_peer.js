@@ -5,8 +5,8 @@ const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
 const {getPeers} = require('./../../');
 
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 15;
+const interval = 100;
+const times = 100;
 
 // Adding peers should result in a connected peer
 test(`Add a peer`, async ({end, equal}) => {
@@ -34,7 +34,9 @@ test(`Add a peer`, async ({end, equal}) => {
     equal(connected.public_key, remoteNodeKey, 'Connected to remote node');
   });
 
-  await cluster.kill({});
+  (async () => {
+    await cluster.kill({});
+  })();
 
   return end();
 });

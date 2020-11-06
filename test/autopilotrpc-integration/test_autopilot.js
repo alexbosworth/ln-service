@@ -1,5 +1,3 @@
-const {readFileSync} = require('fs');
-
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
@@ -36,14 +34,7 @@ test(`Autopilot`, async ({end, equal}) => {
   equal((await getAutopilot({lnd})).is_enabled, false, 'Autopilot starts off');
 
   await Promise.all([
-    generateBlocks({
-      cert: readFileSync(cluster.control.chain_rpc_cert),
-      count: confirmationCount,
-      host: cluster.control.listen_ip,
-      pass: cluster.control.chain_rpc_pass,
-      port: cluster.control.chain_rpc_port,
-      user: cluster.control.chain_rpc_user,
-    }),
+    cluster.control.generate({count: confirmationCount}),
     delay(3000),
     setAutopilot({lnd, is_enabled: true}),
   ]);

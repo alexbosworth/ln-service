@@ -1,5 +1,11 @@
 # Versions
 
+## 50.4.0
+
+- `createInvoice`: Decrease default expiration time
+- `getSweepTransactions`: Fix method returning error when sweep tx were missing from db
+- `subscribeToForwardRequests`: Add suppoort for surfacing the raw `onion` package
+
 ## 50.3.0
 
 - `getChannels`: Add support for `in_channel`, `in_payment`, `is_forward`, `out_channel`,

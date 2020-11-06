@@ -2,8 +2,8 @@ const asyncRetry = require('async/retry');
 
 const {getWalletInfo} = require('./../../');
 
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 10;
+const interval = 100;
+const times = 100;
 
 /** Wait for lnd to be terminated
 

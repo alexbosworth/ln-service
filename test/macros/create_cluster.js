@@ -1,5 +1,4 @@
 const {promisify} = require('util');
-const {readFileSync} = require('fs');
 
 const asyncAuto = require('async/auto');
 const asyncEach = require('async/each');
@@ -12,6 +11,7 @@ const {createChainAddress} = require('./../../');
 const generateBlocks = require('./generate_blocks');
 const {getWalletInfo} = require('./../../');
 const mineTransaction = require('./mine_transaction');
+const rpc = require('./rpc');
 const spawnLnd = require('./spawn_lnd');
 const waitForTermination = require('./wait_for_termination');
 
@@ -105,12 +105,12 @@ module.exports = (args, cbk) => {
 
     // Get the chain rpc cert
     controlCert: ['control', ({control}, cbk) => {
-      return cbk(null, readFileSync(control.chain_rpc_cert));
+      return cbk(null, control.chain_rpc_cert_file);
     }],
 
     // Get the target rpc cert
     targetCert: ['target', ({target}, cbk) => {
-      return cbk(null, readFileSync(target.chain_rpc_cert));
+      return cbk(null, target.chain_rpc_cert_file);
     }],
 
     // Get the target node info
@@ -153,7 +153,7 @@ module.exports = (args, cbk) => {
     connectExtra: ['target', ({target}, cbk) => {
       return asyncEach(args.nodes || [], (node, cbk) => {
         return connectChainNode({
-          cert: readFileSync(node.chain_rpc_cert),
+          cert: node.chain_rpc_cert_file,
           connect: `127.0.0.1:${target.chain_listen_port}`,
           host: node.listen_ip,
           pass: node.chain_rpc_pass,
@@ -393,9 +393,9 @@ module.exports = (args, cbk) => {
       cbk);
     });
 
-    const generate = promisify((args, cbk) => {
+    const generate = async (args, cbk) => {
       return generateBlocks({
-        cert: readFileSync((args.node || control).chain_rpc_cert),
+        cert: (args.node || control).chain_rpc_cert_file,
         count: args.count || 1,
         host: (args.node || control).listen_ip,
         pass: (args.node || control).chain_rpc_pass,
@@ -403,7 +403,7 @@ module.exports = (args, cbk) => {
         user: (args.node || control).chain_rpc_user,
       },
       cbk);
-    });
+    };
 
     return cbk(null, {
       control,

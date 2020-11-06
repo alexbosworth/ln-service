@@ -33,7 +33,7 @@ test(`Get wallet info`, async ({deepEqual, end, equal}) => {
   deepEqual(result.uris, [expectedUri], 'Expected node URI');
   equal(!!result.version, true, 'Expected version');
 
-  spawned.kill();
+  spawned.kill({});
 
   await waitForTermination({lnd});
 

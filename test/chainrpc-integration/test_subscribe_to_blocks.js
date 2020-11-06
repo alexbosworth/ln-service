@@ -1,5 +1,4 @@
 const EventEmitter = require('events');
-const {readFileSync} = require('fs');
 
 const asyncRetry = require('async/retry');
 const {test} = require('tap');
@@ -12,62 +11,41 @@ const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 15;
+const interval = 100;
+const times = 100;
 
 // Subscribers to blocks should receive block notifications
 test(`Subscribe to blocks`, async ({end, equal, fail}) => {
-  let confs = confirmationCount;
   const spawned = await spawnLnd({});
 
   const {kill, lnd} = spawned;
 
+  const blocks = [];
   const sub = subscribeToBlocks({lnd});
   const startHeight = (await getHeight({lnd})).current_block_height;
 
+  sub.on('block', async data => blocks.push(data));
   sub.on('error', err => {});
 
-  sub.on('block', async data => {
-    confs--;
+  await spawned.generate({count: confirmationCount});
 
-    if (!!confs) {
-      return;
+  await asyncRetry({interval, times}, async () => {
+    if (blocks.length < confirmationCount) {
+      throw new Error('ExpectedAdditionalBlocks');
     }
-
-    // Wait for generation to be over
-    await asyncRetry({interval, times}, async () => {
-      const currentHeight = (await getHeight({lnd})).current_block_height;
-
-      if (currentHeight - startHeight !== confirmationCount) {
-        throw new Error('ExpectedEndOfGeneration');
-      }
-
-      return;
-    });
-
-    if (data.id.length !== 64) {
-      throw new Error('ExpectedBlockIdEmitted');
-    }
-
-    if (!data.height) {
-      throw new Error('ExpectedBlockHeightEmitted');
-    }
-
-    kill();
-
-    await waitForTermination({lnd});
-
-    return end();
   });
 
-  await generateBlocks({
-    cert: readFileSync(spawned.chain_rpc_cert),
-    count: confirmationCount,
-    host: spawned.listen_ip,
-    pass: spawned.chain_rpc_pass,
-    port: spawned.chain_rpc_port,
-    user: spawned.chain_rpc_user,
+  blocks.forEach(({height, id}) => {
+    equal(!!height, true, 'Got expected block height');
+    equal(id.length, 64, 'Got expected block hash length');
+    return;
   });
+
+  kill();
+
+  await waitForTermination({lnd});
+
+  return end();
 
   return;
 });
