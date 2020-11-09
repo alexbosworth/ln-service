@@ -1,6 +1,6 @@
 # Versions
 
-## 50.4.0
+## 50.4.1
 
 - `createInvoice`: Decrease default expiration time
 - `getSweepTransactions`: Fix method returning error when sweep tx were missing from db
