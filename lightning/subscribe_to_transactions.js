@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 
 const {rpcTxAsTransaction} = require('lightning/lnd_responses');
 
+const cancelError = 'Cancelled on client';
 const {isArray} = Array;
 
 /** Subscribe to transactions
@@ -50,12 +51,14 @@ module.exports = ({lnd}) => {
 
     subscription.cancel();
 
-    subscription.removeAllListeners();
-
     return;
   });
 
   const emitErr = err => {
+    if (!!err && err.details === cancelError) {
+      subscription.removeAllListeners();
+    }
+
     // Exit early when there are no listeners on error
     if (!eventEmitter.listenerCount('error')) {
       return;

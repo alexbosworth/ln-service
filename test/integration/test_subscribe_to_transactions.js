@@ -57,8 +57,7 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
 
     equal(!!tx.block_id, true, 'Tx is confirmed in a block');
     equal(tx.confirmation_count, [tx].length, 'Tx has a confirmation');
-
-    equal(tx.confirmation_height, startHeight+1, 'Block height is returned');
+    equal(tx.confirmation_height >= startHeight, true, 'Got block height');
 
     return end();
   });
