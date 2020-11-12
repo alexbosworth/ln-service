@@ -3,8 +3,10 @@ const {once} = require('events');
 const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
+const {getChannels} = require('./../../');
 const {openChannel} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {subscribeToOpenRequests} = require('./../../');
@@ -26,11 +28,12 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
 
   const {lnd} = cluster.control;
 
-  const failSub = subscribeToOpenRequests({lnd: cluster.control.lnd});
+  const {address} = await createChainAddress({lnd, format: 'p2wpkh'});
+  const failSub = subscribeToOpenRequests({lnd});
 
   await delay(3000);
 
-  failSub.on('channel_request', ({reject}) => reject());
+  failSub.on('channel_request', ({reject}) => reject({reason: 'reason'}));
 
   try {
     await openChannel({
@@ -73,7 +76,15 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
     equal(request.min_htlc_mtokens, '1', 'Got min htlc amount');
     equal(request.partner_public_key, cluster.target.public_key, 'Got pubkey');
 
-    request.accept();
+    request.accept({
+      cooperative_close_address: address,
+      min_confirmations: 1,
+      remote_csv: 999,
+      remote_reserve: 1000,
+      remote_max_htlcs: 20,
+      remote_max_pending_mtokens: '200000',
+      remote_min_htlc_mtokens: '2000',
+    });
 
     return;
   });
@@ -107,6 +118,20 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
 
     return;
   });
+
+  const {channels} = await getChannels({lnd});
+
+  const [channel] = channels;
+
+  // LND 0.11.1 and below do not support accepting with a custom address
+  if (!!channel.cooperative_close_address) {
+    equal(channel.cooperative_close_address, address, 'Got custom address');
+    equal(channel.remote_csv, 999, 'Got custom CSV delay');
+    equal(channel.remote_reserve, 1000, 'Got custom remote reserve');
+    equal(channel.remote_max_htlcs, 20, 'Got custom remote max htlcs');
+    equal(channel.remote_max_pending_mtokens, '200000', 'Got custom max tok');
+    equal(channel.remote_min_htlc_mtokens, '2000', 'Got custom min htlcsize');
+  }
 
   await cluster.kill({});
 

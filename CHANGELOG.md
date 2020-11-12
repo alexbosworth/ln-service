@@ -1,5 +1,13 @@
 # Versions
 
+## 50.5.0
+
+- `subscribeToOpenRequests`: Add `cooperative_close_address`,`remote_csv` to `accept()`
+- `subscribeToOpenRequests`: Add `min_confirmations`, `remote_reserve` to `accept()`
+- `subscribeToOpenRequests`: Add `remote_max_htlcs`, `remote_max_pending_mtokens`
+- `subscribeToOpenRequests`: Add `remote_min_htlc_mtokens` to accept()
+- `subscribeToOpenRequests`: Add `reason` to reject()
+
 ## 50.4.2
 
 - `createInvoice`: Decrease default expiration time

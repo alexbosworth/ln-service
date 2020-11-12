@@ -4512,16 +4512,18 @@ const [lastUpdatedInvoice] = await once(sub, 'invoice_updated');
 
 Subscribe to inbound channel open requests
 
+Requires `offchain:write`, `onchain:write` permissions
+
 Note: listening to inbound channel requests will automatically fail all
 channel requests after a short delay.
 
 To return to default behavior of accepting all channel requests, remove all
 listeners to `channel_request`
 
-Requires `offchain:write`, `onchain:write` permissions
+LND 0.11.1 and below do not support `accept` or `reject` arguments
 
     {
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @throws
@@ -4532,7 +4534,15 @@ Requires `offchain:write`, `onchain:write` permissions
 
     @event 'channel_request'
     {
-      accept: <Accept Request Function>
+      accept: <Accept Request Function> ({
+        [cooperative_close_address]: <Restrict Coop Close To Address String>
+        [min_confirmations]: <Required Confirmations Before Channel Open Number>
+        [remote_csv]: <Peer Unilateral Balance Output CSV Delay Number>
+        [remote_reserve]: <Minimum Tokens Peer Must Keep On Their Side Number>
+        [remote_max_htlcs]: <Maximum Slots For Attaching HTLCs Number>
+        [remote_max_pending_mtokens]: <Maximum HTLCs Value Millitokens String>
+        [remote_min_htlc_mtokens]: <Minimium HTLC Value Millitokens String>
+      }) -> {}
       capacity: <Capacity Tokens Number>
       chain: <Chain Id Hex String>
       commit_fee_tokens_per_vbyte: <Commitment Transaction Fee Number>
@@ -4545,11 +4555,10 @@ Requires `offchain:write`, `onchain:write` permissions
       min_chain_output: <Minimum Chain Output Tokens Number>
       min_htlc_mtokens: <Minimum HTLC Millitokens String>
       partner_public_key: <Peer Public Key Hex String>
-      reject: <Reject Request Function>
+      reject: <Reject Request Function> ({
+        [reason]: <500 Character Limited Rejection Reason String>
+      }) -> {}
     }
-
-    @event 'error'
-    <Error Object>
 
 Example:
 

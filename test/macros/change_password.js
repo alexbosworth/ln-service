@@ -419,8 +419,8 @@ module.exports = ({network}, cbk) => {
     const {lnd} = res;
 
     const kill = () => {
-      res.spawnChainDaemon.daemon.kill();
-      res.restartLnd.daemon.kill();
+      res.spawnChainDaemon.daemon.kill(9);
+      res.restartLnd.daemon.kill(9);
 
       return;
     };

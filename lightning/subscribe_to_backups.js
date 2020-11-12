@@ -2,6 +2,8 @@ const EventEmitter = require('events');
 
 const {backupsFromSnapshot} = require('./../backups');
 
+const cancelError = 'Cancelled on client';
+
 /** Subscribe to backup snapshot updates
 
   Requires `offchain:read` permission
@@ -43,15 +45,15 @@ module.exports = ({lnd}) => {
 
     subscription.cancel();
 
-    subscription.removeAllListeners();
-
     return;
   });
 
   const emitError = err => {
     subscription.cancel();
 
-    subscription.removeAllListeners();
+    if (!!err && err.details === cancelError) {
+      subscription.removeAllListeners();
+    }
 
     // Exit early when there are no error listeners
     if (!eventEmitter.listenerCount('error')) {
