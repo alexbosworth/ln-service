@@ -5,12 +5,7 @@ const {returnResult} = require('asyncjs-util');
 
 const {getChannel} = require('./../lightning');
 
-const decBase = 10;
 const {isArray} = Array;
-const msPerSec = 1e3;
-const oddsDenominator = 1e6;
-const probabilityAsConfidence = n => round(parseFloat(n) * 1e6);
-const {round} = Math;
 const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
 
 /** Get the set of forwarding reputations
@@ -18,34 +13,24 @@ const timeAsDate = n => new Date(parseInt(n, 10) * 1e3).toISOString();
   Requires `offchain:read` permission
 
   {
-    [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
     lnd: <Authenticated LND API Object>
-    [tokens]: <Reputation Against Forwarding Tokens Number>
   }
 
   @returns via cbk or Promise
   {
     nodes: [{
-      channels: [{
-        confidence: <Forwarding Confidence Out of 1 Million Number>
-        id: <Standard Format Channel Id String>
-        last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
-        min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
-        [to_public_key]: <To Public Key Hex String>
-      }]
-      [confidence]: <Non-Channel-Specific Confidence Number>
-      [last_failed_forward_at]: <Last Failed Forward Time ISO-8601 Date String>
       peers: [{
-        [confidence]: <Forwarding Confidence Out of One Million Number>
-        last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
-        min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
+        [failed_tokens]: <Failed to Forward Tokens Number>
+        [forwarded_tokens]: <Forwarded Tokens Number>
+        [last_failed_forward_at]: <Failed Forward At ISO-8601 Date String>
+        [last_forward_at]: <Forwarded At ISO 8601 Date String>
         to_public_key: <To Public Key Hex String>
       }]
       public_key: <Node Identity Public Key Hex String>
     }]
   }
 */
-module.exports = ({confidence, lnd, tokens}, cbk) => {
+module.exports = ({lnd}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Check arguments
@@ -72,114 +57,6 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
         });
       }],
 
-      // Format and check reputations
-      channels: ['getReputations', ({getReputations}, cbk) => {
-        return asyncMapSeries(getReputations.nodes, (node, cbk) => {
-          if (!node) {
-            return cbk([503, 'ExpectedNodeInMissionControlResponse']);
-          }
-
-          if (!isArray(node.channels)) {
-            return cbk([503, 'ExpectedChannelFailureInfoInNodeResponse']);
-          }
-
-          if (!node.last_fail_time) {
-            return cbk([503, 'ExpectedLastFailTimeInReputationResponse']);
-          }
-
-          if (!node.other_success_prob) {
-            return cbk([503, 'ExpectedChanSuccessProbForNode']);
-          }
-
-          if (!Buffer.isBuffer(node.pubkey)) {
-            return cbk([503, 'ExpectedNodePublicKeyInResponse']);
-          }
-
-          const generalOdds = parseFloat(node.other_success_prob);
-          const publicKey = node.pubkey.toString('hex');
-
-          const lastFailedAt = parseInt(node.last_fail_time, decBase);
-
-          const lastFailMs = !lastFailedAt ? null : lastFailedAt * msPerSec;
-
-          const lastFailDate = !lastFailMs ? null : new Date(lastFailMs);
-
-          const lastFail = !lastFailDate ? null : lastFailDate.toISOString();
-
-          return asyncMapSeries(node.channels, (channel, cbk) => {
-            if (!channel) {
-              return cbk([503, 'ExpectedChannelInNodeChannelReputation']);
-            }
-
-            if (!channel.channel_id) {
-              return cbk([503, 'ExpectedChannelIdInNodeChannelRepuation']);
-            }
-
-            try {
-              chanFormat({number: channel.channel_id});
-            } catch (err) {
-              return cbk([503, 'UnexpectedChannelIdFormatInReputationChan']);
-            }
-
-            if (!channel.last_fail_time) {
-              return cbk([503, 'ExpectedChannelLastFailTimeInReputationChan']);
-            }
-
-            if (!channel.min_penalize_amt_sat) {
-              return cbk([503, 'ExpectedMinPenalizeAmtSatInChanReputation']);
-            }
-
-            if (!channel.success_prob) {
-              return cbk([503, 'ExpectedChannelSuccessProbability']);
-            }
-
-            const channelId = chanFormat({number: channel.channel_id}).channel;
-            const channelOdds = parseFloat(channel.success_prob);
-            const fail = parseInt(channel.last_fail_time, decBase) * msPerSec;
-            const minTokens = parseInt(channel.min_penalize_amt_sat, decBase);
-
-            const successOdds = round(channelOdds * oddsDenominator);
-
-            // Exit early when the channel history isn't relevant
-            if (!!minTokens && !!tokens && tokens < minTokens) {
-              return cbk();
-            }
-
-            // Exit early when the odds of this channel are too good
-            if (!!confidence && successOdds > confidence) {
-              return cbk();
-            }
-
-            return getChannel({lnd, id: channelId}, (err, res) => {
-              const policies = !!err || !res ? [] : res.policies;
-
-              const peer = policies.find(n => n.public_key !== publicKey);
-
-              return cbk(null, {
-                confidence: successOdds,
-                id: channelId,
-                last_failed_forward_at: new Date(fail).toISOString(),
-                min_relevant_tokens: minTokens,
-                to_public_key: (peer || {}).public_key,
-              });
-            });
-          },
-          (err, channels) => {
-            if (!!err) {
-              return cbk(err);
-            }
-
-            return cbk(null, {
-              channels: channels.filter(n => !!n),
-              confidence: round(generalOdds * oddsDenominator),
-              last_failed_forward_at: lastFail || undefined,
-              public_key: publicKey,
-            });
-          });
-        },
-        cbk);
-      }],
-
       // Peers
       peers: ['getReputations', ({getReputations}, cbk) => {
         const {pairs} = getReputations;
@@ -193,16 +70,18 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
         }
 
         return cbk(null, pairs.map(pair => {
-          const confidence = probabilityAsConfidence(pair.success_prob);
+          const forwardAmount = pair.history.success_amt_sat;
+          const lastFailAt = Number(pair.history.fail_time) || undefined;
+          const successAt = Number(pair.history.success_time) || undefined;
 
-          const isFail = !pair.history.last_attempt_successful;
-
-          const lastFailAt = !isFail ? null : Number(pair.history.fail_time);
+          const isFail = !!lastFailAt;
+          const isSuccess = !!successAt;
 
           return {
-            confidence: confidence || undefined,
+            failed_tokens: !!isFail ? Number(pair.history.fail_amt_sat) : null,
+            forwarded_tokens: !!isSuccess ? Number(forwardAmount) : null,
             last_failed_forward_at: !isFail ? null : timeAsDate(lastFailAt),
-            min_relevant_tokens: Number(pair.history.min_penalize_amt_sat),
+            last_forward_at: !!isSuccess ? timeAsDate(successAt) : null,
             public_key: pair.node_from.toString('hex'),
             to_public_key: pair.node_to.toString('hex'),
           };
@@ -210,8 +89,8 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
       }],
 
       // Final set of reputations
-      reputations: ['channels', 'peers', ({channels, peers}, cbk) => {
-        const nodes = channels.filter(n => !n.last_failed_forward_at);
+      reputations: ['peers', ({peers}, cbk) => {
+        const nodes = [];
 
         peers.filter(pair => {
           if (!!nodes.find(n => n.public_key === pair.public_key)) {
@@ -225,13 +104,11 @@ module.exports = ({confidence, lnd, tokens}, cbk) => {
           const publicKey = node.public_key;
 
           return {
-            channels: node.channels || [],
-            confidence: node.confidence || undefined,
-            last_failed_forward_at: node.last_failed_forward_at || undefined,
             peers: peers.filter(n => n.public_key === publicKey).map(n => ({
-              confidence: n.confidence,
-              last_failed_forward_at: n.last_failed_forward_at,
-              min_relevant_tokens: n.min_relevant_tokens,
+              failed_tokens: n.failed_tokens || undefined,
+              forwarded_tokens: n.forwarded_tokens || undefined,
+              last_failed_forward_at: n.last_failed_forward_at || undefined,
+              last_forward_at: n.last_forward_at || undefined,
               to_public_key: n.to_public_key,
             })),
             public_key: publicKey,

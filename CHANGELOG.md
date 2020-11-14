@@ -1,5 +1,11 @@
 # Versions
 
+## 50.6.0
+
+- `getForwardingReputations`: Fix broken attributes from unsupported LND versions
+- `getForwardingReputations`: Add `failed_tokens`, `last_failed_forward_at`
+- `getForwardingReputations`: Add `forwarded_tokens`, `last_forward_at`
+
 ## 50.5.0
 
 - `subscribeToOpenRequests`: Add `cooperative_close_address`,`remote_csv` to `accept()`

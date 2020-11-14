@@ -74,26 +74,14 @@ test('Get forwarding reputations', async ({deepIs, end, equal}) => {
 
     equal(!!node.public_key, true, 'Temp fail node added');
 
-    if (!!node.channels.length) {
-      const [channel] = node.channels;
+    const [peer] = node.peers;
 
-      equal(node.confidence, defaultOdds, 'Node odds are default');
-      equal(node.last_failed_forward_at, undefined, 'No last forward set');
-
-      equal(channel.id, targetToRemoteChan.id, 'Fail channel id returned');
-      equal(!!channel.last_failed_forward_at, true, 'Last fail time returned');
-      equal(channel.min_relevant_tokens, tokens, 'Min relevant tokens set');
-      equal(channel.confidence < 1000, true, 'Success odds returned');
-    } else {
-      const [peer] = node.peers;
-
-      if (!peer.last_failed_forward_at) {
-        throw new Error('ExpectedLastFailTimeReturned');
-      }
-
-      equal(!!peer.last_failed_forward_at, true, 'Last fail time returned');
-      equal(!!peer.to_public_key, true, 'Got peer pub key');
+    if (!peer.last_failed_forward_at) {
+      throw new Error('ExpectedLastFailTimeReturned');
     }
+
+    equal(!!peer.last_failed_forward_at, true, 'Last fail time returned');
+    equal(!!peer.to_public_key, true, 'Got peer pub key');
   });
 
   await cluster.kill({});

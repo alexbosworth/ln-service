@@ -1609,27 +1609,17 @@ Get the set of forwarding reputations
 Requires `offchain:read` permission
 
     {
-      [confidence]: <Ignore Confidence Higher than N out of 1 Million Number>
       lnd: <Authenticated LND API Object>
-      [tokens]: <Reputation Against Forwarding Tokens Number>
     }
 
     @returns via cbk or Promise
     {
       nodes: [{
-        channels: [{
-          confidence: <Forwarding Confidence Out of 1 Million Number>
-          id: <Standard Format Channel Id String>
-          last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
-          min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
-          [to_public_key]: <To Public Key Hex String>
-        }]
-        [confidence]: <Non-Channel-Specific Confidence Number>
-        [last_failed_forward_at]: <Last Failed Forward Time ISO-8601 Date String>
         peers: [{
-          [confidence]: <Forwarding Confidence Out of One Million Number>
-          last_failed_forward_at: <Last Failed Forward Time ISO-8601 Date String>
-          min_relevant_tokens: <Minimum Token Amount to Use This Estimate Number>
+          [failed_tokens]: <Failed to Forward Tokens Number>
+          [forwarded_tokens]: <Forwarded Tokens Number>
+          [last_failed_forward_at]: <Failed Forward At ISO-8601 Date String>
+          [last_forward_at]: <Forwarded At ISO 8601 Date String>
           to_public_key: <To Public Key Hex String>
         }]
         public_key: <Node Identity Public Key Hex String>

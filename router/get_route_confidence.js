@@ -132,13 +132,10 @@ module.exports = ({from, hops, lnd}, cbk) => {
             return defaultOdds;
           }
 
-          const forwardingChannel = forwardingNode.channels
-            .find(channel => channel.id === forward.channel);
-
           const forwardingPeer = forwardingNode.peers
             .find(peer => peer.to_public_key === forward.to_public_key);
 
-          const forwarding = forwardingPeer || forwardingChannel;
+          const forwarding = forwardingPeer;
 
           // Exit early with general node odds when no chan reputation exists
           if (!forwarding) {
