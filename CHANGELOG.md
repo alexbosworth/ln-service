@@ -1,5 +1,11 @@
 # Versions
 
+## 50.7.0
+
+- `createInvoice`: Add support for specifying `mtokens` instead of `tokens`
+- `getChannels`: Show `cooperative_close_delay_height` to indicate coop close deny height
+- `subscribeToChannels`: Show `cooperative_close_delay_height` for coop close deny height
+
 ## 50.6.0
 
 - `getForwardingReputations`: Fix broken attributes from unsupported LND versions

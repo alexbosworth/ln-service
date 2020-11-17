@@ -675,6 +675,7 @@ Requires `address:write`, `invoices:write` permission
       [is_including_private_channels]: <Invoice Includes Private Channels Bool>
       lnd: <Authenticated LND API Object>
       [secret]: <Payment Preimage Hex String>
+      [mtokens]: <Millitokens String>
       [tokens]: <Tokens Number>
     }
 
@@ -682,7 +683,7 @@ Requires `address:write`, `invoices:write` permission
     {
       [chain_address]: <Backup Address String>
       created_at: <ISO 8601 Date String>
-      description: <Description String>
+      [description]: <Description String>
       id: <Payment Hash Hex String>
       [mtokens]: <Millitokens String>
       request: <BOLT 11 Encoded Payment Request String>
@@ -1389,6 +1390,7 @@ Requires `offchain:read` permission
         commit_transaction_fee: <Commit Transaction Fee Number>
         commit_transaction_weight: <Commit Transaction Weight Number>
         [cooperative_close_address]: <Coop Close Restricted to Address String>
+        [cooperative_close_delay_height]: <Prevent Coop Close Until Height Number>
         id: <Standard Format Channel Id String>
         is_active: <Channel Active Bool>
         is_closing: <Channel Is Closing Bool>
@@ -4130,6 +4132,7 @@ Requires `offchain:read` permission
       commit_transaction_fee: <Commit Transaction Fee Number>
       commit_transaction_weight: <Commit Transaction Weight Number>
       [cooperative_close_address]: <Coop Close Restricted to Address String>
+      [cooperative_close_delay_height]: <Prevent Coop Close Until Height Number>
       id: <Standard Format Channel Id String>
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
