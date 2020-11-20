@@ -1,5 +1,12 @@
 # Versions
 
+## 50.8.0
+
+- `fundPsbt`: Fix issue specifying a transaction fee
+- `getPublicKey`: Support omitting `index` to generate a fresh public key
+- `prepareForChannelProposal`: Add method to prepare for a channel proposal
+- `proposeChannel`: Add method to propose a channel to a prepared peer
+
 ## 50.7.0
 
 - `createInvoice`: Add support for specifying `mtokens` instead of `tokens`

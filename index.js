@@ -72,7 +72,9 @@ const {pay} = require('lightning/lnd_methods');
 const {payViaPaymentDetails} = require('lightning/lnd_methods');
 const {payViaPaymentRequest} = require('lightning/lnd_methods');
 const {payViaRoutes} = require('lightning/lnd_methods');
+const {prepareForChannelProposal} =  require('lightning/lnd_methods');
 const {probeForRoute} = require('./router');
+const {proposeChannel} = require('lightning/lnd_methods');
 const {recoverFundsFromChannel} = require('./lightning');
 const {recoverFundsFromChannels} = require('./lightning');
 const {removePeer} = require('./lightning');
@@ -192,7 +194,9 @@ module.exports = {
   payViaPaymentDetails,
   payViaPaymentRequest,
   payViaRoutes,
+  prepareForChannelProposal,
   probeForRoute,
+  proposeChannel,
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,

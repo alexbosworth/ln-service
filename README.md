@@ -180,8 +180,10 @@ for `unlocker` methods.
 - [payViaPaymentDetails](#payViaPaymentDetails) - Pay using decomposed details
 - [payViaPaymentRequest](#payViaPaymentRequest) - Pay using a payment request
 - [payViaRoutes](#payViaRoutes) - Make a payment over specified routes
+- [prepareForChannelProposal](#prepareForChannelProposal) - setup for a channel proposal
 - [probe](#probe) - Find a payable route by attempting a fake payment
 - [probeForRoute](#probeForRoute) - Actively probe to find a payable route
+- [proposeChannel](#proposeChannel) - Offer a channel proposal to a peer
 - [recoverFundsFromChannel](#recoverFundsFromChannel) - Restore a channel
 - [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
 - [removePeer](#removePeer) - Disconnect from a connected peer
@@ -2323,18 +2325,21 @@ const pendingChannels = (await getPendingChannels({lnd})).pending_channels;
 
 Get a public key in the seed
 
+Omit a key index to cycle to the "next" key in the family
+
 Requires LND compiled with `walletrpc` build tag
 
 Requires `address:read` permission
 
     {
       family: <Key Family Number>
-      index: <Key Index Number>
+      [index]: <Key Index Number>
       lnd: <Authenticated API LND Object>
     }
 
     @returns via cbk or Promise
     {
+      index: <Key Index Number>
       public_key: <Public Key Hex String>
     }
 
@@ -3352,6 +3357,44 @@ const {route} = await getRouteToDestination({destination, lnd, tokens});
 const preimage = (await payViaRoutes({lnd, routes: [route]})).secret;
 ```
 
+### prepareForChannelProposal
+
+Prepare for a channel proposal
+
+Channel proposals can be made with `propose_channel`. Channel proposals can
+allow for cooperative close delays or external funding flows.
+
+Requires `offchain:write`, `onchain:write` permissions
+
+    {
+      [cooperative_close_delay]: <Cooperative Close Relative Delay Number>
+      [id]: <Pending Id Hex String>
+      key_index: <Channel Funding Output Multisig Local Key Index Number>
+      lnd: <Authenticated LND API Object>
+      remote_key: <Channel Funding Partner Multisig Public Key Hex String>
+      transaction_id: <Funding Output Transaction Id Hex String>
+      transaction_vout: <Funding Output Transaction Output Index Number>
+    }
+
+    @returns via cbk or Promise
+    {
+      id: <Pending Channel Id Hex String>
+    }
+
+Example:
+
+```node
+const {getPublicKey, prepareForChannelProposal} = require('ln-service');
+
+const {id} = await prepareForChannelProposal({
+  lnd: lndAlice,
+  key_index: (await getPublicKey({family: 0, lnd: lndAlice})).index,
+  remote_key: (await getPublicKey({family: 0, lnd: lndBob})).public_key,
+  transaction_id: transactionId, // Form an outpoint paying to 2:2 of keys
+  transaction_vout: transactionVout,
+});
+```
+
 ### probeForRoute
 
 Probe to find a successful route
@@ -3434,6 +3477,66 @@ const {probeForRoute} = require('ln-service');
 const destination = 'destinationNodePublicKeyHexString';
 const tokens = 80085;
 const {route} = await probeForRoute({destination, lnd, tokens});
+```
+
+### proposeChannel
+
+Propose a new channel to a peer that prepared for the channel proposal
+
+Channel proposals can allow for cooperative close delays or external funding
+flows.
+
+Requires `offchain:write`, `onchain:write` permissions
+
+Requires LND compiled with `walletrpc` build tag
+
+    {
+      capacity: <Channel Capacity Tokens Number>
+      [cooperative_close_address]: <Restrict Cooperative Close To Address String>
+      [cooperative_close_delay]: <Cooperative Close Relative Delay Number>
+      [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
+      id: <Pending Channel Id Hex String>
+      [is_private]: <Channel is Private Bool> // Defaults to false
+      key_index: <Channel Funding Output MultiSig Local Key Index Number>
+      lnd: <Authenticated LND API Object>
+      partner_public_key: <Public Key Hex String>
+      remote_key: <Channel Funding Partner MultiSig Public Key Hex String>
+      transaction_id: <Funding Output Transaction Id Hex String>
+      transaction_vout: <Funding Output Transaction Output Index Number>
+    }
+
+    @returns via cbk or Promise
+
+```node
+const {getPublicKey, prepareForChannelProposal} = require('ln-service');
+const {getIdentity, proposeChannel} = require('ln-service');
+
+// Alice and Bob need to have keys in the 2:2 funding output:
+const aliceKey = await getPublicKey({family: 0, lnd: lndAlice});
+const bobKey = await getPublicKey({family: 0, lnd: lndBob});
+
+// Prepare for a chan that the initiator cannot cooperatively close for n blocks
+const {id} = await prepareForChannelProposal({
+  cooperative_close_delay: 144,
+  lnd: lndAlice,
+  key_index: aliceKey.index,
+  remote_key: bobKey.public_key,
+  transaction_id: transactionId, // Form an outpoint paying to 2:2 of above keys
+  transaction_vout: transactionVout,
+});
+
+// Propose a channel that cannot be cooperatively closed for n blocks
+await proposeChannel({
+  id,
+  capacity: 1000000, // Outpoint value
+  cooperative_close_delay: 144,
+  key_index: bobKey.index,
+  lnd: lndBob,
+  partner_public_key: (await getIdentity({lnd: lndAlice})).public_key,
+  remote_key: aliceKey.public_key,
+  transaction_id: transactionId, // Form an outpoint paying to 2:2 of above keys
+  transaction_vout: transactionVout,
+});
 ```
 
 ### recoverFundsFromChannel
