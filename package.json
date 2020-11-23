@@ -28,11 +28,12 @@
     "bip66": "1.1.5",
     "node-fetch": "2.6.1",
     "portfinder": "1.0.28",
-    "psbt": "1.1.6",
+    "psbt": "1.1.7",
     "rimraf": "3.0.2",
     "tap": "14.11.0",
     "uuid": "8.3.1",
-    "varuint-bitcoin": "1.1.2"
+    "varuint-bitcoin": "1.1.2",
+    "wif": "2.0.6"
   },
   "engines": {
     "node": ">=10.10.0"
