@@ -1,20 +1,16 @@
-const {randomBytes} = require('crypto');
-
-const {address} = require('bitcoinjs-lib');
 const asyncRetry = require('async/retry');
 const {createPsbt} = require('psbt');
 const {combinePsbts} = require('psbt');
 const {decodePsbt} = require('psbt');
-const {ECPair} = require('bitcoinjs-lib');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
+const {script} = require('bitcoinjs-lib');
 const signPsbtWithKey = require('psbt').signPsbt;
 const {test} = require('tap');
 const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
-const wif = require('wif');
 
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -27,6 +23,7 @@ const {getWalletVersion} = require('./../../');
 const {prepareForChannelProposal} = require('./../../');
 const {proposeChannel} = require('./../../');
 const {signPsbt} = require('./../../');
+const {signTransaction} = require('./../../');
 
 const capacity = 1e6;
 const {ceil} = Math;
@@ -34,19 +31,16 @@ const cooperativeCloseDelay = 2016;
 const family = 0;
 const feeRate = 1;
 const {fromHex} = Transaction;
-const {fromOutputScript} = address;
 const fundingFee = 190; // Vsize of 2 input, 1 output tx
-const id = randomBytes(32).toString('hex');
 const interval = 100;
 const keyIndex = 0;
-const makeId = () => randomBytes(32);
-const {makeRandom} = ECPair;
 const network = 'regtest';
 const {p2ms} = payments;
 const {p2pkh} = payments;
 const {regtest} = networks;
 const reserveRatio = 0.01;
-const times = 100;
+const temporaryFamily = 805;
+const times = 300;
 
 // Proposing a cooperative delay channel should open a cooperative delay chan
 test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
@@ -66,28 +60,31 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
     break;
   }
 
-  // Create an id for the pending channel
-  const pendingChannelId = makeId();
+  // Derive a temporary key for control to pay into
+  const controlDerivedKey = await getPublicKey({
+    family: temporaryFamily,
+    lnd: cluster.control.lnd,
+  });
 
-  // Make control a temporary key
-  const controlTempKey = makeRandom({network: regtest});
-
-  // Make target a temporary key
-  const targetTempKey = makeRandom({network: regtest});
+  // Derive a temporary key for target to pay into
+  const targetDerivedKey = await getPublicKey({
+    family: temporaryFamily,
+    lnd: cluster.target.lnd,
+  });
 
   // Control should fund and sign a transaction going to the control temp key
-  const controlTempAddress = payments.p2wpkh({
+  const controlDerivedAddress = payments.p2wpkh({
     network: regtest,
-    pubkey: controlTempKey.publicKey,
+    pubkey: Buffer.from(controlDerivedKey.public_key, 'hex'),
   });
 
   // Target should fund and sign a transaction going to the target temp key
-  const targetTempAddress = payments.p2wpkh({
+  const targetDerivedAddress = payments.p2wpkh({
     network: regtest,
-    pubkey: targetTempKey.publicKey,
+    pubkey: Buffer.from(targetDerivedKey.public_key, 'hex'),
   });
 
-  const temporaryKeys = [controlTempKey, targetTempKey];
+  const temporaryKeys = [controlDerivedKey, targetDerivedKey];
 
   const giveTokens = ceil(capacity / temporaryKeys.length);
 
@@ -96,7 +93,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
     lnd: cluster.control.lnd,
     fee_tokens_per_vbyte: feeRate,
     outputs: [{
-      address: controlTempAddress.address,
+      address: controlDerivedAddress.address,
       tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
     }],
   });
@@ -106,7 +103,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
     lnd: cluster.target.lnd,
     fee_tokens_per_vbyte: feeRate,
     outputs: [{
-      address: targetTempAddress.address,
+      address: targetDerivedAddress.address,
       tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
     }],
   });
@@ -160,6 +157,8 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
     }),
   });
 
+  const pendingChannelId = dualFundingChannelAddress.hash;
+
   // Create the basic PSBT that spends temporary funds to the 2:2 funding
   const dualFundPsbt = createPsbt({
     outputs: [{
@@ -199,7 +198,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
     ],
   });
 
-  const finalFundingPsbt =  decodePsbt({psbt: dualFundPsbt.psbt});
+  const finalFundingPsbt = decodePsbt({psbt: dualFundPsbt.psbt});
 
   const fundingTx = fromHex(finalFundingPsbt.unsigned_transaction);
 
@@ -207,18 +206,80 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
 
   const fundingTxVout = fundingTx.outs.findIndex(n => n.value === capacity);
 
-  // Use the control temporary key to sign the channel funding PSBT
-  const controlSignTempPsbt = signPsbtWithKey({
-    network,
-    psbt: psbtWithSpending.psbt,
-    signing_keys: [wif.encode(regtest.wif, controlTempKey.privateKey, true)],
+  const controlTxHash = controlWithoutWitnessTx.getHash();
+
+  const targetTxHash = targetWithoutWitnessTx.getHash();
+
+  const controlVin = fundingTx.ins.findIndex(({hash}) => {
+    return hash.equals(controlTxHash);
   });
 
-  // Use the target temporary key to sign the channel funding PSBT
-  const targetSignTempPsbt = signPsbtWithKey({
-    network,
+  const targetVin = fundingTx.ins.findIndex(({hash}) => {
+    return hash.equals(targetTxHash);
+  });
+
+// Call signTransaction on the unsigned tx that pays from temp -> multisig
+  const controlSignDerivedKey = await signTransaction({
+    inputs: [{
+      key_family: temporaryFamily,
+      key_index: controlDerivedKey.index,
+      output_script: dualFundingChannelAddress.output.toString('hex'),
+      output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
+      sighash: Transaction.SIGHASH_ALL,
+      vin: controlVin,
+      witness_script: p2pkh({hash: controlDerivedAddress.hash}).output,
+    }],
+    lnd: cluster.control.lnd,
+    transaction: decodePsbt({psbt: psbtWithSpending.psbt}).unsigned_transaction,
+  });
+
+  const [controlDerivedSignature] = controlSignDerivedKey.signatures;
+
+  const controlSignSpendingPsbt = updatePsbt({
     psbt: psbtWithSpending.psbt,
-    signing_keys: [wif.encode(regtest.wif, targetTempKey.privateKey, true)],
+    signatures: controlSignDerivedKey.signatures.map(sig => {
+      return {
+        signature: Buffer.concat([
+          Buffer.from(sig, 'hex'),
+          Buffer.from([Transaction.SIGHASH_ALL]),
+        ]).toString('hex') ,
+        hash_type: Transaction.SIGHASH_ALL,
+        public_key: controlDerivedKey.public_key,
+        vin: controlVin,
+      };
+    }),
+  });
+
+// Call signTransaction on the unsigned tx that pays from temp -> multisig
+  const targetSignDerivedKey = await signTransaction({
+    inputs: [{
+      key_family: temporaryFamily,
+      key_index: targetDerivedKey.index,
+      output_script: dualFundingChannelAddress.output.toString('hex'),
+      output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
+      sighash: Transaction.SIGHASH_ALL,
+      vin: targetVin,
+      witness_script: p2pkh({hash: targetDerivedAddress.hash}).output,
+    }],
+    lnd: cluster.target.lnd,
+    transaction: decodePsbt({psbt: psbtWithSpending.psbt}).unsigned_transaction,
+  });
+
+  const [targetDerivedSignature] = targetSignDerivedKey.signatures;
+
+  const targetSignSpendingPsbt = updatePsbt({
+    psbt: psbtWithSpending.psbt,
+    signatures: targetSignDerivedKey.signatures.map(sig => {
+      return {
+        signature: Buffer.concat([
+          Buffer.from(sig, 'hex'),
+          Buffer.from([Transaction.SIGHASH_ALL]),
+        ]).toString('hex') ,
+        hash_type: Transaction.SIGHASH_ALL,
+        public_key: targetDerivedKey.public_key,
+        vin: targetVin,
+      };
+    }),
   });
 
   // Use the anticipated funding tx to prepare for a new channel open
@@ -280,7 +341,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
 
   // Setup the combined signed PSBTs that fund the channel
   const combinedTempPsbt = combinePsbts({
-    psbts: [controlSignTempPsbt, targetSignTempPsbt].map(n => n.psbt),
+    psbts: [controlSignSpendingPsbt, targetSignSpendingPsbt].map(n => n.psbt),
   });
 
   // Finalize the combined PSBT
