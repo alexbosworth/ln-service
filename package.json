@@ -66,5 +66,6 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
+  "types": "index.d.ts",
   "version": "50.8.0"
 }
