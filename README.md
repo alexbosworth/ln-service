@@ -1664,7 +1664,7 @@ Requires `offchain:read` permission
         outgoing_channel: <Outgoing Standard Format Channel Id String>
         tokens: <Forwarded Tokens Number>
       }]
-      [next]: <Contine With Opaque Paging Token String>
+      [next]: <Continue With Opaque Paging Token String>
     }
 
 Example:
