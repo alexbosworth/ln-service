@@ -907,7 +907,7 @@ Example:
 const {deleteForwardingReputations} = require('ln-service');
 
 // Delete all routing reputations to clear pathfinding memory
-await deleteForwardingReputations({});
+await deleteForwardingReputations({lnd});
 ```
 
 ### deletePayments
