@@ -4,29 +4,6 @@ import ws from "ws";
 import * as http from "http";
 import * as events from "events";
 
-/**
- * TODO:
- * - errors
- *    - parsePaymentRequest
- *    - payViaRoutes
- * - replace unknown result types
- * - tokens number postfix
- * - inline ChannelPolicy, Channel, Routes, Hop for safety
- * - remove obsolete LND objects
- * - fix capitalized methods
- * - fix potentially missing array
- * - check log function
- * - fix module definitions (export, import)
- * - remove obsolete packages
- * - fix events, type eventemitter, reorg event?
- * - unauthenticatedLndGrpc? difference between authenticated and unauthenticated LND objects? check all reference to different LND API objects
- * - split to different files?
- * - lightning repo?
- *
- * - proposeChannel, recoverFundsFromChannel return empty objects {}, instead of void, should these be typed?
- * - not confident in void return types
- */
-
 declare module "ln-service" {
   export type LND = {
     autopilot: any;
