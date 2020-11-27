@@ -3002,8 +3002,6 @@ channel that was not funded.
     id?: string;
     /** Pay Through Specific Final Hop Public Key Hex */
     incoming_peer?: string;
-    /** Authenticated */
-    lnd: LND;
     /** Maximum Fee Tokens To Pay */
     max_fee?: number;
     /** Maximum Fee Millitokens to Pay */
@@ -3466,8 +3464,6 @@ allow for cooperative close delays or external funding flows.
     is_private?: boolean;
     /** Channel Funding Output MultiSig Local Key Index */
     key_index: number;
-    /** Authenticated */
-    lnd: LND;
     /** Public Key Hex */
     partner_public_key: string;
     /** Channel Funding Partner MultiSig Public Key Hex */
