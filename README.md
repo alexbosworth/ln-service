@@ -560,6 +560,8 @@ Requires `offchain:write` permission
       socket: <Network Socket Address IP:PORT String>
     }
 
+    @returns via cbk or Promis
+
 Example:
 
 ```node
@@ -582,6 +584,11 @@ Requires `address:write` permission
       format: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
       [is_unused]: <Get As-Yet Unused Address Bool>
       lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      address: <Chain Address String>
     }
 
 Example:
