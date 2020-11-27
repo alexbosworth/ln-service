@@ -5,7 +5,7 @@ import * as http from "http";
 import * as events from "events";
 
 declare module "ln-service" {
-  export type LND = {
+  export type AuthenticatedLND = {
     autopilot: any;
     chain: any;
     default: any;
@@ -17,48 +17,50 @@ declare module "ln-service" {
     wallet: any;
     version: any;
   };
-  export type LightningNetworkDaemon = LND;
-
-  export type LNService = {
-    /**
-     * Initiate a gRPC API Methods Object for authenticated methods
-     *
-     * Both the `cert` and `macaroon` expect the entire serialized LND generated file
-     *
-     * See: https://github.com/alexbosworth/ln-service#authenticatedLndGrpc
-     */
-    authenticatedLndGrpc: (variables: {
-      cert?: string;
-      macaroon: string;
-      socket?: string;
-    }) => { lnd: LND };
-  };
-  export type LightningNetworkService = LNService;
-
-  export type Args<TArgs = {}> = {
-    /** LND API Object */
-    lnd: LND;
-  } & TArgs;
-
-  export type LNDError = [number, string, any | undefined];
-
-  export type LNDMethod<TArgs = {}, TResult = void, TError = LNDError> = {
-    (args: Args<TArgs>): Promise<TResult>;
-    (
-      args: Args<TArgs>,
-      callback: (error: TError | undefined | null, result: TResult) => void
-    ): void;
+  export type UnauthenticatedLND = {
+    unlocker: any;
   };
 
-  export type MethodWithoutLND<TArgs, TResult = void, TError = Error> = {
-    (args: TArgs): Promise<TResult>;
-    (args: TArgs, callback: (error: TError, result: TResult) => void): void;
-  };
-
+  export type LNService = {};
   const lnService: LNService;
   export default lnService;
 
-  export type AddPeerArgs = Args<{
+  export type LNServiceError = [number, string, any | undefined];
+
+  export type MethodWithPromiseOrCallback<
+    TArgs = {},
+    TResult = void,
+    TError = LNServiceError
+  > = {
+    (args: TArgs): Promise<TResult>;
+    (
+      args: TArgs,
+      callback: (error: TError | undefined | null, result: TResult) => void
+    ): void;
+  };
+  export type AuthenticatedLNDMethod<
+    TArgs = {},
+    TResult = void,
+    TError = LNServiceError
+  > = MethodWithPromiseOrCallback<
+    TArgs & { lnd: AuthenticatedLND },
+    TResult,
+    TError
+  >;
+  export type UnauthenticatedLNDMethod<
+    TArgs = {},
+    TResult = void,
+    TError = LNServiceError
+  > = MethodWithPromiseOrCallback<
+    TArgs & { lnd: UnauthenticatedLND },
+    TResult,
+    TError
+  >;
+  export type AuthenticatedLNDSubscription<TArgs = {}> = (
+    args: TArgs & { lnd: AuthenticatedLND }
+  ) => events.EventEmitter;
+
+  export type AddPeerArgs = {
     /** Add Peer as Temporary Peer, default: `false` */
     is_temporary?: boolean;
     /** Public Key Hex */
@@ -71,8 +73,7 @@ declare module "ln-service" {
     socket: string;
     /** Connection Attempt Timeout Milliseconds */
     timeout?: number;
-  }>;
-
+  };
   /**
    * Add a peer if possible (not self, or already connected)
    *
@@ -80,7 +81,26 @@ declare module "ln-service" {
    *
    * `timeout` is not supported in LND 0.11.1 and below
    */
-  export const addPeer: LNDMethod<AddPeerArgs>;
+  export const addPeer: AuthenticatedLNDMethod<AddPeerArgs>;
+
+  export type AuthenticatedLNDgRPCArgs = {
+    cert?: string;
+    macaroon: string;
+    socket?: string;
+  };
+  export type AuthenticatedLNDgRPCResult = {
+    lnd: AuthenticatedLND;
+  };
+  /**
+   * Initiate a gRPC API Methods Object for authenticated methods
+   *
+   * Both the `cert` and `macaroon` expect the entire serialized LND generated file
+   *
+   * See: https://github.com/alexbosworth/ln-service#authenticatedLndGrpc
+   */
+  export const authenticatedLndGrpc: (
+    args: AuthenticatedLNDgRPCArgs
+  ) => AuthenticatedLNDgRPCResult;
 
   export type BroadcastChainTransactionArgs = {
     /** Transaction Label */
@@ -88,17 +108,15 @@ declare module "ln-service" {
     /** Transaction Hex */
     transaction: string;
   };
-
   export type BroadcastChainTransactionResult = {
     id: string;
   };
-
   /**
    * Publish a raw blockchain transaction to Blockchain network peers
    *
    * Requires LND built with `walletrpc` tag
    */
-  export const broadcastChainTransaction: LNDMethod<
+  export const broadcastChainTransaction: AuthenticatedLNDMethod<
     BroadcastChainTransactionArgs,
     BroadcastChainTransactionResult
   >;
@@ -139,7 +157,6 @@ declare module "ln-service" {
     /** Start Public Key Hex */
     start: string;
   };
-
   export type CalculateHopsResult = {
     hops?: {
       /** Base Fee Millitokens */
@@ -156,11 +173,13 @@ declare module "ln-service" {
       public_key: string;
     }[];
   };
-
   /**
    * Calculate hops between start and end nodes
    */
-  export const calculateHops: LNDMethod<CalculateHopsArgs, CalculateHopsResult>;
+  export const calculateHops: MethodWithPromiseOrCallback<
+    CalculateHopsArgs,
+    CalculateHopsResult
+  >;
 
   export type CalculatePathsArgs = {
     channels: {
@@ -194,7 +213,6 @@ declare module "ln-service" {
     /** Start Public Key Hex */
     start: string;
   };
-
   export type CalculatePathsResult = {
     paths?: {
       hops: {
@@ -213,11 +231,10 @@ declare module "ln-service" {
       }[];
     }[];
   };
-
   /**
    * Calculate multiple routes to a destination
    */
-  export const calculatePaths: LNDMethod<
+  export const calculatePaths: MethodWithPromiseOrCallback<
     CalculatePathsArgs,
     CalculateHopsResult
   >;
@@ -226,7 +243,6 @@ declare module "ln-service" {
     /** Payment Preimage Hash Hex */
     id: string;
   };
-
   /**
    * Cancel an invoice
    *
@@ -236,17 +252,16 @@ declare module "ln-service" {
    *
    * Requires `invoices:write` permission
    */
-  export const cancelHodlInvoice: LNDMethod<CancelHodlInvoiceArgs>;
+  export const cancelHodlInvoice: AuthenticatedLNDMethod<CancelHodlInvoiceArgs>;
 
   export type CancelPendingChannelArgs = {
     /** Pending Channel Id Hex */
     id: string;
   };
-
   /**
    * Cancel an external funding pending channel
    */
-  export const cancelPendingChannel: LNDMethod<CancelPendingChannelArgs>;
+  export const cancelPendingChannel: AuthenticatedLNDMethod<CancelPendingChannelArgs>;
 
   export type ChangePasswordArgs = {
     /** Current Password */
@@ -254,13 +269,12 @@ declare module "ln-service" {
     /** New Password */
     new_password: string;
   };
-
   /**
    * Change wallet password
    *
    * Requires locked LND and unauthenticated LND connection
    */
-  export const changePassword: LNDMethod<ChangePasswordArgs>;
+  export const changePassword: UnauthenticatedLNDMethod<ChangePasswordArgs>;
 
   export type CloseChannelArgs = {
     /** Request Sending Local Channel Funds To Address */
@@ -282,14 +296,12 @@ declare module "ln-service" {
     /** Transaction Output Index */
     transaction_vout?: number;
   };
-
   export type CloseChannelResult = {
     /** Closing Transaction Id Hex */
     transaction_id: string;
     /** Closing Transaction Vout */
     transaction_vout: number;
   };
-
   /**
    * Close a channel.
    *
@@ -299,7 +311,10 @@ declare module "ln-service" {
    *
    * Requires `info:read`, `offchain:write`, `onchain:write`, `peers:write` permissions
    */
-  export const closeChannel: LNDMethod<CloseChannelArgs, CloseChannelResult>;
+  export const closeChannel: AuthenticatedLNDMethod<
+    CloseChannelArgs,
+    CloseChannelResult
+  >;
 
   export type ConnectWatchtowerArgs = {
     /** Watchtower Public Key Hex */
@@ -307,7 +322,6 @@ declare module "ln-service" {
     /** Network Socket Address IP:PORT */
     socket: string;
   };
-
   /**
    * Connect to a watchtower
    *
@@ -315,7 +329,7 @@ declare module "ln-service" {
    *
    * Requires `offchain:write` permission
    */
-  export const connectWatchtower: LNDMethod<ConnectWatchtowerArgs>;
+  export const connectWatchtower: AuthenticatedLNDMethod<ConnectWatchtowerArgs>;
 
   export type CreateChainAddressArgs = {
     /** Receive Address Type */
@@ -323,18 +337,16 @@ declare module "ln-service" {
     /** Get As-Yet Unused Address */
     is_unused?: boolean;
   };
-
   export type CreateChainAddressResult = {
     /** Chain Address */
     address: string;
   };
-
   /**
    * Create a new receive address.
    *
    * Requires address:write permission
    */
-  export const createChainAddress: LNDMethod<
+  export const createChainAddress: AuthenticatedLNDMethod<
     CreateChainAddressArgs,
     CreateChainAddressResult
   >;
@@ -361,7 +373,6 @@ declare module "ln-service" {
     /** Tokens */
     tokens?: number;
   };
-
   export type CreateHodlInvoiceResult = {
     /** Backup Address String */
     chain_address?: string;
@@ -380,7 +391,6 @@ declare module "ln-service" {
     /** Tokens Number */
     tokens: number;
   };
-
   /**
    * Create HODL invoice. This invoice will not settle automatically when an HTLC arrives. It must be settled separately with the secret preimage.
    *
@@ -390,7 +400,7 @@ declare module "ln-service" {
    *
    * Requires `address:write`, `invoices:write` permission
    */
-  export const createHodlInvoice: LNDMethod<
+  export const createHodlInvoice: AuthenticatedLNDMethod<
     CreateHodlInvoiceArgs,
     CreateHodlInvoiceResult
   >;
@@ -417,7 +427,6 @@ declare module "ln-service" {
     /** Tokens */
     tokens?: number;
   };
-
   export type CreateInvoiceResult = {
     /** Backup Address */
     chain_address?: string;
@@ -436,30 +445,33 @@ declare module "ln-service" {
     /** Tokens */
     tokens?: number;
   };
-
   /**
    * Create a Lightning invoice.
    *
    * Requires `address:write`, `invoices:write` permissio
    */
-  export const createInvoice: LNDMethod<CreateInvoiceArgs, CreateInvoiceResult>;
+  export const createInvoice: AuthenticatedLNDMethod<
+    CreateInvoiceArgs,
+    CreateInvoiceResult
+  >;
 
   export type CreateSeedArgs = {
     /** Seed Passphrase */
     passphrase?: string;
   };
-
   export type CreateSeedResult = {
     /** Cipher Seed Mnemonic */
     seed: string;
   };
-
   /**
    * Create a wallet seed
    *
    * Requires unlocked lnd and unauthenticated LND
    */
-  export const createSeed: LNDMethod<CreateSeedArgs, CreateSeedResult>;
+  export const createSeed: UnauthenticatedLNDMethod<
+    CreateSeedArgs,
+    CreateSeedResult
+  >;
 
   export type CreateSignedRequestArgs = {
     /** Destination Public Key Hex */
@@ -471,19 +483,16 @@ declare module "ln-service" {
     /** Request Tag Words */
     tags: number[];
   };
-
   export type CreateSignedResult = {
     /** BOLT 11 Encoded Payment Request */
     request: string;
   };
-
   /**
    * Assemble a signed payment request
    */
-  export const createSignedRequest: MethodWithoutLND<
-    CreateSignedRequestArgs,
-    CreateSignedResult
-  >;
+  export const createSignedRequest: (
+    args: CreateSignedRequestArgs
+  ) => CreateSignedResult;
 
   export type Route = {
     /** Base Fee Millitokens */
@@ -529,7 +538,6 @@ declare module "ln-service" {
     /** Requested Chain Tokens Number (note: can differ from mtokens) */
     tokens?: number;
   };
-
   export type CreateUnsignedRequestResult = {
     /** Payment Request Signature Hash Hex */
     hash: string;
@@ -540,14 +548,12 @@ declare module "ln-service" {
     /** Data Tag Numbers */
     tags: number[];
   };
-
   /**
    * Create an unsigned payment request
    */
-  export const createUnsignedRequest: MethodWithoutLND<
-    CreateUnsignedRequestArgs,
-    CreateUnsignedRequestResult
-  >;
+  export const createUnsignedRequest: (
+    args: CreateUnsignedRequestArgs
+  ) => CreateUnsignedRequestResult;
 
   export type CreateWalletArgs = {
     /** AEZSeed Encryption Passphrase */
@@ -557,19 +563,17 @@ declare module "ln-service" {
     /** Seed Mnemonic */
     seed: string;
   };
-
   /**
    * Create a wallet
    *
    * Requires unlocked lnd and unauthenticated LND
    */
-  export const createWallet: LNDMethod<CreateWalletArgs>;
+  export const createWallet: UnauthenticatedLNDMethod<CreateWalletArgs>;
 
   export type DecodePaymentRequestArgs = {
     /** BOLT 11 Payment Request */
     request: string;
   };
-
   export type DecodePaymentRequestResult = {
     /** Fallback Chain Address */
     chain_address: string;
@@ -605,13 +609,12 @@ declare module "ln-service" {
     /** Requested Tokens Rounded Down */
     tokens: number;
   };
-
   /**
    * Get decoded payment request
    *
    * Requires `offchain:read` permission
    */
-  export const decodePaymentRequest: LNDMethod<
+  export const decodePaymentRequest: AuthenticatedLNDMethod<
     DecodePaymentRequestArgs,
     DecodePaymentRequestResult
   >;
@@ -621,14 +624,14 @@ declare module "ln-service" {
    *
    * Requires `offchain:write` permissio
    */
-  export const deleteForwardingReputations: LNDMethod;
+  export const deleteForwardingReputations: AuthenticatedLNDMethod;
 
   /**
    * Delete all records of payments
    *
    * Requires `offchain:write` permission
    */
-  export const deletePayments: LNDMethod;
+  export const deletePayments: AuthenticatedLNDMethod;
 
   export type DiffieHellmanComputeSecretArgs = {
     /** Key Family */
@@ -638,12 +641,10 @@ declare module "ln-service" {
     /** Public Key Hex */
     partner_public_key: string;
   };
-
   export type DiffieHellmanComputeSecretResult = {
     /** Shared Secret Hex */
     secret: string;
   };
-
   /**
    * Derive a shared secret
    *
@@ -653,7 +654,7 @@ declare module "ln-service" {
    *
    * Requires `signer:generate` permission
    */
-  export const diffieHellmanComputeSecret: LNDMethod<
+  export const diffieHellmanComputeSecret: AuthenticatedLNDMethod<
     DiffieHellmanComputeSecretArgs,
     DiffieHellmanComputeSecretResult
   >;
@@ -662,7 +663,6 @@ declare module "ln-service" {
     /** Watchtower Public Key Hex */
     public_key: string;
   };
-
   /**
    * Disconnect a watchtower
    *
@@ -670,21 +670,20 @@ declare module "ln-service" {
    *
    * Requires `offchain:write` permission
    */
-  export const disconnectWatchtower: LNDMethod<DisconnectWatchtowerArgs>;
+  export const disconnectWatchtower: AuthenticatedLNDMethod<DisconnectWatchtowerArgs>;
 
   export type FundPendingChannelsArgs = {
     /** Pending Channel Id Hex */
-    channels: string;
+    channels: string[];
     /** Signed Funding Transaction PSBT Hex */
     funding: string;
   };
-
   /**
    * Fund pending channels
    *
    * Requires `offchain:write`, `onchain:write` permission
    */
-  export const fundPendingChannels: LNDMethod<FundPendingChannelsArgs>;
+  export const fundPendingChannels: AuthenticatedLNDMethod<FundPendingChannelsArgs>;
 
   export type FundPSBTArgs = {
     /** Chain Fee Tokens Per Virtual Byte */
@@ -706,7 +705,6 @@ declare module "ln-service" {
     /** Existing PSBT Hex */
     psbt?: string;
   };
-
   export type FundPSBTResult = {
     inputs: {
       /** UTXO Lock Expires At ISO 8601 Date */
@@ -729,7 +727,6 @@ declare module "ln-service" {
     /** Unsigned PSBT Hex */
     psbt: string;
   };
-
   /**
    * Lock and optionally select inputs to a partially signed transaction
    *
@@ -743,7 +740,7 @@ declare module "ln-service" {
    *
    * This method is not supported in LND 0.11.1 and belo
    */
-  export const fundPsbt: LNDMethod<FundPSBTArgs, FundPSBTResult>;
+  export const fundPsbt: AuthenticatedLNDMethod<FundPSBTArgs, FundPSBTResult>;
 
   export type GetAccessIdsResult = {
     ids: number[];
@@ -756,13 +753,12 @@ declare module "ln-service" {
    *
    * Requires `macaroon:read` permission
    */
-  export const getAccessIds: LNDMethod<{}, GetAccessIdsResult>;
+  export const getAccessIds: AuthenticatedLNDMethod<{}, GetAccessIdsResult>;
 
   export type GetAutopilotArgs = {
     /** Get Score For Public Key Hex */
     node_scores?: [string];
   };
-
   export type GetAutopilotResult = {
     /** Autopilot is Enabled */
     is_enabled: boolean;
@@ -783,7 +779,6 @@ declare module "ln-service" {
       weighted_score: number;
     }[];
   };
-
   /**
 	 * Get Autopilot status
 	 * 
@@ -792,7 +787,10 @@ Local scores reflect an internal scoring that includes local channel info
 	 * 
 	 * Permission `info:read` is required
 	 */
-  export const getAutopilot: LNDMethod<GetAutopilotArgs, GetAutopilotResult>;
+  export const getAutopilot: AuthenticatedLNDMethod<
+    GetAutopilotArgs,
+    GetAutopilotResult
+  >;
 
   export type GetBackupArgs = {
     /** Funding Transaction Id Hex */
@@ -800,18 +798,19 @@ Local scores reflect an internal scoring that includes local channel info
     /** Funding Transaction Output Index */
     transaction_vout: number;
   };
-
   export type GetBackupResult = {
     /** Channel Backup Hex */
     backup: string;
   };
-
   /**
    * Get the static channel backup for a channel
    *
    * Requires `offchain:read` permission
    */
-  export const getBackup: LNDMethod<GetBackupArgs, GetBackupResult>;
+  export const getBackup: AuthenticatedLNDMethod<
+    GetBackupArgs,
+    GetBackupResult
+  >;
 
   export type GetBackupsResult = {
     /** All Channels Backup Hex */
@@ -825,25 +824,26 @@ Local scores reflect an internal scoring that includes local channel info
       transaction_vout: number;
     };
   };
-
   /**
    * Get all channel backups
    *
    * Requires `offchain:read` permission
    */
-  export const getBackups: LNDMethod<{}, GetBackupsResult>;
+  export const getBackups: AuthenticatedLNDMethod<{}, GetBackupsResult>;
 
   export type GetChainBalanceResult = {
     /** Confirmed Chain Balance Tokens */
     chain_balance: number;
   };
-
   /**
    * Get balance on the chain.
    *
    * Requires `onchain:read` permission
    */
-  export const getChainBalance: LNDMethod<{}, GetChainBalanceResult>;
+  export const getChainBalance: AuthenticatedLNDMethod<
+    {},
+    GetChainBalanceResult
+  >;
 
   export type GetChainFeeEstimateArgs = {
     send_to: {
@@ -855,20 +855,18 @@ Local scores reflect an internal scoring that includes local channel info
     /** Target Confirmations */
     target_confirmations?: number;
   };
-
   export type GetChainFeeEstimateResult = {
     /** Total Fee Tokens */
     fee: number;
     /** Fee Tokens Per VByte */
     tokens_per_vbyte: number;
   };
-
   /**
    * Get a chain fee estimate for a prospective chain send
    *
    * Requires `onchain:read` permission
    */
-  export const getChainFeeEstimate: LNDMethod<
+  export const getChainFeeEstimate: AuthenticatedLNDMethod<
     GetChainFeeEstimateArgs,
     GetChainFeeEstimateResult
   >;
@@ -877,12 +875,10 @@ Local scores reflect an internal scoring that includes local channel info
     /** Future Blocks Confirmation */
     confirmation_target?: number;
   };
-
   export type GetChainFeeRateResult = {
     /** Tokens Per Virtual Byte */
     tokens_per_vbyte: number;
   };
-
   /**
    * Get chain fee rate estimate
    *
@@ -890,7 +886,7 @@ Local scores reflect an internal scoring that includes local channel info
    *
    * Requires `onchain:read` permission
    */
-  export const getChainFeeRate: LNDMethod<
+  export const getChainFeeRate: AuthenticatedLNDMethod<
     GetChainFeeRateArgs,
     GetChainFeeRateResult
   >;
@@ -901,7 +897,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** Confirmed Before Current Best Chain Block Height */
     before?: number;
   };
-
   export type GetChainTransactionsResult = {
     transactions: {
       /** Block Hash */
@@ -930,18 +925,15 @@ Local scores reflect an internal scoring that includes local channel info
       transaction?: string;
     }[];
   };
-
   /**
    * Get chain transactions.
    *
    * Requires `onchain:read` permission
    */
-  export const getChainTransactions: LNDMethod<
+  export const getChainTransactions: AuthenticatedLNDMethod<
     GetChainTransactionsArgs,
     GetChainTransactionsResult
   >;
-
-  export type GetChannelBalanceArgs = {};
 
   export type GetChannelBalanceResult = {
     /** Channels Balance Tokens */
@@ -961,7 +953,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** In-Flight Millitokens */
     unsettled_balance_mtokens?: number;
   };
-
   /**
    * Get balance across channels.
    *
@@ -977,8 +968,8 @@ Local scores reflect an internal scoring that includes local channel info
    *
    * `unsettled_balance_mtokens` is not supported on LND 0.11.1 and below
    */
-  export const getChannelBalance: LNDMethod<
-    GetChannelBalanceArgs,
+  export const getChannelBalance: AuthenticatedLNDMethod<
+    {},
     GetChannelBalanceResult
   >;
 
@@ -986,7 +977,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** Standard Format Channel Id */
     id: string;
   };
-
   export type GetChannelResult = {
     /** Maximum Tokens */
     capacity: number;
@@ -1017,13 +1007,15 @@ Local scores reflect an internal scoring that includes local channel info
     /** Last Update Epoch ISO 8601 Date */
     updated_at?: string;
   };
-
   /**
    * Get graph information about a channel on the network
    *
    * Requires `info:read` permission
    */
-  export const getChannel: LNDMethod<GetChannelArgs, GetChannelResult>;
+  export const getChannel: AuthenticatedLNDMethod<
+    GetChannelArgs,
+    GetChannelResult
+  >;
 
   export type GetChannelsArgs = {
     /** Limit Results To Only Active Channels */
@@ -1037,7 +1029,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** Only Channels With Public Key Hex */
     partner_public_key?: string;
   };
-
   export type GetChannelsResult = {
     channels: {
       /** Channel Token Capacity */
@@ -1136,7 +1127,6 @@ Local scores reflect an internal scoring that includes local channel info
       unsettled_balance: number;
     }[];
   };
-
   /**
 	 * Get channels
 	 * 
@@ -1145,7 +1135,10 @@ Local scores reflect an internal scoring that includes local channel info
 	 * `in_channel`, `in_payment`, `is_forward`, `out_channel`, `out_payment`,
 `payment` are not supported on LND 0.11.1 and belo
 	 */
-  export const getChannels: LNDMethod<GetChannelsArgs, GetChannelsResult>;
+  export const getChannels: AuthenticatedLNDMethod<
+    GetChannelsArgs,
+    GetChannelsResult
+  >;
 
   export type GetClosedChannelsArgs = {
     /** Only Return Breach Close Channels */
@@ -1159,7 +1152,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** Only Return Remote Force Close Channels */
     is_remote_force_close?: boolean;
   };
-
   export type GetClosedChannelsResult = {
     channels: {
       /** Closed Channel Capacity Tokens */
@@ -1218,7 +1210,6 @@ Local scores reflect an internal scoring that includes local channel info
       transaction_vout: number;
     }[];
   };
-
   /**
    * Get closed out channels
    *
@@ -1226,12 +1217,10 @@ Local scores reflect an internal scoring that includes local channel info
    *
    * Requires `offchain:read` permission
    */
-  export const getClosedChannels: LNDMethod<
+  export const getClosedChannels: AuthenticatedLNDMethod<
     GetClosedChannelsArgs,
     GetClosedChannelsResult
   >;
-
-  export type GetConnectedWatchTowersArgs = {};
 
   export type GetConnectedWatchTowersResult = {
     /** Maximum Updates Per Session */
@@ -1267,19 +1256,16 @@ Local scores reflect an internal scoring that includes local channel info
       sockets: string[];
     }[];
   };
-
   /**
    * Get a list of connected watchtowers and watchtower info
    * Requires LND built with `wtclientrpc` build tag
    * Requires `offchain:read` permission
    * Includes previously connected watchtowers
    */
-  export const getConnectedWatchTowers: LNDMethod<
-    GetConnectedWatchTowersArgs,
+  export const getConnectedWatchTowers: AuthenticatedLNDMethod<
+    {},
     GetConnectedWatchTowersResult
   >;
-
-  export type GetFeeRatesArgs = {};
 
   export type GetFeeRatesResult = {
     channels: {
@@ -1295,13 +1281,12 @@ Local scores reflect an internal scoring that includes local channel info
       transaction_vout: number;
     }[];
   };
-
   /**
    * Get a rundown on fees for channels
    *
    * Requires `offchain:read` permission
    */
-  export const getFeeRates: LNDMethod<GetFeeRatesArgs, GetFeeRatesResult>;
+  export const getFeeRates: AuthenticatedLNDMethod<{}, GetFeeRatesResult>;
 
   export type GetForwardingConfidenceArgs = {
     /** From Public Key Hex */
@@ -1311,21 +1296,17 @@ Local scores reflect an internal scoring that includes local channel info
     /** To Public Key Hex */
     to: string;
   };
-
   export type GetForwardingConfidenceResult = {
     /** Success Confidence Score Out Of One Million */
     confidence: number;
   };
-
   /**
    * Get the confidence in being able to send between a direct pair of nodes
    */
-  export const getForwardingConfidence: LNDMethod<
+  export const getForwardingConfidence: AuthenticatedLNDMethod<
     GetForwardingConfidenceArgs,
     GetForwardingConfidenceResult
   >;
-
-  export type GetForwardingReputationsArgs = {};
 
   export type GetForwardingReputationsResult = {
     nodes: {
@@ -1345,14 +1326,13 @@ Local scores reflect an internal scoring that includes local channel info
       public_key: string;
     }[];
   };
-
   /**
    * Get the set of forwarding reputations
    *
-   * Requires `offchain:read` permissio
+   * Requires `offchain:read` permission
    */
-  export const getForwardingReputations: LNDMethod<
-    GetForwardingReputationsArgs,
+  export const getForwardingReputations: AuthenticatedLNDMethod<
+    {},
     GetForwardingReputationsResult
   >;
 
@@ -1366,7 +1346,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** Opaque Paging Token */
     token?: string;
   };
-
   export type GetForwardsResult = {
     forwards: {
       /** Forward Record Created At ISO 8601 Date */
@@ -1387,7 +1366,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** Continue With Opaque Paging Token */
     next?: string;
   };
-
   /**
    * Get forwarded payments, from oldest to newest
    *
@@ -1397,9 +1375,10 @@ Local scores reflect an internal scoring that includes local channel info
    *
    * Requires `offchain:read` permission
    */
-  export const getForwards: LNDMethod<GetForwardsArgs, GetForwardsResult>;
-
-  export type GetHeightArgs = {};
+  export const getForwards: AuthenticatedLNDMethod<
+    GetForwardsArgs,
+    GetForwardsResult
+  >;
 
   export type GetHeightResult = {
     /** Best Chain Hash Hex */
@@ -1407,21 +1386,17 @@ Local scores reflect an internal scoring that includes local channel info
     /** Best Chain Height */
     current_block_height: number;
   };
-
   /**
    * Lookup the current best block height
    * LND with `chainrpc` build tag and `onchain:read` permission is suggested
    * Otherwise, `info:read` permission is require
    */
-  export const getHeight: LNDMethod<GetHeightArgs, GetHeightResult>;
-
-  export type GetIdentityArgs = {};
+  export const getHeight: AuthenticatedLNDMethod<{}, GetHeightResult>;
 
   export type GetIdentityResult = {
     /** Node Identity Public Key Hex */
     public_key: string;
   };
-
   /**
    * Lookup the identity key for a node
    *
@@ -1429,13 +1404,12 @@ Local scores reflect an internal scoring that includes local channel info
    *
    * Otherwise, `info:read` permission is require
    */
-  export const getIdentity: LNDMethod<GetIdentityArgs, GetIdentityResult>;
+  export const getIdentity: AuthenticatedLNDMethod<{}, GetIdentityResult>;
 
   export type GetInvoiceArgs = {
     /** Payment Hash Id Hex */
     id: string;
   };
-
   export type GetInvoiceResult = {
     /** Fallback Chain Address */
     chain_address?: string;
@@ -1512,7 +1486,6 @@ Local scores reflect an internal scoring that includes local channel info
     /** Tokens */
     tokens: number;
   };
-
   /**
 	 * Lookup a channel invoice.
 	 * 
@@ -1521,7 +1494,10 @@ over-paid.
 	 *
 	 * Requires `invoices:read` permission
 	 */
-  export const getInvoice: LNDMethod<GetInvoiceArgs, GetInvoiceResult>;
+  export const getInvoice: AuthenticatedLNDMethod<
+    GetInvoiceArgs,
+    GetInvoiceResult
+  >;
 
   export type GetInvoicesArgs = {
     /** Page Result Limit */
@@ -1529,7 +1505,6 @@ over-paid.
     /** Opaque Paging Token */
     token?: string;
   };
-
   export type GetInvoicesResult = {
     invoices: {
       /** Fallback Chain Address */
@@ -1610,7 +1585,6 @@ over-paid.
     /** Next Opaque Paging Token */
     next?: string;
   };
-
   /**
    * Get all created invoices.
    *
@@ -1618,9 +1592,10 @@ over-paid.
    *
    * Requires `invoices:read` permission
    */
-  export const getInvoices: LNDMethod<GetInvoicesArgs, GetInvoicesResult>;
-
-  export type GetMethodsArgs = {};
+  export const getInvoices: AuthenticatedLNDMethod<
+    GetInvoicesArgs,
+    GetInvoicesResult
+  >;
 
   export type GetMethodsResult = {
     methods: {
@@ -1630,17 +1605,14 @@ over-paid.
       permissions: string[];
     }[];
   };
-
   /**
    * Get the list of all methods and their associated requisite permissions
    *
    * Note: this method is not supported in LND versions 0.11.1 and below
    *
-   * Requires `info:read` permissio
+   * Requires `info:read` permission
    */
-  export const getMethods: LNDMethod<GetMethodsArgs, GetMethodsResult>;
-
-  export type GetNetworkCentralityArgs = {};
+  export const getMethods: AuthenticatedLNDMethod<{}, GetMethodsResult>;
 
   export type GetNetworkCentralityResult = {
     nodes: {
@@ -1652,18 +1624,15 @@ over-paid.
       public_key: string;
     }[];
   };
-
   /**
    * Get the graph centrality scores of the nodes on the network
    * Scores are from 0 to 1,000,000.
    * Requires `info:read` permissio
    */
-  export const getNetworkCentrality: LNDMethod<
-    GetNetworkCentralityArgs,
+  export const getNetworkCentrality: AuthenticatedLNDMethod<
+    {},
     GetNetworkCentralityResult
   >;
-
-  export type GetNetworkGraphArgs = {};
 
   export type GetNetworkGraphResult = {
     channels: {
@@ -1719,18 +1688,15 @@ over-paid.
       updated_at: string;
     }[];
   };
-
   /**
    * Get the network graph
    *
    * Requires `info:read` permission
    */
-  export const getNetworkGraph: LNDMethod<
-    GetNetworkGraphArgs,
+  export const getNetworkGraph: AuthenticatedLNDMethod<
+    {},
     GetNetworkGraphResult
   >;
-
-  export type GetNetworkInfoArgs = {};
 
   export type GetNetworkInfoResult = {
     /** Tokens */
@@ -1750,16 +1716,12 @@ over-paid.
     /** Total Capacity */
     total_capacity: number;
   };
-
   /**
    * Get network info
    *
    * Requires `info:read` permission
    */
-  export const getNetworkInfo: LNDMethod<
-    GetNetworkInfoArgs,
-    GetNetworkInfoResult
-  >;
+  export const getNetworkInfo: AuthenticatedLNDMethod<{}, GetNetworkInfoResult>;
 
   export type GetNodeArgs = {
     /** Omit Channels from Node */
@@ -1767,7 +1729,6 @@ over-paid.
     /** Node Public Key Hex */
     public_key: string;
   };
-
   export type GetNodeResult = {
     /** Node Alias */
     alias: string;
@@ -1826,18 +1787,16 @@ over-paid.
     /** Last Known Update ISO 8601 Date */
     updated_at?: string;
   };
-
   /**
    * Get information about a node
    * Requires `info:read` permission
    */
-  export const getNode: LNDMethod<GetNodeArgs, GetNodeResult>;
+  export const getNode: AuthenticatedLNDMethod<GetNodeArgs, GetNodeResult>;
 
   export type GetPaymentArgs = {
     /** Payment Preimage Hash Hex */
     id: string;
   };
-
   export type GetPaymentResult = {
     failed?: {
       /** Failed Due To Lack of Balance */
@@ -1892,13 +1851,15 @@ over-paid.
       tokens: number;
     };
   };
-
   /**
    * Get the status of a past payment
    *
    * Requires `offchain:read` permissio
    */
-  export const getPayment: LNDMethod<GetPaymentArgs, GetPaymentResult>;
+  export const getPayment: AuthenticatedLNDMethod<
+    GetPaymentArgs,
+    GetPaymentResult
+  >;
 
   export type GetPaymentsArgs = {
     /** Page Result Limit */
@@ -1906,7 +1867,6 @@ over-paid.
     /** Opaque Paging Token */
     token?: string;
   };
-
   export type GetPaymentsResult = {
     payments: {
       attempts: {
@@ -2031,15 +1991,15 @@ over-paid.
     /** Next Opaque Paging Token */
     next?: string;
   };
-
   /**
    * Get payments made through channels.
    *
    * Requires `offchain:read` permission
    */
-  export const getPayments: LNDMethod<GetPaymentsArgs, GetPaymentsResult>;
-
-  export type GetPeersArgs = {};
+  export const getPayments: AuthenticatedLNDMethod<
+    GetPaymentsArgs,
+    GetPaymentsResult
+  >;
 
   export type GetPeersResult = {
     peers: {
@@ -2077,7 +2037,6 @@ over-paid.
       tokens_sent: number;
     }[];
   };
-
   /**
    * Get connected peers.
    *
@@ -2085,15 +2044,12 @@ over-paid.
    *
    * LND 0.11.1 and below do not return `last_reconnected` or `reconnection_rate
    */
-  export const getPeers: LNDMethod<GetPeersArgs, GetPeersResult>;
-
-  export type GetPendingChainBalanceArgs = {};
+  export const getPeers: AuthenticatedLNDMethod<{}, GetPeersResult>;
 
   export type GetPendingChainBalanceResult = {
     /** Pending Chain Balance Tokens */
     pending_chain_balance: number;
   };
-
   /**
    * Get pending chain balance in simple unconfirmed outputs.
    *
@@ -2101,12 +2057,10 @@ over-paid.
    *
    * Requires `onchain:read` permission
    */
-  export const getPendingChainBalance: LNDMethod<
-    GetPendingChainBalanceArgs,
+  export const getPendingChainBalance: AuthenticatedLNDMethod<
+    {},
     GetPendingChainBalanceResult
   >;
-
-  export type GetPendingChannelsArgs = {};
 
   export type GetPendingChannelsResult = {
     pending_channels: {
@@ -2162,7 +2116,6 @@ over-paid.
       transaction_weight?: number;
     }[];
   };
-
   /**
    * Get pending channels.
 	 * 
@@ -2171,8 +2124,8 @@ channel may be opening, closing, or active.
 	 * 
 	 * Requires `offchain:read` permission
    */
-  export const getPendingChannels: LNDMethod<
-    GetPendingChannelsArgs,
+  export const getPendingChannels: AuthenticatedLNDMethod<
+    {},
     GetPendingChannelsResult
   >;
 
@@ -2182,14 +2135,12 @@ channel may be opening, closing, or active.
     /** Key Index */
     index?: number;
   };
-
   export type GetPublicKeyResult = {
     /** Key Index */
     index: number;
     /** Public Key Hex */
     public_key: string;
   };
-
   /**
    * Get a public key in the seed
    *
@@ -2199,7 +2150,10 @@ channel may be opening, closing, or active.
    *
    * Requires `address:read` permission
    */
-  export const getPublicKey: LNDMethod<GetPublicKeyArgs, GetPublicKeyResult>;
+  export const getPublicKey: AuthenticatedLNDMethod<
+    GetPublicKeyArgs,
+    GetPublicKeyResult
+  >;
 
   export type GetRouteConfidenceArgs = {
     /** Starting Hex Serialized Public Key */
@@ -2211,12 +2165,10 @@ channel may be opening, closing, or active.
       public_key: string;
     }[];
   };
-
   export type GetRouteConfidenceResult = {
     /** Confidence Score Out Of One Million */
     confidence: number;
   };
-
   /**
    * Get routing confidence of successfully routing a payment to a destination
    *
@@ -2224,7 +2176,7 @@ channel may be opening, closing, or active.
    *
    * Requires `offchain:read` permission
    */
-  export const getRouteConfidence: LNDMethod<
+  export const getRouteConfidence: AuthenticatedLNDMethod<
     GetRouteConfidenceArgs,
     GetRouteConfidenceResult
   >;
@@ -2251,7 +2203,6 @@ channel may be opening, closing, or active.
     /** Payment Total Millitokens */
     total_mtokens?: string;
   };
-
   export type GetRouteThroughHopsResult = {
     route: {
       /** Route Fee Tokens */
@@ -2298,13 +2249,12 @@ channel may be opening, closing, or active.
       total_mtokens?: string;
     };
   };
-
   /**
    * Get an outbound route that goes through specific hops
    *
    * Requires `offchain:read` permission
    */
-  export const getRouteThroughHops: LNDMethod<
+  export const getRouteThroughHops: AuthenticatedLNDMethod<
     GetRouteThroughHopsArgs,
     GetRouteThroughHopsResult
   >;
@@ -2371,7 +2321,6 @@ channel may be opening, closing, or active.
     /** Total Millitokens of Shards */
     total_mtokens?: string;
   };
-
   export type GetRouteToDestinationResult = {
     route?: {
       /** Route Confidence Score Out Of One Million */
@@ -2416,7 +2365,6 @@ channel may be opening, closing, or active.
       tokens: number;
     };
   };
-
   /**
    * Get a route to a destination.
    *
@@ -2424,12 +2372,10 @@ channel may be opening, closing, or active.
    *
    * Requires `info:read` permission
    */
-  export const getRouteToDestination: LNDMethod<
+  export const getRouteToDestination: AuthenticatedLNDMethod<
     GetRouteToDestinationArgs,
     GetRouteToDestinationResult
   >;
-
-  export type GetSweepTransactionsArgs = {};
 
   export type GetSweepTransactionsResult = {
     transactions: {
@@ -2465,18 +2411,15 @@ channel may be opening, closing, or active.
       transaction?: string;
     }[];
   };
-
   /**
    * Get self-transfer spend transactions related to channel closes
    *
    * Requires `onchain:read` permissio
    */
-  export const getSweepTransactions: LNDMethod<
-    GetSweepTransactionsArgs,
+  export const getSweepTransactions: AuthenticatedLNDMethod<
+    {},
     GetSweepTransactionsResult
   >;
-
-  export type GetTowerServerInfoArgs = {};
 
   export type GetTowerServerInfoResult = {
     tower?: {
@@ -2488,14 +2431,13 @@ channel may be opening, closing, or active.
       uris: string;
     };
   };
-
   /**
    * Get watchtower server info.
    * This method requires LND built with `watchtowerrpc` build tag
    * Requires `info:read` permission
    */
-  export const getTowerServerInfo: LNDMethod<
-    GetTowerServerInfoArgs,
+  export const getTowerServerInfo: AuthenticatedLNDMethod<
+    {},
     GetTowerServerInfoResult
   >;
 
@@ -2505,7 +2447,6 @@ channel may be opening, closing, or active.
     /** Minimum Confirmations */
     min_confirmations?: number;
   };
-
   export type GetUTXOsResult = {
     utxos: {
       /** Chain Address */
@@ -2524,14 +2465,12 @@ channel may be opening, closing, or active.
       transaction_vout: number;
     }[];
   };
-
   /**
    * Get unspent transaction outputs
+   *
    * Requires `onchain:read` permission
    */
-  export const getUTXOs: LNDMethod<GetUTXOsArgs, GetUTXOsResult>;
-
-  export type GetWalletInfoArgs = {};
+  export const getUTXOs: AuthenticatedLNDMethod<GetUTXOsArgs, GetUTXOsResult>;
 
   export type GetWalletInfoResult = {
     /** Active Channels Count */
@@ -2567,15 +2506,12 @@ channel may be opening, closing, or active.
     /** Public Key */
     public_key: string;
   };
-
   /**
    * Get overall wallet info.
    *
    * Requires `info:read` permission
    */
-  export const getWalletInfo: LNDMethod<GetWalletInfoArgs, GetWalletInfoResult>;
-
-  export type GetWalletVersionArgs = {};
+  export const getWalletInfo: AuthenticatedLNDMethod<{}, GetWalletInfoResult>;
 
   export type GetWalletVersionResult = {
     /** Build Tag */
@@ -2599,7 +2535,6 @@ channel may be opening, closing, or active.
     /** Recognized LND Version */
     version?: string;
   };
-
   /**
    * Get wallet version
    *
@@ -2607,8 +2542,8 @@ channel may be opening, closing, or active.
    *
    * Requires `info:read` permissio
    */
-  export const getWalletVersion: LNDMethod<
-    GetWalletVersionArgs,
+  export const getWalletVersion: AuthenticatedLNDMethod<
+    {},
     GetWalletVersionResult
   >;
 
@@ -2656,14 +2591,12 @@ channel may be opening, closing, or active.
     /** Entity:Action */
     permissions?: string[];
   };
-
   export type GrantAccessResult = {
     /** Base64 Encoded Macaroon */
     macaroon: string;
     /** Entity:Action */
     permissions: string[];
   };
-
   /**
 	 * Give access to the node by making a macaroon access credential
 	 * 
@@ -2676,7 +2609,10 @@ and version differences in LND can result in expanded access.
 	 *
 	 * Note: `id` is not supported in LND versions 0.11.0 and below
 	 */
-  export const grantAccess: LNDMethod<GrantAccessArgs, GrantAccessResult>;
+  export const grantAccess: AuthenticatedLNDMethod<
+    GrantAccessArgs,
+    GrantAccessResult
+  >;
 
   export type GRPCProxyServerArgs = {
     /** Bind to Address */
@@ -2694,7 +2630,6 @@ and version differences in LND can result in expanded access.
     /** Log Write Stream */
     stream: stream.Writable;
   };
-
   export type GRPCProxyServerResult = {
     /** Express Application */
     app: express.Express;
@@ -2703,14 +2638,12 @@ and version differences in LND can result in expanded access.
     /** WebSocket Server */
     wss: ws.Server;
   };
-
   /**
    * Get a gRPC proxy server
    */
-  export const grpcProxyServer: LNDMethod<
-    GRPCProxyServerArgs,
-    GRPCProxyServerResult
-  >;
+  export const grpcProxyServer: (
+    args: GRPCProxyServerArgs
+  ) => GRPCProxyServerResult;
 
   export type IsDestinationPayableArgs = {
     /** Final CLTV Delta */
@@ -2742,18 +2675,16 @@ and version differences in LND can result in expanded access.
     /** Paying Tokens */
     tokens?: number;
   };
-
   export type IsDestinationPayableResult = {
     /** Payment Is Successfully Tested Within Constraints */
     is_payable: boolean;
   };
-
   /**
    * Determine if a payment destination is actually payable by probing it
    *
    * Requires `offchain:write` permission
    */
-  export const isDestinationPayable: LNDMethod<
+  export const isDestinationPayable: AuthenticatedLNDMethod<
     IsDestinationPayableArgs,
     IsDestinationPayableResult
   >;
@@ -2766,14 +2697,12 @@ and version differences in LND can result in expanded access.
     /** Unspent Transaction Output Index */
     transaction_vout: number;
   };
-
   export type LockUTXOResult = {
     /** Lock Expires At ISO 8601 Date */
     expires_at: string;
     /** Locking Id Hex */
     id: string;
   };
-
   /**
    * Lock UTXO
    *
@@ -2781,7 +2710,7 @@ and version differences in LND can result in expanded access.
    *
    * Requires LND built with `walletrpc` build tag
    */
-  export const lockUtxo: LNDMethod<LockUTXOArgs, LockUTXOResult>;
+  export const lockUtxo: AuthenticatedLNDMethod<LockUTXOArgs, LockUTXOResult>;
 
   export type OpenChannelArgs = {
     /** Chain Fee Tokens Per VByte */
@@ -2792,8 +2721,6 @@ and version differences in LND can result in expanded access.
     give_tokens?: number;
     /** Channel is Private */
     is_private?: boolean;
-    /** Authenticated */
-    lnd: LND;
     /** Local Tokens */
     local_tokens: number;
     /** Spend UTXOs With Minimum Confirmations */
@@ -2807,14 +2734,12 @@ and version differences in LND can result in expanded access.
     /** Peer Connection Host:Port */
     partner_socket?: string;
   };
-
   export type OpenChannelResult = {
     /** Funding Transaction Id */
     transaction_id: string;
     /** Funding Transaction Output Index */
     transaction_vout: number;
   };
-
   /**
    * Open a new channel.
    *
@@ -2824,7 +2749,10 @@ and version differences in LND can result in expanded access.
    *
    * Requires `offchain:write`, `onchain:write`, `peers:write` permissions
    */
-  export const openChannel: LNDMethod<OpenChannelArgs, OpenChannelResult>;
+  export const openChannel: AuthenticatedLNDMethod<
+    OpenChannelArgs,
+    OpenChannelResult
+  >;
 
   export type OpenChannelsArgs = {
     channels: {
@@ -2846,7 +2774,6 @@ and version differences in LND can result in expanded access.
       partner_socket?: string;
     }[];
   };
-
   export type OpenChannelsResult = {
     pending: {
       /** Address To Send To */
@@ -2857,11 +2784,10 @@ and version differences in LND can result in expanded access.
       tokens: number;
     }[];
   };
-
   /**
 	 *	Open one or more channels
 	 *
-* Requires `offchain:write`, `onchain:write` permissions
+   * Requires `offchain:write`, `onchain:write` permissions
 	 *
 * After getting the addresses and tokens to fund, use `fundChannels` within ten
 minutes to fund the channels.
@@ -2869,13 +2795,15 @@ minutes to fund the channels.
 	 * If you do not fund the channels, be sure to `cancelPendingChannel`s on each
 channel that was not funded.
 	 */
-  export const openChannels: LNDMethod<OpenChannelsArgs, OpenChannelsResult>;
+  export const openChannels: AuthenticatedLNDMethod<
+    OpenChannelsArgs,
+    OpenChannelsResult
+  >;
 
   export type ParsePaymentRequestArgs = {
     /** BOLT 11 Payment Request */
     request: string;
   };
-
   export type ParsePaymentRequestResult = {
     /** Chain Address */
     chain_addresses?: string[];
@@ -2926,15 +2854,14 @@ channel that was not funded.
     /** Requested Chain Tokens */
     tokens?: number;
   };
-
   /**
    * Parse a BOLT 11 payment request into its component data
+   *
    * Note: either `description` or `description_hash` will be returned
    */
-  export const parsePaymentRequest: MethodWithoutLND<
-    ParsePaymentRequestArgs,
-    ParsePaymentRequestResult
-  >;
+  export const parsePaymentRequest: (
+    args: ParsePaymentRequestArgs
+  ) => ParsePaymentRequestResult;
 
   export type PayArgs = {
     /** Pay Through Specific Final Hop Public Key Hex */
@@ -3008,7 +2935,6 @@ channel that was not funded.
     /** Total Tokens To Pay to Payment Request */
     tokens?: number;
   };
-
   export type PayResult = {
     /** Fee Paid Tokens */
     fee: number;
@@ -3043,7 +2969,6 @@ channel that was not funded.
     /** Total Tokens Sent */
     tokens: number;
   };
-
   /**
    * Make a payment.
    *
@@ -3053,7 +2978,7 @@ channel that was not funded.
    *
    * Requires `offchain:write` permission
    */
-  export const pay: LNDMethod<PayArgs, PayResult>;
+  export const pay: AuthenticatedLNDMethod<PayArgs, PayResult>;
 
   export type PayViaPaymentDetailsArgs = {
     /** Final CLTV Delta */
@@ -3107,7 +3032,6 @@ channel that was not funded.
     /** Tokens To Pay */
     tokens?: number;
   };
-
   export type PayViaPaymentDetailsResult = {
     /** Total Fee Tokens Paid Rounded Down */
     fee: number;
@@ -3166,7 +3090,6 @@ channel that was not funded.
     /** Total Tokens Paid Rounded Down */
     tokens: number;
   };
-
   /**
    * Pay via payment details
    *
@@ -3174,7 +3097,7 @@ channel that was not funded.
    *
    * Requires `offchain:write` permission
    */
-  export const payViaPaymentDetails: LNDMethod<
+  export const payViaPaymentDetails: AuthenticatedLNDMethod<
     PayViaPaymentDetailsArgs,
     PayViaPaymentDetailsResult
   >;
@@ -3182,8 +3105,6 @@ channel that was not funded.
   export type PayViaPaymentRequestArgs = {
     /** Pay Through Specific Final Hop Public Key Hex */
     incoming_peer?: string;
-    /** Authenticated */
-    lnd: LND;
     /** Maximum Fee Tokens To Pay */
     max_fee?: number;
     /** Maximum Fee Millitokens to Pay */
@@ -3211,7 +3132,6 @@ channel that was not funded.
     /** Tokens To Pay */
     tokens?: number;
   };
-
   export type PayViaPaymentRequestResult = {
     /** Total Fee Tokens Paid Rounded Down */
     fee: number;
@@ -3270,13 +3190,12 @@ channel that was not funded.
     /** Total Tokens Paid Rounded Down */
     tokens: number;
   };
-
   /**
    * Pay via payment request
    *
    * Requires `offchain:write` permission
    */
-  export const payViaPaymentRequest: LNDMethod<
+  export const payViaPaymentRequest: AuthenticatedLNDMethod<
     PayViaPaymentRequestArgs,
     PayViaPaymentRequestResult
   >;
@@ -3323,16 +3242,8 @@ channel that was not funded.
       tokens: number;
     }[];
   };
-
   export type PayViaRoutesResult = {
-    failures: [
-      /** Failure Code */
-      number,
-      /** Failure Code Message */
-      string,
-      /** Failure Code Details */
-      Object
-    ][];
+    failures: LNServiceError[];
     /** Fee Paid Tokens */
     fee: number;
     /** Fee Paid Millitokens */
@@ -3366,7 +3277,6 @@ channel that was not funded.
     /** Total Tokens Sent Rounded Down */
     tokens: number;
   };
-
   /**
    * Make a payment via a specified route
    *
@@ -3374,7 +3284,10 @@ channel that was not funded.
    *
    * Requires `offchain:write` permission
    */
-  export const payViaRoutes: LNDMethod<PayViaRoutesArgs, PayViaRoutesResult>;
+  export const payViaRoutes: AuthenticatedLNDMethod<
+    PayViaRoutesArgs,
+    PayViaRoutesResult
+  >;
 
   export type PrepareForChannelProposalArgs = {
     /** Cooperative Close Relative Delay */
@@ -3390,12 +3303,10 @@ channel that was not funded.
     /** Funding Output Transaction Output Index */
     transaction_vout: number;
   };
-
   export type PrepareForChannelProposalResult = {
     /** Pending Channel Id Hex */
     id: string;
   };
-
   /**
 	 * Prepare for a channel proposal
 	 * 
@@ -3404,7 +3315,7 @@ allow for cooperative close delays or external funding flows.
 	 *
 	 * Requires `offchain:write`, `onchain:write` permissions
 	 */
-  export const prepareForChannelProposal: LNDMethod<
+  export const prepareForChannelProposal: AuthenticatedLNDMethod<
     PrepareForChannelProposalArgs,
     PrepareForChannelProposalResult
   >;
@@ -3473,7 +3384,6 @@ allow for cooperative close delays or external funding flows.
     /** Total Millitokens Across Paths */
     total_mtokens?: string;
   };
-
   export type ProbeForRouteResult = {
     route?: {
       /** Route Confidence Score Out Of One Million */
@@ -3522,13 +3432,15 @@ allow for cooperative close delays or external funding flows.
       total_mtokens?: string;
     };
   };
-
   /**
    * Probe to find a successful route
    *
    * Requires `offchain:write` permission
    */
-  export const probeForRoute: LNDMethod<ProbeForRouteArgs, ProbeForRouteResult>;
+  export const probeForRoute: AuthenticatedLNDMethod<
+    ProbeForRouteArgs,
+    ProbeForRouteResult
+  >;
 
   export type ProposeChannelArgs = {
     /** Channel Capacity Tokens */
@@ -3556,7 +3468,6 @@ allow for cooperative close delays or external funding flows.
     /** Funding Output Transaction Output Index */
     transaction_vout: number;
   };
-
   /**
 	 * Propose a new channel to a peer that prepared for the channel proposal
 	 * 
@@ -3567,43 +3478,40 @@ flows.
 	 *
 	 * Requires LND compiled with `walletrpc` build tag
 	 */
-  export const proposeChannel: LNDMethod<ProposeChannelArgs>;
+  export const proposeChannel: AuthenticatedLNDMethod<ProposeChannelArgs>;
 
   export type RecoverFundsFromChannelArgs = {
     /** Backup Hex */
     backup: string;
   };
-
   /**
    * Verify and restore a channel from a single channel backup
    *
    * Requires `offchain:write` permission
    */
-  export const recoverFundsFromChannel: LNDMethod<RecoverFundsFromChannelArgs>;
+  export const recoverFundsFromChannel: AuthenticatedLNDMethod<RecoverFundsFromChannelArgs>;
 
   export type RecoverFundsFromChannelsArgs = {
     /** Backup Hex */
     backup: string;
   };
-
   /**
    * Verify and restore channels from a multi-channel backup
    *
    * Requires `offchain:write` permission
    */
-  export const recoverFundsFromChannels: LNDMethod<RecoverFundsFromChannelsArgs>;
+  export const recoverFundsFromChannels: AuthenticatedLNDMethod<RecoverFundsFromChannelsArgs>;
 
   export type RemovePeerArgs = {
     /** Public Key Hex */
     public_key: string;
   };
-
   /**
    * Remove a peer if possible
    *
    * Requires `peers:remove` permission
    */
-  export const removePeer: LNDMethod<RemovePeerArgs>;
+  export const removePeer: AuthenticatedLNDMethod<RemovePeerArgs>;
 
   export type RestrictMacaroonArgs = {
     /** Expires At ISO 8601 Date */
@@ -3613,25 +3521,21 @@ flows.
     /** Base64 Encoded Macaroon */
     macaroon: string;
   };
-
   export type RestrictMacaroonResult = {
     /** Restricted Base64 Encoded Macaroon */
     macaroon: string;
   };
-
   /**
    * Restrict an access macaroon
    */
-  export const restrictMacaroon: MethodWithoutLND<
-    RestrictMacaroonArgs,
-    RestrictMacaroonResult
-  >;
+  export const restrictMacaroon: (
+    args: RestrictMacaroonArgs
+  ) => RestrictMacaroonResult;
 
   export type RevokeAccessArgs = {
     /** Access Token Macaroon Root Id Positive Integer */
     id: string;
   };
-
   /**
    * Revoke an access token given out in the past
    *
@@ -3639,7 +3543,7 @@ flows.
    *
    * Requires `macaroon:write` permission
    */
-  export const revokeAccess: LNDMethod<RevokeAccessArgs>;
+  export const revokeAccess: AuthenticatedLNDMethod<RevokeAccessArgs>;
 
   export type RouteFromChannelsArgs = {
     channels: {
@@ -3683,7 +3587,6 @@ flows.
     /** Sum of Shards Millitokens */
     total_mtokens?: string;
   };
-
   export type RouteFromChannelsResult = {
     route: {
       /** Total Fee Tokens To Pay */
@@ -3726,16 +3629,14 @@ flows.
       total_mtokens?: string;
     };
   };
-
   /**
    * Get a route from a sequence of channels
    *
    * Either next hop destination in channels or final destination is require
    */
-  export const routeFromChannels: MethodWithoutLND<
-    RouteFromChannelsArgs,
-    RouteFromChannelsResult
-  >;
+  export const routeFromChannels: (
+    args: RouteFromChannelsArgs
+  ) => RouteFromChannelsResult;
 
   export type SendToChainAddressArgs = {
     /** Destination Chain Address */
@@ -3757,7 +3658,6 @@ flows.
     /** Web Socket Server */
     wss?: ws.Server;
   };
-
   export type SendToChainAddressResult = {
     /** Total Confirmations */
     confirmation_count: number;
@@ -3770,7 +3670,6 @@ flows.
     /** Transaction Tokens */
     tokens: number;
   };
-
   /**
    * Send tokens in a blockchain transaction.
    *
@@ -3778,7 +3677,7 @@ flows.
    *
    * `utxo_confirmations` is not supported on LND 0.11.1 or below
    */
-  export const sendToChainAddress: LNDMethod<
+  export const sendToChainAddress: AuthenticatedLNDMethod<
     SendToChainAddressArgs,
     SendToChainAddressResult
   >;
@@ -3803,7 +3702,6 @@ flows.
     /** Web Socket Server */
     wss?: ws.Server;
   };
-
   export type SendToChainAddressesResult = {
     /** Total Confirmations */
     confirmation_count: number;
@@ -3816,7 +3714,6 @@ flows.
     /** Transaction Tokens */
     tokens: number;
   };
-
   /**
    * Send tokens to multiple destinations in a blockchain transaction.
    *
@@ -3824,7 +3721,7 @@ flows.
    *
    * `utxo_confirmations` is not supported on LND 0.11.1 or belo
    */
-  export const sendToChainAddresses: LNDMethod<
+  export const sendToChainAddresses: AuthenticatedLNDMethod<
     SendToChainAddressesArgs,
     SendToChainAddressesResult
   >;
@@ -3839,7 +3736,6 @@ flows.
     /** Enable Autopilot */
     is_enabled?: boolean;
   };
-
   /**
    * Configure Autopilot settings
    *
@@ -3849,13 +3745,12 @@ flows.
    *
    * Permissions `info:read`, `offchain:write`, `onchain:write` are required
    */
-  export const setAutopilot: LNDMethod<SetAutopilotArgs>;
+  export const setAutopilot: AuthenticatedLNDMethod<SetAutopilotArgs>;
 
   export type SettleHodlInvoiceArgs = {
     /** Payment Preimage Hex */
     secret: string;
   };
-
   /**
    * Settle HODL invoice
    *
@@ -3863,7 +3758,7 @@ flows.
    *
    * Requires `invoices:write` permission
    */
-  export const settleHodlInvoice: LNDMethod<SettleHodlInvoiceArgs>;
+  export const settleHodlInvoice: AuthenticatedLNDMethod<SettleHodlInvoiceArgs>;
 
   export type SignBytesArgs = {
     /** Key Family */
@@ -3873,12 +3768,10 @@ flows.
     /** Bytes To Hash and Sign Hex Encoded */
     preimage: string;
   };
-
   export type SignBytesResult = {
     /** Signature Hex */
     signature: string;
   };
-
   /**
    * Sign a sha256 hash of arbitrary bytes
    *
@@ -3886,37 +3779,39 @@ flows.
    *
    * Requires `signer:generate` permission
    */
-  export const signBytes: LNDMethod<SignBytesArgs, SignBytesResult>;
+  export const signBytes: AuthenticatedLNDMethod<
+    SignBytesArgs,
+    SignBytesResult
+  >;
 
   export type SignMessageArgs = {
     /** Message */
     message: string;
   };
-
   export type SignMessageResult = {
     /** Signature */
     signature: string;
   };
-
   /**
    * Sign a message
    *
    * Requires `message:write` permission
    */
-  export const signMessage: LNDMethod<SignMessageArgs, SignMessageResult>;
+  export const signMessage: AuthenticatedLNDMethod<
+    SignMessageArgs,
+    SignMessageResult
+  >;
 
   export type SignPSBTArgs = {
     /** Funded PSBT Hex */
     psbt: string;
   };
-
   export type SignPSBTResult = {
     /** Finalized PSBT Hex */
     psbt: string;
     /** Signed Raw Transaction Hex */
     transaction: string;
   };
-
   /**
    * Sign a PSBT to produce a finalized PSBT that is ready to broadcast
    *
@@ -3926,7 +3821,7 @@ flows.
    *
    * This method is not supported in LND 0.11.1 and below
    */
-  export const signPsbt: LNDMethod<SignPSBTArgs, SignPSBTResult>;
+  export const signPsbt: AuthenticatedLNDMethod<SignPSBTArgs, SignPSBTResult>;
 
   export type SignTransactionArgs = {
     inputs: {
@@ -3948,12 +3843,10 @@ flows.
     /** Unsigned Transaction Hex */
     transaction: string;
   };
-
   export type SignTransactionResult = {
     /** Signature Hex */
     signatures: string[];
   };
-
   /**
    * Sign transaction
    *
@@ -3961,7 +3854,7 @@ flows.
    *
    * Requires `signer:generate` permission
    */
-  export const signTransaction: LNDMethod<
+  export const signTransaction: AuthenticatedLNDMethod<
     SignTransactionArgs,
     SignTransactionResult
   >;
@@ -3971,9 +3864,7 @@ flows.
    *
    * Requires `info:write` permission
    */
-  export const stopDaemon: LNDMethod;
-
-  export type SubscribeToBackupsArgs = {};
+  export const stopDaemon: AuthenticatedLNDMethod;
 
   export type SubscribeToBackupsBackupEvent = {
     /** Backup Hex */
@@ -3987,17 +3878,12 @@ flows.
       transaction_vout: number;
     }[];
   };
-
   /**
    * Subscribe to backup snapshot updates
    *
    * Requires `offchain:read` permission
    */
-  export const subscribeToBackups: (
-    args: Args<SubscribeToBackupsArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToBlocksArgs = {};
+  export const subscribeToBackups: AuthenticatedLNDSubscription;
 
   export type SubscribeToBlocksBlockEvent = {
     /** Block Height */
@@ -4005,7 +3891,6 @@ flows.
     /** Block Hash */
     id: string;
   };
-
   /**
    * Subscribe to blocks
    *
@@ -4013,9 +3898,7 @@ flows.
    *
    * Requires `onchain:read` permission
    */
-  export const subscribeToBlocks: (
-    args: Args<SubscribeToBlocksArgs>
-  ) => events.EventEmitter;
+  export const subscribeToBlocks: AuthenticatedLNDSubscription;
 
   export type SubscribeToChainAddressArgs = {
     /** Address */
@@ -4033,7 +3916,6 @@ flows.
     /** Blockchain Transaction Id */
     transaction_id?: string;
   };
-
   export type SubscribeToChainAddressConfirmationEvent = {
     /** Block Hash Hex */
     block: string;
@@ -4042,9 +3924,7 @@ flows.
     /** Raw Transaction Hex */
     transaction: string;
   };
-
   export type SubscribeToChainAddressReorgEvent = undefined;
-
   /**
    * Subscribe to confirmation details about transactions sent to an address
    *
@@ -4054,9 +3934,7 @@ flows.
    *
    * Requires `onchain:read` permission
    */
-  export const subscribeToChainAddress: (
-    args: Args<SubscribeToChainAddressArgs>
-  ) => events.EventEmitter;
+  export const subscribeToChainAddress: AuthenticatedLNDSubscription<SubscribeToChainAddressArgs>;
 
   export type SubscribeToChainSpendArgs = {
     /** Bech32 P2WPKH or P2WSH Address */
@@ -4074,7 +3952,6 @@ flows.
     /** Blockchain Transaction Output Index */
     transaction_vout?: number;
   };
-
   export type SubscribeToChainSpendConfirmationEvent = {
     /** Confirmation Block Height */
     height: number;
@@ -4083,9 +3960,7 @@ flows.
     /** Spend Outpoint Index */
     vin: number;
   };
-
   export type SubscribeToChainSpendReorgEvent = undefined;
-
   /**
    * Subscribe to confirmations of a spend
    *
@@ -4095,11 +3970,7 @@ flows.
    *
    * Requires `onchain:read` permission
    */
-  export const subscribeToChainSpend: (
-    args: Args<SubscribeToChainSpendArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToChannelsArgs = {};
+  export const subscribeToChainSpend: AuthenticatedLNDSubscription<SubscribeToChainSpendArgs>;
 
   export type SubscribeToChannelsChannelActiveChangedEvent = {
     /** Channel Is Active */
@@ -4109,7 +3980,6 @@ flows.
     /** Channel Funding Transaction Output Index */
     transaction_vout: number;
   };
-
   export type SubscribeToChannelsChannelClosedEvent = {
     /** Closed Channel Capacity Tokens */
     capacity: number;
@@ -4166,7 +4036,6 @@ flows.
     /** Channel Funding Output Index */
     transaction_vout: number;
   };
-
   export type SubscribeToChannelsChannelOpenedEvent = {
     /** Channel Token Capacity */
     capacity: number;
@@ -4227,24 +4096,18 @@ flows.
     /** Unsettled Balance Tokens */
     unsettled_balance: number;
   };
-
   export type SubscribeToChannelsChannelOpeningEvent = {
     /** Blockchain Transaction Id Hex */
     transaction_id: string;
     /** Blockchain Transaction Output Index */
     transaction_vout: number;
   };
-
   /**
    * Subscribe to channel updates
-
+   *
    * Requires `offchain:read` permission
    */
-  export const subscribeToChannels: (
-    args: Args<SubscribeToChannelsArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToForwardRequestsArgs = {};
+  export const subscribeToChannels: AuthenticatedLNDSubscription;
 
   export type SubscribeToForwardRequestsForwardRequestEvent = {
     accept: () => {};
@@ -4281,7 +4144,6 @@ flows.
     /** Tokens to Forward to Next Peer Rounded Down */
     tokens: number;
   };
-
   /**
 	 * Subscribe to requests to forward payments
 	 * 
@@ -4292,11 +4154,7 @@ selected internally to complete the forward.
 	 *
 	 * `onion` is not supported in LND 0.11.1 and below
 	 */
-  export const subscribeToForwardRequests: (
-    args: Args<SubscribeToForwardRequestsArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToForwardsArgs = {};
+  export const subscribeToForwardRequests: AuthenticatedLNDSubscription;
 
   export type SubscribeToForwardsForwardEvent = {
     /** Forward Update At ISO 8601 Date */
@@ -4328,17 +4186,12 @@ selected internally to complete the forward.
     /** Sending Tokens */
     tokens?: number;
   };
-
   /**
    * Subscribe to HTLC events
    *
    * Requires `offchain:read` permissio
    */
-  export const subscribeToForwards: (
-    args: Args<SubscribeToForwardsArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToGraphArgs = {};
+  export const subscribeToForwards: AuthenticatedLNDSubscription;
 
   export type SubscribeToGraphChannelUpdatedEvent = {
     /** Channel Base Fee Millitokens */
@@ -4366,7 +4219,6 @@ selected internally to complete the forward.
     /** Update Received At ISO 8601 Date */
     updated_at: string;
   };
-
   export type SubscribeToGraphChannelClosedEvent = {
     /** Channel Capacity Tokens */
     capacity?: number;
@@ -4381,9 +4233,7 @@ selected internally to complete the forward.
     /** Update Received At ISO 8601 Date */
     updated_at: string;
   };
-
   export type SubscribeToGraphErrorEvent = Error;
-
   export type SubscribeToGraphNodeUpdatedEvent = {
     /** Node Alias */
     alias: string;
@@ -4406,21 +4256,17 @@ selected internally to complete the forward.
     /** Update Received At ISO 8601 Date */
     updated_at: string;
   };
-
   /**
    * Subscribe to graph updates
    *
    * Requires `info:read` permissio
    */
-  export const subscribeToGraph: (
-    args: Args<SubscribeToGraphArgs>
-  ) => events.EventEmitter;
+  export const subscribeToGraph: AuthenticatedLNDSubscription;
 
   export type SubscribeToInvoiceArgs = {
     /** Invoice Payment Hash Hex */
     id: string;
   };
-
   export type SubscribeToInvoiceInvoiceUpdatedEvent = {
     /** Fallback Chain Address */
     chain_address: string;
@@ -4509,7 +4355,6 @@ selected internally to complete the forward.
     /** Tokens */
     tokens: number;
   };
-
   /**
    * Subscribe to an invoice
    *
@@ -4517,11 +4362,7 @@ selected internally to complete the forward.
    *
    * Requires `invoices:read` permission
    */
-  export const subscribeToInvoice: (
-    args: Args<SubscribeToInvoiceArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToInvoicesArgs = {};
+  export const subscribeToInvoice: AuthenticatedLNDSubscription<SubscribeToInvoiceArgs>;
 
   export type SubscribeToInvoicesInvoiceUpdatedEvent = {
     /** Fallback Chain Address */
@@ -4597,17 +4438,12 @@ selected internally to complete the forward.
     /** Invoiced Tokens */
     tokens: number;
   };
-
   /**
    * Subscribe to invoices
    *
    * Requires `invoices:read` permission
    */
-  export const subscribeToInvoices: (
-    args: Args<SubscribeToInvoicesArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToOpenRequestsArgs = {};
+  export const subscribeToInvoices: AuthenticatedLNDSubscription;
 
   export type SubscribeToOpenRequestsChannelRequestEvent = {
     /** Accept Request */
@@ -4657,7 +4493,6 @@ selected internally to complete the forward.
       reason?: string;
     }) => {};
   };
-
   /**
 	 * Subscribe to inbound channel open requests
 	 * 
@@ -4671,15 +4506,12 @@ listeners to `channel_request`
 	 *
 	 * LND 0.11.1 and below do not support `accept` or `reject` arguments
 	 */
-  export const subscribeToOpenRequests: (
-    args: Args<SubscribeToOpenRequestsArgs>
-  ) => events.EventEmitter;
+  export const subscribeToOpenRequests: AuthenticatedLNDSubscription;
 
   export type SubscribeToPastPaymentArgs = {
     /** Payment Request Hash Hex */
     id: string;
   };
-
   export type SubscribeToPastPaymentConfirmedEvent = {
     /** Total Fee Millitokens To Pay */
     fee_mtokens: string;
@@ -4716,7 +4548,6 @@ listeners to `channel_request`
     /** Tokens Paid */
     tokens: number;
   };
-
   export type SubscribeToPastPaymentFailedEvent = {
     /** Failed Due To Lack of Balance */
     is_insufficient_balance: boolean;
@@ -4727,17 +4558,13 @@ listeners to `channel_request`
     /** Failed Due to Absence of Path Through Graph */
     is_route_not_found: boolean;
   };
-
   export type SubscribeToPastPaymentPayingEvent = {};
-
   /**
    * Subscribe to the status of a past payment
    *
    * Requires `offchain:read` permission
    */
-  export const subscribeToPastPayment: (
-    args: Args<SubscribeToPastPaymentArgs>
-  ) => events.EventEmitter;
+  export const subscribeToPastPayment: AuthenticatedLNDSubscription<SubscribeToPastPaymentArgs>;
 
   export type SubscribeToPayViaDetailsArgs = {
     /** Final CLTV Delta */
@@ -4752,8 +4579,6 @@ listeners to `channel_request`
     id?: string;
     /** Pay Through Specific Final Hop Public Key Hex */
     incoming_peer?: string;
-    /** Authenticated */
-    lnd: LND;
     /** Maximum Fee Tokens To Pay */
     max_fee?: number;
     /** Maximum Fee Millitokens to Pay */
@@ -4793,7 +4618,6 @@ listeners to `channel_request`
     /** Tokens to Pay */
     tokens?: number;
   };
-
   export type SubscribeToPayViaDetailsConfirmedEvent = {
     /** Fee Tokens Paid */
     fee: number;
@@ -4826,7 +4650,6 @@ listeners to `channel_request`
     /** Total Tokens Paid Rounded Down */
     tokens: number;
   };
-
   export type SubscribeToPayViaDetailsFailedEvent = {
     /** Failed Due To Lack of Balance */
     is_insufficient_balance: boolean;
@@ -4871,22 +4694,17 @@ listeners to `channel_request`
       tokens: number;
     };
   };
-
   export type SubscribeToPayViaDetailsPayingEvent = {};
-
   /**
    * Subscribe to the flight of a payment
    *
    * Requires `offchain:write` permission
    */
-  export const subscribeToPayViaDetails: (
-    args: Args<SubscribeToPayViaDetailsArgs>
-  ) => events.EventEmitter;
+  export const subscribeToPayViaDetails: AuthenticatedLNDSubscription<SubscribeToPayViaDetailsArgs>;
 
   export type SubscribeToPayViaRequestArgs = {
     /** Pay Through Specific Final Hop Public Key Hex */
     incoming_peer?: string;
-
     /** Maximum Fee Tokens To Pay */
     max_fee?: number;
     /** Maximum Fee Millitokens to Pay */
@@ -4914,7 +4732,6 @@ listeners to `channel_request`
     /** Tokens To Pay */
     tokens?: number;
   };
-
   export type SubscribeToPayViaRequestConfirmedEvent = {
     /** Fee Tokens */
     fee: number;
@@ -4949,7 +4766,6 @@ listeners to `channel_request`
     /** Total Tokens Paid */
     tokens: number;
   };
-
   export type SubscribeToPayViaRequestFailedEvent = {
     /** Failed Due To Lack of Balance */
     is_insufficient_balance: boolean;
@@ -4994,17 +4810,13 @@ listeners to `channel_request`
       tokens: number;
     };
   };
-
   export type SubscribeToPayViaRequestPayingEvent = {};
-
   /**
    * Initiate and subscribe to the outcome of a payment request
    *
    * Requires `offchain:write` permission
    */
-  export const subscribeToPayViaRequest: (
-    args: Args<SubscribeToPayViaRequestArgs>
-  ) => events.EventEmitter;
+  export const subscribeToPayViaRequest: AuthenticatedLNDSubscription<SubscribeToPayViaRequestArgs>;
 
   export type SubscribeToPayViaRoutesArgs = {
     /** Payment Hash Hex */
@@ -5048,7 +4860,6 @@ listeners to `channel_request`
       tokens: number;
     }[];
   };
-
   export type SubscribeToPayViaRoutesFailureEvent = {
     failure: [
       /** Code */
@@ -5091,7 +4902,6 @@ listeners to `channel_request`
       }
     ];
   };
-
   export type SubscribeToPayViaRoutesPayingEvent = {
     route: {
       /** Total Fee Tokens To Pay */
@@ -5124,7 +4934,6 @@ listeners to `channel_request`
       tokens: number;
     };
   };
-
   export type SubscribeToPayViaRoutesRoutingFailureEvent = {
     /** Standard Format Channel Id */
     channel?: string;
@@ -5199,7 +5008,6 @@ listeners to `channel_request`
       signature: string;
     };
   };
-
   export type SubscribeToPayViaRoutesSuccessEvent = {
     /** Fee Paid Tokens */
     fee: number;
@@ -5264,17 +5072,12 @@ listeners to `channel_request`
     /** Total Tokens Sent */
     tokens: number;
   };
-
   /**
    * Subscribe to the attempts of paying via specified routes
    *
    * Requires `offchain:write` permission
    */
-  export const subscribeToPayViaRoutes: (
-    args: Args<SubscribeToPayViaRoutesArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToPeersArgs = {};
+  export const subscribeToPayViaRoutes: AuthenticatedLNDSubscription<SubscribeToPayViaRoutesArgs>;
 
   export type SubscribeToPeersConnectedEvent = {
     /** Connected Peer Public Key Hex */
@@ -5284,15 +5087,12 @@ listeners to `channel_request`
     /** Disconnected Peer Public Key Hex */
     public_key: string;
   };
-
   /**
    * Subscribe to peer connectivity events
    *
    * Requires `peers:read` permission
    */
-  export const subscribeToPeers: (
-    args: Args<SubscribeToPeersArgs>
-  ) => events.EventEmitter;
+  export const subscribeToPeers: AuthenticatedLNDSubscription;
 
   export type SubscribeToProbeForRouteArgs = {
     /** Final CLTV Delta */
@@ -5352,14 +5152,12 @@ listeners to `channel_request`
     /** Total Millitokens Across Paths */
     total_mtokens?: string;
   };
-
   export type SubscribeToProbeForRouteErrorEvent = [
     /** Failure Code */
     number,
     /** Failure Message */
     string
   ];
-
   export type SubscribeToProbeForRouteProbeSuccessEvent = {
     route: {
       /** Route Confidence Score Out Of One Million */
@@ -5408,7 +5206,6 @@ listeners to `channel_request`
       total_mtokens?: string;
     };
   };
-
   export type SubscribeToProbeForRouteProbingEvent = {
     route: {
       /** Route Confidence Score Out Of One Million */
@@ -5457,7 +5254,6 @@ listeners to `channel_request`
       total_mtokens?: string;
     };
   };
-
   export type SubscribeToProbeForRouteRoutingFailureEvent = {
     /** Standard Format Channel Id */
     channel?: string;
@@ -5540,17 +5336,12 @@ listeners to `channel_request`
       signature: string;
     };
   };
-
   /**
    * Subscribe to a probe attempt
    *
    * Requires `offchain:write` permission
    */
-  export const subscribeToProbeForRoute: (
-    args: Args<SubscribeToProbeForRouteArgs>
-  ) => events.EventEmitter;
-
-  export type SubscribeToTransactionsArgs = {};
+  export const subscribeToProbeForRoute: AuthenticatedLNDSubscription<SubscribeToProbeForRouteArgs>;
 
   export type SubscribeToTransactionsChainTransactionEvent = {
     /** Block Hash */
@@ -5576,15 +5367,28 @@ listeners to `channel_request`
     /** Raw Transaction Hex */
     transaction?: string;
   };
-
   /**
    * Subscribe to transactions
    *
    * Requires `onchain:read` permission
    */
-  export const subscribeToTransactions: (
-    args: Args<SubscribeToTransactionsArgs>
-  ) => events.EventEmitter;
+  export const subscribeToTransactions: AuthenticatedLNDSubscription;
+
+  export type UnauthenticatedLNDgRPCArgs = {
+    cert?: string;
+    socket?: string;
+  };
+  export type UnauthenticatedLNDgRPCResult = {
+    lnd: UnauthenticatedLND;
+  };
+  /**
+   * Unauthenticated gRPC interface to the Lightning Network Daemon (lnd).
+   *
+   * Make sure to provide a cert when using LND with its default self-signed cert
+   */
+  export const unauthenticatedLndGrpc: (
+    args: UnauthenticatedLNDgRPCArgs
+  ) => UnauthenticatedLNDgRPCResult;
 
   export type UnlockUTXOArgs = {
     /** Lock Id Hex */
@@ -5594,25 +5398,23 @@ listeners to `channel_request`
     /** Unspent Transaction Output Index */
     transaction_vout: number;
   };
-
   /**
    * Unlock UTXO
-
-	 * Requires `onchain:write` permission
-	 
+   *
+   * Requires `onchain:write` permission
+   *
    * Requires LND built with `walletrpc` build tag
    */
-  export const unlockUtxo: LNDMethod<UnlockUTXOArgs>;
+  export const unlockUtxo: AuthenticatedLNDMethod<UnlockUTXOArgs>;
 
   export type UnlockWalletArgs = {
     /** Wallet Password */
     password: string;
   };
-
   /**
    * Unlock the wallet
    */
-  export const unlockWallet: LNDMethod<UnlockWalletArgs>;
+  export const unlockWallet: UnauthenticatedLNDMethod<UnlockWalletArgs>;
 
   export type UpdateChainTransactionArgs = {
     /** Transaction Label */
@@ -5620,7 +5422,6 @@ listeners to `channel_request`
     /** Transaction Id Hex */
     id: string;
   };
-
   /**
    * Update an on-chain transaction record metadata
    *
@@ -5628,7 +5429,7 @@ listeners to `channel_request`
    *
    * Requires `onchain:write` permission
    */
-  export const updateChainTransaction: LNDMethod<UpdateChainTransactionArgs>;
+  export const updateChainTransaction: AuthenticatedLNDMethod<UpdateChainTransactionArgs>;
 
   export type UpdateConnectedWatchtowerArgs = {
     /** Add Socket */
@@ -5638,13 +5439,12 @@ listeners to `channel_request`
     /** Remove Socket */
     remove_socket?: string;
   };
-
   /**
    * Update a watchtower
    *
    * Requires LND built with wtclientrpc build ta
    */
-  export const updateConnectedWatchtower: LNDMethod<UpdateConnectedWatchtowerArgs>;
+  export const updateConnectedWatchtower: AuthenticatedLNDMethod<UpdateConnectedWatchtowerArgs>;
 
   export type UpdateRoutingFeesArgs = {
     /** Base Fee Millitokens Charged */
@@ -5664,30 +5464,30 @@ listeners to `channel_request`
     /** Channel Funding Transaction Output Index */
     transaction_vout?: number;
   };
-
   /**
    * Update routing fees on a single channel or on all channels
    *
    * Setting both `base_fee_tokens` and `base_fee_mtokens` is not supporte
    */
-  export const updateRoutingFees: LNDMethod<UpdateRoutingFeesArgs>;
+  export const updateRoutingFees: AuthenticatedLNDMethod<UpdateRoutingFeesArgs>;
 
   export type VerifyBackupArgs = {
     /** Individual Channel Backup Hex */
     backup: string;
   };
-
   export type VerifyBackupResult = {
     /** LND Error */
     err?: Object;
     /** Backup is Valid */
     is_valid: boolean;
   };
-
   /**
    * Verify a channel backu
    */
-  export const verifyBackup: LNDMethod<VerifyBackupArgs, VerifyBackupResult>;
+  export const verifyBackup: AuthenticatedLNDMethod<
+    VerifyBackupArgs,
+    VerifyBackupResult
+  >;
 
   export type VerifyBackupsArgs = {
     /** Multi-Backup Hex */
@@ -5699,16 +5499,17 @@ listeners to `channel_request`
       transaction_vout: number;
     }[];
   };
-
   export type VerifyBackupsResult = {
     /** Backup is Valid */
     is_valid: boolean;
   };
-
   /**
    * Verify a set of aggregated channel backup
    */
-  export const verifyBackups: LNDMethod<VerifyBackupsArgs, VerifyBackupsResult>;
+  export const verifyBackups: AuthenticatedLNDMethod<
+    VerifyBackupsArgs,
+    VerifyBackupsResult
+  >;
 
   export type VerifyBytesSignatureArgs = {
     /** Message Preimage Bytes Hex Encoded */
@@ -5718,12 +5519,10 @@ listeners to `channel_request`
     /** Signature Hex */
     signature: string;
   };
-
   export type VerifyBytesSignatureResult = {
     /** Signature is Valid */
     is_valid: boolean;
   };
-
   /**
    * Verify signature of arbitrary bytes
    *
@@ -5731,7 +5530,7 @@ listeners to `channel_request`
    *
    * Requires `signer:read` permission
    */
-  export const verifyBytesSignature: LNDMethod<
+  export const verifyBytesSignature: AuthenticatedLNDMethod<
     VerifyBytesSignatureArgs,
     VerifyBytesSignatureResult
   >;
@@ -5742,16 +5541,17 @@ listeners to `channel_request`
     /** Signature Hex */
     signature: string;
   };
-
   export type VerifyMessageResult = {
     /** Public Key Hex */
     signed_by: string;
   };
-
   /**
    * Verify a message was signed by a known pubkey
    *
    * Requires `message:read` permission
    */
-  export const verifyMessage: LNDMethod<VerifyMessageArgs, VerifyMessageResult>;
+  export const verifyMessage: AuthenticatedLNDMethod<
+    VerifyMessageArgs,
+    VerifyMessageResult
+  >;
 }
