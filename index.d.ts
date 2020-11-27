@@ -20,6 +20,8 @@ import * as events from "events";
  * - remove obsolete packages
  * - fix events, type eventemitter, reorg event?
  * - unauthenticatedLndGrpc? difference between authenticated and unauthenticated LND objects? check all reference to different LND API objects
+ * - split to different files?
+ * - lightning repo?
  */
 
 declare module "ln-service" {
@@ -58,11 +60,13 @@ declare module "ln-service" {
     lnd: LND;
   } & TArgs;
 
-  export type LNDMethod<TArgs, TResult = void, TError = Error> = {
+  export type LNDError = [number, string, any | undefined];
+
+  export type LNDMethod<TArgs, TResult = void, TError = LNDError> = {
     (args: Args<TArgs>): Promise<TResult>;
     (
       args: Args<TArgs>,
-      callback: (error: TError, result: TResult) => void
+      callback: (error: TError | undefined | null, result: TResult) => void
     ): void;
   };
 
