@@ -21,36 +21,39 @@ declare module "ln-service" {
     unlocker: any;
   };
 
-  export type LNServiceError = [number, string, any | undefined];
+  export type LNServiceError<TDetails = any> = [number, string, TDetails];
 
   export type MethodWithPromiseOrCallback<
     TArgs = {},
     TResult = void,
-    TError = LNServiceError
+    TErrorDetails = any
   > = {
     (args: TArgs): Promise<TResult>;
     (
       args: TArgs,
-      callback: (error: TError | undefined | null, result: TResult) => void
+      callback: (
+        error: LNServiceError<TErrorDetails> | undefined | null,
+        result: TResult
+      ) => void
     ): void;
   };
   export type AuthenticatedLNDMethod<
     TArgs = {},
     TResult = void,
-    TError = LNServiceError
+    TErrorDetails = any
   > = MethodWithPromiseOrCallback<
     TArgs & { lnd: AuthenticatedLND },
     TResult,
-    TError
+    TErrorDetails
   >;
   export type UnauthenticatedLNDMethod<
     TArgs = {},
     TResult = void,
-    TError = LNServiceError
+    TErrorDetails = any
   > = MethodWithPromiseOrCallback<
     TArgs & { lnd: UnauthenticatedLND },
     TResult,
-    TError
+    TErrorDetails
   >;
   export type AuthenticatedLNDSubscription<TArgs = {}> = (
     args: TArgs & { lnd: AuthenticatedLND }
@@ -2626,7 +2629,10 @@ and version differences in LND can result in expanded access.
     /** LND Cert Base64 */
     cert?: string;
     /** Log Function */
-    log: (error: LNServiceError | null | undefined, output: string) => void;
+    log: (
+      error: LNServiceError<Error> | null | undefined,
+      output: string
+    ) => void;
     /** Router Path */
     path: string;
     /** Listen Port */
