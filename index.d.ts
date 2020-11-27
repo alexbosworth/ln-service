@@ -22,6 +22,9 @@ import * as events from "events";
  * - unauthenticatedLndGrpc? difference between authenticated and unauthenticated LND objects? check all reference to different LND API objects
  * - split to different files?
  * - lightning repo?
+ *
+ * - proposeChannel, recoverFundsFromChannel return empty objects {}, instead of void, should these be typed?
+ * - not confident in void return types
  */
 
 declare module "ln-service" {
@@ -55,14 +58,14 @@ declare module "ln-service" {
   };
   export type LightningNetworkService = LNService;
 
-  export type Args<TArgs> = {
+  export type Args<TArgs = {}> = {
     /** LND API Object */
     lnd: LND;
   } & TArgs;
 
   export type LNDError = [number, string, any | undefined];
 
-  export type LNDMethod<TArgs, TResult = void, TError = LNDError> = {
+  export type LNDMethod<TArgs = {}, TResult = void, TError = LNDError> = {
     (args: Args<TArgs>): Promise<TResult>;
     (
       args: Args<TArgs>,
@@ -224,7 +227,7 @@ declare module "ln-service" {
    *
    * Requires `invoices:write` permission
    */
-  export const cancelHodlInvoice: LNDMethod<CancelHodlInvoiceArgs, unknown>;
+  export const cancelHodlInvoice: LNDMethod<CancelHodlInvoiceArgs>;
 
   export type CancelPendingChannelArgs = {
     /** Pending Channel Id Hex */
@@ -234,10 +237,7 @@ declare module "ln-service" {
   /**
    * Cancel an external funding pending channel
    */
-  export const cancelPendingChannel: LNDMethod<
-    CancelPendingChannelArgs,
-    unknown
-  >;
+  export const cancelPendingChannel: LNDMethod<CancelPendingChannelArgs>;
 
   export type ChangePasswordArgs = {
     /** Current Password */
@@ -251,7 +251,7 @@ declare module "ln-service" {
    *
    * Requires locked LND and unauthenticated LND connection
    */
-  export const changePassword: LNDMethod<ChangePasswordArgs, unknown>;
+  export const changePassword: LNDMethod<ChangePasswordArgs>;
 
   export type CloseChannelArgs = {
     /** Request Sending Local Channel Funds To Address */
@@ -306,13 +306,18 @@ declare module "ln-service" {
    *
    * Requires `offchain:write` permission
    */
-  export const connectWatchtower: LNDMethod<ConnectWatchtowerArgs, unknown>;
+  export const connectWatchtower: LNDMethod<ConnectWatchtowerArgs>;
 
   export type CreateChainAddressArgs = {
     /** Receive Address Type */
     format: "np2wpkh" | "p2wpkh";
     /** Get As-Yet Unused Address */
     is_unused?: boolean;
+  };
+
+  export type CreateChainAddressResult = {
+    /** Chain Address */
+    address: string;
   };
 
   /**
@@ -322,7 +327,7 @@ declare module "ln-service" {
    */
   export const createChainAddress: LNDMethod<
     CreateChainAddressArgs,
-    { address: unknown }
+    CreateChainAddressResult
   >;
 
   export type CreateHodlInvoiceArgs = {
@@ -549,7 +554,7 @@ declare module "ln-service" {
    *
    * Requires unlocked lnd and unauthenticated LND
    */
-  export const createWallet: LNDMethod<CreateWalletArgs, unknown>;
+  export const createWallet: LNDMethod<CreateWalletArgs>;
 
   export type DecodePaymentRequestArgs = {
     /** BOLT 11 Payment Request */
@@ -607,14 +612,14 @@ declare module "ln-service" {
    *
    * Requires `offchain:write` permissio
    */
-  export const deleteForwardingReputations: LNDMethod<{}, unknown>;
+  export const deleteForwardingReputations: LNDMethod;
 
   /**
    * Delete all records of payments
    *
    * Requires `offchain:write` permission
    */
-  export const deletePayments: LNDMethod<{}, unknown>;
+  export const deletePayments: LNDMethod;
 
   export type DiffieHellmanComputeSecretArgs = {
     /** Key Family */
@@ -656,10 +661,7 @@ declare module "ln-service" {
    *
    * Requires `offchain:write` permission
    */
-  export const disconnectWatchtower: LNDMethod<
-    DisconnectWatchtowerArgs,
-    unknown
-  >;
+  export const disconnectWatchtower: LNDMethod<DisconnectWatchtowerArgs>;
 
   export type FundPendingChannelsArgs = {
     /** Pending Channel Id Hex */
@@ -673,7 +675,7 @@ declare module "ln-service" {
    *
    * Requires `offchain:write`, `onchain:write` permission
    */
-  export const fundPendingChannels: LNDMethod<FundPendingChannelsArgs, unknown>;
+  export const fundPendingChannels: LNDMethod<FundPendingChannelsArgs>;
 
   export type FundPSBTArgs = {
     /** Chain Fee Tokens Per Virtual Byte */
@@ -3546,8 +3548,6 @@ allow for cooperative close delays or external funding flows.
     transaction_vout: number;
   };
 
-  export type ProposeChannelResult = unknown;
-
   /**
 	 * Propose a new channel to a peer that prepared for the channel proposal
 	 * 
@@ -3558,56 +3558,43 @@ flows.
 	 *
 	 * Requires LND compiled with `walletrpc` build tag
 	 */
-  export const proposeChannel: LNDMethod<
-    ProposeChannelArgs,
-    ProposeChannelResult
-  >;
+  export const proposeChannel: LNDMethod<ProposeChannelArgs>;
 
   export type RecoverFundsFromChannelArgs = {
     /** Backup Hex */
     backup: string;
   };
 
-  export type RecoverFundsFromChannelResult = unknown;
-
   /**
    * Verify and restore a channel from a single channel backup
    *
    * Requires `offchain:write` permission
    */
-  export const recoverFundsFromChannel: LNDMethod<
-    RecoverFundsFromChannelArgs,
-    RecoverFundsFromChannelResult
-  >;
+  export const recoverFundsFromChannel: LNDMethod<RecoverFundsFromChannelArgs>;
 
   export type RecoverFundsFromChannelsArgs = {
     /** Backup Hex */
     backup: string;
   };
 
-  export type RecoverFundsFromChannelsResult = unknown;
-
   /**
    * Verify and restore channels from a multi-channel backup
+   *
    * Requires `offchain:write` permission
    */
-  export const recoverFundsFromChannels: LNDMethod<
-    RecoverFundsFromChannelsArgs,
-    RecoverFundsFromChannelsResult
-  >;
+  export const recoverFundsFromChannels: LNDMethod<RecoverFundsFromChannelsArgs>;
 
   export type RemovePeerArgs = {
     /** Public Key Hex */
     public_key: string;
   };
 
-  export type RemovePeerResult = unknown;
-
   /**
    * Remove a peer if possible
+   *
    * Requires `peers:remove` permission
    */
-  export const removePeer: LNDMethod<RemovePeerArgs, RemovePeerResult>;
+  export const removePeer: LNDMethod<RemovePeerArgs>;
 
   export type RestrictMacaroonArgs = {
     /** Expires At ISO 8601 Date */
@@ -3636,8 +3623,6 @@ flows.
     id: string;
   };
 
-  export type RevokeAccessResult = unknown;
-
   /**
    * Revoke an access token given out in the past
    *
@@ -3645,7 +3630,7 @@ flows.
    *
    * Requires `macaroon:write` permission
    */
-  export const revokeAccess: LNDMethod<RevokeAccessArgs, RevokeAccessResult>;
+  export const revokeAccess: LNDMethod<RevokeAccessArgs>;
 
   export type RouteFromChannelsArgs = {
     channels: {
@@ -3846,8 +3831,6 @@ flows.
     is_enabled?: boolean;
   };
 
-  export type SetAutopilotResult = unknown;
-
   /**
    * Configure Autopilot settings
    *
@@ -3857,14 +3840,12 @@ flows.
    *
    * Permissions `info:read`, `offchain:write`, `onchain:write` are required
    */
-  export const setAutopilot: LNDMethod<SetAutopilotArgs, SetAutopilotResult>;
+  export const setAutopilot: LNDMethod<SetAutopilotArgs>;
 
   export type SettleHodlInvoiceArgs = {
     /** Payment Preimage Hex */
     secret: string;
   };
-
-  export type SettleHodlInvoiceResult = unknown;
 
   /**
    * Settle HODL invoice
@@ -3873,10 +3854,7 @@ flows.
    *
    * Requires `invoices:write` permission
    */
-  export const settleHodlInvoice: LNDMethod<
-    SettleHodlInvoiceArgs,
-    SettleHodlInvoiceResult
-  >;
+  export const settleHodlInvoice: LNDMethod<SettleHodlInvoiceArgs>;
 
   export type SignBytesArgs = {
     /** Key Family */
@@ -3979,16 +3957,12 @@ flows.
     SignTransactionResult
   >;
 
-  export type StopDaemonArgs = {};
-
-  export type StopDaemonResult = unknown;
-
   /**
    * Stop the Lightning daemon.
    *
    * Requires `info:write` permission
    */
-  export const stopDaemon: LNDMethod<StopDaemonArgs, StopDaemonResult>;
+  export const stopDaemon: LNDMethod;
 
   export type SubscribeToBackupsArgs = {};
 
@@ -4060,7 +4034,7 @@ flows.
     transaction: string;
   };
 
-  export type SubscribeToChainAddressReorgEvent = unknown;
+  export type SubscribeToChainAddressReorgEvent = undefined;
 
   /**
    * Subscribe to confirmation details about transactions sent to an address
@@ -4101,7 +4075,7 @@ flows.
     vin: number;
   };
 
-  export type SubscribeToChainSpendReorgEvent = unknown;
+  export type SubscribeToChainSpendReorgEvent = undefined;
 
   /**
    * Subscribe to confirmations of a spend
@@ -4112,7 +4086,7 @@ flows.
    *
    * Requires `onchain:read` permission
    */
-  export const SubscribeToChainSpend: (
+  export const subscribeToChainSpend: (
     args: Args<SubscribeToChainSpendArgs>
   ) => events.EventEmitter;
 
@@ -5612,8 +5586,6 @@ listeners to `channel_request`
     transaction_vout: number;
   };
 
-  export type UnlockUTXOResult = unknown;
-
   /**
    * Unlock UTXO
 
@@ -5621,19 +5593,17 @@ listeners to `channel_request`
 	 
    * Requires LND built with `walletrpc` build tag
    */
-  export const unlockUtxo: LNDMethod<UnlockUTXOArgs, UnlockUTXOResult>;
+  export const unlockUtxo: LNDMethod<UnlockUTXOArgs>;
 
   export type UnlockWalletArgs = {
     /** Wallet Password */
     password: string;
   };
 
-  export type UnlockWalletResult = unknown;
-
   /**
    * Unlock the wallet
    */
-  export const unlockWallet: LNDMethod<UnlockWalletArgs, UnlockWalletResult>;
+  export const unlockWallet: LNDMethod<UnlockWalletArgs>;
 
   export type UpdateChainTransactionArgs = {
     /** Transaction Label */
@@ -5642,19 +5612,14 @@ listeners to `channel_request`
     id: string;
   };
 
-  export type UpdateChainTransactionResult = unknown;
-
   /**
    * Update an on-chain transaction record metadata
    *
    * Requires LND built with `walletrpc` build tag
    *
-   * Requires `onchain:write` permissio
+   * Requires `onchain:write` permission
    */
-  export const updateChainTransaction: LNDMethod<
-    UpdateChainTransactionArgs,
-    UpdateChainTransactionResult
-  >;
+  export const updateChainTransaction: LNDMethod<UpdateChainTransactionArgs>;
 
   export type UpdateConnectedWatchtowerArgs = {
     /** Add Socket */
@@ -5665,17 +5630,12 @@ listeners to `channel_request`
     remove_socket?: string;
   };
 
-  export type UpdateConnectedWatchtowerResult = unknown;
-
   /**
    * Update a watchtower
    *
    * Requires LND built with wtclientrpc build ta
    */
-  export const updateConnectedWatchtower: LNDMethod<
-    UpdateConnectedWatchtowerArgs,
-    UpdateConnectedWatchtowerResult
-  >;
+  export const updateConnectedWatchtower: LNDMethod<UpdateConnectedWatchtowerArgs>;
 
   export type UpdateRoutingFeesArgs = {
     /** Base Fee Millitokens Charged */
@@ -5696,17 +5656,12 @@ listeners to `channel_request`
     transaction_vout?: number;
   };
 
-  export type UpdateRoutingFeesResult = unknown;
-
   /**
    * Update routing fees on a single channel or on all channels
    *
    * Setting both `base_fee_tokens` and `base_fee_mtokens` is not supporte
    */
-  export const updateRoutingFees: LNDMethod<
-    UpdateRoutingFeesArgs,
-    UpdateRoutingFeesResult
-  >;
+  export const updateRoutingFees: LNDMethod<UpdateRoutingFeesArgs>;
 
   export type VerifyBackupArgs = {
     /** Individual Channel Backup Hex */
