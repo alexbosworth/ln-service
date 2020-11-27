@@ -494,19 +494,6 @@ declare module "ln-service" {
     args: CreateSignedRequestArgs
   ) => CreateSignedResult;
 
-  export type Route = {
-    /** Base Fee Millitokens */
-    base_fee_mtokens?: string;
-    /** Standard Format Channel Id */
-    channel?: string;
-    /** Final CLTV Expiration Blocks Delta */
-    cltv_delta?: number;
-    /** Fees Charged in Millitokens Per Million */
-    fee_rate?: number;
-    /** Forward Edge Public Key Hex */
-    public_key: string;
-  };
-
   export type CreateUnsignedRequestArgs = {
     /** Chain Addresses */
     chain_addresses?: string[];
@@ -534,7 +521,18 @@ declare module "ln-service" {
     network: string;
     /** Payment Identifier Hex */
     payment?: string;
-    routes?: Route[][];
+    routes?: {
+      /** Base Fee Millitokens */
+      base_fee_mtokens?: string;
+      /** Standard Format Channel Id */
+      channel?: string;
+      /** Final CLTV Expiration Blocks Delta */
+      cltv_delta?: number;
+      /** Fees Charged in Millitokens Per Million */
+      fee_rate?: number;
+      /** Forward Edge Public Key Hex */
+      public_key: string;
+    }[][];
     /** Requested Chain Tokens Number (note: can differ from mtokens) */
     tokens?: number;
   };
@@ -603,7 +601,18 @@ declare module "ln-service" {
     mtokens: string;
     /** Payment Identifier Hex Encoded */
     payment?: string;
-    routes: Route[][];
+    routes: {
+      /** Base Routing Fee In Millitokens */
+      base_fee_mtokens?: string;
+      /** Standard Format Channel Id */
+      channel?: string;
+      /** CLTV Blocks Delta */
+      cltv_delta?: number;
+      /** Fees Charged in Millitokens Per Million */
+      fee_rate?: number;
+      /** Forward Edge Public Key Hex */
+      public_key: string;
+    }[][];
     /** Requested Tokens Rounded Up */
     safe_tokens: number;
     /** Requested Tokens Rounded Down */
