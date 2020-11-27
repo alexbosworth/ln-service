@@ -2753,7 +2753,7 @@ and version differences in LND can result in expanded access.
    *
    * Requires `offchain:write` permission
    */
-  export const IsDestinationPayable: LNDMethod<
+  export const isDestinationPayable: LNDMethod<
     IsDestinationPayableArgs,
     IsDestinationPayableResult
   >;
