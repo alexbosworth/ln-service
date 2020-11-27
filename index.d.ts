@@ -748,6 +748,7 @@ declare module "ln-service" {
   export const fundPsbt: AuthenticatedLNDMethod<FundPSBTArgs, FundPSBTResult>;
 
   export type GetAccessIdsResult = {
+    /** Root Access Id Numbers */
     ids: number[];
   };
 
@@ -762,7 +763,7 @@ declare module "ln-service" {
 
   export type GetAutopilotArgs = {
     /** Get Score For Public Key Hex */
-    node_scores?: [string];
+    node_scores?: string[];
   };
   export type GetAutopilotResult = {
     /** Autopilot is Enabled */
@@ -922,8 +923,8 @@ Local scores reflect an internal scoring that includes local channel info
       is_confirmed: boolean;
       /** Transaction Outbound */
       is_outgoing: boolean;
-      /** Address */
-      output_addresses: string;
+      /** Addresses */
+      output_addresses: string[];
       /** Tokens Including Fee */
       tokens: number;
       /** Raw Transaction Hex */
@@ -1687,8 +1688,8 @@ over-paid.
       }[];
       /** Node Public Key */
       public_key: string;
-      /** Network Address and Port */
-      sockets: string;
+      /** Network Addresses and Ports */
+      sockets: string[];
       /** Last Updated ISO 8601 Date */
       updated_at: string;
     }[];
@@ -1971,7 +1972,7 @@ over-paid.
       /** Paid Routing Fee in Millitokens */
       fee_mtokens: string;
       /** First Route Hop Public Key Hex */
-      hops: string;
+      hops: string[];
       /** Payment Preimage Hash */
       id: string;
       /** Payment Add Index */
@@ -2201,8 +2202,8 @@ channel may be opening, closing, or active.
     }[];
     /** Payment Identifier Hex */
     payment?: string;
-    /** Public Key Hex */
-    public_keys: string;
+    /** Public Key Hex Strings */
+    public_keys: string[];
     /** Tokens to Send */
     tokens?: number;
     /** Payment Total Millitokens */
@@ -2400,8 +2401,8 @@ channel may be opening, closing, or active.
       is_confirmed: boolean;
       /** Transaction Outbound */
       is_outgoing: boolean;
-      /** Address */
-      output_addresses: string;
+      /** Addresses */
+      output_addresses: string[];
       spends: {
         /** Output Tokens */
         tokens?: number;
@@ -2430,10 +2431,10 @@ channel may be opening, closing, or active.
     tower?: {
       /** Watchtower Server Public Key Hex */
       public_key: string;
-      /** Socket */
-      sockets: string;
-      /** Watchtower External URI */
-      uris: string;
+      /** Sockets */
+      sockets: string[];
+      /** Watchtower External URIs */
+      uris: string[];
     };
   };
   /**
@@ -2475,7 +2476,7 @@ channel may be opening, closing, or active.
    *
    * Requires `onchain:read` permission
    */
-  export const getUTXOs: AuthenticatedLNDMethod<GetUTXOsArgs, GetUTXOsResult>;
+  export const getUtxos: AuthenticatedLNDMethod<GetUTXOsArgs, GetUTXOsResult>;
 
   export type GetWalletInfoResult = {
     /** Active Channels Count */
@@ -3656,8 +3657,8 @@ flows.
     tokens: number;
     /** Minimum Confirmations for UTXO Selection */
     utxo_confirmations?: number;
-    /** Web Socket Server */
-    wss?: ws.Server;
+    /** Web Socket Servers */
+    wss?: ws.Server[];
   };
   export type SendToChainAddressResult = {
     /** Total Confirmations */
@@ -3700,8 +3701,8 @@ flows.
     target_confirmations?: number;
     /** Minimum Confirmations for UTXO Selection */
     utxo_confirmations?: number;
-    /** Web Socket Server */
-    wss?: ws.Server;
+    /** Web Socket Servers */
+    wss?: ws.Server[];
   };
   export type SendToChainAddressesResult = {
     /** Total Confirmations */
@@ -3845,7 +3846,7 @@ flows.
     transaction: string;
   };
   export type SignTransactionResult = {
-    /** Signature Hex */
+    /** Signature Hex Strings */
     signatures: string[];
   };
   /**
@@ -4252,7 +4253,7 @@ selected internally to complete the forward.
     }[];
     /** Node Public Key */
     public_key: string;
-    /** Network Host And Port */
+    /** Network Hosts And Ports */
     sockets?: string[];
     /** Update Received At ISO 8601 Date */
     updated_at: string;
@@ -5361,8 +5362,8 @@ listeners to `channel_request`
     is_confirmed: boolean;
     /** Transaction Outbound */
     is_outgoing: boolean;
-    /** Address */
-    output_addresses: string;
+    /** Addresses */
+    output_addresses: string[];
     /** Tokens Including Fee */
     tokens: number;
     /** Raw Transaction Hex */
