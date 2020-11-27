@@ -33,7 +33,7 @@ declare module "ln-service" {
       args: TArgs,
       callback: (
         error: LNServiceError<TErrorDetails> | undefined | null,
-        result: TResult
+        result: TResult extends void ? undefined : TResult
       ) => void
     ): void;
   };
