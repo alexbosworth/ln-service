@@ -2483,7 +2483,7 @@ channel may be opening, closing, or active.
     /** Node Alias */
     alias: string;
     /** Chain Id Hex */
-    chains: string;
+    chains: string[];
     /** Node Color */
     color: string;
     /** Best Chain Hash Hex */
