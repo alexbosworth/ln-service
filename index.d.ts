@@ -103,48 +103,29 @@ declare module "ln-service" {
     BroadcastChainTransactionResult
   >;
 
-  export type ChannelPolicy = {
-    /** Base Fee Millitokens */
-    base_fee_mtokens: string;
-    /** CLTV Delta */
-    cltv_delta: number;
-    /** Fee Rate */
-    fee_rate: number;
-    /** Channel is Disabled */
-    is_disabled: boolean;
-    /** Maximum HTLC Millitokens */
-    max_htlc_mtokens: string;
-    /** Minimum HTLC Millitokens */
-    min_htlc_mtokens: string;
-    /** Public Key Hex */
-    public_key: string;
-  };
-
-  export type Channel = {
-    /** Capacity Tokens */
-    capacity: number;
-    /** Standard Channel Id */
-    id: string;
-    policies: ChannelPolicy[];
-  };
-
-  export type Hop = {
-    /** Base Fee Millitokens */
-    base_fee_mtokens: string;
-    /** Standard Channel Id */
-    channel: string;
-    /** Channel Capacity Tokens */
-    channel_capacity: number;
-    /** CLTV Delta */
-    cltv_delta: number;
-    /** Fee Rate */
-    fee_rate: number;
-    /** Public Key Hex */
-    public_key: string;
-  };
-
   export type CalculateHopsArgs = {
-    channels: Channel[];
+    channels: {
+      /** Capacity Tokens Number */
+      capacity: number;
+      /** Standard Channel Id String */
+      id: string;
+      policies: {
+        /** Base Fee Millitokens String */
+        base_fee_mtokens: string;
+        /** CLTV Delta Number */
+        cltv_delta: string;
+        /** Fee Rate Number */
+        fee_rate: string;
+        /** Channel is Disabled Bool */
+        is_disabled: string;
+        /** Maximum HTLC Millitokens String */
+        max_htlc_mtokens: string;
+        /** Minimum HTLC Millitokens String */
+        min_htlc_mtokens: string;
+        /** Public Key Hex String */
+        public_key: string;
+      }[];
+    }[];
     /** End Public Key Hex */
     end: string;
     ignore?: {
@@ -160,7 +141,20 @@ declare module "ln-service" {
   };
 
   export type CalculateHopsResult = {
-    hops?: Hop[];
+    hops?: {
+      /** Base Fee Millitokens */
+      base_fee_mtokens: string;
+      /** Standard Channel Id */
+      channel: string;
+      /** Channel Capacity Tokens */
+      channel_capacity: number;
+      /** CLTV Delta */
+      cltv_delta: number;
+      /** Fee Rate */
+      fee_rate: number;
+      /** Public Key Hex */
+      public_key: string;
+    }[];
   };
 
   /**
@@ -169,7 +163,28 @@ declare module "ln-service" {
   export const calculateHops: LNDMethod<CalculateHopsArgs, CalculateHopsResult>;
 
   export type CalculatePathsArgs = {
-    channels: Channel[];
+    channels: {
+      /** Capacity Tokens Number */
+      capacity: number;
+      /** Standard Channel Id String */
+      id: string;
+      policies: {
+        /** Base Fee Millitokens String */
+        base_fee_mtokens: string;
+        /** CLTV Delta Number */
+        cltv_delta: string;
+        /** Fee Rate Number */
+        fee_rate: string;
+        /** Channel is Disabled Bool */
+        is_disabled: string;
+        /** Maximum HTLC Millitokens String */
+        max_htlc_mtokens: string;
+        /** Minimum HTLC Millitokens String */
+        min_htlc_mtokens: string;
+        /** Public Key Hex String */
+        public_key: string;
+      }[];
+    }[];
     /** End Public Key Hex */
     end: string;
     /** Paths To Return Limit */
@@ -180,7 +195,24 @@ declare module "ln-service" {
     start: string;
   };
 
-  export type CalculatePathsResult = { paths?: { hops: Hop[] }[] };
+  export type CalculatePathsResult = {
+    paths?: {
+      hops: {
+        /** Base Fee Millitokens */
+        base_fee_mtokens: string;
+        /** Standard Channel Id */
+        channel: string;
+        /** Channel Capacity Tokens */
+        channel_capacity: number;
+        /** CLTV Delta */
+        cltv_delta: number;
+        /** Fee Rate */
+        fee_rate: number;
+        /** Public Key Hex */
+        public_key: string;
+      }[];
+    }[];
+  };
 
   /**
    * Calculate multiple routes to a destination
