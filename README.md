@@ -560,7 +560,7 @@ Requires `offchain:write` permission
       socket: <Network Socket Address IP:PORT String>
     }
 
-    @returns via cbk or Promis
+    @returns via cbk or Promise
 
 Example:
 
