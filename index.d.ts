@@ -1,6 +1,6 @@
 import * as stream from "stream";
 import * as express from "express";
-import ws from "ws";
+import * as ws from "ws";
 import * as http from "http";
 import * as events from "events";
 
@@ -20,10 +20,6 @@ declare module "ln-service" {
   export type UnauthenticatedLND = {
     unlocker: any;
   };
-
-  export type LNService = {};
-  const lnService: LNService;
-  export default lnService;
 
   export type LNServiceError = [number, string, any | undefined];
 
