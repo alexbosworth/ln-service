@@ -2626,7 +2626,7 @@ and version differences in LND can result in expanded access.
     /** LND Cert Base64 */
     cert?: string;
     /** Log Function */
-    log: (output: string) => void;
+    log: (error: LNServiceError | null | undefined, output: string) => void;
     /** Router Path */
     path: string;
     /** Listen Port */
