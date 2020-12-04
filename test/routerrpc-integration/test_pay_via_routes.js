@@ -99,8 +99,10 @@ test(`Pay via routes`, async ({deepIs, end, equal}) => {
   const {route} = await getRouteToDestination({
     lnd,
     destination: decodedRequest.destination,
+    payment: invoice.payment,
     routes: decodedRequest.routes,
     tokens: invoice.tokens,
+    total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
   });
 
   const {destination} = decodedRequest;

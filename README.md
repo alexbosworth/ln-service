@@ -667,6 +667,8 @@ Create a Lightning invoice.
 
 Requires `address:write`, `invoices:write` permission
 
+`payment` is not supported on LND 0.11.1 and below
+
     {
       [cltv_delta]: <CLTV Delta Number>
       [description]: <Invoice Description String>
@@ -688,6 +690,7 @@ Requires `address:write`, `invoices:write` permission
       [description]: <Description String>
       id: <Payment Hash Hex String>
       [mtokens]: <Millitokens String>
+      [payment]: <Payment Identifying Secret Hex String>
       request: <BOLT 11 Encoded Payment Request String>
       secret: <Hex Encoded Payment Secret String>
       [tokens]: <Tokens Number>
@@ -1736,6 +1739,8 @@ over-paid.
 
 Requires `invoices:read` permission
 
+`payment` is not supported on LND 0.11.1 and below
+
     {
       id: <Payment Hash Id Hex String>
       lnd: <Authenticated LND API Object>
@@ -1762,6 +1767,8 @@ Requires `invoices:read` permission
       [is_held]: <HTLC is Held Bool>
       is_private: <Invoice is Private Bool>
       [is_push]: <Invoice is Push Payment Bool>
+      mtokens: <Millitokens String>
+      [payment]: <Payment Identifying Secret Hex String>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>
@@ -1800,6 +1807,8 @@ If a next token is returned, pass it to get another page of invoices.
 
 Requires `invoices:read` permission
 
+Invoice `payment` is not supported on LND 0.11.1 and below
+
     {
       [limit]: <Page Result Limit Number>
       lnd: <Authenticated LND API Object>
@@ -1827,6 +1836,8 @@ Requires `invoices:read` permission
         [is_held]: <HTLC is Held Bool>
         is_private: <Invoice is Private Bool>
         [is_push]: <Invoice is Push Payment Bool>
+        mtokens: <Millitokens String>
+        [payment]: <Payment Identifying Secret Hex String>
         payments: [{
           [confirmed_at]: <Payment Settled At ISO 8601 Date String>
           created_at: <Payment Held Since ISO 860 Date String>
@@ -4464,6 +4475,8 @@ LND built with `invoicesrpc` tag is required
 
 Requires `invoices:read` permission
 
+`payment` is not supported on LND 0.11.1 and below
+
     {
       id: <Invoice Payment Hash Hex String>
       lnd: <Authenticated LND API Object>
@@ -4495,7 +4508,9 @@ Requires `invoices:read` permission
       [is_held]: <HTLC is Held Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
+      [is_push]: <Invoice is Push Payment Bool>
       mtokens: <Invoiced Millitokens String>
+      [payment]: <Payment Identifying Secret Hex String>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>
@@ -4571,6 +4586,8 @@ Requires `invoices:read` permission
       is_confirmed: <Invoice is Confirmed Bool>
       is_outgoing: <Invoice is Outgoing Bool>
       [is_push]: <Invoice is Push Payment Bool>
+      mtokens: <Invoiced Millitokens String>
+      [payment]: <Payment Identifying Secret Hex String>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>

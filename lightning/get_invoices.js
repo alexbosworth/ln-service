@@ -29,6 +29,8 @@ const {stringify} = JSON;
 
   Requires `invoices:read` permission
 
+  Invoice `payment` is not supported on LND 0.11.1 and below
+
   {
     [limit]: <Page Result Limit Number>
     lnd: <Authenticated LND API Object>
@@ -57,6 +59,8 @@ const {stringify} = JSON;
       [is_held]: <HTLC is Held Bool>
       is_private: <Invoice is Private Bool>
       [is_push]: <Invoice is Push Payment Bool>
+      mtokens: <Millitokens String>
+      [payment]: <Payment Identifying Secret Hex String>
       payments: [{
         [confirmed_at]: <Payment Settled At ISO 8601 Date String>
         created_at: <Payment Held Since ISO 860 Date String>
@@ -235,6 +239,7 @@ module.exports = ({limit, lnd, token}, cbk) => {
             is_private: !!invoice.private,
             is_push: !!invoice.is_keysend || undefined,
             mtokens: (BigInt(invoice.value) * mtokensPerToken).toString(),
+            payment: invoice.payment_addr.toString('hex') || undefined,
             payments: invoice.htlcs.map(htlcAsPayment),
             received: parseInt(invoice.amt_paid_sat, decBase),
             received_mtokens: invoice.amt_paid_msat,

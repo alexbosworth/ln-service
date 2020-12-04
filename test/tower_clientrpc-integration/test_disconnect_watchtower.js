@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {connectWatchtower} = require('./../../');
@@ -8,7 +9,9 @@ const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
 const all = promise => Promise.all(promise);
+const interval = 100;
 const nodes = [{watchers: true}, {tower: true}];
+const times = 200;
 
 // Disconnecting a watchtower should remove a watchtower
 test(`Disconnect watchtower`, async ({end, equal, match}) => {
@@ -29,7 +32,9 @@ test(`Disconnect watchtower`, async ({end, equal, match}) => {
 
   equal(watcher.is_active, true, 'Tower is active');
 
-  await disconnectWatchtower({lnd, public_key: info.public_key});
+  await asyncRetry({interval, times}, async () => {
+    return await disconnectWatchtower({lnd, public_key: info.public_key});
+  });
 
   const [disconnected] = (await getConnectedWatchtowers({lnd})).towers;
 

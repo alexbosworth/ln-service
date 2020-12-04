@@ -1,5 +1,14 @@
 # Versions
 
+## 50.9.0
+
+- `addInvoice`: Return `payment` record identifier in response
+- `getConnectedWatchtowers`: Add `is_anchor` to get anchor tower info
+- `getInvoice`: Return `payment` record identifier in response
+- `getInvoices`: Return `payment` record identifier in response
+- `subscribeToInvoice`: Return `payment` record identifier in response
+- `subscribeToInvoices`: Return `payment` record identifier in response
+
 ## 50.8.0
 
 - `fundPsbt`: Fix issue specifying a transaction fee

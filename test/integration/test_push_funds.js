@@ -61,7 +61,14 @@ test('Push funds', async ({end, equal}) => {
 
   const channels = [channel, channel];
 
-  const {route} = routeFromChannels({channels, destination, height, mtokens});
+  const {route} = routeFromChannels({
+    channels,
+    destination,
+    height,
+    mtokens,
+    payment: invoice.payment,
+    total_mtokens: !!invoice.payment ? mtokens : undefined,
+  });
 
   await pay({lnd, path: {id: invoice.id, routes: [route]}});
 

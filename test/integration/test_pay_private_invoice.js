@@ -84,8 +84,10 @@ test(`Pay private invoice`, async ({deepIs, end, equal}) => {
   const {route} = await getRouteToDestination({
     lnd,
     destination: decodedRequest.destination,
+    payment: invoice.payment,
     routes: decodedRequest.routes,
     tokens: invoice.tokens,
+    total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
   });
 
   const payment = await pay({lnd, path: {id, routes: [route]}});

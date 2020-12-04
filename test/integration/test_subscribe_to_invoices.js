@@ -140,7 +140,9 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     height,
     hops,
     mtokens,
+    payment: invoice.payment,
     initial_cltv: 40,
+    total_mtokens: !!invoice.payment ? mtokens : undefined,
   })];
 
   routes[0].messages = [{type: tlvType, value: tlvValue}];

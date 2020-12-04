@@ -116,7 +116,9 @@ test(`Pay`, async ({deepIs, end, equal}) => {
   const {route} = await getRouteToDestination({
     destination,
     lnd,
+    payment: invoice2.payment,
     tokens: invoice2.tokens,
+    total_mtokens: !!invoice2.payment ? invoice2.mtokens : undefined,
   });
 
   // Test paying to a route, but to an id that isn't known

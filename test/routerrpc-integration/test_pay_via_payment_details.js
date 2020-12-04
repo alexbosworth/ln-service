@@ -8,6 +8,7 @@ const {delay} = require('./../macros');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
+const {getWalletVersion} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
@@ -21,6 +22,21 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
+
+  const {version} = await getWalletVersion({lnd});
+
+  // Only run this test on LND 0.11.0 and LND 0.11.1
+  // Later versions of LND drop support for paying via payment details
+  switch (version) {
+  case 'v0.11.0-beta':
+  case 'v0.11.1-beta':
+    break;
+
+  default:
+    await cluster.kill({});
+
+    return end();
+  }
 
   const channel = await setupChannel({
     lnd,

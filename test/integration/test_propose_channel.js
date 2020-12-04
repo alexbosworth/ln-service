@@ -218,7 +218,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
     return hash.equals(targetTxHash);
   });
 
-// Call signTransaction on the unsigned tx that pays from temp -> multisig
+  // Call signTransaction on the unsigned tx that pays from temp -> multisig
   const controlSignDerivedKey = await signTransaction({
     inputs: [{
       key_family: temporaryFamily,
@@ -250,7 +250,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
     }),
   });
 
-// Call signTransaction on the unsigned tx that pays from temp -> multisig
+  // Call signTransaction on the unsigned tx that pays from temp -> multisig
   const targetSignDerivedKey = await signTransaction({
     inputs: [{
       key_family: temporaryFamily,

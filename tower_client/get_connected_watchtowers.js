@@ -7,13 +7,16 @@ const {isArray} = Array;
 
 /** Get a list of connected watchtowers and watchtower info
 
+  Includes previously connected watchtowers
+
   Requires LND built with `wtclientrpc` build tag
 
   Requires `offchain:read` permission
 
-  Includes previously connected watchtowers
+  `is_anchor` flag is not supported on LND 0.11.1 and below
 
   {
+    [is_anchor]: <Get Anchor Type Tower Info Bool>
     lnd: <Authenticated LND API Object>
   }
 
@@ -39,12 +42,12 @@ const {isArray} = Array;
     }]
   }
 */
-module.exports = ({lnd}, cbk) => {
+module.exports = (args, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
       // Check arguments
       validate: cbk => {
-        if (!lnd || !lnd.tower_client) {
+        if (!args.lnd || !args.lnd.tower_client) {
           return cbk([400, 'ExpectedAuthenticatedLndToGetWatchtowerInfo']);
         }
 
@@ -53,7 +56,10 @@ module.exports = ({lnd}, cbk) => {
 
       // Get policy
       getPolicy: ['validate', ({}, cbk) => {
-        return lnd.tower_client.policy({}, (err, res) => {
+        return args.lnd.tower_client.policy({
+          policy_type: !!args.is_anchor ? 'ANCHOR' : 'LEGACY',
+        },
+        (err, res) => {
           if (!!err && err.message === unimplementedError) {
             return cbk([503, 'ExpectedWatchtowerClientLndToGetPolicy']);
           }
@@ -83,7 +89,7 @@ module.exports = ({lnd}, cbk) => {
 
       // Get stats
       getStats: ['validate', ({}, cbk) => {
-        return lnd.tower_client.stats({}, (err, res) => {
+        return args.lnd.tower_client.stats({}, (err, res) => {
           if (!!err && err.message === unimplementedError) {
             return cbk([503, 'ExpectedWatchtowerClientLndToGetStats']);
           }
@@ -128,7 +134,7 @@ module.exports = ({lnd}, cbk) => {
 
       // Get towers
       getTowers: ['validate', ({}, cbk) => {
-        return lnd.tower_client.listTowers({
+        return args.lnd.tower_client.listTowers({
           include_sessions: true,
         },
         (err, res) => {

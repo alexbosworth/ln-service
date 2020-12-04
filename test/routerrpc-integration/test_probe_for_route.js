@@ -78,7 +78,9 @@ test('Probe for route', async ({deepIs, end, equal}) => {
     const {route} = await probeForRoute({
       lnd,
       destination: cluster.remote.public_key,
+      payment: invoice.payment,
       tokens: invoice.tokens,
+      total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
     });
 
     if (!route) {

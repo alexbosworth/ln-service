@@ -56,6 +56,8 @@ test('Rebalance', async ({end, equal}) => {
     tokens,
     destination: cluster.control.public_key,
     outgoing_channel: inChannelId,
+    payment: invoice.payment,
+    total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
   });
 
   const selfPay = await pay({lnd, path: {id: invoice.id, routes: [route]}});
