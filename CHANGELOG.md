@@ -1,5 +1,10 @@
 # Versions
 
+## 50.9.2
+
+- `getChannels`: Add support for `is_anchor` and `is_variable_remote_key` chan types
+- `subscribeToChannels`: Add support for `is_anchor`, `is_variable_remote_key` chan types
+
 ## 50.9.1
 
 - `addInvoice`: Return `payment` record identifier in response
