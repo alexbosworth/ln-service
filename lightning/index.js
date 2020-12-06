@@ -5,7 +5,6 @@ const getChainFeeEstimate = require('./get_chain_fee_estimate');
 const getFeeRates = require('./get_fee_rates');
 const getInvoices = require('./get_invoices');
 const getNetworkInfo = require('./get_network_info');
-const getPayments = require('./get_payments');
 const recoverFundsFromChannel = require('./recover_funds_from_channel');
 const recoverFundsFromChannels = require('./recover_funds_from_channels');
 const removePeer = require('./remove_peer');
@@ -30,7 +29,6 @@ module.exports = {
   getFeeRates,
   getInvoices,
   getNetworkInfo,
-  getPayments,
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,

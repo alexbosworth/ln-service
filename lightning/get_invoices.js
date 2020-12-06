@@ -193,6 +193,10 @@ module.exports = ({limit, lnd, token}, cbk) => {
             return cbk([503, 'ExpectedInvoicePrivateStatus']);
           }
 
+          if (!Buffer.isBuffer(invoice.payment_addr)) {
+            return cbk([503, 'ExpectedPaymentAddressBufferInInvoice']);
+          }
+
           if (!invoice.is_keysend && !isString(invoice.payment_request)) {
             return cbk([503, 'ExpectedPaymentRequestInInvoice']);
           }

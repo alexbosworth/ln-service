@@ -1,6 +1,6 @@
 # Versions
 
-## 50.9.0
+## 50.9.1
 
 - `addInvoice`: Return `payment` record identifier in response
 - `getConnectedWatchtowers`: Add `is_anchor` to get anchor tower info
