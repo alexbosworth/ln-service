@@ -1,5 +1,9 @@
 # Versions
 
+## 50.9.3
+
+- `subscribeToGraph`: Use native graph updates when feature flags are available
+
 ## 50.9.2
 
 - `getChannels`: Add support for `is_anchor` and `is_variable_remote_key` chan types
