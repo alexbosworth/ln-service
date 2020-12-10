@@ -76,7 +76,7 @@ module.exports = args => {
     height_hint: args.min_height,
     num_confs: args.min_confirmations || defaultMinConfirmations,
     script: Buffer.from(outputScript, 'hex'),
-    txid: Buffer.from(args.transaction_id || dummyTxId, 'hex'),
+    txid: Buffer.from(args.transaction_id || dummyTxId, 'hex').reverse(),
   });
 
   // Cancel the subscription when all listeners are removed

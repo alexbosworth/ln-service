@@ -1,5 +1,9 @@
 # Versions
 
+## 50.9.4
+
+- `subscribeToChainAddress`: Correct byte ordering in tx hash when specifying tx id
+
 ## 50.9.3
 
 - `subscribeToGraph`: Use native graph updates when feature flags are available

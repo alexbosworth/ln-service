@@ -31,7 +31,7 @@
     "psbt": "1.1.7",
     "rimraf": "3.0.2",
     "tap": "14.11.0",
-    "uuid": "8.3.1",
+    "uuid": "8.3.2",
     "varuint-bitcoin": "1.1.2"
   },
   "engines": {
@@ -64,5 +64,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "50.9.3"
+  "version": "50.9.4"
 }
