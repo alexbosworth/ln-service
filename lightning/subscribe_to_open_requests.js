@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 const channelRequestEvent = 'channel_request';
 const compressedPublicKeyLength = 33;
 const millitokensToTokens = mtokens => Number(BigInt(mtokens) / BigInt(1e3));
+const privateChannel = 1;
 const unimplementedMessage = 'unknown service lnrpc.Lightning';
 const weightPerKWeight = 1e3;
 const weightPerVByte = 4;
@@ -45,6 +46,7 @@ const weightPerVByte = 4;
     commit_fee_tokens_per_vbyte: <Commitment Transaction Fee Number>
     csv_delay: <CSV Delay Blocks Number>
     id: <Request Id Hex String>
+    is_private: <Incoming Channel Is Private Bool>
     local_balance: <Channel Local Tokens Balance Number>
     local_reserve: <Channel Local Reserve Tokens Number>
     max_pending_mtokens: <Maximum Millitokens Pending In Channel String>
@@ -164,6 +166,7 @@ module.exports = ({lnd}) => {
       commit_fee_tokens_per_vbyte: feeTok,
       csv_delay: data.csv_delay,
       id: id.toString('hex'),
+      is_private: !(data.channel_flags & privateChannel),
       local_balance: millitokensToTokens(data.push_amt),
       local_reserve: Number(data.channel_reserve),
       max_pending_mtokens: data.max_value_in_flight,

@@ -1,5 +1,9 @@
 # Versions
 
+## 50.9.5
+
+- `subscribeToOpenRequests`: Add `is_private` attribute to open channel requests
+
 ## 50.9.4
 
 - `subscribeToChainAddress`: Correct byte ordering in tx hash when specifying tx id

@@ -4665,6 +4665,7 @@ LND 0.11.1 and below do not support `accept` or `reject` arguments
       commit_fee_tokens_per_vbyte: <Commitment Transaction Fee Number>
       csv_delay: <CSV Delay Blocks Number>
       id: <Request Id Hex String>
+      is_private: <Incoming Channel Is Private Bool>
       local_balance: <Channel Local Tokens Balance Number>
       local_reserve: <Channel Local Reserve Tokens Number>
       max_pending_mtokens: <Maximum Millitokens Pending In Channel String>

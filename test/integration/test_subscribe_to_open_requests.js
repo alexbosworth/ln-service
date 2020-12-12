@@ -68,6 +68,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
     equal(request.commit_fee_tokens_per_vbyte, 50, 'Got commit fee tokens');
     equal(request.csv_delay, 144, 'CSV delay is returned');
     equal(!!request.id, true, 'A channel request id is returned');
+    equal(request.is_private, true, 'Channel request is private');
     equal(request.local_balance, giftTokens, 'Gift tokens are returned');
     equal(request.local_reserve, channelCapacityTokens * 0.01, 'Got reserve');
     equal(request.max_pending_mtokens, '990000000', 'Got max mtok in flight');
@@ -94,6 +95,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
       lnd: cluster.target.lnd,
       chain_fee_tokens_per_vbyte: defaultFee,
       give_tokens: giftTokens,
+      is_private: true,
       local_tokens: channelCapacityTokens,
       partner_public_key: cluster.control.public_key,
       socket: cluster.control.socket,
