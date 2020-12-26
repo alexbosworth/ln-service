@@ -2,11 +2,18 @@ const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {closeChannel} = require('./../../');
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
+const {getChainTransactions} = require('./../../');
 const {getChannels} = require('./../../');
 const {getClosedChannels} = require('./../../');
+const {getHeight} = require('./../../');
+const {getPendingChannels} = require('./../../');
+const {getSweepTransactions} = require('./../../');
+const {getUtxos} = require('./../../');
+const {sendToChainAddress} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
@@ -14,7 +21,7 @@ const {subscribeToInvoice} = require('./../../');
 const all = promise => Promise.all(promise);
 const confirmationCount = 6;
 const defaultFee = 1e3;
-const interval = 100;
+const interval = 200;
 const maxChanTokens = Math.pow(2, 24) - 1;
 const times = 1000;
 
@@ -56,10 +63,16 @@ test(`Get closed channels`, async ({end, equal}) => {
   equal(channels.length, [channelOpen].length, 'Channel close listed');
 
   if (!!channel) {
+    // LND 0.11.1 and below do not use anchors
+    if (channelOpen.is_anchor) {
+      equal(maxChanTokens - channel.final_local_balance, 2810, 'Final');
+    } else {
+      equal(maxChanTokens - channel.final_local_balance, 9050, 'Final');
+    }
+
     equal(channel.capacity, maxChanTokens, 'Channel capacity reflected');
     equal(!!channel.close_confirm_height, true, 'Channel close height');
     equal(channel.close_transaction_id, closing.transaction_id, 'Close tx id');
-    equal(maxChanTokens - channel.final_local_balance, 9050, 'Final balance');
     equal(channel.final_time_locked_balance, 0, 'Final locked balance');
     equal(!!channel.id, true, 'Channel id');
     equal(channel.is_breach_close, false, 'Not breach close');
@@ -83,6 +96,13 @@ test(`Get closed channels`, async ({end, equal}) => {
     give: 3e5,
     to: cluster.target,
   });
+
+  // 0.12.0 does not seem to support moving pending channels to closed, exit.
+  if (channelOpen.is_anchor) {
+    await cluster.kill({});
+
+    return end();
+  }
 
   const cancelInvoice = await createHodlInvoice({
     lnd,
@@ -152,12 +172,18 @@ test(`Get closed channels`, async ({end, equal}) => {
     return payment.transaction_id === controlPending.spent_by;
   });
 
+  // LND 0.11.1 and below do not use anchors
+  if (channelOpen.is_anchor) {
+    equal(controlTimedOut.tokens, 100000, 'Timed out has token count');
+  } else {
+    equal(controlTimedOut.tokens, 91213, 'Timed out has token count');
+  }
+
   equal(controlTimedOut.is_outgoing, false, 'Timeout is incoming payment');
   equal(controlTimedOut.is_paid, false, 'Timed out payment is not paid');
   equal(controlTimedOut.is_pending, false, 'Timed out payment is not paid');
   equal(controlTimedOut.is_refunded, true, 'Timed out payment is refunded');
   equal(controlTimedOut.spent_by, undefined, 'Timed out has no spent by');
-  equal(controlTimedOut.tokens, 91213, 'Timed out has token count');
   equal(!!controlTimedOut.transaction_id, true, 'Timed out has tx id');
   equal(controlTimedOut.transaction_vout !== undefined, true, 'Refund vout');
 
@@ -170,12 +196,18 @@ test(`Get closed channels`, async ({end, equal}) => {
   equal(controlPending.transaction_id, controlCloseId, 'Pending off close');
   equal(controlPending.transaction_vout !== undefined, true, 'Pending vout');
 
+  // LND 0.11.1 and below do not use anchors
+  if (channelOpen.is_anchor) {
+    equal(controlTimedOut.tokens, 100000, 'Paid payment has token count');
+  } else {
+    equal(controlTimedOut.tokens, 91213, 'Paid payment has token count');
+  }
+
   equal(controlPaid.is_outgoing, false, 'Paid is incoming payment');
   equal(controlPaid.is_paid, true, 'Paid payment is paid');
   equal(controlPaid.is_pending, false, 'Paid payment is not pending');
   equal(controlPaid.is_refunded, false, 'Paid payment is not refunded');
   equal(!!controlPaid.spent_by, true, 'Paid payment has spent by');
-  equal(controlPaid.tokens, 91213, 'Paid payment has token count');
   equal(!!controlPaid.transaction_id, true, 'Paid payment has tx id');
   equal(controlPaid.transaction_vout !== undefined, true, 'Paid tx vout');
 

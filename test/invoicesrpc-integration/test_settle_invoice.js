@@ -82,10 +82,10 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal, rejects}) => {
     // LND 0.11.1 and below do not support extended channel balance details
     if (!!controlChannelBalance.channel_balance_mtokens) {
       deepIs(controlChannelBalance, {
-        channel_balance: 990950,
-        channel_balance_mtokens: '990950000',
-        inbound: 990850,
-        inbound_mtokens: '990850000',
+        channel_balance: 996530,
+        channel_balance_mtokens: '996530000',
+        inbound: 996430,
+        inbound_mtokens: '996430000',
         pending_balance: 0,
         pending_inbound: 0,
         unsettled_balance: tokens,

@@ -1,5 +1,9 @@
 # Versions
 
+## 50.10.0
+
+- `getPendingChannels`: Add `is_anchor` to indicate if a channel is an anchor channel
+
 ## 50.9.5
 
 - `subscribeToOpenRequests`: Add `is_private` attribute to open channel requests

@@ -93,6 +93,7 @@ module.exports = (args, cbk) => {
 
       const daemon = spawn(args.daemon, [
         '--datadir', args.dir,
+        '--debuglevel', 'trace',
         '--listen', `${localhost}:${listenPort}`,
         '--logdir', args.dir,
         '--miningaddr', p2pkh({network, pubkey}).address,

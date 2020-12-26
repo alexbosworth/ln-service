@@ -46,11 +46,20 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const [pendingOpen] = (await getPendingChannels({lnd})).pending_channels;
 
+  if (pendingOpen.is_anchor) {
+    equal(pendingOpen.local_balance, 986530, 'Local balance minus gift, fee');
+    equal(pendingOpen.transaction_fee, 2810, 'Transaction fee tokens');
+    equal(pendingOpen.transaction_weight, 1116, 'Channel tx weight');
+  } else {
+    equal(pendingOpen.local_balance, 980950, 'Local balance minus gift, fee');
+    equal(pendingOpen.transaction_fee, 9050, 'Transaction fee tokens');
+    equal(pendingOpen.transaction_weight, 724, 'Channel tx weight');
+  }
+
   equal(pendingOpen.close_transaction_id, undefined, 'Not closing');
   equal(pendingOpen.is_active, false, 'Not active yet');
   equal(pendingOpen.is_closing, false, 'Not closing yet');
   equal(pendingOpen.is_opening, true, 'Channel is opening');
-  equal(pendingOpen.local_balance, 980950, 'Local balance minus gift, fee');
   equal(pendingOpen.local_reserve, 10000, 'Local reserve amount');
   equal(pendingOpen.partner_public_key, cluster.target_node_public_key, 'Key');
   equal(pendingOpen.pending_balance, undefined, 'No pending chain balance');
@@ -61,10 +70,8 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(pendingOpen.remote_reserve, 10000, 'Remote reserve amount');
   equal(pendingOpen.sent, 0, 'Nothing sent');
   equal(pendingOpen.timelock_expiration, undefined, 'Not timelocked');
-  equal(pendingOpen.transaction_fee, 9050, 'Transaction fee tokens');
   equal(pendingOpen.transaction_id, channelOpen.transaction_id, 'Open tx id');
   equal(pendingOpen.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
-  equal(pendingOpen.transaction_weight, 724, 'Channel tx weight');
 
   await cluster.generate({count: confirmationCount});
 
@@ -83,14 +90,21 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const [waitClose] = (await getPendingChannels({lnd})).pending_channels;
 
+  // LND 0.11.1 and below do not support anchor channels
+  if (waitClose.is_anchor) {
+    equal(waitClose.local_balance, 986530, 'Original balance');
+    equal(waitClose.pending_balance, 986530, 'Waiting on balance');
+  } else {
+    equal(waitClose.local_balance, 980950, 'Original balance');
+    equal(waitClose.pending_balance, 980950, 'Waiting on balance');
+  }
+
   equal(waitClose.close_transaction_id, undefined, 'Waiting for close tx');
   equal(waitClose.is_active, false, 'Not active yet');
   equal(waitClose.is_closing, true, 'Channel is closing');
   equal(waitClose.is_opening, false, 'Not opening channel');
-  equal(waitClose.local_balance, 980950, 'Local balance of channel');
   equal(waitClose.local_reserve, 10000, 'Local reserve of closing channel');
   equal(waitClose.partner_public_key, cluster.target_node_public_key, 'Pkey');
-  equal(waitClose.pending_balance, 980950, 'Tokens return to local wallet');
   equal(waitClose.pending_payments, undefined, 'No pending payments data');
   equal(waitClose.received, 0, 'Nothing received');
   equal(waitClose.recovered_tokens, undefined, 'Funds not recovered yet');
@@ -131,13 +145,20 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const [forceClose] = (await getPendingChannels({lnd})).pending_channels;
 
+  // LND 0.11.1 and below do not support anchor channels
+  if (forceClose.is_anchor) {
+    equal(forceClose.local_balance, 986530, 'Original balance');
+    equal(forceClose.pending_balance, 986860, 'Waiting on balance');
+  } else {
+    equal(forceClose.local_balance, 980950, 'Original balance');
+    equal(forceClose.pending_balance, 980950, 'Waiting on balance');
+  }
+
   equal(forceClose.close_transaction_id, channelClose.transaction_id, 'Txid');
   equal(forceClose.is_active, false, 'Not active anymore');
   equal(forceClose.is_closing, true, 'Channel is force closing');
   equal(forceClose.is_opening, false, 'Channel is not opening');
-  equal(forceClose.local_balance, 980950, 'Local balance of channel');
   equal(forceClose.partner_public_key, cluster.target_node_public_key, 'pk');
-  equal(forceClose.pending_balance, 980950, 'Tokens returning');
   equal(forceClose.received, 0, 'No receive amount');
   equal(forceClose.recovered_tokens, undefined, 'No recovered amount');
   equal(forceClose.remote_balance, 0, 'No remote balance');

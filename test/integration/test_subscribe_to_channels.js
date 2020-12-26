@@ -83,16 +83,24 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
     equal(openEvent.remote_given, giveTokens, 'Push tokens are reflected');
   }
 
+  // LND 0.11.1 and before do not use anchors
+  if (openEvent.is_anchor) {
+    equal(openEvent.commit_transaction_fee, 2810, 'Channel commit tx fee');
+    equal(openEvent.commit_transaction_weight, 1116, 'Commit tx weight');
+    equal(openEvent.local_balance, 896530, 'Channel local balance returned');
+  } else {
+    equal(openEvent.commit_transaction_fee, 9050, 'Channel commit tx fee');
+    equal(openEvent.commit_transaction_weight, 724, 'Commit tx weight');
+    equal(openEvent.local_balance, 890950, 'Channel local balance returned');
+  }
+
   equal(openEvent.capacity, channelCapacityTokens, 'Channel open capacity');
-  equal(openEvent.commit_transaction_fee, 9050, 'Channel commit tx fee');
-  equal(openEvent.commit_transaction_weight, 724, 'Commit tx weight');
   equal(openEvent.id, `${startHeight+1}x1x0`, 'Channel id is returned');
   equal(openEvent.is_active, true, 'Channel is active');
   equal(openEvent.is_closing, false, 'Channel is not inactive');
   equal(openEvent.is_opening, false, 'Channel is no longer opening');
   equal(openEvent.is_partner_initiated, false, 'Channel was locally made');
   equal(openEvent.is_private, false, 'Channel is not private by default');
-  equal(openEvent.local_balance, 890950, 'Channel local balance returned');
   equal(openEvent.local_reserve, 10000, 'Reserve tokens are reflected');
   equal(openEvent.partner_public_key, cluster.target.public_key, 'Peer pk');
   equal(openEvent.pending_payments.length, [].length, 'No pending payments');
@@ -128,10 +136,15 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
 
   const closeEvent = channelClosed.pop();
 
+  if (openEvent.is_anchor) {
+    equal(closeEvent.final_local_balance, 897190, 'Close final local balance');
+  } else {
+    equal(closeEvent.final_local_balance, 890950, 'Close final local balance');
+  }
+
   equal(closeEvent.capacity, channelCapacityTokens, 'Channel close capacity');
   equal(!!closeEvent.close_confirm_height, true, 'Close confirm height');
   equal(!!closeEvent.close_transaction_id, true, 'Tx id');
-  equal(closeEvent.final_local_balance, 890950, 'Close final local balance');
   equal(closeEvent.final_time_locked_balance, 0, 'Close final locked balance');
   equal(closeEvent.id, `${startHeight+1}x1x0`, 'Close channel id');
   equal(closeEvent.is_breach_close, false, 'Not breach close');

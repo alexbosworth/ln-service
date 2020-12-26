@@ -39,17 +39,24 @@ test(`Get pending channels`, async ({end, equal}) => {
   });
 
   if (channel.is_partner_initiated !== undefined) {
-    equal(channel.is_partner_initiated, true, 'Channel was partner initiated');
+    equal(channel.is_partner_initiated, false, 'Channel was initiated');
+  }
+
+  // LND 0.11.1 and below do not support anchor channels
+  if (channel.is_anchor) {
+    equal(channel.local_balance, 986530, 'Original balance');
+    equal(channel.pending_balance, 986530, 'Waiting on balance');
+  } else {
+    equal(channel.local_balance, 980950, 'Original balance');
+    equal(channel.pending_balance, 980950, 'Waiting on balance');
   }
 
   equal(channel.close_transaction_id, undefined, 'No close tx id');
   equal(channel.is_active, false, 'Ended');
   equal(channel.is_closing, true, 'Closing');
   equal(channel.is_opening, false, 'Not Opening');
-  equal(channel.local_balance, 980950, 'Original balance');
   equal(channel.local_reserve, 10000, 'Local reserve');
   equal(channel.partner_public_key, cluster.target.public_key, 'target pubk');
-  equal(channel.pending_balance, 980950, 'Waiting on balance');
   equal(channel.pending_payments, undefined, 'No pending payments');
   equal(channel.received, 0, 'Never received');
   equal(channel.recovered_tokens, undefined, 'Nothing to recover in sweep');

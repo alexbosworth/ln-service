@@ -63,9 +63,13 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
   const acceptSub = subscribeToOpenRequests({lnd: cluster.control.lnd});
 
   acceptSub.on('channel_request', request => {
+    // LND 0.11.1 and below defaulted the commit fee to a higher value
+    if (request.commit_fee_tokens_per_vbyte !== 10) {
+      equal(request.commit_fee_tokens_per_vbyte, 50, 'Got commit fee tokens');
+    }
+
     equal(request.capacity, channelCapacityTokens, 'Channel capacity tokens');
     equal(request.chain, regtestGenesisHash, 'Got chain in request');
-    equal(request.commit_fee_tokens_per_vbyte, 50, 'Got commit fee tokens');
     equal(request.csv_delay, 144, 'CSV delay is returned');
     equal(!!request.id, true, 'A channel request id is returned');
     equal(request.is_private, true, 'Channel request is private');

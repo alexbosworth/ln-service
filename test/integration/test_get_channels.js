@@ -50,16 +50,24 @@ test(`Get channels`, async ({end, equal}) => {
     equal(channel.remote_min_htlc_mtokens, '1', 'Remote min HTLC mtokens');
   }
 
+  // LND 0.11.1 and below do not support anchor channels
+  if (channel.is_anchor) {
+    equal(channel.local_balance, 896530, 'Local balance');
+    equal(channel.commit_transaction_fee, 2810, 'Commit fee');
+    equal(channel.commit_transaction_weight, 1116, 'Commit weight');
+  } else {
+    equal(channel.local_balance, 890950, 'Local balance');
+    equal(channel.commit_transaction_fee, 9050, 'Commit fee');
+    equal(channel.commit_transaction_weight, 724, 'Commit weight');
+  }
+
   equal(channel.capacity, 1000000, 'Channel capacity');
-  equal(channel.commit_transaction_fee, 9050, 'Commit fee');
-  equal(channel.commit_transaction_weight, 724, 'Commit weight');
   equal(channel.id, chan.id, 'Channel id returned');
   equal(channel.is_active, true, 'Channel active');
   equal(channel.is_closing, false, 'Channel not closing');
   equal(channel.is_opening, false, 'Channel not opening');
   equal(channel.is_partner_initiated, false, 'Partner initiated channel');
   equal(channel.is_private, false, 'Channel not private');
-  equal(channel.local_balance, 890950, 'Local balance');
   equal(channel.local_reserve, 10000, 'Local reserve');
   equal(channel.partner_public_key, cluster.target.public_key, 'Pubkey');
   equal(channel.pending_payments.length, 0, 'No pending payments');

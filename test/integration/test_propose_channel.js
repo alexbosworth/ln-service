@@ -318,6 +318,17 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
 
   const [incoming] = pendingTarget.pending_channels;
 
+  // LND 0.11.1 and before do not use anchor channels
+  if (incoming.is_anchor) {
+    equal(incoming.remote_balance, 496530, 'Remote balance amount');
+    equal(incoming.transaction_fee, 2810, 'Commit tx fee');
+    equal(incoming.transaction_weight, 1116, 'Funding tx weight');
+  } else {
+    equal(incoming.remote_balance, giveTokens - 9050, 'Remote balance amount');
+    equal(incoming.transaction_fee, 9050, 'Commit tx fee');
+    equal(incoming.transaction_weight, 724, 'Funding tx weight');
+  }
+
   equal(incoming.close_transaction_id, undefined, 'Not a closing tx');
   equal(incoming.is_active, false, 'Not active yet');
   equal(incoming.is_closing, false, 'Channel is not closing');
@@ -330,14 +341,11 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   equal(incoming.pending_payments, undefined, 'No HTLCs active');
   equal(incoming.received, 0, 'Nothing received');
   equal(incoming.recovered_tokens, undefined, 'No recovery');
-  equal(incoming.remote_balance, giveTokens - 9050, 'Remote balance amount');
   equal(incoming.remote_reserve, capacity * reserveRatio, 'Got peer reserve');
   equal(incoming.sent, 0, 'Nothing sent');
   equal(incoming.timelock_expiration, undefined, 'No timelock');
-  equal(incoming.transaction_fee, 9050, 'Commit tx fee');
   equal(incoming.transaction_id, fundingTxId, 'Funding tx id is correct');
   equal(incoming.transaction_vout, fundingTxVout, 'Funding vout is correct');
-  equal(incoming.transaction_weight, 724, 'Funding tx weight');
 
   // Setup the combined signed PSBTs that fund the channel
   const combinedTempPsbt = combinePsbts({
@@ -392,9 +400,18 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
 
   const closeAddr = coopCloseAddress.address;
 
+  // LND 0.11.1 and before do not use anchor channels
+  if (incoming.is_anchor) {
+    equal(controlChannel.commit_transaction_fee, 2810, 'Regular tx fee');
+    equal(controlChannel.commit_transaction_weight, 1116, 'Regular tx size');
+    equal(controlChannel.is_static_remote_key, false, 'Not static remote key');
+  } else {
+    equal(controlChannel.commit_transaction_fee, 9050, 'Regular tx fee');
+    equal(controlChannel.commit_transaction_weight, 724, 'Regular tx size');
+    equal(controlChannel.is_static_remote_key, true, 'Regular remote key');
+  }
+
   equal(controlChannel.capacity, capacity, 'Channel with capacity created');
-  equal(controlChannel.commit_transaction_fee, 9050, 'Regular tx commit fee');
-  equal(controlChannel.commit_transaction_weight, 724, 'Regular tx size');
   equal(controlChannel.cooperative_close_address, closeAddr, 'Got close addr');
   equal(controlChannel.cooperative_close_delay_height, 2459, 'Thaw height');
   equal(controlChannel.id, '443x3x0', 'Got channel id');
@@ -403,7 +420,6 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   equal(controlChannel.is_opening, false, 'Channel is already opened');
   equal(controlChannel.is_partner_initiated, false, 'Control opened');
   equal(controlChannel.is_private, true, 'Channel is private');
-  equal(controlChannel.is_static_remote_key, true, 'Regular remote key');
   equal(controlChannel.local_balance, incoming.remote_balance, 'Control toks');
   equal(controlChannel.local_csv, 144, 'Channel CSV');
   equal(controlChannel.local_dust, 573, 'Channel dust');
@@ -417,9 +433,18 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
 
   const [targetChannel] = targetChannels.channels;
 
+  // LND 0.11.1 and before do not use anchor channels
+  if (incoming.is_anchor) {
+    equal(targetChannel.commit_transaction_fee, 2810, 'Regular tx commit fee');
+    equal(targetChannel.commit_transaction_weight, 1116, 'Regular tx size');
+    equal(targetChannel.is_static_remote_key, false, 'Anchor channel');
+  } else {
+    equal(targetChannel.commit_transaction_fee, 9050, 'Regular tx commit fee');
+    equal(targetChannel.commit_transaction_weight, 724, 'Regular tx size');
+    equal(targetChannel.is_static_remote_key, true, 'Regular remote key');
+  }
+
   equal(targetChannel.capacity, capacity, 'Channel with capacity created');
-  equal(targetChannel.commit_transaction_fee, 9050, 'Regular tx commit fee');
-  equal(targetChannel.commit_transaction_weight, 724, 'Regular tx size');
   equal(targetChannel.cooperative_close_address, undefined, 'No close addr');
   equal(targetChannel.cooperative_close_delay_height, 2459, 'Thaw height');
   equal(targetChannel.id, '443x3x0', 'Got channel id');
@@ -428,7 +453,6 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   equal(targetChannel.is_opening, false, 'Channel is already opened');
   equal(targetChannel.is_partner_initiated, true, 'Control opened');
   equal(targetChannel.is_private, true, 'Channel is private');
-  equal(targetChannel.is_static_remote_key, true, 'Regular remote key');
   equal(targetChannel.local_balance, giveTokens, 'Target tokens');
   equal(targetChannel.local_csv, 144, 'Channel CSV');
   equal(targetChannel.local_dust, 573, 'Channel dust');

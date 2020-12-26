@@ -51,15 +51,11 @@ test(`Cancel back a hodl invoice`, async ({deepIs, end, equal}) => {
 
     const [canceled] = (await getInvoices({lnd: cluster.target.lnd})).invoices;
 
-    sub.removeAllListeners();
-
     await delay(2000);
 
     await cluster.kill({});
 
-    end();
-
-    return;
+    return end();
   });
 
   let cancelErr = [];
