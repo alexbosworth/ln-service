@@ -21,7 +21,7 @@
     "lightning": "3.0.18",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
-    "ws": "7.4.1"
+    "ws": "7.4.2"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
