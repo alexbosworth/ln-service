@@ -853,6 +853,7 @@ Requires `offchain:read` permission
     {
       chain_address: <Fallback Chain Address String>
       [cltv_delta]: <Final CLTV Delta Number>
+      created_at: <Payment Request Created At ISO 8601 Date String>
       description: <Payment Description String>
       description_hash: <Payment Longer Description Hash String>
       destination: <Public Key String>
@@ -864,6 +865,7 @@ Requires `offchain:read` permission
         type: <Feature Type String>
       }]
       id: <Payment Hash String>
+      is_expired: <Invoice is Expired Bool>
       mtokens: <Requested Millitokens String>
       [payment]: <Payment Identifier Hex Encoded String>
       routes: [[{
@@ -1166,11 +1168,11 @@ Requires `offchain:read` permission
     @returns via cbk or Promise
     {
       backup: <All Channels Backup Hex String>
-      channels: {
+      channels: [{
         backup: <Individualized Channel Backup Hex String>
         transaction_id: <Channel Funding Transaction Id Hex String>
         transaction_vout: <Channel Funding Transaction Output Index Number>
-      }
+      }]
     }
 
 Example:
@@ -1821,7 +1823,9 @@ Invoice `payment` is not supported on LND 0.11.1 and below
     {
       invoices: [{
         [chain_address]: <Fallback Chain Address String>
+        cltv_delta: <Final CLTV Delta Number>
         [confirmed_at]: <Settled at ISO 8601 Date String>
+        [confirmed_index]: <Confirmed Index Number>
         created_at: <ISO 8601 Date String>
         description: <Description String>
         [description_hash]: <Description Hash Hex String>
@@ -1832,7 +1836,8 @@ Invoice `payment` is not supported on LND 0.11.1 and below
           is_required: <Feature Support is Required To Pay Bool>
           type: <Feature Type String>
         }]
-        id: <Payment Hash String>
+        id: <Payment Hash Hex String>
+        index: <Index Number>
         [is_canceled]: <Invoice is Canceled Bool>
         is_confirmed: <Invoice is Confirmed Bool>
         [is_held]: <HTLC is Held Bool>
@@ -1841,6 +1846,7 @@ Invoice `payment` is not supported on LND 0.11.1 and below
         mtokens: <Millitokens String>
         [payment]: <Payment Identifying Secret Hex String>
         payments: [{
+          [canceled_at]: <Payment Canceled At ISO 8601 Date String>
           [confirmed_at]: <Payment Settled At ISO 8601 Date String>
           created_at: <Payment Held Since ISO 860 Date String>
           created_height: <Payment Held Since Block Height Number>
@@ -1854,6 +1860,7 @@ Invoice `payment` is not supported on LND 0.11.1 and below
           }]
           mtokens: <Incoming Payment Millitokens String>
           [pending_index]: <Pending Payment Channel HTLC Index Number>
+          timeout: <HTLC CLTV Timeout Height Number>
           tokens: <Payment Tokens Number>
           [total_mtokens]: <Total Millitokens String>
         }]

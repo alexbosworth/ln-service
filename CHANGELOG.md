@@ -1,5 +1,10 @@
 # Versions
 
+## 50.10.1
+
+- `decodePaymentRequest`: Add `created_at` date, `is_expired` attributes
+- `getInvoices`: Add `cltv_delta`, `confirmed_index`, `index`, and HTLC `timeout`
+
 ## 50.10.0
 
 - `getPendingChannels`: Add `is_anchor` to indicate if a channel is an anchor channel

@@ -25,7 +25,7 @@ const blockDelay = 50;
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
-const interval = 10;
+const interval = 200;
 const times = 1000;
 const tokens = 100;
 
@@ -43,13 +43,6 @@ test(`Get sweep transactions`, async ({deepIs, end, equal}) => {
     to: cluster.target,
   });
 
-  // Sweeps don't seem to happen on LND 0.12.0, exit early
-  if (channel.is_anchor) {
-    await cluster.kill({});
-
-    return end();
-  }
-
   await closeChannel({
     lnd,
     is_force_close: true,
@@ -58,11 +51,11 @@ test(`Get sweep transactions`, async ({deepIs, end, equal}) => {
   });
 
   await asyncRetry({interval, times}, async () => {
+    await cluster.generate({});
+
     if (!!(await getClosedChannels({lnd})).channels.length) {
       return;
     }
-
-    await cluster.generate({});
 
     throw new Error('ExpectedClosedChannel');
   });
@@ -71,9 +64,13 @@ test(`Get sweep transactions`, async ({deepIs, end, equal}) => {
 
   const [transaction] = transactions;
 
-  if (transaction.spends.length === 2) {
+  // LND 0.12.0 uses anchor channels
+  if (channel.is_anchor) {
+    const [anchorTokens, sweepTokens] = transactions.map(n => n.tokens).sort();
+
     equal(transactions.length, 2, 'Got closed channel sweep');
-    equal(transaction.tokens, 149, 'Sweep has tokens amount');
+    equal(anchorTokens, 149, 'Sweep has tokens amount');
+    equal(sweepTokens, 890455, 'Sweep has tokens amount');
   } else {
     equal(transactions.length, [channel].length, 'Got closed channel sweep');
     equal(transaction.spends.length, 1, 'Sweep has spends');
