@@ -1,5 +1,11 @@
 # Versions
 
+## 50.11.0
+
+- `grpcProxyServer`: Fix issue with subscriptions not being closed when ws is closed
+- `payViaPaymentDetails`: Add support for payment identifier nonce
+- `subscribeToPayViaDetails`: Add support for payment identifier nonce
+
 ## 50.10.1
 
 - `decodePaymentRequest`: Add `created_at` date, `is_expired` attributes

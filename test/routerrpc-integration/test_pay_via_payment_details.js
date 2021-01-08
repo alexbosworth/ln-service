@@ -23,21 +23,6 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
   const {lnd} = cluster.control;
 
-  const {version} = await getWalletVersion({lnd});
-
-  // Only run this test on LND 0.11.0 and LND 0.11.1
-  // Later versions of LND drop support for paying via payment details
-  switch (version) {
-  case 'v0.11.0-beta':
-  case 'v0.11.1-beta':
-    break;
-
-  default:
-    await cluster.kill({});
-
-    return end();
-  }
-
   const channel = await setupChannel({
     lnd,
     generate: cluster.generate,
@@ -97,6 +82,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       features,
       lnd,
       destination: cluster.remote.public_key,
+      payment: invoice.payment,
       tokens: invoice.tokens,
     });
   } catch (err) {
@@ -110,6 +96,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       destination: cluster.remote.public_key,
       id: invoice.id,
       max_timeout_height: height + 43,
+      payment: invoice.payment,
       tokens: invoice.tokens,
     });
 
@@ -126,6 +113,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       id: invoice.id,
       max_timeout_height: height + 90,
       messages: [{type: tlvType, value: tlvData}],
+      payment: invoice.payment,
       tokens: invoice.tokens,
     });
 

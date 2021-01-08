@@ -5,6 +5,7 @@ const {closeChannel} = require('./../../');
 const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
+const {delay} = require('./../macros');
 const {payViaPaymentRequest} = require('./../../');
 const {getChainTransactions} = require('./../../');
 const {getChannels} = require('./../../');
@@ -21,7 +22,7 @@ const {subscribeToInvoice} = require('./../../');
 const all = promise => Promise.all(promise);
 const confirmationCount = 6;
 const defaultFee = 1e3;
-const interval = 200;
+const interval = 125;
 const maxChanTokens = Math.pow(2, 24) - 1;
 const times = 1000;
 
@@ -35,6 +36,7 @@ test(`Get closed channels`, async ({end, equal}) => {
     lnd,
     capacity: maxChanTokens,
     generate: cluster.generate,
+    partner_csv_delay: 20,
     to: cluster.target,
   });
 
@@ -94,15 +96,9 @@ test(`Get closed channels`, async ({end, equal}) => {
     capacity: 7e5,
     generate: cluster.generate,
     give: 3e5,
+    partner_csv_delay: 20,
     to: cluster.target,
   });
-
-  // 0.12.0 does not seem to support moving pending channels to closed, exit.
-  if (channelOpen.is_anchor) {
-    await cluster.kill({});
-
-    return end();
-  }
 
   const cancelInvoice = await createHodlInvoice({
     lnd,
@@ -138,6 +134,9 @@ test(`Get closed channels`, async ({end, equal}) => {
   });
 
   await settleHodlInvoice({lnd, secret: claimInvoice.secret});
+
+  // LND 0.12.0 requires a delay before sweeps start
+  await delay(1000 * 35);
 
   // Wait for channel to close
   await asyncRetry({interval, times}, async () => {

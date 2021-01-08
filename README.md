@@ -3150,6 +3150,8 @@ If no id is specified, a random id will be used.
 
 Requires `offchain:write` permission
 
+`payment` is not supported on LND 0.11.1 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
@@ -3171,6 +3173,7 @@ Requires `offchain:write` permission
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
+      [payment]: <Payment Identifier Hex String>
       routes: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
@@ -4763,6 +4766,8 @@ Subscribe to the flight of a payment
 
 Requires `offchain:write` permission
 
+`payment` is not supported on LND 0.11.1 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
@@ -4784,6 +4789,7 @@ Requires `offchain:write` permission
       [outgoing_channel]: <Pay Out of Outgoing Channel Id String>
       [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
+      [payment]: <Payment Identifier Hex String>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
