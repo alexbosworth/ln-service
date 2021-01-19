@@ -1,6 +1,6 @@
 # Versions
 
-## 50.11.2
+## 50.11.3
 
 - `grpcProxyServer`: Fix issue with subscriptions not being closed when ws is closed
 - `payViaPaymentDetails`: Add support for payment identifier nonce
