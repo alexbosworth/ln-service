@@ -2,8 +2,8 @@ const asyncAuto = require('async/auto');
 const asyncReduce = require('async/reduce');
 const {returnResult} = require('asyncjs-util');
 
-const getForwardingConfidence = require('./get_forwarding_confidence');
-const getForwardingReputations = require('./get_forwarding_reputations');
+const {getForwardingConfidence} = require('lightning/lnd_methods');
+const {getForwardingReputations} = require('lightning/lnd_methods');
 const {getIdentity} = require('lightning/lnd_methods');
 
 const combine = (a, b) => Math.round(a / 1e6 * b / 1e6);

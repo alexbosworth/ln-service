@@ -7,7 +7,7 @@
     "url": "https://github.com/alexbosworth/ln-service/issues"
   },
   "dependencies": {
-    "@datastructures-js/priority-queue": "4.1.2",
+    "@datastructures-js/priority-queue": "5.0.0",
     "async": "3.2.0",
     "asyncjs-util": "1.2.3",
     "bitcoinjs-lib": "5.2.0",
@@ -17,7 +17,7 @@
     "express": "4.17.1",
     "invoices": "1.1.4",
     "is-base64": "1.1.0",
-    "lightning": "3.1.0",
+    "lightning": "3.2.1",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.4.2"
@@ -63,5 +63,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "50.11.3"
+  "version": "50.11.4"
 }

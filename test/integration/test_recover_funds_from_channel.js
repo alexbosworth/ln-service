@@ -46,12 +46,7 @@ test(`Recover funds from channel`, async ({end, equal}) => {
 
   cluster.control.kill();
 
-  await recoverFundsFromChannel({
-    backup,
-    lnd: clone.lnd,
-    transaction_id: channelOpen.transaction_id,
-    transaction_vout: channelOpen.transaction_vout,
-  });
+  await recoverFundsFromChannel({backup, lnd: clone.lnd});
 
   await delay(3000);
 
