@@ -48,6 +48,7 @@ const times = 30;
   {
     [circular]: <Allow Circular Payments Bool>
     [keysend]: <Enable Key Send Bool>
+    [noauth]: <Disable Macaroon Bool>
     [seed]: <Seed Phrase String>
     [tower]: <Tower Enabled Bool>
     [watchers]: <Watchtower Client Enabled Bool>
@@ -74,7 +75,7 @@ const times = 30;
     socket: <LND RPC Network Socket String>
   }
 */
-module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
+module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
@@ -233,6 +234,10 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
           arguments.push('--accept-keysend');
         }
 
+        if (!!noauth) {
+          arguments.push('--no-macaroons');
+        }
+
         if (!!tower) {
           towerArgs.forEach(n => arguments.push(n));
         }
@@ -264,7 +269,11 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
             return finished();
           }
 
-          return finished([503, 'FailedToStart', `${data}`.trim().split('\n')]);
+          return finished([
+            503,
+            'FailedToStart',
+            `${data}`.trim().split('\n'),
+          ]);
         });
 
         daemon.stdout.on('data', data => {
@@ -353,6 +362,11 @@ module.exports = ({circular, keysend, seed, tower, watchers}, cbk) => {
       'spawnChainDaemon',
       ({spawnChainDaemon}, cbk) =>
     {
+      // Exit early when spawning an LND that has no auth
+      if (!!noauth) {
+        return cbk();
+      }
+
       const macaroonPath = join(spawnChainDaemon.dir, adminMacaroonFileName);
 
       return asyncRetry({interval, times}, cbk => {

@@ -1,5 +1,9 @@
 # Versions
 
+## 50.11.6
+
+- `authenticatedLndGrpc`: Remove requirement for passing a macaroon
+
 ## 50.11.5
 
 - `grpcProxyServer`: Fix issue with subscriptions not being closed when ws is closed

@@ -11,7 +11,10 @@ through npm.
 
 Supported LND versions:
 
+- v0.12.0-beta
 - v0.11.0-beta to v0.11.1-beta
+
+For typescript-ready methods, check out https://github.com/alexbosworth/lightning
 
 ## Installing LND
 
@@ -276,7 +279,7 @@ Both the cert and macaroon expect the entire serialized LND generated file
 
     {
       [cert]: <Base64 or Hex Serialized LND TLS Cert>
-      macaroon: <Base64 or Hex Serialized Macaroon String>
+      [macaroon]: <Base64 or Hex Serialized Macaroon String>
       [socket]: <Host:Port String>
     }
 
