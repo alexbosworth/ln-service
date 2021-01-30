@@ -1,6 +1,6 @@
 # Versions
 
-## 50.11.8
+## 50.11.9
 
 - `authenticatedLndGrpc`: Remove requirement for passing a macaroon
 
