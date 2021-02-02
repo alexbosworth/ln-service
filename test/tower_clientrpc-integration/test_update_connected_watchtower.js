@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {connectWatchtower} = require('./../../');
@@ -9,8 +10,10 @@ const {waitForTermination} = require('./../macros');
 
 const all = promise => Promise.all(promise);
 const includes = (arr, element) => !!arr.find(n => n === element);
+const interval = 1000;
 const loopback = '[::1]';
 const nodes = [{watchers: true}, {tower: true}];
+const times = 100;
 
 // Updating a connected watchtower should update the watchtower
 test(`Update connected watchtower`, async ({end, equal, match}) => {
@@ -33,20 +36,32 @@ test(`Update connected watchtower`, async ({end, equal, match}) => {
 
   const alternativeSocket = `${loopback}:${port}`;
 
-  await updateConnectedWatchtower({
-    lnd,
-    add_socket: alternativeSocket,
-    public_key: info.public_key,
+  await asyncRetry({interval, times}, async () => {
+    const [tower] = (await getConnectedWatchtowers({lnd})).towers;
+
+    if (!tower.sessions.length) {
+      throw new Error('ExpectedSession');
+    }
+  });
+
+  await asyncRetry({}, async () => {
+    await updateConnectedWatchtower({
+      lnd,
+      add_socket: alternativeSocket,
+      public_key: info.public_key,
+    });
   });
 
   const [added] = (await getConnectedWatchtowers({lnd})).towers;
 
   equal(includes(added.sockets, alternativeSocket), true, 'Added alt socket');
 
-  await updateConnectedWatchtower({
-    lnd,
-    public_key: info.public_key,
-    remove_socket: alternativeSocket,
+  await asyncRetry({}, async () => {
+    await updateConnectedWatchtower({
+      lnd,
+      public_key: info.public_key,
+      remove_socket: alternativeSocket,
+    });
   });
 
   const [removed] = (await getConnectedWatchtowers({lnd})).towers;
