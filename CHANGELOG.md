@@ -4,7 +4,7 @@
 
 ### Breaking Changes
 
-- Remote `calculateHops`, `calculatePaths` methods, abstracted out to `ln-pathfinding`
+- Remove `calculateHops`, `calculatePaths` methods, abstracted out to `ln-pathfinding`
 
 ## 50.11.13
 
