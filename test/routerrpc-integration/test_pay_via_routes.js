@@ -12,7 +12,6 @@ const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {routeFromChannels} = require('./../../');

@@ -1,3 +1,4 @@
+const {hopsFromChannels} = require('bolt07');
 const {routeFromHops} = require('bolt07');
 const {test} = require('tap');
 
@@ -7,7 +8,6 @@ const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
 const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');

@@ -1,5 +1,6 @@
 const {importMacaroon} = require('macaroon');
-const isBase64 = require('is-base64');
+
+const b64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 /** Restrict an access macaroon
 
@@ -18,7 +19,7 @@ const isBase64 = require('is-base64');
   }
 */
 module.exports = args => {
-  if (!isBase64(args.macaroon)) {
+  if (!args.macaroon || !b64.test(args.macaroon)) {
     throw new Error('ExpectedMacaroonToAddRestrictions');
   }
 

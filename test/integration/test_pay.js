@@ -12,7 +12,6 @@ const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');

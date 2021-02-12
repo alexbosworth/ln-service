@@ -14,7 +14,7 @@ Supported LND versions:
 - v0.12.0-beta
 - v0.11.0-beta to v0.11.1-beta
 
-For typescript-ready methods, check out https://github.com/alexbosworth/lightning
+For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
 
 ## Installing LND
 
@@ -111,8 +111,6 @@ for `unlocker` methods.
 - [addPeer](#addPeer) - Connect to a peer
 - [authenticatedLndGrpc](#authenticatedLndGrpc) - LND API Object
 - [broadcastChainTransaction](#broadcastChainTransaction) - Push a chain tx
-- [calculateHops](#calculateHops) - Pathfind to get payment hops from channels
-- [calculatePaths](#calculatePaths) - Pathfind to find multiple routes to pay
 - [cancelHodlInvoice](#cancelHodlInvoice) - Cancel a held or open invoice
 - [cancelPendingChannel](#cancelPendingChannel) - Cancel a pending open channel
 - [changePassword](#changePassword) - Change the wallet unlock password
@@ -240,6 +238,7 @@ for `unlocker` methods.
 - [invoices](https://npmjs.com/package/invoices) - bolt11 request utilities
 - [lightning](https://npmjs.com/package/lightning) - general lightning utilities
 - [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
+- [ln-pathfinding](https://npmjs.com/package/ln-accounting) - pathfinding utilities
 - [probing](https://npmjs.com/package/probing) - payment probing utilities
 - [psbt](https://www.npmjs.com/package/psbt) - BIP 174 PSBT utilities
 
@@ -341,118 +340,15 @@ const transaction = hexEncodedTransactionString;
 const {id} = await broadcastChainTransaction({lnd, transaction});
 ```
 
-### calculateHops
-
-Calculate hops between start and end nodes
-
-    {
-      channels: [{
-        capacity: <Capacity Tokens Number>
-        id: <Standard Channel Id String>
-        policies: [{
-          base_fee_mtokens: <Base Fee Millitokens String>
-          cltv_delta: <CLTV Delta Number>
-          fee_rate: <Fee Rate Number>
-          is_disabled: <Channel is Disabled Bool>
-          max_htlc_mtokens: <Maximum HTLC Millitokens String>
-          min_htlc_mtokens: <Minimum HTLC Millitokens String>
-          public_key: <Public Key Hex String>
-        }]
-      }]
-      end: <End Public Key Hex String>
-      [ignore]: [{
-        [channel]: <Standard Format Channel Id String>
-        public_key: <Public Key Hex String>
-      }]
-      mtokens: <Millitokens Number>
-      start: <Start Public Key Hex String>
-    }
-
-    @throws
-    <Error>
-
-    @returns
-    {
-      [hops]: [{
-        base_fee_mtokens: <Base Fee Millitokens String>
-        channel: <Standard Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
-        cltv_delta: <CLTV Delta Number>
-        fee_rate: <Fee Rate Number>
-        public_key: <Public Key Hex String>
-      }]
-    }
-
-Example:
-
-```node
-const {calculateHops, getNetworkGraph, getIdentity} = require('ln-service');
-const {channels} = await getNetworkGraph;
-const end = 'destinationPublicKeyHexString';
-const start = (await getIdentity({lnd})).public_key;_
-const const {hops} = calculateHops({channels, end, start, mtokens: '1000'});
-```
-
-### calculatePaths
-
-Calculate multiple routes to a destination
-
-    {
-      channels: [{
-        capacity: <Capacity Tokens Number>
-        id: <Standard Channel Id String>
-        policies: [{
-          base_fee_mtokens: <Base Fee Millitokens String>
-          cltv_delta: <CLTV Delta Number>
-          fee_rate: <Fee Rate Number>
-          is_disabled: <Channel is Disabled Bool>
-          max_htlc_mtokens: <Maximum HTLC Millitokens String>
-          min_htlc_mtokens: <Minimum HTLC Millitokens String>
-          public_key: <Public Key Hex String>
-        }]
-      }]
-      end: <End Public Key Hex String>
-      [limit]: <Paths To Return Limit Number>
-      mtokens: <Millitokens Number>
-      start: <Start Public Key Hex String>
-    }
-
-    @throws
-    <Error>
-
-    @returns
-    {
-      [paths]: [{
-        hops: [{
-          base_fee_mtokens: <Base Fee Millitokens String>
-          channel: <Standard Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          cltv_delta: <CLTV Delta Number>
-          fee_rate: <Fee Rate Number>
-          public_key: <Public Key Hex String>
-        }]
-      }]
-    }
-
-Example:
-
-```node
-const {calculatePaths, getNetworkGraph, getIdentity} = require('ln-service');
-const {channels} = await getNetworkGraph;
-const end = 'destinationPublicKeyHexString';
-const start = (await getIdentity({lnd})).public_key;
-const const {paths} = calculatePaths({channels, end, start, mtokens: '1000'});
-```
-
 ### cancelHodlInvoice
 
 Cancel an invoice
 
-  This call can cancel both HODL invoices and also void regular invoices
+This call can cancel both HODL invoices and also void regular invoices
 
-  Requires LND built with `invoicesrpc`
+Requires LND built with `invoicesrpc`
 
-  Requires `invoices:write` permission
+Requires `invoices:write` permission
 
     {
       id: <Payment Preimage Hash Hex String>
@@ -464,7 +360,7 @@ Example:
 ```node
 const {cancelHodlInvoice} = require('ln-service');
 const id = paymentRequestPreimageHashHexString;
-const await cancelHodlInvoice({id, lnd});
+await cancelHodlInvoice({id, lnd});
 ```
 
 ### cancelPendingChannel
@@ -5686,15 +5582,11 @@ const signedBy = (await verifyMessage({lnd, message, signature})).signed_by;
 
 ## Tests
 
-Unit tests:
-
-    $ npm test
-
 Integration tests:
 
 BTCD and LND are required to execute the integration tests.
 
 LND must be compiled with the relevant sub-rpc tags to complete all tests.
 
-    $ npm run all-integration-tests
+    $ npm t
 

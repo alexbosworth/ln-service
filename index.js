@@ -1,8 +1,6 @@
 const {addPeer} = require('lightning');
 const {authenticatedLndGrpc} = require('lightning');
 const {broadcastChainTransaction} = require('lightning/lnd_methods');
-const {calculateHops} = require('./routing');
-const {calculatePaths} = require('./routing');
 const {cancelHodlInvoice} = require('lightning');
 const {cancelPendingChannel} = require('lightning/lnd_methods');
 const {changePassword} = require('lightning/lnd_methods');
@@ -54,7 +52,7 @@ const {getPeers} = require('lightning');
 const {getPendingChainBalance} = require('lightning/lnd_methods');
 const {getPendingChannels} = require('lightning/lnd_methods');
 const {getPublicKey} = require('lightning');
-const {getRouteConfidence} = require('./router');
+const {getRouteConfidence} = require('lightning/lnd_methods');
 const {getRouteThroughHops} = require('lightning');
 const {getRouteToDestination} = require('lightning');
 const {getSweepTransactions} = require('lightning/lnd_methods');
@@ -63,7 +61,7 @@ const {getUtxos} = require('lightning/lnd_methods');
 const {getWalletInfo} = require('lightning');
 const {getWalletVersion} = require('lightning');
 const {grantAccess} = require('lightning');
-const {isDestinationPayable} = require('./router');
+const {isDestinationPayable} = require('lightning/lnd_methods');
 const {lockUtxo} = require('lightning/lnd_methods');
 const {openChannel} = require('lightning/lnd_methods');
 const {openChannels} = require('lightning/lnd_methods');
@@ -73,7 +71,7 @@ const {payViaPaymentDetails} = require('lightning/lnd_methods');
 const {payViaPaymentRequest} = require('lightning/lnd_methods');
 const {payViaRoutes} = require('lightning/lnd_methods');
 const {prepareForChannelProposal} =  require('lightning/lnd_methods');
-const {probeForRoute} = require('./router');
+const {probeForRoute} = require('lightning/lnd_methods');
 const {proposeChannel} = require('lightning/lnd_methods');
 const {recoverFundsFromChannel} = require('lightning');
 const {recoverFundsFromChannels} = require('lightning');
@@ -92,8 +90,8 @@ const {signTransaction} = require('lightning');
 const {stopDaemon} = require('lightning');
 const {subscribeToBackups} = require('lightning');
 const {subscribeToBlocks} = require('lightning/lnd_methods');
-const {subscribeToChainAddress} = require('./chain');
-const {subscribeToChainSpend} = require('./chain');
+const {subscribeToChainAddress} = require('lightning/lnd_methods');
+const {subscribeToChainSpend} = require('lightning/lnd_methods');
 const {subscribeToChannels} = require('lightning');
 const {subscribeToForwardRequests} = require('lightning');
 const {subscribeToForwards} = require('lightning');
@@ -123,8 +121,6 @@ module.exports = {
   addPeer,
   authenticatedLndGrpc,
   broadcastChainTransaction,
-  calculateHops,
-  calculatePaths,
   cancelHodlInvoice,
   cancelPendingChannel,
   changePassword,

@@ -1,9 +1,9 @@
+const asyncRetry = require('async/retry');
 const {test} = require('tap');
 
 const {cancelPendingChannel} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const {getPendingChannels} = require('./../../');
 const {openChannels} = require('./../../');
 
 const capacity = 1e6;
@@ -18,7 +18,16 @@ test(`Cancel pending channel`, async ({end, equal}) => {
 
   const channels = [{capacity, partner_public_key: cluster.target.public_key}];
 
-  const toCancel = await race([delay(timeout), openChannels({channels, lnd})]);
+  await asyncRetry({interval: 100, times: 100}, async () => {
+    const toCancel = await race([
+      delay(timeout),
+      openChannels({channels, lnd}),
+    ]);
+
+    const [{id}] = toCancel.pending;
+
+    await cancelPendingChannel({id, lnd});
+  });
 
   await cluster.kill({});
 

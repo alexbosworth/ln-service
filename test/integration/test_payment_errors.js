@@ -1,5 +1,6 @@
 const asyncRetry = require('async/retry');
 const {decodeChanId} = require('bolt07');
+const {hopsFromChannels} = require('bolt07');
 const {routeFromHops} = require('bolt07');
 const {test} = require('tap');
 
@@ -10,7 +11,6 @@ const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getIdentity} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 

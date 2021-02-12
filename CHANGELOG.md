@@ -1,5 +1,11 @@
 # Versions
 
+## 51.0.0
+
+### Breaking Changes
+
+- Remote `calculateHops`, `calculatePaths` methods, abstracted out to `ln-pathfinding`
+
 ## 50.11.13
 
 - `authenticatedLndGrpc`: Remove requirement for passing a macaroon

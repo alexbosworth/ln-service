@@ -5,7 +5,6 @@ const {createInvoice} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {getWalletVersion} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
 const {parsePaymentRequest} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');

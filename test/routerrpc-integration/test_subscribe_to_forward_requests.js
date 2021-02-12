@@ -7,7 +7,6 @@ const {deleteForwardingReputations} = require('./../../');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getWalletVersion} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
 const {setupChannel} = require('./../macros');

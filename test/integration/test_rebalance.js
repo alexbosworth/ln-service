@@ -5,7 +5,6 @@ const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {hopsFromChannels} = require('./../../routing');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
