@@ -10,8 +10,8 @@
     "bolt07": "1.7.0",
     "cors": "2.8.5",
     "express": "4.17.1",
-    "invoices": "1.1.4",
-    "lightning": "3.2.12",
+    "invoices": "1.1.5",
+    "lightning": "3.2.14",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.4.3"
@@ -60,5 +60,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "51.0.0"
+  "version": "51.1.0"
 }

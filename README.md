@@ -1,8 +1,6 @@
 # Lightning Network Service
 
 [![npm version](https://badge.fury.io/js/ln-service.svg)](https://badge.fury.io/js/ln-service)
-[![Coverage Status](https://coveralls.io/repos/github/alexbosworth/ln-service/badge.svg?branch=master)](https://coveralls.io/github/alexbosworth/ln-service?branch=master)
-[![Build Status](https://travis-ci.org/alexbosworth/ln-service.svg?branch=master)](https://travis-ci.org/alexbosworth/ln-service)
 
 ## Overview
 
@@ -2968,11 +2966,14 @@ hops is required to form the route.
 
 Requires `offchain:write` permission
 
+`max_path_mtokens` is not supported in LND 0.12.0 or below
+
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_path_mtokens]: <Maximum Millitokens For A Multi-Path Path String>
       [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Max CLTV Timeout Number>
       [messages]: [{
@@ -3051,6 +3052,8 @@ Requires `offchain:write` permission
 
 `payment` is not supported on LND 0.11.1 and below
 
+`max_path_mtokens` is not supported in LND 0.12.0 or below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
@@ -3062,6 +3065,7 @@ Requires `offchain:write` permission
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_path_mtokens]: <Maximum Millitokens For A Multi-Path Path String>
       [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [messages]: [{
@@ -3134,11 +3138,14 @@ Pay via payment request
 
 Requires `offchain:write` permission
 
+`max_path_mtokens` is not supported in LND 0.12.0 or below
+
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_path_mtokens]: <Maximum Millitokens For A Multi-Path Path String>
       [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
       [messages]: [{
@@ -4667,6 +4674,8 @@ Requires `offchain:write` permission
 
 `payment` is not supported on LND 0.11.1 and below
 
+`max_path_mtokens` is not supported in LND 0.12.0 or below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       destination: <Destination Public Key String>
@@ -4675,9 +4684,10 @@ Requires `offchain:write` permission
       }]
       [id]: <Payment Request Hash Hex String>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_path_mtokens]: <Maximum Millitokens For A Multi-Path Path String>
       [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
       [messages]: [{
@@ -4772,11 +4782,14 @@ Initiate and subscribe to the outcome of a payment request
 
 Requires `offchain:write` permission
 
+`max_path_mtokens` is not supported in LND 0.12.0 or below
+
     {
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
+      [max_path_mtokens]: <Maximum Millitokens For A Multi-Path Path String>
       [max_paths]: <Maximum Simultaneous Paths Number>
       [max_timeout_height]: <Maximum Height of Payment Timeout Number>
       [messages]: [{

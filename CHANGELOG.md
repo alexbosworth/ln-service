@@ -1,5 +1,13 @@
 # Versions
 
+## 51.1.0
+
+- `pay`: Add `max_path_mtokens` to control path splitting when not specifying routes
+- `payViaPaymentDetails`:  Add `max_path_mtokens` to control path splitting
+- `payViaPaymentRequest`:  Add `max_path_mtokens` to control path splitting
+- `subscribeToPayViaDetails`:  Add `max_path_mtokens` to control path splitting
+- `subscribeToPayViaRequest`:  Add `max_path_mtokens` to control path splitting
+
 ## 51.0.0
 
 ### Breaking Changes
