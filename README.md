@@ -122,6 +122,8 @@ for `unlocker` methods.
 - [createUnsignedRequest](#createUnsignedRequest) - create an unsigned invoice
 - [createWallet](#createWallet) - Make a new wallet
 - [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
+- [deleteFailedPayAttempts](#deletefailedpayattempts) - Remove records of failed pay attempts
+- [deleteFailedPayments](#deletefailedpayments) - Remove records of payments that failed
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
 - [deletePayments](#deletePayments) - Delete entire history of past payments
 - [diffieHellmanComputeSecret](#diffieHellmanComputeSecret) - Get DH shared key
@@ -782,6 +784,52 @@ Example:
 const {decodePaymentRequest} = require('ln-service');
 const request = 'bolt11EncodedPaymentRequestString';
 const details = await decodePaymentRequest({lnd, request});
+```
+
+### deleteFailedPayAttempts
+
+Delete failed payment attempt records
+
+Requires `offchain:write` permission
+
+Method not supported on LND 0.12.1 or below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {deleteFailedPayAttempts} = require('ln-service');
+
+// Eliminate all the records of past failed payment attempts
+await deleteFailedPayAttempts({lnd});
+```
+
+### deleteFailedPayments
+
+Delete failed payment records
+
+Requires `offchain:write` permission
+
+Method not supported on LND 0.12.1 or below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {deleteFailedPayments} = require('ln-service');
+
+// Eliminate all the records of past failed payments
+await deleteFailedPayments({lnd});
 ```
 
 ### deleteForwardingReputations

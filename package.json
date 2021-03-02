@@ -11,7 +11,7 @@
     "cors": "2.8.5",
     "express": "4.17.1",
     "invoices": "1.1.5",
-    "lightning": "3.2.15",
+    "lightning": "3.2.16",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.4.3"
@@ -22,7 +22,7 @@
     "asyncjs-util": "1.2.3",
     "bip66": "1.1.5",
     "bitcoinjs-lib": "5.2.0",
-    "bn.js": "5.1.3",
+    "bn.js": "5.2.0",
     "node-fetch": "2.6.1",
     "portfinder": "1.0.28",
     "psbt": "1.1.7",
@@ -60,5 +60,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "51.1.1"
+  "version": "51.2.0"
 }

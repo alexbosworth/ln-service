@@ -15,6 +15,8 @@ const {createUnsignedRequest} = require('invoices');
 const {createWallet} = require('lightning/lnd_methods');
 const {decodePaymentRequest} = require('lightning');
 const {deleteForwardingReputations} = require('lightning');
+const {deleteFailedPayAttempts} = require('lightning/lnd_methods');
+const {deleteFailedPayments} = require('lightning/lnd_methods');
 const {deletePayments} = require('lightning');
 const {diffieHellmanComputeSecret} = require('lightning');
 const {disconnectWatchtower} = require('lightning/lnd_methods');
@@ -134,6 +136,8 @@ module.exports = {
   createUnsignedRequest,
   createWallet,
   decodePaymentRequest,
+  deleteFailedPayAttempts,
+  deleteFailedPayments,
   deleteForwardingReputations,
   deletePayments,
   diffieHellmanComputeSecret,

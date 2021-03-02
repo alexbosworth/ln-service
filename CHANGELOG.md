@@ -1,5 +1,10 @@
 # Versions
 
+## 51.2.0
+
+- `deleteFailedPayAttempts`: Delete records of attempts to make payments that failed
+- `deleteFailedPayments`: Delete records of payments that failed to pay
+
 ## 51.1.1
 
 - `pay`: Add `max_path_mtokens` to control path splitting when not specifying routes
