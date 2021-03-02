@@ -2812,7 +2812,7 @@ Example:
 const {decodePaymentRequest, isDestinationPayable} = require('ln-service');
 const request = 'lnbc1pvjluezpp5qqqsyq...';
 const {destination, tokens} = await decodePaymentRequest({lnd, request});
-const isPayable = (await isDestinationPayable({lnd, }))
+const isPayable = (await isDestinationPayable({lnd, destination, tokens}))
 ```
 
 ### lockUtxo
