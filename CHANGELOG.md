@@ -1,5 +1,10 @@
 # Versions
 
+## 51.3.0
+
+- `getPathfindingSettings`: Retrieve configuration settings of pathfinding system
+- `updatePathfindingSettings`: Update configuration settings of pathfinding system
+
 ## 51.2.0
 
 - `deleteFailedPayAttempts`: Delete records of attempts to make payments that failed

@@ -156,6 +156,7 @@ for `unlocker` methods.
 - [getNetworkGraph](#getNetworkGraph) - Get the channels and nodes of the graph
 - [getNetworkInfo](#getNetworkInfo) - Get high-level graph info
 - [getNode](#getNode) - Get graph info about a single node and its channels
+- [getPathfindingSettings](#getpathfindingsettings) - Get pathfinding system settings
 - [getPayment](#getPayment) - Get a past payment
 - [getPayments](#getPayments) - Get all past payments
 - [getPeers](#getPeers) - Get all connected peers
@@ -224,6 +225,7 @@ for `unlocker` methods.
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
 - [updateChainTransaction](#updateChainTransaction) - Update a chain transaction
 - [updateConnectedWatchtower](#updateConnectedWatchtower) - Update watchtower
+- [updatePathfindingSettings](#updatepathfindingsettings) - Update pathfinding configuration
 - [updateRoutingFees](#updateRoutingFees) - Change routing fees
 - [verifyBackup](#verifyBackup) - Verify a channel backup
 - [verifyBackups](#verifyBackups) - Verify a set of channel backups
@@ -2022,6 +2024,33 @@ Example:
 const {getNode} = require('ln-service');
 const publicKey = 'publicKeyHexString';
 const nodeDetails = await getNode({lnd, public_key: publicKey});
+```
+
+### getPathfindingSettings
+
+Get current pathfinding settings
+
+Requires `offchain:read` permission
+
+Method not supported on LND 0.12.1 or below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      baseline_success_rate: <Assumed Forward Fail Chance In 1 Million Number>
+      max_payment_records: <Maximum Historical Payment Records To Keep Number>
+      node_ignore_rate: <Avoid Node Due to Failure Rate In 1 Million Number>
+      penalty_half_life_ms: <Millisecs to Reduce Fail Penalty By Half Number>
+    }
+
+Example:
+
+```node
+const {getPathfindingSettings} = require('ln-service');
+const settings = await getPathfindingSettings({lnd});
 ```
 
 ### getPayment
@@ -5498,6 +5527,37 @@ await updateConnectedWatchtower({
   public_key: watchtowerPublicKey,
 });
 ```
+
+### updatePathfindingSettings
+
+Update current pathfinding settings
+
+Requires `offchain:read`, `offchain:write` permissions
+
+Method not supported on LND 0.12.1 or below
+
+    {
+      [baseline_success_rate]: <Assumed Hop Forward Chance In 1 Million Number>
+      lnd: <Authenticated LND API Object>
+      [max_payment_records]: <Maximum Historical Payment Records To Keep Number>
+      [node_ignore_rate]: <Avoid Node Due to Failure Rate In 1 Million Number>
+      [penalty_half_life_ms]: <Millisecs to Reduce Fail Penalty By Half Number>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {updatePathfindingSettings} = require('ln-service');
+
+// Change failure assumption for an untested hop to be 50/50
+await updatePathfindingSettings({
+  lnd,
+  baseline_success_rate: 500000,
+});
+```
+
 
 ### updateRoutingFees
 

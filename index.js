@@ -48,6 +48,7 @@ const {getNetworkCentrality} = require('lightning');
 const {getNetworkGraph} = require('lightning');
 const {getNetworkInfo} = require('lightning');
 const {getNode} = require('lightning');
+const {getPathfindingSettings} = require('lightning/lnd_methods');
 const {getPayment} = require('lightning');
 const {getPayments} = require('lightning');
 const {getPeers} = require('lightning');
@@ -113,6 +114,7 @@ const {unlockUtxo} = require('lightning/lnd_methods');
 const {unlockWallet} = require('lightning/lnd_methods');
 const {updateChainTransaction} = require('lightning/lnd_methods');
 const {updateConnectedWatchtower} = require('lightning/lnd_methods');
+const {updatePathfindingSettings} = require('lightning/lnd_methods');
 const {updateRoutingFees} = require('lightning');
 const {verifyBackup} = require('lightning');
 const {verifyBackups} = require('lightning');
@@ -170,6 +172,7 @@ module.exports = {
   getNetworkGraph,
   getNetworkInfo,
   getNode,
+  getPathfindingSettings,
   getPayment,
   getPayments,
   getPeers,
@@ -235,6 +238,7 @@ module.exports = {
   unlockWallet,
   updateChainTransaction,
   updateConnectedWatchtower,
+  updatePathfindingSettings,
   updateRoutingFees,
   verifyBackup,
   verifyBackups,
