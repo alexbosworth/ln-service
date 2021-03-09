@@ -1,6 +1,6 @@
 # Versions
 
-## 51.3.0
+## 51.3.1
 
 - `getPathfindingSettings`: Retrieve configuration settings of pathfinding system
 - `updatePathfindingSettings`: Update configuration settings of pathfinding system
