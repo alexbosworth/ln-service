@@ -1,5 +1,10 @@
 # Versions
 
+## 51.4.0
+
+- `disableChannel`: Add method to mark a channel as disabled for outgoing payments
+- `enableChannel`: Add method to mark a channel as enabled for outgoing payments
+
 ## 51.3.1
 
 - `getPathfindingSettings`: Retrieve configuration settings of pathfinding system

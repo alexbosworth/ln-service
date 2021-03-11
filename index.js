@@ -19,7 +19,9 @@ const {deleteFailedPayAttempts} = require('lightning/lnd_methods');
 const {deleteFailedPayments} = require('lightning/lnd_methods');
 const {deletePayments} = require('lightning');
 const {diffieHellmanComputeSecret} = require('lightning');
+const {disableChannel} = require('lightning/lnd_methods');
 const {disconnectWatchtower} = require('lightning/lnd_methods');
+const {enableChannel} = require('lightning/lnd_methods');
 const {fundPendingChannels} = require('lightning/lnd_methods');
 const {fundPsbt} = require('lightning/lnd_methods');
 const {getAccessIds} = require('lightning');
@@ -143,7 +145,9 @@ module.exports = {
   deleteForwardingReputations,
   deletePayments,
   diffieHellmanComputeSecret,
+  disableChannel,
   disconnectWatchtower,
+  enableChannel,
   fundPendingChannels,
   fundPsbt,
   getAccessIds,

@@ -127,7 +127,9 @@ for `unlocker` methods.
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
 - [deletePayments](#deletePayments) - Delete entire history of past payments
 - [diffieHellmanComputeSecret](#diffieHellmanComputeSecret) - Get DH shared key
+- [disableChannel](#disablechannel) - Disable a channel for outgoing payments
 - [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
+- [enableChannel](#enablechannel) - Enable a channel for outgoing payments
 - [fundPendingChannels](#fundPendingChannels) - Fund pending open channels
 - [fundPsbt](#fundPsbt) - Create an unsigned PSBT with funding inputs and spending outputs
 - [getAccessIds](#getAccessIds) - Get granted macaroon root access ids
@@ -898,6 +900,37 @@ Requires `signer:generate` permission
       secret: <Shared Secret Hex String>
     }
 
+### disableChannel
+
+Mark a channel as temporarily disabled for outbound payments and forwards
+
+Note: this method is not supported in LND versions 0.12.1 and below
+
+Requires `offchain:write` permission
+
+    {
+      lnd: <Authenticated LND API Object>
+      transaction_id: <Channel Funding Transaction Id Hex String>
+      transaction_vout: <Channel Funding Transaction Output Index Number>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {disableChannel} = await require('ln-service');
+
+const [channel] = (await getChannels({lnd})).channels;
+
+// Disable outgoing traffic via the channel
+await disableChannel({
+  lnd,
+  transaction_id: channel.transaction_id,
+  transaction_vout: channel.transaction_vout,
+});
+```
+
 ### disconnectWatchtower
 
 Disconnect a watchtower
@@ -919,6 +952,40 @@ const {disconnectWatchtower, getConnectedWatchtowers} = require('ln-service');
 const [tower] = (await getConnectedWatchtowers({lnd})).towers;
 
 await disconnectWatchtower({lnd, public_key: tower.public_key});
+```
+
+### enableChannel
+
+Mark a channel as enabled for outbound payments and forwards
+
+Setting `is_force_enable` will prevent future automated disabling/enabling
+
+Note: this method is not supported in LND versions 0.12.1 and below
+
+Requires `offchain:write` permission
+
+    {
+      [is_force_enable]: <Force Channel Enabled Bool>
+      lnd: <Authenticated LND API Object>
+      transaction_id: <Channel Funding Transaction Id Hex String>
+      transaction_vout: <Channel Funding Transaction Output Index Number>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {enableChannel} = await require('ln-service');
+
+const [channel] = (await getChannels({lnd})).channels;
+
+// Enable outgoing traffic via the channel
+await enableChannel({
+  lnd,
+  transaction_id: channel.transaction_id,
+  transaction_vout: channel.transaction_vout,
+});
 ```
 
 ### fundPendingChannels
