@@ -17,6 +17,7 @@ const {createWallet} = require('./../../');
 const generateBlocks = require('./generate_blocks');
 const {getWalletInfo} = require('./../../');
 const spawnChainDaemon = require('./spawn_chain_daemon');
+const {subscribeToWalletStatus} = require('./../../');
 const {unauthenticatedLndGrpc} = require('./../../');
 
 const adminMacaroonFileName = 'admin.macaroon';
@@ -327,6 +328,44 @@ module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
       }
     }],
 
+    // Wait until the wallet is active
+    waitForActive: ['nonAuthenticatedLnd', ({nonAuthenticatedLnd}, cbk) => {
+      const events = [];
+      const sub = subscribeToWalletStatus({lnd: nonAuthenticatedLnd});
+
+      sub.once('absent', () => events.push('absent'));
+      sub.once('starting', () => events.push('starting'));
+
+      sub.once('active', () => {
+        if (!events.includes('absent')) {
+          return cbk([503, 'ExpectedWalletAbsentEvent']);
+        }
+
+        if (!events.includes('starting')) {
+          return cbk([503, 'ExpectedWalletStartingEvent']);
+        }
+
+        events.push('active');
+
+        return cbk();
+      });
+
+      sub.once('error', err => {
+        if (events.length === 3) {
+          return;
+        }
+
+        // LND 0.12.1 and below do not support active tracking
+        if (/unknown/.test(err.details)) {
+          return cbk();
+        }
+
+        return cbk(err);
+      });
+
+      return;
+    }],
+
     // Create seed
     createSeed: ['nonAuthenticatedLnd', ({nonAuthenticatedLnd}, cbk) => {
       // Exit early when a seed is pre-supplied
@@ -415,7 +454,7 @@ module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
     }],
 
     // Delay to make sure everything has come together
-    delay: ['lnd', ({lnd}, cbk) => {
+    delay: ['lnd', 'waitForActive', ({lnd}, cbk) => {
       return asyncRetry(
         {interval, times},
         cbk => {

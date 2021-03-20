@@ -1,5 +1,10 @@
 # Versions
 
+## 51.5.0
+
+- `subscribeToForwards`: Fix documentation of `forward` event fee attributes
+- `subscribeToWalletStatus`: Add method to subscribe to the status of the node
+
 ## 51.4.0
 
 - `disableChannel`: Add method to mark a channel as disabled for outgoing payments

@@ -11,7 +11,7 @@
     "cors": "2.8.5",
     "express": "4.17.1",
     "invoices": "1.1.6",
-    "lightning": "3.2.21",
+    "lightning": "3.3.1",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "7.4.4"
@@ -60,5 +60,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "51.4.0"
+  "version": "51.5.0"
 }

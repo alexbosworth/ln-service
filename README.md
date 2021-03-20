@@ -222,6 +222,7 @@ for `unlocker` methods.
 - [subscribeToProbe](#subscribeToProbe) - Subscribe to a probe for a route
 - [subscribeToProbeForRoute](#subscribeToProbeForRoute) - Probe for a route
 - [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
+- [subscribeToWalletStatus](#subscribetowalletstatus) - Subscribe to node state
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
 - [unlockUtxo](#unlockUtxo) - Release a locked UTXO so that it can be used again
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
@@ -4432,6 +4433,8 @@ Requires `offchain:read` permission
     {
       at: <Forward Update At ISO 8601 Date String>
       [external_failure]: <Public Failure Reason String>
+      [fee]: <Fee Tokens Charged Number>
+      [fee_mtokens]: <Fee Millitokens Charged String>
       [in_channel]: <Inbound Standard Format Channel Id String>
       [in_payment]: <Inbound Channel Payment Id Number>
       [internal_failure]: <Private Failure Reason String>
@@ -5439,6 +5442,53 @@ const {subscribeToTransactions} = require('ln-service');
 let lastChainTransactionId;
 const sub = subscribeToTransactions({lnd});
 sub.on('chain_transaction', tx => lastChainTransactionId = tx.id);
+```
+
+### subscribeToWalletStatus
+
+Subscribe to wallet status events
+
+This method is not supported on LND 0.12.1 and below
+
+    {
+      lnd: <Unauthenticated LND API Object>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    <EventEmitter Object>
+
+    // The wallet has yet to be created
+    @event 'absent'
+
+    // The wallet is activated and ready for all requests
+    @event 'active'
+
+    // An error occurred
+    @event 'error'
+    <Error>
+
+    // The wallet is inactive because it is locked
+    @event 'locked'
+
+    // The wallet is in the process of starting
+    @event 'starting'
+
+Example:
+
+```node
+const {once} = require('events');
+const {subscribeToWalletStatus, unauthenticatedLndGrpc} = require('ln-service');
+
+// No macaroon is required for this method
+const {lnd} = unauthenticatedLndGrpc({cert, socket});
+
+const sub = subscribeToWalletStatus({lnd});
+
+// Wait for wallet to become active
+await once(sub, 'active');
 ```
 
 ### unauthenticatedLndGrpc

@@ -21,6 +21,18 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
   const {kill, lnd} = spawned;
 
   const blocks = [];
+
+  // Wait for chainrpc to be active
+  await asyncRetry({interval, times}, async () => {
+    const height = (await getHeight({lnd})).current_block_height;
+
+    if (!height) {
+      throw new Error('ExpectedCurrentHeight');
+    }
+
+    return;
+  });
+
   const sub = subscribeToBlocks({lnd});
   const startHeight = (await getHeight({lnd})).current_block_height;
 
