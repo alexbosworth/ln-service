@@ -26,6 +26,7 @@ test(`Send to chain address`, async ({end, equal}) => {
   const startBalance = await getChainBalance({lnd});
 
   const sent = await sendToChainAddresses({
+    fee_tokens_per_vbyte: 1,
     lnd: cluster.control.lnd,
     send_to: [
       {address: address1, tokens: tokens / [address1, address2].length},

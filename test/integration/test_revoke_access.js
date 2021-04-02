@@ -15,7 +15,7 @@ const pkHashByteLength = 20;
 const regtestBech32AddressHrp = 'bcrt';
 
 // Revoking access should result in access denied
-test(`Revoke access credentials`, async ({deepIs, end, equal, rejects}) => {
+test(`Revoke access credentials`, async ({end, equal, rejects}) => {
   const spawned = await spawnLnd({});
 
   const {lnd, kill} = spawned;

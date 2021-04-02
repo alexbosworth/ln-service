@@ -10,7 +10,7 @@ const regtestChainId = '06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73c
 const walletInfoType = 'wallet';
 
 // Getting the wallet info should return info about the wallet
-test(`Get wallet info`, async ({deepEqual, end, equal}) => {
+test(`Get wallet info`, async ({end, equal, strictSame}) => {
   const spawned = await spawnLnd({});
 
   const {lnd} = spawned;
@@ -22,7 +22,7 @@ test(`Get wallet info`, async ({deepEqual, end, equal}) => {
 
   equal(result.active_channels_count, 0, 'Expected channels count');
   equal(!!result.alias, true, 'Expected alias');
-  deepEqual(result.chains, [regtestChainId], 'Got chains');
+  strictSame(result.chains, [regtestChainId], 'Got chains');
   equal(!!result.current_block_hash, true, 'Expected best block hash');
   equal(result.current_block_height, initHeight, 'Expected best block height');
   equal(result.is_synced_to_chain, true, 'Expected synced to chain status');
@@ -30,7 +30,7 @@ test(`Get wallet info`, async ({deepEqual, end, equal}) => {
   equal(result.peers_count, 0, 'Expected wallet peers count');
   equal(result.pending_channels_count, 0, 'Expected pending channels count');
   equal(result.public_key.length, pubKeyHexLength, 'Expected public key');
-  deepEqual(result.uris, [expectedUri], 'Expected node URI');
+  strictSame(result.uris, [expectedUri], 'Expected node URI');
   equal(!!result.version, true, 'Expected version');
 
   spawned.kill({});

@@ -14,7 +14,7 @@ const tlvValue = '0102';
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
-test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -101,7 +101,7 @@ test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
       },
     ];
 
-    deepIs(paid.hops, expectedHops, 'Hops are returned');
+    strictSame(paid.hops, expectedHops, 'Hops are returned');
 
     const {payments} = await getInvoice({
       id: paid.id,

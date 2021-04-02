@@ -12,7 +12,7 @@ const channelCapacityTokens = 1e6;
 const tokens = 1e6 / 2;
 
 // Getting route confidence should return confidence in a route
-test('Get route confidence', async ({deepIs, end, equal}) => {
+test('Get route confidence', async ({end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

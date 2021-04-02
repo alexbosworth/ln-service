@@ -10,7 +10,7 @@ const interval = 1e4;
 const times = 100;
 
 // Getting the network centrality should return the centrality scores
-test(`Get network centrality`, async ({deepIs, end, equal}) => {
+test(`Get network centrality`, async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   await getNetworkCentrality({lnd: cluster.control.lnd});

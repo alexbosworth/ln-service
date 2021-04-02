@@ -9,7 +9,7 @@ const {waitForTermination} = require('./../macros');
 const format = 'np2wpkh';
 
 // Granting access should result in access granted
-test(`Get access credentials`, async ({deepIs, end, equal, rejects}) => {
+test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
   const spawned = await spawnLnd({});
 
   const {lnd, kill} = spawned;
@@ -24,7 +24,7 @@ test(`Get access credentials`, async ({deepIs, end, equal, rejects}) => {
 
   const permissions = ['address:write', 'address:read'];
 
-  deepIs(makeChainAddresses.permissions, permissions, 'Got permissions');
+  strictSame(makeChainAddresses.permissions, permissions, 'Got permissions');
 
   const canPay = authenticatedLndGrpc({
     cert: spawned.lnd_cert,

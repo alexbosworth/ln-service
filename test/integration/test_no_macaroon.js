@@ -5,7 +5,7 @@ const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
 // No macaroon should allow for accessing a node without a macaroon
-test(`Spawn an LND without a macaroon`, async ({deepEqual, end, equal}) => {
+test(`Spawn an LND without a macaroon`, async ({end, equal}) => {
   const spawned = await spawnLnd({noauth: true});
 
   const {lnd} = spawned;

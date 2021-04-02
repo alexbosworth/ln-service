@@ -18,7 +18,7 @@ const tlvType = '65537';
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
-test(`Pay`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay`, async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -86,7 +86,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       tokens: invoice.tokens,
     });
   } catch (err) {
-    deepIs(err, [503, 'PaymentRejectedByDestination']);
+    strictSame(err, [503, 'PaymentRejectedByDestination']);
   }
 
   try {
@@ -102,7 +102,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
 
     equal(tooSoonCltv, null, 'Should not be able to pay a too soon CLTV');
   } catch (err) {
-    deepIs(err, [503, 'PaymentPathfindingFailedToFindPossibleRoute'], 'Fail');
+    strictSame(err, [503, 'PaymentPathfindingFailedToFindPossibleRoute'], 'Fail');
   }
 
   try {
@@ -131,7 +131,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       return;
     });
 
-    deepIs(paid.hops, expectedHops, 'Hops are returned');
+    strictSame(paid.hops, expectedHops, 'Hops are returned');
   } catch (err) {
     equal(err, null, 'No error is thrown when payment is attempted');
   }

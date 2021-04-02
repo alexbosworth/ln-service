@@ -17,7 +17,7 @@ const defaultFee = 1e3;
 const tokens = 1e6 / 2;
 
 // Probing for a route should return a route
-test('Probe for route', async ({deepIs, end, equal}) => {
+test('Probe for route', async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -89,7 +89,7 @@ test('Probe for route', async ({deepIs, end, equal}) => {
 
     equal(route.fee, 1, 'Found route fee');
     equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
-    deepIs(route.hops.length, 2, 'Found route hops returned');
+    strictSame(route.hops.length, 2, 'Found route hops returned');
     equal(route.mtokens, '500001500', 'Found route mtokens');
     equal(route.timeout, 546, 'Found route timeout');
     equal(route.tokens, 500001, 'Found route tokens');

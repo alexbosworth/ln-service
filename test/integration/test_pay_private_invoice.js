@@ -27,7 +27,7 @@ const tokens = 100;
 const txIdHexLength = 32 * 2;
 
 // Paying a private invoice should settle the invoice
-test(`Pay private invoice`, async ({deepIs, end, equal}) => {
+test(`Pay private invoice`, async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

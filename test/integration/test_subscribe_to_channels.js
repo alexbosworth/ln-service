@@ -16,7 +16,7 @@ const interval = 100;
 const times = 20;
 
 // Subscribing to channels should trigger channel events
-test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
+test('Subscribe to channels', async ({end, equal, fail}) => {
   const activeChanged = [];
   const channelAdding = [];
   const channelClosed = [];

@@ -19,7 +19,7 @@ const times = 15;
 const tokens = 100;
 
 // Getting a route to a destination should return a route to the destination
-test(`Get a route to a destination`, async ({deepIs, end, equal}) => {
+test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   {
@@ -132,8 +132,8 @@ test(`Get a route to a destination`, async ({deepIs, end, equal}) => {
     const [message1] = payment1.messages;
     const [message2] = payment2.messages;
 
-    deepIs(message1, message, 'Target received message');
-    deepIs(message2, message, 'Target received both messages');
+    strictSame(message1, message, 'Target received message');
+    strictSame(message2, message, 'Target received both messages');
   } catch (err) {
     equal(err, null, 'Unexpected error paying invoice');
   }

@@ -12,7 +12,7 @@ const interval = 100;
 const times = 100;
 
 // Subscribing to graph should trigger graph events
-test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
+test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const channelClosed = [];
@@ -92,7 +92,7 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
 
     delete gotUpdate.updated_at;
 
-    deepIs(gotUpdate, update, 'Got expected channel policy announcement');
+    strictSame(gotUpdate, update, 'Got expected channel policy announcement');
 
     return;
   });
@@ -128,8 +128,8 @@ test('Subscribe to channels', async ({deepIs, end, equal, fail}) => {
 
   equal(!!gotTarget, true, 'Got target updated at');
 
-  deepIs(gotControl, expectedControl, 'Got control node announcement');
-  deepIs(gotTarget, expectedTarget, 'Got target node announcement');
+  strictSame(gotControl, expectedControl, 'Got control node announcement');
+  strictSame(gotTarget, expectedTarget, 'Got target node announcement');
 
   await cluster.kill({});
 

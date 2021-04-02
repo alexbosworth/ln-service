@@ -18,7 +18,7 @@ const feeRate = 21;
 const mtokPerTok = BigInt(1e3);
 
 // Getting a node should return the public graph node info
-test(`Get node`, async ({deepIs, end, equal}) => {
+test(`Get node`, async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   const {control} = cluster;

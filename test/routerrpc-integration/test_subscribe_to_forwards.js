@@ -14,7 +14,7 @@ const {subscribeToForwards} = require('./../../');
 const tokens = 100;
 
 // Subscribing to forwards should show forwarding events
-test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
+test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({});
 
   const testSub = subscribeToForwards({lnd: cluster.control.lnd});
@@ -109,7 +109,7 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
 
   // LND 0.11.1 and before do not use anchor channels
   if (!controlChannel.is_anchor) {
-    deepIs(controlForwards, [
+    strictSame(controlForwards, [
       {
         cltv_delta: undefined,
         external_failure: undefined,
@@ -221,7 +221,7 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
     ],
     'Got control forward events');
 
-    deepIs(targetForwards, [
+    strictSame(targetForwards, [
       {
         cltv_delta: 40,
         external_failure: undefined,
@@ -297,7 +297,7 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
     ],
     'Got target forward events');
 
-    deepIs(remoteForwards, [
+    strictSame(remoteForwards, [
       {
         cltv_delta: undefined,
         external_failure: undefined,
@@ -319,7 +319,7 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
     ],
     'Got remote forward events');
   } else {
-    deepIs(controlForwards, [
+    strictSame(controlForwards, [
       {
         cltv_delta: undefined,
         external_failure: undefined,
@@ -431,7 +431,7 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
     ],
     'Got control forward events');
 
-    deepIs(targetForwards, [
+    strictSame(targetForwards, [
       {
         cltv_delta: 40,
         external_failure: undefined,
@@ -507,7 +507,7 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
     ],
     'Got target forward events');
 
-    deepIs(remoteForwards, [
+    strictSame(remoteForwards, [
       {
         cltv_delta: undefined,
         external_failure: undefined,
@@ -530,9 +530,9 @@ test('Subscribe to forwards', async ({deepIs, end, equal, rejects}) => {
     'Got remote forward events');
   }
 
-  deepIs(controlErrors, [], 'No control errors');
-  deepIs(targetErrors, [], 'No target errors');
-  deepIs(remoteErrors, [], 'No remote errors');
+  strictSame(controlErrors, [], 'No control errors');
+  strictSame(targetErrors, [], 'No target errors');
+  strictSame(remoteErrors, [], 'No remote errors');
 
   await cluster.kill({});
 

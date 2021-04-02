@@ -17,7 +17,7 @@ const {ceil} = Math;
 const {round} = Math;
 
 // Paying using multiple paths should execute the payment across paths
-test(`Pay with multiple paths`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
@@ -59,7 +59,7 @@ test(`Pay with multiple paths`, async ({deepIs, end, equal, rejects}) => {
   try {
     await payViaPaymentRequest({lnd, request, max_paths: [channel1].length});
   } catch (err) {
-    deepIs(
+    strictSame(
       err,
       [503, 'PaymentPathfindingFailedToFindPossibleRoute'],
       'No path'

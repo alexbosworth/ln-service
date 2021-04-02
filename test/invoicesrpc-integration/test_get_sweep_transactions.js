@@ -30,7 +30,7 @@ const times = 1000;
 const tokens = 100;
 
 // Force close a channel and get the resulting sweep transaction
-test(`Get sweep transactions`, async ({deepIs, end, equal}) => {
+test(`Get sweep transactions`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;

@@ -23,7 +23,7 @@ const tokens = 1e6;
 const txIdHexByteLength = 64;
 
 // Unlocking a UTXO should result in the UTXO becoming spendable
-test(`Unlock UTXO`, async ({deepIs, end, equal, rejects}) => {
+test(`Unlock UTXO`, async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.target;
@@ -66,7 +66,7 @@ test(`Unlock UTXO`, async ({deepIs, end, equal, rejects}) => {
       lnd: cluster.control.lnd,
     });
   } catch (err) {
-    deepIs(
+    strictSame(
       err,
       [501, 'BackingLndDoesNotSupportLockingUtxos'],
       'Got unsupported error'

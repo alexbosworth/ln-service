@@ -13,7 +13,7 @@ const {waitForRoute} = require('./../macros');
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
-test(`Pay`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay`, async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({});
 
   const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
@@ -32,7 +32,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
   try {
     await payViaPaymentRequest({lnd, request: invoice.request});
   } catch (err) {
-    deepIs(err, [503, 'PaymentPathfindingFailedToFindPossibleRoute']);
+    strictSame(err, [503, 'PaymentPathfindingFailedToFindPossibleRoute']);
   }
 
   const paymentStatus = await getPayment({id, lnd});
@@ -105,7 +105,7 @@ test(`Pay`, async ({deepIs, end, equal, rejects}) => {
       },
     ];
 
-    deepIs(payment.hops, expectedHops, 'Hops are returned');
+    strictSame(payment.hops, expectedHops, 'Hops are returned');
   } catch (err) {
     equal(err, null, 'No error is returned');
   }

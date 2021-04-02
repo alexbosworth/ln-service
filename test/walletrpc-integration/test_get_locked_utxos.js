@@ -7,6 +7,7 @@ const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
+const {getLockedUtxos} = require('./../../');
 const {getUtxos} = require('./../../');
 const {lockUtxo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
@@ -27,27 +28,45 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
 
   const {lnd} = cluster.target;
 
+  try {
+    await getLockedUtxos({lnd});
+  } catch (err) {
+    // LND 0.12.1 does not support getting locked UTXOs
+    strictSame(
+      err,
+      [501, 'BackingLndDoesNotSupportGettingLockedUtxos'],
+      'Got unsupported error'
+    );
+
+    await cluster.kill({});
+
+    return end();
+  }
+
   const {address} = await createChainAddress({format, lnd});
 
   const [utxo] = (await getUtxos({lnd: cluster.control.lnd})).utxos;
 
   try {
+    const expiresAt = new Date(Date.now() + (1000 * 60 * 5)).toISOString();
+
     const lock = await lockUtxo({
-      expires_at: new Date(Date.now() + (1000 * 60)).toISOString(),
+      expires_at: expiresAt,
       lnd: cluster.control.lnd,
       transaction_id: utxo.transaction_id,
       transaction_vout: utxo.transaction_vout,
     });
 
-    await rejects(
-      sendToChainAddress({
-        address,
-        tokens,
-        lnd: cluster.control.lnd,
-      }),
-      [503, 'InsufficientBalanceToSendToChainAddress'],
-      'UTXO is locked'
-    );
+    const [locked] = (await getLockedUtxos({lnd: cluster.control.lnd})).utxos;
+
+    const expected = {
+      lock_expires_at: lock.expires_at,
+      lock_id: lock.id,
+      transaction_id: utxo.transaction_id,
+      transaction_vout: utxo.transaction_vout,
+    };
+
+    strictSame(locked, expected, 'Got expected UTXO lock');
   } catch (err) {
     strictSame(
       err,

@@ -6,7 +6,7 @@ const {diffieHellmanComputeSecret} = require('./../../');
 const all = promise => Promise.all(promise);
 
 // Computing a shared secret should return the shared secret
-test('Diffie Hellman compute secret', async ({deepIs, end, equal}) => {
+test('Diffie Hellman compute secret', async ({end, equal, strictSame}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   try {
@@ -24,7 +24,7 @@ test('Diffie Hellman compute secret', async ({deepIs, end, equal}) => {
     equal(control.secret.length, 64, 'Got key back');
     equal(control.secret, target.secret, 'Key exchange is done');
   } catch (err) {
-    deepIs(err, [400, 'ExpectedLndWithSupportForDeriveSharedKey'], 'Got err');
+    strictSame(err, [400, 'ExpectedLndWithSupportForDeriveSharedKey'], 'Got err');
   }
 
   await cluster.kill({});

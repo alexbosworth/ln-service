@@ -17,7 +17,7 @@ const sweepBlockCount = 40;
 const tokens = 100;
 
 // Create a hodl invoice
-test(`Pay a hodl invoice`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -81,7 +81,7 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal, rejects}) => {
 
     // LND 0.11.1 and below do not support extended channel balance details
     if (!!controlChannelBalance.channel_balance_mtokens) {
-      deepIs(controlChannelBalance, {
+      strictSame(controlChannelBalance, {
         channel_balance: 990950,
         channel_balance_mtokens: '990950000',
         inbound: 990850,
@@ -94,7 +94,7 @@ test(`Pay a hodl invoice`, async ({deepIs, end, equal, rejects}) => {
       'Channel balance is updated');
     }
 
-    deepIs(invoice, held, 'Invoice is held');
+    strictSame(invoice, held, 'Invoice is held');
 
     const {secret} = await pay({lnd, request, timeout, tokens});
 

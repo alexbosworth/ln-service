@@ -10,7 +10,7 @@ const defaultId = '0';
 const id = '1';
 
 // Getting access ids should return root macaroon ids
-test(`Get access ids`, async ({deepIs, end, equal, rejects}) => {
+test(`Get access ids`, async ({end, equal, rejects, strictSame}) => {
   const spawned = await spawnLnd({});
 
   const {lnd, kill} = spawned;
@@ -20,7 +20,7 @@ test(`Get access ids`, async ({deepIs, end, equal, rejects}) => {
   try {
     const {ids} = await getAccessIds({lnd});
 
-    deepIs(ids, [defaultId, id], 'Got expected access ids');
+    strictSame(ids, [defaultId, id], 'Got expected access ids');
   } catch (err) {
     const [, type] = err;
 

@@ -23,7 +23,7 @@ const times = 100;
 const tokens = 1e6 / 2;
 
 // Getting forwarding reputations should return reputations
-test('Get forwarding reputations', async ({deepIs, end, equal}) => {
+test('Get forwarding reputations', async ({end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

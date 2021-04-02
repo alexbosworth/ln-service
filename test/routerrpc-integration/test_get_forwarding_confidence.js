@@ -15,7 +15,7 @@ const channelCapacityTokens = 1e6;
 const tokens = 1e6 / 2;
 
 // Getting forwarding confidence should return confidence score
-test('Get forwarding confidence', async ({deepIs, end, equal}) => {
+test('Get forwarding confidence', async ({end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

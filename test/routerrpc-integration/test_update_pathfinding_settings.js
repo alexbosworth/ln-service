@@ -7,7 +7,7 @@ const {updatePathfindingSettings} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 // Updating pathfinding settings should update the pathfinding configuration
-test(`Get pathfinding settings`, async ({deepIs, end, equal, fail}) => {
+test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
   const {kill, lnd} = await asyncRetry({}, async () => await spawnLnd({}));
 
   try {
@@ -42,7 +42,7 @@ test(`Get pathfinding settings`, async ({deepIs, end, equal, fail}) => {
       penalty_half_life_ms: 460000,
     };
 
-    deepIs(config, expected, 'Got expected pathfinding config');
+    strictSame(config, expected, 'Got expected pathfinding config');
   }
 
   // Update only a single value
@@ -61,7 +61,7 @@ test(`Get pathfinding settings`, async ({deepIs, end, equal, fail}) => {
       penalty_half_life_ms: 460000,
     };
 
-    deepIs(config, expected, 'Update can change singular values');
+    strictSame(config, expected, 'Update can change singular values');
   }
 
   kill();

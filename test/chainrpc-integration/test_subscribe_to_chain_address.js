@@ -20,7 +20,7 @@ const times = 15;
 const tokens = 1e8;
 
 // Subscribing to chain transaction confirmations should trigger events
-test(`Subscribe to chain transactions`, async ({deepIs, end, equal, fail}) => {
+test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
   const node = await spawnLnd({});
 
   const cert = node.chain_rpc_cert_file;

@@ -28,7 +28,7 @@ const tokens = 100;
 const txIdHexLength = 32 * 2;
 
 // Paying an invoice should settle the invoice
-test(`Pay`, async ({deepIs, end, equal}) => {
+test(`Pay`, async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -99,7 +99,7 @@ test(`Pay`, async ({deepIs, end, equal}) => {
     },
   ];
 
-  deepIs(paid.hops, expectedHops, 'Hops are returned');
+  strictSame(paid.hops, expectedHops, 'Hops are returned');
 
   const invoice2 = await createInvoice({lnd: cluster.remote.lnd, tokens: 100});
 

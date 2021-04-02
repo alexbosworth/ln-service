@@ -6,7 +6,7 @@ const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
 // Getting pathfinding settings should return pathfinding configuration
-test(`Get pathfinding settings`, async ({deepIs, end, equal, fail}) => {
+test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
   const node = await asyncRetry({}, async () => await spawnLnd({}));
 
   const {kill} = node;
@@ -34,7 +34,7 @@ test(`Get pathfinding settings`, async ({deepIs, end, equal, fail}) => {
     penalty_half_life_ms: 3600000,
   };
 
-  deepIs(config, expected, 'Got expected pathfinding config');
+  strictSame(config, expected, 'Got expected pathfinding config');
 
   kill();
 

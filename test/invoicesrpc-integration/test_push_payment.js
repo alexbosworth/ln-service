@@ -17,7 +17,7 @@ const preimageByteLength = 32;
 const times = 10;
 
 // Pay a push payment
-test(`Pay push payment`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay push payment`, async ({end, equal, rejects}) => {
   const cluster = await (async () => {
     try {
       return await createCluster({

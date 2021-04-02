@@ -152,7 +152,8 @@ for `unlocker` methods.
 - [getHeight](#getHeight) - Get the current best chain height and block hash
 - [getIdentity](#getIdentity) - Get the node's identity key
 - [getInvoice](#getInvoice) - Get a previously created invoice
-- [getInvoices](#getInvoices) - Get all previously created invoice
+- [getInvoices](#getinvoices) - Get all previously created invoices
+- [getLockedUtxos](#getlockedutxos) - Get all previously locked UTXOs
 - [getMethods](#getMethods) - Get available methods and associated permissions
 - [getNetworkCentrality](#getNetworkCentrality) - Get centrality score for nodes
 - [getNetworkGraph](#getNetworkGraph) - Get the channels and nodes of the graph
@@ -237,6 +238,7 @@ for `unlocker` methods.
 
 ## Additional Libraries
 
+- [bolt01](https://npmjs.com/package/bolt01) - bolt01 messaging utilities
 - [bolt03](https://npmjs.com/package/bolt03) - bolt03 transaction utilities
 - [bolt07](https://npmjs.com/package/bolt07) - bolt07 channel gossip utilities
 - [bolt09](https://npmjs.com/package/bolt09) - bolt09 feature flag utilities
@@ -1895,6 +1897,38 @@ const {getInvoices} = require('ln-service');
 const {invoices} = await getInvoices({lnd});
 ```
 
+### getLockedUtxos
+
+Get locked unspent transaction outputs
+
+Requires `onchain:read` permission
+
+Requires LND built with `walletrpc` build tag
+
+This method is not supported on LND 0.12.1 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      utxos: [{
+        lock_expires_at: <Lock Expires At ISO 8601 Date String>
+        lock_id: <Locking Id Hex String>
+        transaction_id: <Transaction Id Hex String>
+        transaction_vout: <Transaction Output Index Number>
+      }]
+    }
+
+Example:
+
+```node
+const {getLockedUtxos} = require('ln-service');
+
+const numLockedUtxos = (await getLockedUtxos({lnd})).utxos.length;
+```
+
 ### getMethods
 
 Get the list of all methods and their associated requisite permissions
@@ -2920,7 +2954,10 @@ Requires `onchain:write` permission
 
 Requires LND built with `walletrpc` build tag
 
+`expires_at` is not supported on LND 0.12.1 and below
+
     {
+      [expires_at]: <Lock Expires At ISO 8601 Date String>
       [id]: <Lock Identifier Hex String>
       lnd: <Authenticated LND gRPC API Object>
       transaction_id: <Unspent Transaction Id Hex String>

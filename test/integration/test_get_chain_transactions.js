@@ -23,7 +23,7 @@ const times = 20;
 const tokens = 1e8;
 
 // Getting chain transactions should list out the chain transactions
-test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
+test(`Get chain transactions`, async ({end, equal, fail, strictSame}) => {
   const node = await spawnLnd({});
 
   const cert = node.chain_rpc_cert_file;
@@ -76,7 +76,7 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
 
   equal(tx.is_confirmed, true, 'Transaction is confirmed');
   equal(tx.is_outgoing, false, 'Transaction is incoming');
-  deepIs(tx.output_addresses, [address], 'Address is returned');
+  strictSame(tx.output_addresses, [address], 'Address is returned');
   equal(tx.tokens, tokens - defaultFee, 'Chain tokens are returned');
 
   const wallet = await getWalletVersion({lnd});
@@ -101,7 +101,7 @@ test(`Get chain transactions`, async ({deepIs, end, equal, fail}) => {
     before: tx.confirmation_height + 1,
   });
 
-  deepIs(between.transactions.length, [tx].length, 'One transaction');
+  strictSame(between.transactions.length, [tx].length, 'One transaction');
 
   kill();
 

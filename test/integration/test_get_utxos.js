@@ -17,7 +17,7 @@ const format = 'np2wpkh';
 const tokens = 1e8;
 
 // Getting utxos should list out the utxos
-test(`Get utxos`, async ({deepIs, end, equal, fail}) => {
+test(`Get utxos`, async ({end, equal, fail, strictSame}) => {
   const node = await asyncRetry({}, async () => await spawnLnd({}));
 
   const cert = node.chain_rpc_cert_file;

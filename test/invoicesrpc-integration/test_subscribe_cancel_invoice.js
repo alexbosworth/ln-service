@@ -16,7 +16,7 @@ const {subscribeToInvoice} = require('./../../');
 const tokens = 100;
 
 // Subscribe to canceled invoice should return invoice canceled event
-test(`Subscribe to canceled invoice`, async ({deepIs, end, equal}) => {
+test(`Subscribe to canceled invoice`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
   let currentInvoice;
   const secret = randomBytes(32);

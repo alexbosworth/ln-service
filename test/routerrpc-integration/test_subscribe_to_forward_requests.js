@@ -15,7 +15,7 @@ const {waitForRoute} = require('./../macros');
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
-test(`Pay via payment request`, async ({deepIs, end, equal, rejects}) => {
+test(`Pay via payment request`, async ({end, equal, rejects}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

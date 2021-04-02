@@ -45,6 +45,7 @@ const {getHeight} = require('lightning');
 const {getIdentity} = require('lightning');
 const {getInvoice} = require('lightning');
 const {getInvoices} = require('lightning');
+const {getLockedUtxos} = require('lightning/lnd_methods');
 const {getMethods} = require('lightning');
 const {getNetworkCentrality} = require('lightning');
 const {getNetworkGraph} = require('lightning');
@@ -172,6 +173,7 @@ module.exports = {
   getIdentity,
   getInvoice,
   getInvoices,
+  getLockedUtxos,
   getMethods,
   getNetworkCentrality,
   getNetworkGraph,

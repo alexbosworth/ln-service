@@ -22,7 +22,7 @@ const tests = [
 ];
 
 tests.forEach(({description, expected}) => {
-  return test(description, async ({deepIs, end, equal}) => {
+  return test(description, async ({end, equal}) => {
     const {kill, lnd} = await spawnLnd({});
 
     const {request} = await createInvoice({

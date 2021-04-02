@@ -18,7 +18,7 @@ const confirmationCount = 6;
 const tokens = 100;
 
 // Getting a route through hops should result in a route through specified hops
-test(`Get route through hops`, async ({deepIs, end, equal}) => {
+test(`Get route through hops`, async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -90,7 +90,7 @@ test(`Get route through hops`, async ({deepIs, end, equal}) => {
   route.payment = decodedRequest.payment;
   route.total_mtokens = decodedRequest.mtokens;
 
-  deepIs(res.route, route, 'Constructed route to destination');
+  strictSame(res.route, route, 'Constructed route to destination');
 
   const {payments} = got;
 
@@ -98,7 +98,7 @@ test(`Get route through hops`, async ({deepIs, end, equal}) => {
 
   equal(payment.total_mtokens, invoice.mtokens, 'Got MPP total mtokens');
 
-  deepIs(payment.messages, route.messages, 'Remote got TLV messages');
+  strictSame(payment.messages, route.messages, 'Remote got TLV messages');
 
   await cluster.kill({});
 

@@ -24,6 +24,15 @@ test(`Create an invoice`, async ({end, equal}) => {
 
   await createInvoice({lnd, is_including_private_channels: true});
 
+  try {
+    await createInvoice({lnd, secret: invoice.secret});
+  } catch (err) {
+    const [code, message] = err;
+
+    equal(code, 409, 'Got expected error code');
+    equal(message, 'InvoiceWithGivenHashAlreadyExists', 'Got expected msg');
+  }
+
   kill();
 
   await waitForTermination({lnd});

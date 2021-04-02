@@ -1,5 +1,10 @@
 # Versions
 
+## 51.6.0
+
+- `getLockedUtxos`: Add method to list leased UTXOs
+- `lockUtxo`: Add `expires_at` attribute to specify lock expiration date
+
 ## 51.5.0
 
 - `subscribeToForwards`: Fix documentation of `forward` event fee attributes

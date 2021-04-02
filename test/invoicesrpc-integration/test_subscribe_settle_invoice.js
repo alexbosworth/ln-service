@@ -20,7 +20,7 @@ const tlvValue = '00';
 const tokens = 100;
 
 // Subscribe to a settled invoice should return invoice settled event
-test(`Subscribe to settled invoice`, async ({deepIs, end, equal}) => {
+test(`Subscribe to settled invoice`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
   let currentInvoice;
 

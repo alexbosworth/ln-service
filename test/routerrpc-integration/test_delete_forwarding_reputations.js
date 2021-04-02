@@ -13,7 +13,7 @@ const {waitForRoute} = require('./../macros');
 const tokens = 1e6 / 2;
 
 // Deleting forwarding reputations should eliminate forwarding reputations
-test('Delete forwarding reputations', async ({deepIs, end, equal}) => {
+test('Delete forwarding reputations', async ({end, equal}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;

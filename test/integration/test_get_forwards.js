@@ -12,7 +12,7 @@ const limit = 1;
 const tokens = 100;
 
 // Getting forwarded payments should return all forwarded payments
-test('Get forwards', async ({deepIs, end, equal}) => {
+test('Get forwards', async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   await setupChannel({
@@ -106,11 +106,11 @@ test('Get forwards', async ({deepIs, end, equal}) => {
       after: firstForward.created_at,
     });
 
-    deepIs(after0.forwards, prev0.forwards, 'After is inclusive of start');
+    strictSame(after0.forwards, prev0.forwards, 'After is inclusive of start');
 
     const after1 = await getForwards({lnd, token: after0.next});
 
-    deepIs(after1.forwards, prev1.forwards, 'Iterating between before, after');
+    strictSame(after1.forwards, prev1.forwards, 'Iterating before, after');
 
     const after2 = await getForwards({lnd, token: after1.next});
 
