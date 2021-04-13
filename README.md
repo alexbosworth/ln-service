@@ -186,6 +186,7 @@ for `unlocker` methods.
 - [recoverFundsFromChannel](#recoverFundsFromChannel) - Restore a channel
 - [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
 - [removePeer](#removePeer) - Disconnect from a connected peer
+- [requestChainFeeIncrease](#requestchainfeeincrease) - Request a CPFP spend on a UTXO
 - [restrictMacaroon](#restrictMacaroon) - Add limitations to a macaroon
 - [revokeAccess](#revokeAccess) - Revoke all access macaroons given to an id
 - [routeFromChannels](#routeFromChannels) - Convert channel series to a route
@@ -2628,6 +2629,8 @@ Get self-transfer spend transactions related to channel closes
 
 Requires `onchain:read` permission
 
+Requires LND built with `walletrpc` build tag
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -3707,6 +3710,36 @@ Example:
 const {removePeer} = require('ln-service');
 const connectedPeerPublicKey = 'nodePublicKeyHexString';
 await removePeer({lnd, public_key: connectedPeerPublicKey});
+```
+
+### requestChainFeeIncrease
+
+Request a future on-chain CPFP fee increase for an unconfirmed UTXO
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` build tag
+
+    {
+      [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
+      lnd: <Authenticated LND API Object>
+      [target_confirmations]: <Confirmations To Wait Number>
+      transaction_id: <Unconfirmed UTXO Transaction Id Hex String>
+      transaction_vout: <Unconfirmed UTXO Transaction Index Number>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {requestChainFeeIncrease} = require('ln-service');
+
+await requestChainFeeIncrease({
+  lnd,
+  transaction_id: unconfirmedUtxoTxId,
+  transaction_vout: unconfirmedUtxoTxOutputIndex,
+});
 ```
 
 ### restrictMacaroon

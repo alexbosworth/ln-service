@@ -11,8 +11,8 @@ const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
-const interval = 100;
-const times = 100;
+const interval = 200;
+const times = 400;
 
 // Subscribers to blocks should receive block notifications
 test(`Subscribe to blocks`, async ({end, equal, fail}) => {

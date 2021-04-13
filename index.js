@@ -82,6 +82,7 @@ const {proposeChannel} = require('lightning/lnd_methods');
 const {recoverFundsFromChannel} = require('lightning');
 const {recoverFundsFromChannels} = require('lightning');
 const {removePeer} = require('lightning');
+const {requestChainFeeIncrease} = require('lightning/lnd_methods');
 const {restrictMacaroon} = require('./macaroons');
 const {revokeAccess} = require('lightning');
 const {routeFromChannels} = require('bolt07');
@@ -211,6 +212,7 @@ module.exports = {
   recoverFundsFromChannel,
   recoverFundsFromChannels,
   removePeer,
+  requestChainFeeIncrease,
   restrictMacaroon,
   revokeAccess,
   routeFromChannels,

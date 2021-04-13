@@ -1,5 +1,9 @@
 # Versions
 
+## 51.8.0
+
+- `requestChainFeeIncrease`: Add method to increase the relative fee of an unconfirmed UTXO
+
 ## 51.7.0
 
 - `sendToChainOutputScripts`: Add method to send to arbitrary output scripts
