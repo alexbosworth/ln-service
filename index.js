@@ -87,6 +87,7 @@ const {revokeAccess} = require('lightning');
 const {routeFromChannels} = require('bolt07');
 const {sendToChainAddress} = require('lightning');
 const {sendToChainAddresses} = require('lightning');
+const {sendToChainOutputScripts} = require('lightning/lnd_methods');
 const {setAutopilot} = require('lightning');
 const {settleHodlInvoice} = require('lightning');
 const {signBytes} = require('lightning');
@@ -215,6 +216,7 @@ module.exports = {
   routeFromChannels,
   sendToChainAddress,
   sendToChainAddresses,
+  sendToChainOutputScripts,
   setAutopilot,
   settleHodlInvoice,
   signBytes,

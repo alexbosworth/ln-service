@@ -1,5 +1,9 @@
 # Versions
 
+## 51.7.0
+
+- `sendToChainOutputScripts`: Add method to send to arbitrary output scripts
+
 ## 51.6.0
 
 - `getLockedUtxos`: Add method to list leased UTXOs

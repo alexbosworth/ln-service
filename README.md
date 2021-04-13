@@ -36,12 +36,6 @@ If you are interacting with your node remotely, make sure to set (in
 `[Application Options]`)
 
 ```ini
-tlsextraip=YOURIP
-```
-
-If using a domain for your LND, use the domain option:
-
-```ini
 tlsextradomain=YOURDOMAIN
 ```
 
@@ -197,6 +191,7 @@ for `unlocker` methods.
 - [routeFromChannels](#routeFromChannels) - Convert channel series to a route
 - [sendToChainAddress](#sendToChainAddress) - Send on-chain to an address
 - [sendToChainAddresses](#sendToChainAddresses) - Send on-chain to addresses
+- [sendToChainOutputScripts](#sendtochainoutputscripts) - Send to on-chain script outputs
 - [setAutopilot](#setAutopilot) - Turn autopilot on and set autopilot scores
 - [settleHodlInvoice](#settleHodlInvoice) - Accept a HODL HTLC invoice
 - [signBytes](#signBytes) -  Sign over arbitrary bytes with node keys
@@ -3922,6 +3917,43 @@ Example:
 const {sendToChainAddresses} = require('ln-service');
 const sendTo = [{address: 'onChainAddress', tokens: 80085}];
 await sendToChainAddresses({lnd, send_to: sendTo});
+```
+
+### sendToChainOutputScripts
+
+Send on-chain funds to multiple output scripts
+
+Requires `onchain:write` permission
+
+Requires LND compiled with `walletrpc` build tag
+
+    {
+      [description]: <Transaction Label String>
+      [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
+      lnd: <Authenticated LND API Object>
+      send_to: [{
+        script: <output Script Hex String>
+        tokens: <Tokens Number>
+      }]
+      [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
+    }
+
+    @returns via cbk or Promise
+    {
+      confirmation_count: <Total Confirmations Number>
+      id: <Transaction Id Hex String>
+      is_confirmed: <Transaction Is Confirmed Bool>
+      is_outgoing: <Transaction Is Outgoing Bool>
+      tokens: <Transaction Tokens Number>
+      transaction: <Raw Transaction Hex String>
+    }
+
+Example:
+
+```node
+const {sendToChainOutputScripts} = require('ln-service');
+const sendTo = [{script: 'outputScriptHex', tokens: 80085}];
+await sendToChainOutputScripts({lnd, send_to: sendTo});
 ```
 
 ### setAutopilot
