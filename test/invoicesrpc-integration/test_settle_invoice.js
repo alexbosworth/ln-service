@@ -80,18 +80,20 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
     const controlChannelBalance = await getChannelBalance({lnd});
 
     // LND 0.11.1 and below do not support extended channel balance details
-    if (!!controlChannelBalance.channel_balance_mtokens) {
-      strictSame(controlChannelBalance, {
-        channel_balance: 990950,
-        channel_balance_mtokens: '990950000',
-        inbound: 990850,
-        inbound_mtokens: '990850000',
-        pending_balance: 0,
-        pending_inbound: 0,
-        unsettled_balance: tokens,
-        unsettled_balance_mtokens: '100000',
-      },
-      'Channel balance is updated');
+    if (!channel.is_anchor) {
+      if (!!controlChannelBalance.channel_balance_mtokens) {
+        strictSame(controlChannelBalance, {
+          channel_balance: 990950,
+          channel_balance_mtokens: '990950000',
+          inbound: 990850,
+          inbound_mtokens: '990850000',
+          pending_balance: 0,
+          pending_inbound: 0,
+          unsettled_balance: tokens,
+          unsettled_balance_mtokens: '100000',
+        },
+        'Channel balance is updated');
+      }
     }
 
     strictSame(invoice, held, 'Invoice is held');

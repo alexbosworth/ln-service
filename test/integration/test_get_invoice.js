@@ -2,6 +2,7 @@ const {test} = require('tap');
 
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
+const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');

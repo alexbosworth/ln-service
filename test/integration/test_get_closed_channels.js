@@ -158,9 +158,11 @@ test(`Get closed channels`, async ({end, equal}) => {
   equal(!!control.close_balance_spent_by, true, 'Has close balance spend');
   equal(control.close_payments.length, 3, 'Has all close payments');
 
-  equal(target.close_balance_vout !== undefined, true, 'target balance vout');
-  equal(!!target.close_balance_spent_by, true, 'Target close balance spend');
-  equal(target.close_payments.length, 2, 'Target close payments present');
+  if (!!target) {
+    equal(target.close_balance_vout !== undefined, true, 'target vout coins');
+    equal(!!target.close_balance_spent_by, true, 'Target close balance spend');
+    equal(target.close_payments.length, 2, 'Target close payments present');
+  }
 
   const controlCloseId = control.close_transaction_id;
 
@@ -172,19 +174,16 @@ test(`Get closed channels`, async ({end, equal}) => {
   });
 
   // LND 0.11.1 and below do not use anchors
-  if (channelOpen.is_anchor) {
-    equal(controlTimedOut.tokens, 100000, 'Timed out has token count');
-  } else {
+  if (!channelOpen.is_anchor) {
     equal(controlTimedOut.tokens, 91213, 'Timed out has token count');
+    equal(controlTimedOut.is_outgoing, false, 'Timeout is incoming payment');
+    equal(controlTimedOut.is_paid, false, 'Timed out payment is not paid');
+    equal(controlTimedOut.is_pending, false, 'Timed out payment is not paid');
+    equal(controlTimedOut.is_refunded, true, 'Timed out payment is refunded');
+    equal(controlTimedOut.spent_by, undefined, 'Timed out has no spent by');
+    equal(!!controlTimedOut.transaction_id, true, 'Timed out has tx id');
+    equal(controlTimedOut.transaction_vout !== undefined, true, 'Refund vout');
   }
-
-  equal(controlTimedOut.is_outgoing, false, 'Timeout is incoming payment');
-  equal(controlTimedOut.is_paid, false, 'Timed out payment is not paid');
-  equal(controlTimedOut.is_pending, false, 'Timed out payment is not paid');
-  equal(controlTimedOut.is_refunded, true, 'Timed out payment is refunded');
-  equal(controlTimedOut.spent_by, undefined, 'Timed out has no spent by');
-  equal(!!controlTimedOut.transaction_id, true, 'Timed out has tx id');
-  equal(controlTimedOut.transaction_vout !== undefined, true, 'Refund vout');
 
   equal(controlPending.is_outgoing, false, 'Pending is incoming payment');
   equal(controlPending.is_paid, false, 'Pending is not yet paid');
@@ -196,9 +195,7 @@ test(`Get closed channels`, async ({end, equal}) => {
   equal(controlPending.transaction_vout !== undefined, true, 'Pending vout');
 
   // LND 0.11.1 and below do not use anchors
-  if (channelOpen.is_anchor) {
-    equal(controlTimedOut.tokens, 100000, 'Paid payment has token count');
-  } else {
+  if (!channelOpen.is_anchor) {
     equal(controlTimedOut.tokens, 91213, 'Paid payment has token count');
   }
 

@@ -1,13 +1,14 @@
 const {test} = require('tap');
 
 const {addPeer} = require('./../../');
+const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {deleteForwardingReputations} = require('./../../');
-const {getChannels} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
+const {sendToChainAddress} = require('./../../');
 const {setupChannel} = require('./../macros');
 
 const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
@@ -21,6 +22,17 @@ test('Probe for route', async ({end, equal, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
+
+  const {address} = await createChainAddress({
+    format: 'p2wpkh',
+    lnd: cluster.remote.lnd,
+  });
+
+  // Send coins to remote so that it can accept the channel
+  await sendToChainAddress({lnd, address, tokens: channelCapacityTokens})
+  // Generate to confirm the tx
+  await cluster.generate({count: confirmationCount, node: cluster.control});
+  await cluster.generate({count: confirmationCount, node: cluster.remote});
 
   await setupChannel({
     lnd,
@@ -91,7 +103,7 @@ test('Probe for route', async ({end, equal, strictSame}) => {
     equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
     strictSame(route.hops.length, 2, 'Found route hops returned');
     equal(route.mtokens, '500001500', 'Found route mtokens');
-    equal(route.timeout, 546, 'Found route timeout');
+    equal(route.timeout, 586, 'Found route timeout');
     equal(route.tokens, 500001, 'Found route tokens');
 
     const {secret} = await payViaRoutes({

@@ -1,6 +1,6 @@
 # Versions
 
-## 51.8.0
+## 51.8.1
 
 - `requestChainFeeIncrease`: Add method to increase the relative fee of an unconfirmed UTXO
 

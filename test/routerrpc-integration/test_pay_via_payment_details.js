@@ -95,7 +95,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
       lnd,
       destination: cluster.remote.public_key,
       id: invoice.id,
-      max_timeout_height: height + 43,
+      max_timeout_height: height + 46,
       payment: invoice.payment,
       tokens: invoice.tokens,
     });
