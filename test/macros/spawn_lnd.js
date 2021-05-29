@@ -373,9 +373,12 @@ module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
         return cbk(null, {seed});
       }
 
-      return createSeed({
-        lnd: nonAuthenticatedLnd,
-        passphrase: lightningSeedPassphrase,
+      return asyncRetry({interval, times}, cbk => {
+        return createSeed({
+          lnd: nonAuthenticatedLnd,
+          passphrase: lightningSeedPassphrase,
+        },
+        cbk);
       },
       cbk);
     }],

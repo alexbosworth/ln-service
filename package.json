@@ -7,25 +7,25 @@
     "url": "https://github.com/alexbosworth/ln-service/issues"
   },
   "dependencies": {
-    "bolt07": "1.7.2",
+    "bolt07": "1.7.3",
     "cors": "2.8.5",
     "express": "4.17.1",
-    "invoices": "1.2.0",
-    "lightning": "3.3.7",
+    "invoices": "1.2.1",
+    "lightning": "3.3.9",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
-    "ws": "7.4.5"
+    "ws": "7.4.6"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
     "async": "3.2.0",
-    "asyncjs-util": "1.2.5",
+    "asyncjs-util": "1.2.6",
     "bip66": "1.1.5",
     "bitcoinjs-lib": "5.2.0",
     "bn.js": "5.2.0",
     "node-fetch": "2.6.1",
     "portfinder": "1.0.28",
-    "psbt": "1.1.9",
+    "psbt": "1.1.10",
     "rimraf": "3.0.2",
     "secp256k1": "4.0.2",
     "tap": "15.0.9",
@@ -61,5 +61,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "51.8.1"
+  "version": "51.8.2"
 }
