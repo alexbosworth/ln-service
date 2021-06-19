@@ -1,5 +1,9 @@
 # Versions
 
+## 51.8.4
+
+- `getWalletVersion`: Add support for LND 0.13.0
+
 ## 51.8.3
 
 - `pay`: Fix error when paying a zero amount invoice but specifying mtokens
