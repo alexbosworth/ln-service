@@ -9,6 +9,7 @@ through npm.
 
 Supported LND versions:
 
+- v0.13.0-beta
 - v0.12.0-beta to v0.12.1-beta
 - v0.11.0-beta to v0.11.1-beta
 
@@ -115,7 +116,7 @@ for `unlocker` methods.
 - [createSignedRequest](#createSignedRequest) - create a signed payment request
 - [createUnsignedRequest](#createUnsignedRequest) - create an unsigned invoice
 - [createWallet](#createWallet) - Make a new wallet
-- [decodePaymentRequest](#decodePaymentRequest) - Decode a Lightning invoice
+- [decodePaymentRequest](#decodepaymentrequest) - Decode a Lightning invoice
 - [deleteFailedPayAttempts](#deletefailedpayattempts) - Remove records of failed pay attempts
 - [deleteFailedPayments](#deletefailedpayments) - Remove records of payments that failed
 - [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
@@ -757,8 +758,8 @@ Requires `offchain:read` permission
       [cltv_delta]: <Final CLTV Delta Number>
       created_at: <Payment Request Created At ISO 8601 Date String>
       description: <Payment Description String>
-      description_hash: <Payment Longer Description Hash String>
-      destination: <Public Key String>
+      description_hash: <Payment Longer Description Hash Hex String>
+      destination: <Public Key Hex String>
       expires_at: <ISO 8601 Date String>
       features: [{
         bit: <BOLT 09 Feature Bit Number>
@@ -766,7 +767,7 @@ Requires `offchain:read` permission
         is_required: <Feature Support is Required To Pay Bool>
         type: <Feature Type String>
       }]
-      id: <Payment Hash String>
+      id: <Payment Hash Hex String>
       is_expired: <Invoice is Expired Bool>
       mtokens: <Requested Millitokens String>
       [payment]: <Payment Identifier Hex Encoded String>
@@ -1800,6 +1801,7 @@ Requires `invoices:read` permission
         }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
+        timeout: <HTLC CLTV Timeout Height Number>
         tokens: <Payment Tokens Number>
       }]
       received: <Received Tokens Number>
@@ -3524,7 +3526,6 @@ Requires `offchain:write` permission
       }]
       [incoming_peer]: <Incoming Peer Public Key Hex String>
       [is_ignoring_past_failures]: <Adjust Probe For Past Routing Failures Bool>
-      [is_strict_hints]: <Only Route Through Specified Paths Bool>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens Number>
       [max_fee_mtokens]: <Maximum Fee Millitokens to Pay String>
@@ -4695,6 +4696,7 @@ Requires `invoices:read` permission
         }]
         mtokens: <Incoming Payment Millitokens String>
         [pending_index]: <Pending Payment Channel HTLC Index Number>
+        timeout: <HTLC CLTV Timeout Height Number>
         tokens: <Payment Tokens Number>
       }]
       received: <Received Tokens Number>

@@ -1,5 +1,5 @@
 const {script} = require('bitcoinjs-lib');
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
 
 const {createCluster} = require('./../macros');

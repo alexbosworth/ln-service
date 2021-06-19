@@ -1,6 +1,6 @@
 const {hopsFromChannels} = require('bolt07');
 const {routeFromHops} = require('bolt07');
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');

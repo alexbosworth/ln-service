@@ -1,5 +1,10 @@
 # Versions
 
+## 51.8.3
+
+- `pay`: Fix error when paying a zero amount invoice but specifying mtokens
+- `subscribeToInvoices`: Fix restart timeout to add longer default timeout
+
 ## 51.8.2
 
 - `requestChainFeeIncrease`: Add method to increase the relative fee of an unconfirmed UTXO

@@ -1,6 +1,6 @@
 const {randomBytes} = require('crypto');
 
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
@@ -138,6 +138,10 @@ test(`Pay`, async ({end, equal, strictSame}) => {
     lnd: cluster.control.lnd,
     path: {routes: [route], id: invoice2.id},
   });
+
+  const zeroInvoice = await createInvoice({lnd: cluster.target.lnd});
+
+  await pay({lnd, request: zeroInvoice.request, mtokens: '1000'});
 
   await cluster.kill({});
 

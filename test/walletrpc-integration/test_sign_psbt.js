@@ -1,7 +1,7 @@
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {decodePsbt} = require('psbt');
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
 
 const {broadcastChainTransaction} = require('./../../');

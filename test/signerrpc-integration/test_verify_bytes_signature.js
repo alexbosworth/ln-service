@@ -2,7 +2,7 @@ const {createHash} = require('crypto');
 
 const {decode} = require('bip66');
 const {ecdsaRecover} = require('secp256k1');
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 
 const {signBytes} = require('./../../');
 const {spawnLnd} = require('./../macros');

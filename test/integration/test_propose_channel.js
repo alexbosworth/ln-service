@@ -8,7 +8,7 @@ const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
 const signPsbtWithKey = require('psbt').signPsbt;
-const {test} = require('tap');
+const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
 
