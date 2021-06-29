@@ -5905,7 +5905,7 @@ Requires `message:read` permission
     {
       lnd: <Authenticated LND API Object>
       message: <Message String>
-      signature: <Signature Hex String>
+      signature: <Signature String>
     }
 
     @returns via cbk or Promise

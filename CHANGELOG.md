@@ -1,5 +1,11 @@
 # Versions
 
+## 51.8.5
+
+Support AMP push payments in invoices
+
+- `parsePaymentRequest`: Return zero values when mtokens are undefined
+
 ## 51.8.4
 
 - `getWalletVersion`: Add support for LND 0.13.0
