@@ -1,5 +1,9 @@
 # Versions
 
+## 51.8.6
+
+- `getNode`: Improve performance on LND 0.13.0+ by using returned channel data
+
 ## 51.8.5
 
 Support AMP push payments in invoices
