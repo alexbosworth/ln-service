@@ -1,6 +1,6 @@
 # Versions
 
-## 51.8.6
+## 51.8.7
 
 - `getNode`: Improve performance on LND 0.13.0+ by using returned channel data
 
