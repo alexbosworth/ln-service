@@ -1,5 +1,10 @@
 # Versions
 
+## 51.8.8
+
+- `getNode`: Return to fallback channels lookup when version commit hash is unavailable
+- `getWalletVersion`: Add support for builds that do not report a commit hash
+
 ## 51.8.7
 
 - `getNode`: Improve performance on LND 0.13.0+ by using returned channel data
