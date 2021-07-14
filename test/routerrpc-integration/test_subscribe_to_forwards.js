@@ -103,8 +103,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
   [controlSub, remoteSub, targetSub].forEach(n => n.removeAllListeners());
 
+  // LND 0.13.0 and below do not support secret
   [controlForwards, targetForwards, remoteForwards].forEach(forwards => {
-    return forwards.forEach(n => delete n.at);
+    return forwards.forEach(n => delete n.at && delete n.secret);
   });
 
   // LND 0.11.1 and before do not use anchor channels

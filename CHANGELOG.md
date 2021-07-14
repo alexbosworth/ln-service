@@ -1,5 +1,9 @@
 # Versions
 
+## 51.9.0
+
+- `subscribeToForwards`: Add `secret` attribute to settle forward events
+
 ## 51.8.8
 
 - `getNode`: Return to fallback channels lookup when version commit hash is unavailable

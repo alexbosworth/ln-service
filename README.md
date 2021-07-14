@@ -4519,6 +4519,8 @@ Subscribe to HTLC events
 
 Requires `offchain:read` permission
 
+Note: LND 0.13.1 and below do not return `secret` for forwards
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -4548,6 +4550,7 @@ Requires `offchain:read` permission
       [mtokens]: <Sending Millitokens Number>
       [out_channel]: <Outgoing Standard Format Channel Id String>
       [out_payment]: <Outgoing Channel Payment Id Number>
+      [secret]: <Settled Preimage Hex String>
       [timeout]: <Forward Timeout at Height Number>
       [tokens]: <Sending Tokens Number>
     }
