@@ -1,5 +1,10 @@
 # Versions
 
+## 51.10.0
+
+- `getWalletVersion`: Add support for LND 0.13.1-beta
+- `fundPsbt`: Add support for `min_confirmations`
+
 ## 51.9.0
 
 - `subscribeToForwards`: Add `secret` attribute to settle forward events

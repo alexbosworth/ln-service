@@ -1029,6 +1029,8 @@ Requires LND built with `walletrpc` tag
 
 This method is not supported in LND 0.11.1 and below
 
+Specifying 0 for `min_confirmations` is not supported in LND 0.13.0 and below
+
     {
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
       [inputs]: [{
@@ -1036,6 +1038,7 @@ This method is not supported in LND 0.11.1 and below
         transaction_vout: <Unspent Transaction Output Index Number>
       }]
       lnd: <Authenticated LND API Object>
+      [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
       [outputs]: [{
         address: <Chain Address String>
         tokens: <Send Tokens Tokens Number>
