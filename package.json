@@ -11,10 +11,10 @@
     "cors": "2.8.5",
     "express": "4.17.1",
     "invoices": "2.0.0",
-    "lightning": "3.4.0",
+    "lightning": "3.5.0",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
-    "ws": "7.5.3"
+    "ws": "8.0.0"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
@@ -61,5 +61,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "51.10.0"
+  "version": "51.10.1"
 }

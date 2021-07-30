@@ -1,6 +1,6 @@
 # Versions
 
-## 51.10.0
+## 51.10.1
 
 - `getWalletVersion`: Add support for LND 0.13.1-beta
 - `fundPsbt`: Add support for `min_confirmations`
