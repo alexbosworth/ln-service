@@ -65,6 +65,7 @@ const {getSweepTransactions} = require('lightning');
 const {getTowerServerInfo} = require('lightning/lnd_methods');
 const {getUtxos} = require('lightning/lnd_methods');
 const {getWalletInfo} = require('lightning');
+const {getWalletStatus} = require('lightning');
 const {getWalletVersion} = require('lightning');
 const {grantAccess} = require('lightning');
 const {isDestinationPayable} = require('lightning/lnd_methods');
@@ -195,6 +196,7 @@ module.exports = {
   getTowerServerInfo,
   getUtxos,
   getWalletInfo,
+  getWalletStatus,
   getWalletVersion,
   grantAccess,
   isDestinationPayable,

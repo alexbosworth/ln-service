@@ -1,5 +1,13 @@
 # Versions
 
+## 52.0.0
+
+- `getWalletStatus`: Add method to do a one-off query of the wallet state
+
+### Breaking Changes
+
+- Node.js version 12 or higher is now required
+
 ## 51.10.1
 
 - `getWalletVersion`: Add support for LND 0.13.1-beta

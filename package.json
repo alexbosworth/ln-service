@@ -11,15 +11,15 @@
     "cors": "2.8.5",
     "express": "4.17.1",
     "invoices": "2.0.0",
-    "lightning": "3.5.0",
+    "lightning": "4.0.0",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
-    "ws": "8.0.0"
+    "ws": "8.1.0"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
     "@alexbosworth/tap": "15.0.9",
-    "async": "3.2.0",
+    "async": "3.2.1",
     "asyncjs-util": "1.2.6",
     "bip66": "1.1.5",
     "bitcoinjs-lib": "5.2.0",
@@ -33,7 +33,7 @@
     "varuint-bitcoin": "1.1.2"
   },
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=12"
   },
   "keywords": [
     "bitcoin",
@@ -61,5 +61,5 @@
     "tower_server-integration-tests": "tap --no-coverage test/tower_serverrpc-integration/*.js",
     "wallet-integration-tests": "tap --no-coverage test/walletrpc-integration/*.js"
   },
-  "version": "51.10.1"
+  "version": "52.0.0"
 }
