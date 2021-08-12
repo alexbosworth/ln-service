@@ -168,7 +168,7 @@ for `unlocker` methods.
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
-- [getWalletStatus](#getWalletStatus) - Get the status of the wallet
+- [getWalletStatus](#getwalletstatus) - Get the status of the wallet
 - [getWalletVersion](#getWalletVersion) - Get the build and version of the LND
 - [grantAccess](#grantAccess) - Grant an access credential macaroon
 - [grpcProxyServer](#grpcProxyServer) - REST proxy server for calling to gRPC
@@ -2767,6 +2767,37 @@ Example:
 ```node
 const {getWalletInfo} = require('ln-service');
 const walletInfo = await getWalletInfo({lnd});
+```
+
+### getWalletStatus
+
+Get wallet status.
+
+This method is not supported on LND 0.12.1 and below
+
+    {
+      lnd: <Unauthenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      [is_absent]: <Wallet Not Created Bool>
+      [is_active]: <Wallet Is Active Bool>
+      [is_locked]: <Wallet File Encrypted And Wallet Not Active Bool>
+      [is_starting]: <Wallet Is Starting Up Bool>
+      [is_waiting]: <Wallet Is Waiting To Start Bool>
+    }
+
+Example:
+
+```node
+const {getWalletStatus, unauthenticatedLndGrpc} = require('ln-service');
+
+// No macaroon is required for this method
+const {lnd} = unauthenticatedLndGrpc({cert, socket});
+
+// Determine if the wallet is active
+const isWalletActive = (await getWalletStatus({lnd})).is_active;
 ```
 
 ### getWalletVersion
