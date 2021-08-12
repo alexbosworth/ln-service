@@ -168,6 +168,7 @@ for `unlocker` methods.
 - [getTowerServerInfo](#getTowerServerInfo) - Get information about tower server
 - [getUtxos](#getUtxos) - Get on-chain unspent outputs
 - [getWalletInfo](#getWalletInfo) - Get general wallet info
+- [getWalletStatus](#getWalletStatus) - Get the status of the wallet
 - [getWalletVersion](#getWalletVersion) - Get the build and version of the LND
 - [grantAccess](#grantAccess) - Grant an access credential macaroon
 - [grpcProxyServer](#grpcProxyServer) - REST proxy server for calling to gRPC
