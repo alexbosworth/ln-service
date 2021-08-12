@@ -128,6 +128,7 @@ const {verifyBackups} = require('lightning');
 const {verifyBytesSignature} = require('lightning');
 const {verifyMessage} = require('lightning');
 
+
 module.exports = {
   addPeer,
   authenticatedLndGrpc,
