@@ -1,6 +1,6 @@
 # Versions
 
-## 52.0.0
+## 52.0.1
 
 - `getWalletStatus`: Add method to do a one-off query of the wallet state
 
