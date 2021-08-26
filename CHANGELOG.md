@@ -1,5 +1,9 @@
 # Versions
 
+## 52.0.2
+
+- Switch to `sendToRouteV2` to execute payments over a specific route
+
 ## 52.0.1
 
 - `getWalletStatus`: Add method to do a one-off query of the wallet state
