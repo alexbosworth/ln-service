@@ -1,5 +1,10 @@
 # Versions
 
+## 52.0.3
+
+- `lockUtxo`: Return correct error message when attempting to lock an unknown UTXO
+- `lockUtxo`: Fix error when specifying a custom lock identifier
+
 ## 52.0.2
 
 - Switch to `sendToRouteV2` to execute payments over a specific route

@@ -39,6 +39,17 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
       transaction_vout: utxo.transaction_vout,
     });
 
+    try {
+      await lockUtxo({
+        id: lock.id,
+        lnd: cluster.control.lnd,
+        transaction_id: utxo.transaction_id,
+        transaction_vout: utxo.transaction_vout,
+      });
+    } catch (err) {
+      strictSame(err, null, 'Relocking the same UTXO should work');
+    }
+
     await rejects(
       sendToChainAddress({
         address,
@@ -47,6 +58,16 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
       }),
       [503, 'InsufficientBalanceToSendToChainAddress'],
       'UTXO is locked'
+    );
+
+    await rejects(
+      lockUtxo({
+        lnd: cluster.control.lnd,
+        transaction_id: Buffer.alloc(32).toString('hex'),
+        transaction_vout: utxo.transaction_vout,
+      }),
+      [404, 'OutpointToLockNotFoundInUtxoSet'],
+      'UTXO must exist'
     );
   } catch (err) {
     strictSame(

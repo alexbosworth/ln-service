@@ -152,6 +152,16 @@ test(`Get closed channels`, async ({end, equal}) => {
   const targetChannels = await getClosedChannels({lnd: cluster.target.lnd});
 
   const [, control] = (await getClosedChannels({lnd})).channels;
+
+  // Wait for target channel
+  await asyncRetry({interval, times}, async () => {
+    const targetChans = await getClosedChannels({lnd: cluster.target.lnd});
+
+    if (targetChans.channels.length < 2) {
+      throw new Error('ExpectedClosedTargetChannel');
+    }
+  });
+
   const [, target] = targetChannels.channels;
 
   equal(control.close_balance_vout !== undefined, true, 'Has balance vout');
