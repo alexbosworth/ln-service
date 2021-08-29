@@ -1,5 +1,9 @@
 # Versions
 
+## 52.1.0
+
+- `subscribeToPastPayments`: Add method to subscribe to successful past payments
+
 ## 52.0.3
 
 - `lockUtxo`: Return correct error message when attempting to lock an unknown UTXO

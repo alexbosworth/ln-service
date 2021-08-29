@@ -102,42 +102,42 @@ for `unlocker` methods.
 ## All Methods
 
 - [addPeer](#addPeer) - Connect to a peer
-- [authenticatedLndGrpc](#authenticatedLndGrpc) - LND API Object
-- [broadcastChainTransaction](#broadcastChainTransaction) - Push a chain tx
-- [cancelHodlInvoice](#cancelHodlInvoice) - Cancel a held or open invoice
-- [cancelPendingChannel](#cancelPendingChannel) - Cancel a pending open channel
-- [changePassword](#changePassword) - Change the wallet unlock password
-- [closeChannel](#closeChannel) - Terminate an open channel
-- [connectWatchtower](#connectWatchtower) - Connect a watchtower
-- [createChainAddress](#createChainAddress) - Get a chain address to receive at
-- [createHodlInvoice](#createHodlInvoice) - Make a HODL HTLC invoice
-- [createInvoice](#createInvoice) - Make a regular invoice
-- [createSeed](#createSeed) - Generate a wallet seed for a new wallet
-- [createSignedRequest](#createSignedRequest) - create a signed payment request
-- [createUnsignedRequest](#createUnsignedRequest) - create an unsigned invoice
-- [createWallet](#createWallet) - Make a new wallet
+- [authenticatedLndGrpc](#authenticatedlndgrpc) - LND API Object
+- [broadcastChainTransaction](#broadcastchaintransaction) - Push a chain tx
+- [cancelHodlInvoice](#cancelhodlinvoice) - Cancel a held or any open invoice
+- [cancelPendingChannel](#cancelpendingchannel) - Cancel a pending open channel
+- [changePassword](#changepassword) - Change the wallet unlock password
+- [closeChannel](#closechannel) - Terminate an open channel
+- [connectWatchtower](#connectwatchtower) - Connect a watchtower
+- [createChainAddress](#createchainaddress) - Get a chain address to receive at
+- [createHodlInvoice](#createhodlinvoice) - Make a HODL HTLC invoice
+- [createInvoice](#createinvoice) - Make a regular invoice
+- [createSeed](#createseed) - Generate a wallet seed for a new wallet
+- [createSignedRequest](#createsignedrequest) - create a signed payment request
+- [createUnsignedRequest](#createunsignedrequest) - create an unsigned invoice
+- [createWallet](#createwallet) - Make a new wallet
 - [decodePaymentRequest](#decodepaymentrequest) - Decode a Lightning invoice
 - [deleteFailedPayAttempts](#deletefailedpayattempts) - Remove records of failed pay attempts
 - [deleteFailedPayments](#deletefailedpayments) - Remove records of payments that failed
-- [deleteForwardingReputations](#deleteForwardingReputations) - Wipe node reps
-- [deletePayments](#deletePayments) - Delete entire history of past payments
-- [diffieHellmanComputeSecret](#diffieHellmanComputeSecret) - Get DH shared key
+- [deleteForwardingReputations](#deleteforwardingreputations) - Wipe node reps
+- [deletePayments](#deletepayments) - Delete entire history of past payments
+- [diffieHellmanComputeSecret](#diffiehellmancomputesecret) - Get DH shared key
 - [disableChannel](#disablechannel) - Disable a channel for outgoing payments
-- [disconnectWatchtower](#disconnectWatchtower) - Disconnect a watchtower
+- [disconnectWatchtower](#disconnectwatchtower) - Disconnect a watchtower
 - [enableChannel](#enablechannel) - Enable a channel for outgoing payments
-- [fundPendingChannels](#fundPendingChannels) - Fund pending open channels
-- [fundPsbt](#fundPsbt) - Create an unsigned PSBT with funding inputs and spending outputs
-- [getAccessIds](#getAccessIds) - Get granted macaroon root access ids
-- [getAutopilot](#getAutopilot) - Get autopilot status or node scores
-- [getBackup](#getBackup) - Get a backup of a channel
-- [getBackups](#getBackups) - Get a backup for all channels
-- [getChainBalance](#getChainBalance) - Get the confirmed chain balance
-- [getChainFeeEstimate](#getChainFeeEstimate) - Get a chain fee estimate
-- [getChainFeeRate](#getChainFeeRate) - Get the fee rate for a conf target
-- [getChainTransactions](#getChainTransactions) - Get all chain transactions
-- [getChannel](#getChannel) - Get graph information about a channel
-- [getChannelBalance](#getChannelBalance) - Get the balance of channel funds
-- [getChannels](#getChannels) - Get all open channels
+- [fundPendingChannels](#fundpendingchannels) - Fund pending open channels
+- [fundPsbt](#fundpsbt) - Create an unsigned PSBT with funding inputs and spending outputs
+- [getAccessIds](#getaccessids) - Get granted macaroon root access ids
+- [getAutopilot](#getautopilot) - Get autopilot status or node scores
+- [getBackup](#getbackup) - Get a backup of a channel
+- [getBackups](#getbackups) - Get a backup for all channels
+- [getChainBalance](#getchainbalance) - Get the confirmed chain balance
+- [getChainFeeEstimate](#getchainfeeestimate) - Get a chain fee estimate
+- [getChainFeeRate](#getchainfeerate) - Get the fee rate for a conf target
+- [getChainTransactions](#getchaintransactions) - Get all chain transactions
+- [getChannel](#getchannel) - Get graph information about a channel
+- [getChannelBalance](#getchannelbalance) - Get the balance of channel funds
+- [getChannels](#getchannels) - Get all open channels
 - [getClosedChannels](#getClosedChannels) - Get previously open channels
 - [getConnectedWatchtowers](#getConnectedWatchtowers) - Get connected towers
 - [getFeeRates](#getFeeRates) - Get current routing fee rates
@@ -214,6 +214,7 @@ for `unlocker` methods.
 - [subscribeToInvoices](#subscribeToInvoices) - Subscribe to all invoices
 - [subscribeToOpenRequests](#subscribeToOpenRequests) - Approve open requests
 - [subscribeToPastPayment](#subscribeToPastPayment) - Subscribe to a payment
+- [subscribeToPastPayments](#subscribetopastpayments) - Subscribe to all sent payments
 - [subscribeToPayViaDetails](#subscribeToPayViaDetails) - Pay using details
 - [subscribeToPayViaRequest](#subscribeToPayViaRequest) - Pay using a request
 - [subscribeToPayViaRoutes](#subscribeToPayViaRoutes) - Pay using routes
@@ -527,7 +528,7 @@ Requires `address:write`, `invoices:write` permission
       created_at: <ISO 8601 Date String>
       description: <Description String>
       id: <Payment Hash Hex String>
-      mtokens: <Millitokens Number>
+      mtokens: <Millitokens String>
       request: <BOLT 11 Encoded Payment Request String>
       [secret]: <Hex Encoded Payment Secret String>
       tokens: <Tokens Number>
@@ -1342,7 +1343,7 @@ Requires `offchain:read` permission
       pending_balance: <Pending On-Chain Channels Balance Tokens Number>
       [pending_inbound]: <Pending On-Chain Inbound Liquidity Tokens Number>
       [unsettled_balance]: <In-Flight Tokens Number>
-      [unsettled_balance_mtokens]: <In-Flight Millitokens Number>
+      [unsettled_balance_mtokens]: <In-Flight Millitokens String>
     }
 
 Example:
@@ -2180,19 +2181,23 @@ Requires `offchain:read` permission
       [is_failed]: <Payment Is Failed Bool>
       [is_pending]: <Payment Is Pending Bool>
       [payment]: {
+        fee: <Total Fees Paid Rounded Down Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
-        hops: [{
-          channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
-          fee: <Routing Fee Tokens Number>
-          fee_mtokens: <Fee Millitokens String>
-          forward: <Forwarded Tokens Number>
-          forward_mtokens: <Forward Millitokens String>
-          public_key: <Public Key Hex String>
-          timeout: <Timeout Block Height Number>
-        }]
         id: <Payment Hash Hex String>
         mtokens: <Total Millitokens Paid String>
+        paths: [{
+          fee_mtokens: <Total Fee Millitokens Paid String>
+          hops: [{
+            channel: <Standard Format Channel Id String>
+            channel_capacity: <Channel Capacity Tokens Number>
+            fee: <Fee Tokens Rounded Down Number>
+            fee_mtokens: <Fee Millitokens String>
+            forward_mtokens: <Forward Millitokens String>
+            public_key: <Public Key Hex String>
+            timeout: <Timeout Block Height Number>
+          }]
+          mtokens: <Total Millitokens Paid String>
+        }]
         safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
         safe_tokens: <Payment Tokens Rounded Up Number>
         secret: <Payment Preimage Hex String>
@@ -4914,19 +4919,28 @@ Requires `offchain:read` permission
 
     @event 'confirmed'
     {
+      fee: <Total Fee Tokens Paid Rounded Down Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
-      hops: [{
-        channel: <Standard Format Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
-        fee: <Routing Fee Tokens Number>
-        fee_mtokens: <Fee Millitokens String>
-        forward: <Forwarded Tokens Number>
-        forward_mtokens: <Forward Millitokens String>
-        public_key: <Public Key Hex String>
-        timeout: <Timeout Block Height Number>
-      }]
       id: <Payment Hash Hex String>
       mtokens: <Total Millitokens Paid String>
+      paths: [{
+        fee: <Total Fee Tokens Paid Number>
+        fee_mtokens: <Total Fee Millitokens Paid String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Tokens Rounded Down Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Paid String>
+        safe_fee: <Total Fee Tokens Paid Rounded Up Number>
+        safe_tokens: <Total Tokens Paid, Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+      }]
       safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
       safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
@@ -4945,7 +4959,7 @@ Requires `offchain:read` permission
     @event 'paying'
     {}
 
-Exmple:
+Example:
 
 ```node
 const {once} = require('events');
@@ -4953,6 +4967,63 @@ const {subscribeToPastPayment} = require('ln-service');
 const id = 'paymentRequestHashHexString';
 const sub = subscribeToPastPayment({id, lnd});
 const {secret} = await once(sub, 'confirmed');
+```
+
+### subscribeToPastPayments
+
+Subscribe to successful outgoing payments
+
+Requires `offchain:read` permission
+
+Note: Method not supported on LND 0.13.1 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @throws
+    <Error>
+
+    @returns
+    <Subscription EventEmitter Object>
+
+    @event 'error'
+    <Error Object>
+
+    @event 'payment'
+    {
+      fee: <Paid Routing Fee Rounded Down Tokens Number>
+      fee_mtokens: <Paid Routing Fee in Millitokens String>
+      id: <Payment Preimage Hash String>
+      mtokens: <Millitokens Sent to Destination String>
+      paths: [{
+        fee_mtokens: <Total Fee Millitokens Paid String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Tokens Rounded Down Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Paid String>
+      }]
+      safe_fee: <Total Fee Tokens Paid Rounded Up Number>
+      safe_tokens: <Total Tokens Paid, Rounded Up Number>
+      secret: <Payment Preimage Hex String>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens Paid Rounded Down Number>
+    }
+
+Example:
+
+```node
+const {subscribeToPastPayments} = require('ln-service');
+const sub = subscribeToPastPayments({lnd});
+let sentTokens = 0;
+
+sub.on('payment', payment => sentTokens += payment.tokens);
 ```
 
 ### subscribeToPayViaDetails
@@ -5410,7 +5481,7 @@ Requires `offchain:write` permission
       [payment]: <Payment Identifier Hex String>
       [probe_timeout_ms]: <Fail Entire Probe After Milliseconds Number>
       [routes]: [[{
-        [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel_capacity]: <Channel Capacity Tokens Number>
         [channel]: <Standard Format Channel Id String>
         [cltv_delta]: <CLTV Blocks Delta Number>
@@ -5817,19 +5888,22 @@ await updatePathfindingSettings({
 });
 ```
 
-
 ### updateRoutingFees
 
 Update routing fees on a single channel or on all channels
 
+Note: not setting a policy attribute will result in a minimal default used
+
 Setting both `base_fee_tokens` and `base_fee_mtokens` is not supported
 
+Requires `offchain:write` permission
+
     {
-      [base_fee_mtokens]: <Base Fee Millitokens Charged Number>
+      [base_fee_mtokens]: <Base Fee Millitokens Charged String>
       [base_fee_tokens]: <Base Fee Tokens Charged Number>
       [cltv_delta]: <HTLC CLTV Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [max_htlc_mtokens]: <Maximum HTLC Millitokens to Forward String>
       [min_htlc_mtokens]: <Minimum HTLC Millitokens to Forward String>
       [transaction_id]: <Channel Funding Transaction Id String>
