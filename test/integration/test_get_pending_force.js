@@ -157,12 +157,14 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(forceClose.close_transaction_id, channelClose.transaction_id, 'Txid');
   equal(forceClose.is_active, false, 'Not active anymore');
   equal(forceClose.is_closing, true, 'Channel is force closing');
+  equal(forceClose.is_timelocked, true, 'Force close funds are timelocked')
   equal(forceClose.is_opening, false, 'Channel is not opening');
   equal(forceClose.partner_public_key, cluster.target_node_public_key, 'pk');
   equal(forceClose.received, 0, 'No receive amount');
   equal(forceClose.recovered_tokens, undefined, 'No recovered amount');
   equal(forceClose.remote_balance, 0, 'No remote balance');
   equal(forceClose.sent, 0, 'No sent amount');
+  equal(!!forceClose.timelock_blocks, true, 'Timelock blocks set');
   equal(forceClose.timelock_expiration, startHeight + 165, 'Funds timelocked');
   equal(forceClose.transaction_id, channelOpen.transaction_id, 'Chan-Txid');
   equal(forceClose.transaction_vout, channelOpen.transaction_vout, 'ChanVout');

@@ -1,5 +1,9 @@
 # Versions
 
+## 52.2.0
+
+- `getPendingChannels`: Add `is_timelocked` and `timelock_blocks` to force closes
+
 ## 52.1.0
 
 - `subscribeToPastPayments`: Add method to subscribe to successful past payments
