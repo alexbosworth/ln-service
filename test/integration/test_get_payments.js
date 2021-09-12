@@ -8,6 +8,7 @@ const {getPayments} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 
+const start = new Date().toISOString();
 const tokens = 100;
 
 // Getting payments should return the list of payments
@@ -25,6 +26,7 @@ test('Get payments', async ({end, equal}) => {
   const [payment] = (await getPayments({lnd})).payments;
 
   equal(payment.destination, cluster.target_node_public_key, 'Destination');
+  equal(payment.confirmed_at > start, true, 'Got confirmed date');
   equal(payment.created_at.length, 24, 'Created at time');
   equal(payment.fee, 0, 'Fee paid');
   equal(payment.hops.length, 0, 'Hops');

@@ -13,6 +13,7 @@ const {payViaPaymentDetails} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
+const start = new Date().toISOString();
 const tlvData = '0000';
 const tlvType = '65537';
 const tokens = 100;
@@ -117,6 +118,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
       tokens: invoice.tokens,
     });
 
+    equal(paid.confirmed_at > start, true, 'Confirm date was received');
     equal(paid.fee, 1, 'Fee tokens paid');
     equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
     equal(paid.id, invoice.id, 'Payment hash is equal on both sides');

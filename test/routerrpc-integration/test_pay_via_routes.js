@@ -27,6 +27,7 @@ const defaultVout = 0;
 const mtokPadding = '000';
 const regtestChain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const reserveRatio = 0.99;
+const start = new Date().toISOString();
 const tlvType = '67676';
 const tlvValue = '010203';
 const tokens = 100;
@@ -172,6 +173,8 @@ test(`Pay via routes`, async ({end, equal}) => {
   route.messages = [{type: tlvType, value: tlvValue}];
 
   const payment = await payViaRoutes({id, lnd, routes: [route]});
+
+  equal(payment.confirmed_at > start, true, 'Paid has confirm date');
 
   const paidInvoice = await getInvoice({id, lnd: cluster.remote.lnd});
 

@@ -1,5 +1,19 @@
 # Versions
 
+## 52.3.0
+
+- `getPayment`: Add `confirmed_at` to indicate when payment resolved successfully
+- `getPayments`: Add `confirmed_at` to indicate when payments resolve successfully
+- `pay`: Add `confirmed_at` to indicate when payment resolved successfully
+- `payViaPaymentDetails`: Add `confirmed_at` to indicate when payment was sent
+- `payViaPaymentRequest`: Add `confirmed_at` to indicate when payment was sent
+- `payViaRoutes`: Add `confirmed_at` to indicate when payment resolved successfully
+- `subscribeToPastPayment`: Add `confirmed_at` to indicate when payment succeeded
+- `subscribeToPastPayments`: Add `confirmed_at` to indicate when payments succeed
+- `subscribeToPayViaDetails`: Add `confirmed_at` to indicate when payment was sent
+- `subscribeToPayViaRequest`: Add `confirmed_at` to indicate when payment was sent
+- `subscribeToPayViaRoutes`: Add `confirmed_at` to indicate when payment was sent
+
 ## 52.2.0
 
 - `getPendingChannels`: Add `is_timelocked` and `timelock_blocks` to force closes

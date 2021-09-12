@@ -2181,6 +2181,7 @@ Requires `offchain:read` permission
       [is_failed]: <Payment Is Failed Bool>
       [is_pending]: <Payment Is Pending Bool>
       [payment]: {
+        confirmed_at: <Payment Confirmed At ISO 8601 Date String>
         fee: <Total Fees Paid Rounded Down Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
         id: <Payment Hash Hex String>
@@ -2280,6 +2281,7 @@ Requires `offchain:read` permission
             [total_mtokens]: <Total Millitokens String>
           }
         }]
+        [confirmed_at]: <Payment Confirmed At ISO 8601 Date String>
         created_at: <Payment at ISO-8601 Date String>
         destination: <Destination Node Public Key Hex String>
         fee: <Paid Routing Fee Rounded Down Tokens Number>
@@ -3244,6 +3246,7 @@ Requires `offchain:write` permission
 
     @returns via cbk or Promise
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Fee Paid Tokens Number>
       fee_mtokens: <Fee Paid Millitokens String>
       hops: [{
@@ -3318,6 +3321,7 @@ Requires `offchain:write` permission
 
     @returns via cbk or Promise
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Total Fee Tokens Paid Rounded Down Number>
       fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
@@ -3391,6 +3395,7 @@ Requires `offchain:write` permission
 
     @returns via cbk or Promise
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Total Fee Tokens Paid Rounded Down Number>
       fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
@@ -3474,6 +3479,7 @@ Requires `offchain:write` permission
         <Failure Code Message String>
         <Failure Code Details Object>
       ]]
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Fee Paid Tokens Number>
       fee_mtokens: <Fee Paid Millitokens String>
       hops: [{
@@ -4926,6 +4932,7 @@ Requires `offchain:read` permission
 
     @event 'confirmed'
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Total Fee Tokens Paid Rounded Down Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
       id: <Payment Hash Hex String>
@@ -4999,6 +5006,7 @@ Note: Method not supported on LND 0.13.1 and below
 
     @event 'payment'
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Paid Routing Fee Rounded Down Tokens Number>
       fee_mtokens: <Paid Routing Fee in Millitokens String>
       id: <Payment Preimage Hash String>
@@ -5084,6 +5092,7 @@ Requires `offchain:write` permission
 
     @event 'confirmed'
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Fee Tokens Paid Number>
       fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
@@ -5179,6 +5188,7 @@ Requires `offchain:write` permission
 
     @event 'confirmed'
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Fee Tokens Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
       hops: [{
@@ -5372,6 +5382,7 @@ Requires `offchain:write` permission
 
     @event 'success'
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Fee Paid Tokens Number>
       fee_mtokens: <Fee Paid Millitokens String>
       hops: [{
