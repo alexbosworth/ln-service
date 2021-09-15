@@ -17,6 +17,7 @@ const {decodePaymentRequest} = require('lightning');
 const {deleteForwardingReputations} = require('lightning');
 const {deleteFailedPayAttempts} = require('lightning');
 const {deleteFailedPayments} = require('lightning');
+const {deletePayment} = require('lightning/lnd_methods');
 const {deletePayments} = require('lightning');
 const {diffieHellmanComputeSecret} = require('lightning');
 const {disableChannel} = require('lightning/lnd_methods');
@@ -149,6 +150,7 @@ module.exports = {
   deleteFailedPayAttempts,
   deleteFailedPayments,
   deleteForwardingReputations,
+  deletePayment,
   deletePayments,
   diffieHellmanComputeSecret,
   disableChannel,

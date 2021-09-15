@@ -120,6 +120,7 @@ for `unlocker` methods.
 - [deleteFailedPayAttempts](#deletefailedpayattempts) - Remove records of failed pay attempts
 - [deleteFailedPayments](#deletefailedpayments) - Remove records of payments that failed
 - [deleteForwardingReputations](#deleteforwardingreputations) - Wipe node reps
+- [deletePayment](#deletepayment) - Delete the record of a single past payment
 - [deletePayments](#deletepayments) - Delete entire history of past payments
 - [diffieHellmanComputeSecret](#diffiehellmancomputesecret) - Get DH shared key
 - [disableChannel](#disablechannel) - Disable a channel for outgoing payments
@@ -138,9 +139,9 @@ for `unlocker` methods.
 - [getChannel](#getchannel) - Get graph information about a channel
 - [getChannelBalance](#getchannelbalance) - Get the balance of channel funds
 - [getChannels](#getchannels) - Get all open channels
-- [getClosedChannels](#getClosedChannels) - Get previously open channels
-- [getConnectedWatchtowers](#getConnectedWatchtowers) - Get connected towers
-- [getFeeRates](#getFeeRates) - Get current routing fee rates
+- [getClosedChannels](#getclosedchannels) - Get previously open channels
+- [getConnectedWatchtowers](#getconnectedwatchtowers) - Get connected towers
+- [getFeeRates](#getfeerates) - Get current routing fee rates
 - [getForwardingConfidence](#getForwardingConfidence) - Get pairwise confidence
 - [getForwardingReputations](#getForwardingReputations) - Get graph reputations
 - [getForwards](#getForwards) - Get forwarded routed payments
@@ -800,7 +801,10 @@ Requires `offchain:write` permission
 
 Method not supported on LND 0.12.1 or below
 
+`id` is not supported on LND 0.13.1 or below
+
     {
+      [id]: <Delete Only Failed Attempt Records For Payment With Hash Hex String>
       lnd: <Authenticated LND API Object>
     }
 
@@ -857,6 +861,30 @@ const {deleteForwardingReputations} = require('ln-service');
 
 // Delete all routing reputations to clear pathfinding memory
 await deleteForwardingReputations({});
+```
+
+### deletePayment
+
+Delete a payment record
+
+Requires `offchain:write` permission
+
+Note: this method is not supported on LND 0.13.1 and below
+
+    {
+      id: <Payment Preimage Hash Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {deletePayment} = require('ln-service');
+
+// Eliminate the records of a payment
+await deletePayment({id, lnd});
 ```
 
 ### deletePayments
@@ -2789,6 +2817,8 @@ Get wallet status.
 
 This method is not supported on LND 0.12.1 and below
 
+`is_ready` is not supported on LND 0.13.1 and below
+
     {
       lnd: <Unauthenticated LND API Object>
     }
@@ -2798,6 +2828,7 @@ This method is not supported on LND 0.12.1 and below
       [is_absent]: <Wallet Not Created Bool>
       [is_active]: <Wallet Is Active Bool>
       [is_locked]: <Wallet File Encrypted And Wallet Not Active Bool>
+      [is_ready]: <Wallet Is Ready For RPC Calls Bool>
       [is_starting]: <Wallet Is Starting Up Bool>
       [is_waiting]: <Wallet Is Waiting To Start Bool>
     }
@@ -5681,6 +5712,8 @@ Subscribe to wallet status events
 
 This method is not supported on LND 0.12.1 and below
 
+`ready` is not supported on LND 0.13.1 and below
+
     {
       lnd: <Unauthenticated LND API Object>
     }
@@ -5703,6 +5736,9 @@ This method is not supported on LND 0.12.1 and below
 
     // The wallet is inactive because it is locked
     @event 'locked'
+
+    // The wallet is ready for all RPC server requests
+    @event 'ready'
 
     // The wallet is in the process of starting
     @event 'starting'

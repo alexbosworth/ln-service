@@ -2,7 +2,7 @@ const {once} = require('events');
 const {Readable} = require('stream');
 const {Writable} = require('stream');
 
-const fetch = require('node-fetch');
+const fetch = require('@alexbosworth/node-fetch');
 const {getPortPromise} = require('portfinder');
 const {lndGateway} = require('lightning');
 const {test} = require('@alexbosworth/tap');

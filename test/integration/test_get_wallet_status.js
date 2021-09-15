@@ -22,7 +22,7 @@ test(`Get wallet status`, async ({end, equal, strictSame}) => {
   try {
     const result = await getWalletStatus({lnd});
 
-    strictSame(result, {is_active: true}, 'Got expected state');
+    equal(result.is_active, true, 'Got expected state');
   } catch (err) {
     switch (version) {
     case '0.11.0-beta':

@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetch = require('@alexbosworth/node-fetch');
 const http = require('http');
 const https = require('https');
 
