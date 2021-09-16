@@ -2210,6 +2210,7 @@ Requires `offchain:read` permission
       [is_pending]: <Payment Is Pending Bool>
       [payment]: {
         confirmed_at: <Payment Confirmed At ISO 8601 Date String>
+        created_at: <Payment Created At ISO 8601 Date String>
         destination: <Destination Node Public Key Hex String>
         fee: <Total Fees Paid Rounded Down Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
@@ -2228,6 +2229,7 @@ Requires `offchain:read` permission
           }]
           mtokens: <Total Millitokens Paid String>
         }]
+        [request]: <BOLT 11 Encoded Payment Request String>
         safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
         safe_tokens: <Payment Tokens Rounded Up Number>
         secret: <Payment Preimage Hex String>
@@ -4965,6 +4967,7 @@ Requires `offchain:read` permission
     @event 'confirmed'
     {
       confirmed_at: <Payment Confirmed At ISO 8601 Date String>
+      created_at: <Payment Created At ISO 8601 Date String>
       destination: <Destination Node Public Key Hex String>
       fee: <Total Fee Tokens Paid Rounded Down Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
@@ -4988,6 +4991,7 @@ Requires `offchain:read` permission
         safe_tokens: <Total Tokens Paid, Rounded Up Number>
         timeout: <Expiration Block Height Number>
       }]
+      [request]: <BOLT 11 Encoded Payment Request String>
       safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
       safe_tokens: <Payment Tokens Rounded Up Number>
       secret: <Payment Preimage Hex String>
@@ -5040,6 +5044,7 @@ Note: Method not supported on LND 0.13.1 and below
     @event 'payment'
     {
       confirmed_at: <Payment Confirmed At ISO 8601 Date String>
+      created_at: <Payment Created At ISO 8601 Date String>
       destination: <Destination Node Public Key Hex String>
       fee: <Paid Routing Fee Rounded Down Tokens Number>
       fee_mtokens: <Paid Routing Fee in Millitokens String>
@@ -5058,6 +5063,7 @@ Note: Method not supported on LND 0.13.1 and below
         }]
         mtokens: <Total Millitokens Paid String>
       }]
+      [request]: <BOLT 11 Encoded Payment Request String>
       safe_fee: <Total Fee Tokens Paid Rounded Up Number>
       safe_tokens: <Total Tokens Paid, Rounded Up Number>
       secret: <Payment Preimage Hex String>

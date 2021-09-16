@@ -1,5 +1,14 @@
 # Versions
 
+## 52.6.0
+
+- `getPayment`: Add `created_at` to indicate the creation date of the payment
+- `getPayment`: Add `request` to indicate serialized payment request
+- `subscribeToPastPayment`: Add `created_at` to indicate the creation date of the payment
+- `subscribeToPastPayment`: Add `request` to indicate serialized payment request
+- `subscribeToPastPayments`: Add `created_at` to indicate the creation date of the payment
+- `subscribeToPastPayments`: Add `request` to indicate serialized payment request
+
 ## 52.5.0
 
 - `getPayment`: Add `destination` to indicate the destination of the payment
