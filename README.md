@@ -142,15 +142,15 @@ for `unlocker` methods.
 - [getClosedChannels](#getclosedchannels) - Get previously open channels
 - [getConnectedWatchtowers](#getconnectedwatchtowers) - Get connected towers
 - [getFeeRates](#getfeerates) - Get current routing fee rates
-- [getForwardingConfidence](#getForwardingConfidence) - Get pairwise confidence
-- [getForwardingReputations](#getForwardingReputations) - Get graph reputations
-- [getForwards](#getForwards) - Get forwarded routed payments
-- [getHeight](#getHeight) - Get the current best chain height and block hash
-- [getIdentity](#getIdentity) - Get the node's identity key
-- [getInvoice](#getInvoice) - Get a previously created invoice
+- [getForwardingConfidence](#getforwardingconfidence) - Get pairwise confidence
+- [getForwardingReputations](#getforwardingreputations) - Get graph reputations
+- [getForwards](#getforwards) - Get forwarded routed payments
+- [getHeight](#getheight) - Get the current best chain height and block hash
+- [getIdentity](#getidentity) - Get the node's identity key
+- [getInvoice](#getinvoice) - Get a previously created invoice
 - [getInvoices](#getinvoices) - Get all previously created invoices
 - [getLockedUtxos](#getlockedutxos) - Get all previously locked UTXOs
-- [getMethods](#getMethods) - Get available methods and associated permissions
+- [getMethods](#getmethods) - Get available methods and associated permissions
 - [getNetworkCentrality](#getNetworkCentrality) - Get centrality score for nodes
 - [getNetworkGraph](#getNetworkGraph) - Get the channels and nodes of the graph
 - [getNetworkInfo](#getNetworkInfo) - Get high-level graph info
@@ -2210,6 +2210,7 @@ Requires `offchain:read` permission
       [is_pending]: <Payment Is Pending Bool>
       [payment]: {
         confirmed_at: <Payment Confirmed At ISO 8601 Date String>
+        destination: <Destination Node Public Key Hex String>
         fee: <Total Fees Paid Rounded Down Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
         id: <Payment Hash Hex String>
@@ -4964,6 +4965,7 @@ Requires `offchain:read` permission
     @event 'confirmed'
     {
       confirmed_at: <Payment Confirmed At ISO 8601 Date String>
+      destination: <Destination Node Public Key Hex String>
       fee: <Total Fee Tokens Paid Rounded Down Number>
       fee_mtokens: <Total Fee Millitokens To Pay String>
       id: <Payment Hash Hex String>
@@ -5038,6 +5040,7 @@ Note: Method not supported on LND 0.13.1 and below
     @event 'payment'
     {
       confirmed_at: <Payment Confirmed At ISO 8601 Date String>
+      destination: <Destination Node Public Key Hex String>
       fee: <Paid Routing Fee Rounded Down Tokens Number>
       fee_mtokens: <Paid Routing Fee in Millitokens String>
       id: <Payment Preimage Hash String>

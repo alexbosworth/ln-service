@@ -71,6 +71,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     const {payment} = await getPayment({id, lnd});
 
     equal(payment.confirmed_at > start, true, 'Got payment confirmation date');
+    equal(payment.destination, cluster.remote.public_key);
     equal(payment.fee_mtokens, '1000', 'Fee mtokens tokens paid');
     equal(payment.id, id, 'Payment hash is equal on both sides');
     equal(payment.mtokens, '101000', 'Paid mtokens');

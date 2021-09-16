@@ -1,5 +1,11 @@
 # Versions
 
+## 52.5.0
+
+- `getPayment`: Add `destination` to indicate the destination of the payment
+- `subscribeToPastPayment`: Add `destination` to indicate the destination of the payment
+- `subscribeToPastPayments`: Add `destination` to indicate the destination of the payment
+
 ## 52.4.0
 
 - `deletePayment`: Add method to delete a single payment
