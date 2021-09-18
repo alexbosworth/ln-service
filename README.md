@@ -4808,7 +4808,7 @@ Example:
 ```node
 const {once} = require('events');
 const {subscribeToInvoice} = require('ln-service');
-const 'invoiceIdHexString';
+const id = 'invoiceIdHexString';
 const sub = subscribeToInvoice({id, lnd});
 const [invoice] = await once(sub, 'invoice_updated');
 ```
