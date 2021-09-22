@@ -125,6 +125,7 @@ const {updateChainTransaction} = require('lightning');
 const {updateConnectedWatchtower} = require('lightning');
 const {updatePathfindingSettings} = require('lightning');
 const {updateRoutingFees} = require('lightning');
+const {verifyAccess} = require('lightning/lnd_methods');
 const {verifyBackup} = require('lightning');
 const {verifyBackups} = require('lightning');
 const {verifyBytesSignature} = require('lightning');
@@ -258,6 +259,7 @@ module.exports = {
   updateConnectedWatchtower,
   updatePathfindingSettings,
   updateRoutingFees,
+  verifyAccess,
   verifyBackup,
   verifyBackups,
   verifyBytesSignature,

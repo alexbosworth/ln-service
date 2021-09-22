@@ -1,5 +1,9 @@
 # Versions
 
+## 52.7.0
+
+- `verifyAccess`: Add method to check if a macaroon is granted permissions
+
 ## 52.6.0
 
 - `getPayment`: Add `created_at` to indicate the creation date of the payment

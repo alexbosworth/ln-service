@@ -228,13 +228,14 @@ for `unlocker` methods.
 - [unlockUtxo](#unlockUtxo) - Release a locked UTXO so that it can be used again
 - [unlockWallet](#unlockWallet) - Unlock a locked lnd
 - [updateChainTransaction](#updateChainTransaction) - Update a chain transaction
-- [updateConnectedWatchtower](#updateConnectedWatchtower) - Update watchtower
+- [updateConnectedWatchtower](#updateconnectedwatchtower) - Update watchtower
 - [updatePathfindingSettings](#updatepathfindingsettings) - Update pathfinding configuration
-- [updateRoutingFees](#updateRoutingFees) - Change routing fees
-- [verifyBackup](#verifyBackup) - Verify a channel backup
-- [verifyBackups](#verifyBackups) - Verify a set of channel backups
-- [verifyBytesSignature](#verifyBytesSignature) - Verify a signature over bytes
-- [verifyMessage](#verifyMessage) - Verify a message signed by a node identity
+- [updateRoutingFees](#updateroutingfees) - Change routing fees
+- [verifyAccess](#verifyaccess) - Verify a macaroon has access
+- [verifyBackup](#verifybackup) - Verify a channel backup
+- [verifyBackups](#verifybackups) - Verify a set of channel backups
+- [verifyBytesSignature](#verifybytessignature) - Verify a signature over bytes
+- [verifyMessage](#verifymessage) - Verify a message signed by a node identity
 
 ## Additional Libraries
 
@@ -5978,8 +5979,38 @@ Requires `offchain:write` permission
 Example:
 
 ```node
-const {updateRoutingFees} = require('lnd');
+const {updateRoutingFees} = require('ln-service');
 await updateRoutingFees({lnd, fee_rate: 2500});
+```
+
+### verifyAccess
+
+Verify an access token has a given set of permissions
+
+Note: this method is not supported in LND versions 0.13.1 and below
+
+Requires `macaroon:read` permission
+
+    {
+      lnd: <Authenticated LND API Object>
+      macaroon: <Base64 Encoded Macaroon String>
+      permissions: [<Entity:Action String>]
+    }
+
+    @returns via cbk or Promise
+    {
+      is_valid: <Access Token is Valid For Described Permissions Bool>
+    }
+
+Example:
+
+```node
+const {verifyAccess} = require('ln-service');
+
+const permissions = ['info:read'];
+
+// Determine if the macaroon has info:read permissions
+const hasAccess = (await verifyAccess({lnd, macaroon, permissions})).is_valid;
 ```
 
 ### verifyBackup
