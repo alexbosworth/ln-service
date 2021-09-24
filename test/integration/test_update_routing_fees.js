@@ -17,7 +17,7 @@ const mtokPerTok = 1e3;
 const n = 2;
 
 // Updating routing fees should update routing fees
-test(`Update routing fees`, async ({end, equal}) => {
+test(`Update routing fees`, async ({end, equal, strictSame}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
@@ -52,6 +52,29 @@ test(`Update routing fees`, async ({end, equal}) => {
   equal(policy.max_htlc_mtokens, '10000', 'Max HTLC tokens updated');
 
   equal(policy.min_htlc_mtokens, '2000', 'Min HTLC tokens updated');
+
+  const {failures} = await updateRoutingFees({
+    lnd,
+    base_fee_mtokens: `${BigInt(baseFeeTokens) * BigInt(n) * BigInt(1e3)}`,
+    cltv_delta: cltvDelta * n,
+    fee_rate: feeRate * n,
+    transaction_id: '1234000000000000000000000000000000000000000000000000000000000000',
+    transaction_vout: 1,
+  });
+
+  const expectedFailures = [{
+    failure: 'not found',
+    is_pending_channel: false,
+    is_unknown_channel: true,
+    is_invalid_policy: false,
+    transaction_id: '1234000000000000000000000000000000000000000000000000000000000000',
+    transaction_vout: 1,
+  }];
+
+  // Failures is not supported on LND 0.13.1 and below
+  if (!!failures.length) {
+    strictSame(failures, expectedFailures, 'Got expected failures');
+  }
 
   {
     const lnd = cluster.target.lnd;

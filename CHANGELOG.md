@@ -1,5 +1,9 @@
 # Versions
 
+## 52.8.0
+
+- `updateRoutingFees`: Add `failures` to result to indicate failed policy updates
+
 ## 52.7.0
 
 - `verifyAccess`: Add method to check if a macaroon is granted permissions

@@ -9,7 +9,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.13.0-beta to v0.13.1-beta
+- v0.13.0-beta to v0.13.2-beta
 - v0.12.0-beta to v0.12.1-beta
 - v0.11.0-beta to v0.11.1-beta
 
@@ -5962,6 +5962,8 @@ Setting both `base_fee_tokens` and `base_fee_mtokens` is not supported
 
 Requires `offchain:write` permission
 
+`failures` are not returned on LND 0.13.1 and below
+
     {
       [base_fee_mtokens]: <Base Fee Millitokens Charged String>
       [base_fee_tokens]: <Base Fee Tokens Charged Number>
@@ -5975,6 +5977,16 @@ Requires `offchain:write` permission
     }
 
     @returns via cbk or Promise
+    {
+      failures: [{
+        failure: <Failure Reason String>
+        is_pending_channel: <Referenced Channel Is Still Pending Bool>
+        is_unknown_channel: <Referenced Channel is Unknown Bool>
+        is_invalid_policy: <Policy Arguments Are Invalid Bool>
+        transaction_id: <Funding Transaction Id Hex String>
+        transaction_vout: <Funding Transaction Output Index Number>
+      }]
+    }
 
 Example:
 
