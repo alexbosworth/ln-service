@@ -2,6 +2,7 @@ const {test} = require('@alexbosworth/tap');
 
 const {authenticatedLndGrpc} = require('./../../');
 const {createChainAddress} = require('./../../');
+const {getWalletVersion} = require('./../../');
 const {grantAccess} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
@@ -53,6 +54,29 @@ test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
   const {address} = await createChainAddress({format, lnd: makeAddress.lnd});
 
   equal(!!address, true, 'Can make address with proper credential');
+
+  const {version} = await getWalletVersion({lnd});
+
+  // Granting URI access is not supported in LND 0.11.0
+  if (version !== 'v0.11.0-beta') {
+    const createChainAddressCredential = await grantAccess({
+      lnd,
+      methods: ['createChainAddress'],
+    });
+
+    const authenticatedToCreateAddress = authenticatedLndGrpc({
+      cert: spawned.lnd_cert,
+      macaroon: createChainAddressCredential.macaroon,
+      socket: `localhost:${spawned.rpc_port}`,
+    });
+
+    const created = await createChainAddress({
+      format,
+      lnd: authenticatedToCreateAddress.lnd,
+    });
+
+    equal(!!created, true, 'Can make address with URI credential');
+  }
 
   kill();
 

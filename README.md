@@ -185,7 +185,7 @@ for `unlocker` methods.
 - [prepareForChannelProposal](#prepareForChannelProposal) - setup for a channel proposal
 - [probe](#probe) - Find a payable route by attempting a fake payment
 - [probeForRoute](#probeForRoute) - Actively probe to find a payable route
-- [proposeChannel](#proposeChannel) - Offer a channel proposal to a peer
+- [proposeChannel](#proposechannel) - Offer a channel proposal to a peer
 - [recoverFundsFromChannel](#recoverFundsFromChannel) - Restore a channel
 - [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
 - [removePeer](#removePeer) - Disconnect from a connected peer
@@ -2895,6 +2895,8 @@ and version differences in LND can result in expanded access.
 
 Note: `id` is not supported in LND versions 0.11.0 and below
 
+`methods` is not supported in LND versions 0.11.0 and below
+
     {
       [id]: <Macaroon Id Positive Numeric String>
       [is_ok_to_adjust_peers]: <Can Add or Remove Peers Bool>
@@ -2917,6 +2919,7 @@ Note: `id` is not supported in LND versions 0.11.0 and below
       [is_ok_to_verify_bytes_signatures]: <Can Verify Signatures of Bytes Bool>
       [is_ok_to_verify_messages]: <Can Verify Messages From Node Keys Bool>
       lnd: <Authenticated LND gRPC API Object>
+      [methods]: [<Method Name String>]
       [permissions]: [<Entity:Action String>]
     }
 
@@ -3685,7 +3688,7 @@ Propose a new channel to a peer that prepared for the channel proposal
 Channel proposals can allow for cooperative close delays or external funding
 flows.
 
-Requires `offchain:write`, `onchain:write` permissions
+Requires `address:read`, `offchain:write`, `onchain:write` permissions
 
 Requires LND compiled with `walletrpc` build tag
 

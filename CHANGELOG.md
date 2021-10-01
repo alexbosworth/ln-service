@@ -1,5 +1,9 @@
 # Versions
 
+## 52.9.0
+
+- `grantAccess`: Add support for specifying `methods` for permissions
+
 ## 52.8.0
 
 - `updateRoutingFees`: Add `failures` to result to indicate failed policy updates
