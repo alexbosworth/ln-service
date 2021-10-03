@@ -222,7 +222,8 @@ for `unlocker` methods.
 - [subscribeToPeers](#subscribeToPeers) - Subscribe to peers connectivity
 - [subscribeToProbe](#subscribeToProbe) - Subscribe to a probe for a route
 - [subscribeToProbeForRoute](#subscribeToProbeForRoute) - Probe for a route
-- [subscribeToTransactions](#subscribeToTransactions) - Subscribe to chain tx
+- [subscribeToRpcRequests](#subscribetorpcrequests) - Subscribe to rpc requests
+- [subscribeToTransactions](#subscribetotransactions) - Subscribe to chain tx
 - [subscribeToWalletStatus](#subscribetowalletstatus) - Subscribe to node state
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
 - [unlockUtxo](#unlockUtxo) - Release a locked UTXO so that it can be used again
@@ -1464,6 +1465,7 @@ Requires `offchain:read` permission
         [local_min_htlc_mtokens]: <Local Minimum HTLC Millitokens String>
         local_reserve: <Local Reserved Tokens Number>
         partner_public_key: <Channel Partner Public Key String>
+        past_states: <Total Count of Past Channel States Number>
         pending_payments: [{
           id: <Payment Preimage Hash Hex String>
           [in_channel]: <Forward Inbound From Channel Id String>
@@ -4518,6 +4520,7 @@ Requires `offchain:read` permission
       [local_given]: <Local Initially Pushed Tokens Number>
       local_reserve: <Local Reserved Tokens Number>
       partner_public_key: <Channel Partner Public Key String>
+      past_states: <Total Count of Past Channel States Number>
       pending_payments: [{
         id: <Payment Preimage Hash Hex String>
         is_outgoing: <Payment Is Outgoing Bool>
@@ -5678,6 +5681,39 @@ const destination = 'destinationPublicKeyHexString';
 const sub = subscribeToProbeForRoute({destination, lnd, tokens: 80085});
 const [{route}] = await once(sub, 'probe_success');
 ```
+
+### subscribeToRpcRequests
+
+Subscribe to RPC requests and their responses
+
+Requires `macaroon:write` permission
+
+LND must be running with rpc middleware enabled: `rpcmiddleware.enable=1`
+
+This method is not supported in LND 0.13.2 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      subscription: <RPC Request Subscription EventEmitter Object>
+    }
+
+    @event 'request'
+    {
+      id: <Request Id Number>
+      [macaroon]: <Base64 Encoded Macaroon String>
+      [uri]: <RPC URI String>
+    }
+
+    @event 'response'
+    {
+      id: <Request Id Number>
+      [macaroon]: <Base64 Encoded Macaroon String>
+      [uri]: <RPC URI String>
+    }
 
 ### subscribeToTransactions
 

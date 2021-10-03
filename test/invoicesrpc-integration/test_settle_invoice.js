@@ -22,6 +22,9 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
 
   const {lnd} = cluster.control;
 
+  const {features} = await getWalletInfo({lnd});
+
+  const isAnchors = !!features.find(n => n.bit === 23);
   await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
 
   await setupChannel({
@@ -80,7 +83,7 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
     const controlChannelBalance = await getChannelBalance({lnd});
 
     // LND 0.11.1 and below do not support extended channel balance details
-    if (!channel.is_anchor) {
+    if (!isAnchors) {
       if (!!controlChannelBalance.channel_balance_mtokens) {
         strictSame(controlChannelBalance, {
           channel_balance: 990950,

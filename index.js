@@ -17,10 +17,10 @@ const {decodePaymentRequest} = require('lightning');
 const {deleteForwardingReputations} = require('lightning');
 const {deleteFailedPayAttempts} = require('lightning');
 const {deleteFailedPayments} = require('lightning');
-const {deletePayment} = require('lightning/lnd_methods');
+const {deletePayment} = require('lightning');
 const {deletePayments} = require('lightning');
 const {diffieHellmanComputeSecret} = require('lightning');
-const {disableChannel} = require('lightning/lnd_methods');
+const {disableChannel} = require('lightning');
 const {disconnectWatchtower} = require('lightning');
 const {enableChannel} = require('lightning');
 const {fundPendingChannels} = require('lightning');
@@ -95,7 +95,7 @@ const {setAutopilot} = require('lightning');
 const {settleHodlInvoice} = require('lightning');
 const {signBytes} = require('lightning');
 const {signMessage} = require('lightning');
-const {signPsbt} = require('lightning/lnd_methods');
+const {signPsbt} = require('lightning');
 const {signTransaction} = require('lightning');
 const {stopDaemon} = require('lightning');
 const {subscribeToBackups} = require('lightning');
@@ -110,12 +110,13 @@ const {subscribeToInvoice} = require('lightning');
 const {subscribeToInvoices} = require('lightning');
 const {subscribeToOpenRequests} = require('lightning');
 const {subscribeToPastPayment} = require('lightning');
-const {subscribeToPastPayments} = require('lightning/lnd_methods');
+const {subscribeToPastPayments} = require('lightning');
 const {subscribeToPayViaDetails} = require('lightning');
 const {subscribeToPayViaRequest} = require('lightning');
 const {subscribeToPayViaRoutes} = require('lightning');
-const {subscribeToPeers} = require('lightning/lnd_methods');
+const {subscribeToPeers} = require('lightning');
 const {subscribeToProbeForRoute} = require('lightning');
+const {subscribeToRpcRequests} = require('lightning/lnd_methods');
 const {subscribeToTransactions} = require('lightning');
 const {subscribeToWalletStatus} = require('lightning');
 const {unauthenticatedLndGrpc} = require('lightning');
@@ -125,7 +126,7 @@ const {updateChainTransaction} = require('lightning');
 const {updateConnectedWatchtower} = require('lightning');
 const {updatePathfindingSettings} = require('lightning');
 const {updateRoutingFees} = require('lightning');
-const {verifyAccess} = require('lightning/lnd_methods');
+const {verifyAccess} = require('lightning');
 const {verifyBackup} = require('lightning');
 const {verifyBackups} = require('lightning');
 const {verifyBytesSignature} = require('lightning');
@@ -250,6 +251,7 @@ module.exports = {
   subscribeToPayViaRoutes,
   subscribeToPeers,
   subscribeToProbeForRoute,
+  subscribeToRpcRequests,
   subscribeToTransactions,
   subscribeToWalletStatus,
   unauthenticatedLndGrpc,

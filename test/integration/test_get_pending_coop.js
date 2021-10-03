@@ -2,6 +2,7 @@ const {test} = require('@alexbosworth/tap');
 
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
+const {getWalletInfo} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
@@ -13,6 +14,10 @@ test(`Get pending channels`, async ({end, equal}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
+
+  const {features} = await getWalletInfo({lnd});
+
+  const isAnchors = !!features.find(n => n.bit === 23);
 
   // Target starts a channel with control
   const coopChan = await setupChannel({
@@ -43,7 +48,7 @@ test(`Get pending channels`, async ({end, equal}) => {
   }
 
   // LND 0.11.1 and below do not support anchor channels
-  if (channel.is_anchor) {
+  if (isAnchors) {
     equal(channel.local_balance, 986530, 'Original balance');
     equal(channel.pending_balance, 986530, 'Waiting on balance');
   } else {

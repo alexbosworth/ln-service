@@ -19,6 +19,7 @@ const {fundPsbt} = require('./../../');
 const {getChannels} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getPublicKey} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {prepareForChannelProposal} = require('./../../');
 const {proposeChannel} = require('./../../');
@@ -43,7 +44,7 @@ const temporaryFamily = 805;
 const times = 300;
 
 // Proposing a cooperative delay channel should open a cooperative delay chan
-test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
+test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {version} = await getWalletVersion({lnd: cluster.control.lnd});
@@ -59,6 +60,10 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   default:
     break;
   }
+
+  const {features} = await getWalletInfo({lnd: cluster.control.lnd});
+
+  const isAnchors = !!features.find(n => n.bit === 23);
 
   // Derive a temporary key for control to pay into
   const controlDerivedKey = await getPublicKey({
@@ -319,7 +324,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   const [incoming] = pendingTarget.pending_channels;
 
   // LND 0.11.1 and before do not use anchor channels
-  if (incoming.is_anchor) {
+  if (isAnchors) {
     equal(incoming.remote_balance, 496530, 'Remote balance amount');
     equal(incoming.transaction_fee, 2810, 'Commit tx fee');
     equal(incoming.transaction_weight, 1116, 'Funding tx weight');
@@ -401,7 +406,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   const closeAddr = coopCloseAddress.address;
 
   // LND 0.11.1 and before do not use anchor channels
-  if (incoming.is_anchor) {
+  if (isAnchors) {
     equal(controlChannel.commit_transaction_fee, 2810, 'Regular tx fee');
     equal(controlChannel.commit_transaction_weight, 1116, 'Regular tx size');
     equal(controlChannel.is_static_remote_key, false, 'Not static remote key');
@@ -422,7 +427,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   equal(controlChannel.is_private, true, 'Channel is private');
   equal(controlChannel.local_balance, incoming.remote_balance, 'Control toks');
   equal(controlChannel.local_csv, 144, 'Channel CSV');
-  equal(controlChannel.local_dust, 573, 'Channel dust');
+  ok(controlChannel.local_dust >= 354, 'Channel dust');
   equal(controlChannel.local_given, giveTokens, 'Channel tokens given over');
   equal(controlChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
   equal(controlChannel.partner_public_key, cluster.target.public_key, 'R-key');
@@ -434,7 +439,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   const [targetChannel] = targetChannels.channels;
 
   // LND 0.11.1 and before do not use anchor channels
-  if (incoming.is_anchor) {
+  if (isAnchors) {
     equal(targetChannel.commit_transaction_fee, 2810, 'Regular tx commit fee');
     equal(targetChannel.commit_transaction_weight, 1116, 'Regular tx size');
     equal(targetChannel.is_static_remote_key, false, 'Anchor channel');
@@ -455,7 +460,7 @@ test(`Propose a channel with a cooperative delay`, async ({end, equal}) => {
   equal(targetChannel.is_private, true, 'Channel is private');
   equal(targetChannel.local_balance, giveTokens, 'Target tokens');
   equal(targetChannel.local_csv, 144, 'Channel CSV');
-  equal(targetChannel.local_dust, 573, 'Channel dust');
+  ok(targetChannel.local_dust >= 354, 'Channel dust');
   equal(targetChannel.local_given, 0, 'No tokens given');
   equal(targetChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
   equal(targetChannel.partner_public_key, cluster.control.public_key, 'R-key');

@@ -5,6 +5,7 @@ const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
 const {getHeight} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {removePeer} = require('./../../');
 const {subscribeToChannels} = require('./../../');
@@ -27,8 +28,11 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   const {lnd} = cluster.control;
   const {socket} = cluster.target;
 
+  const {features} = await getWalletInfo({lnd});
   const sub = subscribeToChannels({lnd});
   const startHeight = (await getHeight({lnd})).current_block_height
+
+  const isAnchors = !!features.find(n => n.bit === 23);
 
   sub.on('channel_active_changed', update => activeChanged.push(update));
   sub.on('channel_closed', update => channelClosed.push(update));
@@ -84,7 +88,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   }
 
   // LND 0.11.1 and before do not use anchors
-  if (openEvent.is_anchor) {
+  if (isAnchors) {
     equal(openEvent.commit_transaction_fee, 2810, 'Channel commit tx fee');
     equal(openEvent.commit_transaction_weight, 1116, 'Commit tx weight');
     equal(openEvent.local_balance, 896530, 'Channel local balance returned');
@@ -136,7 +140,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
 
   const closeEvent = channelClosed.pop();
 
-  if (openEvent.is_anchor) {
+  if (isAnchors) {
     equal(closeEvent.final_local_balance, 897190, 'Close final local balance');
   } else {
     equal(closeEvent.final_local_balance, 890950, 'Close final local balance');

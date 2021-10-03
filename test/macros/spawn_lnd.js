@@ -48,6 +48,7 @@ const times = 30;
 
   {
     [circular]: <Allow Circular Payments Bool>
+    [intercept]: <Enable RPC Interception Bool>
     [keysend]: <Enable Key Send Bool>
     [noauth]: <Disable Macaroon Bool>
     [seed]: <Seed Phrase String>
@@ -76,7 +77,7 @@ const times = 30;
     socket: <LND RPC Network Socket String>
   }
 */
-module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
+module.exports = (args, cbk) => {
   return asyncAuto({
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
@@ -227,23 +228,27 @@ module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
           '--watchtower.towerdir', dir,
         ]
 
-        if (!!circular) {
+        if (!!args.circular) {
           arguments.push('--allow-circular-route');
         }
 
-        if (!!keysend) {
+        if (!!args.intercept) {
+          arguments.push('--rpcmiddleware.enable')
+        }
+
+        if (!!args.keysend) {
           arguments.push('--accept-keysend');
         }
 
-        if (!!noauth) {
+        if (!!args.noauth) {
           arguments.push('--no-macaroons');
         }
 
-        if (!!tower) {
+        if (!!args.tower) {
           towerArgs.forEach(n => arguments.push(n));
         }
 
-        if (!!watchers) {
+        if (!!args.watchers) {
           arguments.push('--wtclient.active');
         }
 
@@ -369,8 +374,8 @@ module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
     // Create seed
     createSeed: ['nonAuthenticatedLnd', ({nonAuthenticatedLnd}, cbk) => {
       // Exit early when a seed is pre-supplied
-      if (!!seed) {
-        return cbk(null, {seed});
+      if (!!args.seed) {
+        return cbk(null, {seed: args.seed});
       }
 
       return asyncRetry({interval, times}, cbk => {
@@ -405,7 +410,7 @@ module.exports = ({circular, keysend, noauth, seed, tower, watchers}, cbk) => {
       ({spawnChainDaemon}, cbk) =>
     {
       // Exit early when spawning an LND that has no auth
-      if (!!noauth) {
+      if (!!args.noauth) {
         return cbk();
       }
 

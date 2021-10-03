@@ -7,6 +7,7 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToForwards} = require('./../../');
@@ -17,6 +18,9 @@ const tokens = 100;
 test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({});
 
+  const {features} = await getWalletInfo({lnd: cluster.control.lnd});
+
+  const isAnchors = !!features.find(n => n.bit === 23);
   const testSub = subscribeToForwards({lnd: cluster.control.lnd});
 
   const controlChannel = await setupChannel({
@@ -109,7 +113,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
   });
 
   // LND 0.11.1 and before do not use anchor channels
-  if (!controlChannel.is_anchor) {
+  if (!isAnchors) {
     strictSame(controlForwards, [
       {
         cltv_delta: undefined,

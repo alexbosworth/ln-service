@@ -16,14 +16,14 @@ const {verifyBackups} = require('./../../');
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
-const dustLimit = 573;
+const dustLimit = 354;
 const giftTokens = 1e5;
 const interval = retryCount => 50 * Math.pow(2, retryCount);
 const regtestGenesisHash = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const times = 10;
 
 // Subscribing to open requests should trigger channel open notifications
-test(`Subscribe to open requests`, async ({end, equal, fail}) => {
+test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
   const cluster = await createCluster({is_remote_skipped: true});
 
   const {lnd} = cluster.control;
@@ -77,7 +77,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail}) => {
     equal(request.local_reserve, channelCapacityTokens * 0.01, 'Got reserve');
     equal(request.max_pending_mtokens, '990000000', 'Got max mtok in flight');
     equal(request.max_pending_payments, 483, 'Got max pending payments');
-    equal(request.min_chain_output, dustLimit, 'Dust limit tokens returned');
+    ok(request.min_chain_output >= dustLimit, 'Dust limit tokens returned');
     equal(request.min_htlc_mtokens, '1', 'Got min htlc amount');
     equal(request.partner_public_key, cluster.target.public_key, 'Got pubkey');
 

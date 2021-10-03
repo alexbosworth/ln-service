@@ -2,14 +2,15 @@ const {test} = require('@alexbosworth/tap');
 
 const {createCluster} = require('./../macros');
 const {getChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {setupChannel} = require('./../macros');
 
 const giveTokens = 1e5;
 const remoteCsv = 40;
 
 // Getting channels should return the list of channels
-test(`Get channels`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+test(`Get channels`, async ({end, equal, ok}) => {
+  const cluster = await createCluster({is_remote_skipped: true});
 
   const {generate} = cluster;
   const {lnd} = cluster.control;
@@ -23,7 +24,10 @@ test(`Get channels`, async ({end, equal}) => {
   });
 
   const [channel] = (await getChannels({lnd})).channels;
+  const {features} = await getWalletInfo({lnd});
   const [targetChan] = (await getChannels({lnd: cluster.target.lnd})).channels;
+
+  const isAnchors = !!features.find(n => n.bit === 23);
 
   equal(targetChan.is_partner_initiated, true, 'Self-init channel');
 
@@ -39,19 +43,19 @@ test(`Get channels`, async ({end, equal}) => {
 
   if (channel.remote_csv === remoteCsv) {
     equal(channel.local_csv, 144, 'Local CSV is returned');
-    equal(channel.local_dust, 573, 'Local dust limit is returned');
+    ok(channel.local_dust >= 354, 'Local dust limit is returned');
     equal(channel.local_max_htlcs, 483, 'Local max htlcs are returned');
     equal(channel.local_max_pending_mtokens, '990000000', 'Local max pending');
     equal(channel.local_min_htlc_mtokens, '1000', 'Local min HTLC mtokens');
     equal(channel.remote_csv, remoteCsv, 'Remote CSV is returned');
-    equal(channel.remote_dust, 573, 'Remote dust limit is returned');
+    ok(channel.remote_dust >= 354, 'Remote dust limit is returned');
     equal(channel.remote_max_htlcs, 483, 'Remote max htlcs are returned');
     equal(channel.remote_max_pending_mtokens, '990000000', 'Remote pending');
     equal(channel.remote_min_htlc_mtokens, '1', 'Remote min HTLC mtokens');
   }
 
   // LND 0.11.1 and below do not support anchor channels
-  if (channel.is_anchor) {
+  if (isAnchors) {
     equal(channel.local_balance, 896530, 'Local balance');
     equal(channel.commit_transaction_fee, 2810, 'Commit fee');
     equal(channel.commit_transaction_weight, 1116, 'Commit weight');

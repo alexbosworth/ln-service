@@ -1,5 +1,11 @@
 # Versions
 
+## 52.10.0
+
+- `getChannels`: Add `past_states` to reflect the number of updates
+- `subscribeToChannels`: Add `past_states` to reflect to number of updates
+- `subscribeToRpcRequests`: Add method to intercept RPC requests and responses
+
 ## 52.9.0
 
 - `grantAccess`: Add support for specifying `methods` for permissions

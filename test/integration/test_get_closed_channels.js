@@ -14,6 +14,7 @@ const {getHeight} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getSweepTransactions} = require('./../../');
 const {getUtxos} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
 const {setupChannel} = require('./../macros');
@@ -47,6 +48,10 @@ test(`Get closed channels`, async ({end, equal}) => {
     transaction_vout: channelOpen.transaction_vout,
   });
 
+  const {features} = await getWalletInfo({lnd});
+
+  const isAnchors = !!features.find(n => n.bit === 23);
+
   // Wait for channel to close
   await asyncRetry({interval, times}, async () => {
     await cluster.generate({});
@@ -66,7 +71,7 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   if (!!channel) {
     // LND 0.11.1 and below do not use anchors
-    if (channelOpen.is_anchor) {
+    if (isAnchors) {
       equal(maxChanTokens - channel.final_local_balance, 2810, 'Final');
     } else {
       equal(maxChanTokens - channel.final_local_balance, 9050, 'Final');
@@ -184,7 +189,7 @@ test(`Get closed channels`, async ({end, equal}) => {
   });
 
   // LND 0.11.1 and below do not use anchors
-  if (!channelOpen.is_anchor) {
+  if (!isAnchors) {
     equal(controlTimedOut.tokens, 91213, 'Timed out has token count');
     equal(controlTimedOut.is_outgoing, false, 'Timeout is incoming payment');
     equal(controlTimedOut.is_paid, false, 'Timed out payment is not paid');
@@ -205,7 +210,7 @@ test(`Get closed channels`, async ({end, equal}) => {
   equal(controlPending.transaction_vout !== undefined, true, 'Pending vout');
 
   // LND 0.11.1 and below do not use anchors
-  if (!channelOpen.is_anchor) {
+  if (!isAnchors) {
     equal(controlTimedOut.tokens, 91213, 'Paid payment has token count');
   }
 

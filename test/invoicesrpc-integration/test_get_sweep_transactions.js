@@ -16,6 +16,7 @@ const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getSweepTransactions} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
@@ -35,6 +36,8 @@ test(`Get sweep transactions`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  const {features} = await getWalletInfo({lnd});
+
   const channel = await setupChannel({
     lnd,
     generate: cluster.generate,
@@ -49,6 +52,8 @@ test(`Get sweep transactions`, async ({end, equal}) => {
     transaction_id: channel.transaction_id,
     transaction_vout: channel.transaction_vout,
   });
+
+  const isAnchors = !!features.find(n => n.bit === 23);
 
   await asyncRetry({interval, times}, async () => {
     await cluster.generate({});
@@ -65,7 +70,7 @@ test(`Get sweep transactions`, async ({end, equal}) => {
   const [transaction] = transactions;
 
   // LND 0.12.0 uses anchor channels
-  if (channel.is_anchor) {
+  if (isAnchors) {
     const [anchorTokens, sweepTokens] = transactions.map(n => n.tokens).sort();
 
     equal(transactions.length, 2, 'Got closed channel sweep');

@@ -8,6 +8,7 @@ const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getPeers} = require('./../../');
 const {getPendingChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {waitChannel} = require('./../macros');
 const {waitPendingChannel} = require('./../macros');
@@ -28,6 +29,9 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const {lnd} = cluster.control;
 
+  const {features} = await getWalletInfo({lnd});
+
+  const isAnchors = !!features.find(n => n.bit === 23);
   const startHeight = (await getHeight({lnd})).current_block_height
 
   const channelOpen = await asyncRetry({interval, times}, async () => {
@@ -46,7 +50,7 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   const [pendingOpen] = (await getPendingChannels({lnd})).pending_channels;
 
-  if (pendingOpen.is_anchor) {
+  if (isAnchors) {
     equal(pendingOpen.local_balance, 986530, 'Local balance minus gift, fee');
     equal(pendingOpen.transaction_fee, 2810, 'Transaction fee tokens');
     equal(pendingOpen.transaction_weight, 1116, 'Channel tx weight');
@@ -91,7 +95,7 @@ test(`Get pending channels`, async ({end, equal}) => {
   const [waitClose] = (await getPendingChannels({lnd})).pending_channels;
 
   // LND 0.11.1 and below do not support anchor channels
-  if (waitClose.is_anchor) {
+  if (isAnchors) {
     equal(waitClose.local_balance, 986530, 'Original balance');
     equal(waitClose.pending_balance, 986530, 'Waiting on balance');
   } else {
@@ -146,7 +150,7 @@ test(`Get pending channels`, async ({end, equal}) => {
   const [forceClose] = (await getPendingChannels({lnd})).pending_channels;
 
   // LND 0.11.1 and below do not support anchor channels
-  if (forceClose.is_anchor) {
+  if (isAnchors) {
     equal(forceClose.local_balance, 986530, 'Original balance');
     equal(forceClose.pending_balance, 986860, 'Waiting on balance');
   } else {
