@@ -1,5 +1,9 @@
 # Versions
 
+## 52.10.1
+
+- `getWalletVersion`: Add support for LND v0.13.3-beta
+
 ## 52.10.0
 
 - `getChannels`: Add `past_states` to reflect the number of updates

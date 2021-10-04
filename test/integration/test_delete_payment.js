@@ -33,7 +33,7 @@ test('Delete payment', async ({afterEach, fail, end, equal, strictSame}) => {
 
   const priorLength = (await getPayments({lnd})).payments.length;
 
-  // LND 0.13.1 and below do not support deletePayment
+  // LND 0.13.3 and below do not support deletePayment
   try {
     await deletePayment({lnd, id: invoice.id});
   } catch (err) {

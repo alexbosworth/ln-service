@@ -16,7 +16,7 @@ test(`Verify access`, async ({end, equal, rejects, strictSame}) => {
 
   const {macaroon} = await grantAccess({lnd, permissions});
 
-  // verifyAccess is not supported on LND 0.13.1 and below
+  // verifyAccess is not supported on LND 0.13.3 and below
   try {
     const validity = await verifyAccess({lnd, macaroon, permissions});
 

@@ -71,7 +71,7 @@ test(`Update routing fees`, async ({end, equal, strictSame}) => {
     transaction_vout: 1,
   }];
 
-  // Failures is not supported on LND 0.13.1 and below
+  // Failures is not supported on LND 0.13.3 and below
   if (!!failures.length) {
     strictSame(failures, expectedFailures, 'Got expected failures');
   }
