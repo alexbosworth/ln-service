@@ -1,5 +1,9 @@
 # Versions
 
+## 52.10.2
+
+- `grantAccess`: Fix support for non-working methods
+
 ## 52.10.1
 
 - `getWalletVersion`: Add support for LND v0.13.3-beta
