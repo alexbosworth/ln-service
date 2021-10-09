@@ -1,5 +1,12 @@
 # Versions
 
+## 52.11.0
+
+- `subscribeToRpcRequests`: Add `id` to provide for explicitly named middleware
+- `subscribeToRpcRequests`: Add `is_intercepting_close_channel_requests` for closes
+- `subscribeToRpcRequests`: Add `is_intercepting_open_channel_requests` for opens
+- `subscribeToRpcRequests`: Add `is_intercepting_pay_via_routes_requests` for route pay
+
 ## 52.10.2
 
 - `grantAccess`: Fix support for non-working methods

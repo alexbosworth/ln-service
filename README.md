@@ -5686,19 +5686,96 @@ const [{route}] = await once(sub, 'probe_success');
 
 Subscribe to RPC requests and their responses
 
+`accept` and `reject` methods can be used with cbk or Promise syntax
+
 Requires `macaroon:write` permission
 
-LND must be running with rpc middleware enabled: `rpcmiddleware.enable=1`
+LND must be running with "RPC middleware" enabled: `rpcmiddleware.enable=1`
 
 This method is not supported in LND 0.13.3 and below
 
     {
+      [id]: <RPC Middleware Interception Name String>
+      [is_intercepting_close_channel_requests]: <Intercept Channel Closes Bool>
+      [is_intercepting_open_channel_requests]: <Intercept Channel Opens Bool>
+      [is_intercepting_pay_via_routes_requests]: <Intercept Pay Via Route Bool>
       lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
     {
       subscription: <RPC Request Subscription EventEmitter Object>
+    }
+
+    // A channel close request was intercepted: by default it will be rejected
+    @event 'close_channel_request'
+    {
+      accept: ({}, [cbk]) => {}
+      id: <Request Id Number>
+      macaroon: <Base64 Encoded Macaroon String>
+      reject: ({message: <Rejection String>}, [cbk]) => {}
+      request: {
+        [address]: <Request Sending Local Channel Funds To Address String>
+        [is_force_close]: <Is Force Close Bool>
+        [target_confirmations]: <Confirmation Target Number>
+        [tokens_per_vbyte]: <Tokens Per Virtual Byte Number>
+        transaction_id: <Transaction Id Hex String>
+        transaction_vout: <Transaction Output Index Number>
+      }
+      uri: <RPC URI String>
+    }
+
+    // A channel open request was intercepted: by default it will be rejected
+    @event 'open_channel_request'
+    {
+      accept: ({}, [cbk]) => {}
+      id: <Request Id Number>
+      macaroon: <Base64 Encoded Macaroon String>
+      reject: ({message: <Rejection String>}, [cbk]) => {}
+      request: {
+        [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
+        [cooperative_close_address]: <Prefer Cooperative Close To Address String>
+        [give_tokens]: <Tokens to Gift To Partner Number>
+        [is_private]: <Channel is Private Bool>
+        local_tokens: <Local Tokens Number>
+        [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
+        [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
+        partner_public_key: <Public Key Hex String>
+        [partner_csv_delay]: <Peer Output CSV Delay Number>
+      }
+      uri: <RPC URI String>
+    }
+
+    // A pay to route request was intercepted: by default it will be rejected
+    @event 'pay_via_route_request'
+    {
+      accept: ({}, [cbk]) => {}
+      id: <Request Id Number>
+      macaroon: <Base64 Encoded Macaroon String>
+      reject: ({message: <Rejection String>}, [cbk]) => {}
+      request: {
+        id: <Payment Hash Hex String>
+        route: {
+          fee: <Route Fee Tokens Number>
+          fee_mtokens: <Route Fee Millitokens String>
+          hops: [{
+            channel: <Standard Format Channel Id String>
+            channel_capacity: <Channel Capacity Tokens Number>
+            fee: <Fee Tokens Number>
+            fee_mtokens: <Fee Millitokens String>
+            forward: <Forward Tokens Number>
+            forward_mtokens: <Forward Millitokens String>
+            public_key: <Forward Edge Public Key Hex String>
+            [timeout]: <Timeout Block Height Number>
+          }]
+          mtokens: <Total Fee-Inclusive Millitokens String>
+          [payment]: <Payment Identifier Hex String>
+          [timeout]: <Timeout Block Height Number>
+          tokens: <Total Fee-Inclusive Tokens Number>
+          [total_mtokens]: <Total Payment Millitokens String>
+        }
+      }
+      uri: <RPC URI String>
     }
 
     @event 'request'
@@ -5714,6 +5791,25 @@ This method is not supported in LND 0.13.3 and below
       [macaroon]: <Base64 Encoded Macaroon String>
       [uri]: <RPC URI String>
     }
+
+Example:
+
+```node
+const {subscribeToRpcRequests} = require('ln-service');
+const {subscription} = await subscribeToRpcRequests({
+  lnd,
+  is_intercepting_open_channel_requests: true,
+});
+
+// Do not allow push amounts in open channel requests
+sub.on('open_channel_request', async openChannel => {
+  if (!!openChannel.request.give_tokens) {
+    return openChannel.reject({message: 'access denied'});
+  } else {
+    return openChannel.accept({});
+  }
+});
+```
 
 ### subscribeToTransactions
 

@@ -394,11 +394,14 @@ module.exports = (args, cbk) => {
       'nonAuthenticatedLnd',
       ({createSeed, nonAuthenticatedLnd}, cbk) =>
     {
-      return createWallet({
-        lnd: nonAuthenticatedLnd,
-        passphrase: lightningSeedPassphrase,
-        password: lightningWalletPassword,
-        seed: createSeed.seed,
+      return asyncRetry({interval, times}, cbk => {
+        return createWallet({
+          lnd: nonAuthenticatedLnd,
+          passphrase: lightningSeedPassphrase,
+          password: lightningWalletPassword,
+          seed: createSeed.seed,
+        },
+        cbk);
       },
       cbk);
     }],
