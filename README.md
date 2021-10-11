@@ -3604,6 +3604,11 @@ const {id} = await prepareForChannelProposal({
 
 Probe to find a successful route
 
+When probing to a payment request, make sure to specify the fields encoded in
+the payment request such as `cltv_delta`.
+
+If `total_mtokens` are specified, a `payment` nonce is required.
+
 Requires `offchain:write` permission
 
     {
