@@ -1,6 +1,6 @@
 # Versions
 
-## 52.12.0
+## 52.12.1
 
 - `getFailedPayments`: Add method to get payments that failed
 
