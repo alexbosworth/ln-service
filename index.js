@@ -38,6 +38,7 @@ const {getChannelBalance} = require('lightning');
 const {getChannels} = require('lightning');
 const {getClosedChannels} = require('lightning');
 const {getConnectedWatchtowers} = require('lightning');
+const {getFailedPayments} = require('lightning/lnd_methods');
 const {getFeeRates} = require('lightning');
 const {getForwardingConfidence} = require('lightning');
 const {getForwardingReputations} = require('lightning');
@@ -173,6 +174,7 @@ module.exports = {
   getChannels,
   getClosedChannels,
   getConnectedWatchtowers,
+  getFailedPayments,
   getFeeRates,
   getForwardingConfidence,
   getForwardingReputations,

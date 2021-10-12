@@ -141,6 +141,7 @@ for `unlocker` methods.
 - [getChannels](#getchannels) - Get all open channels
 - [getClosedChannels](#getclosedchannels) - Get previously open channels
 - [getConnectedWatchtowers](#getconnectedwatchtowers) - Get connected towers
+- [getFailedPayments](#getfailedpayments) - Get payments that were failed back
 - [getFeeRates](#getfeerates) - Get current routing fee rates
 - [getForwardingConfidence](#getforwardingconfidence) - Get pairwise confidence
 - [getForwardingReputations](#getforwardingreputations) - Get graph reputations
@@ -151,17 +152,17 @@ for `unlocker` methods.
 - [getInvoices](#getinvoices) - Get all previously created invoices
 - [getLockedUtxos](#getlockedutxos) - Get all previously locked UTXOs
 - [getMethods](#getmethods) - Get available methods and associated permissions
-- [getNetworkCentrality](#getNetworkCentrality) - Get centrality score for nodes
-- [getNetworkGraph](#getNetworkGraph) - Get the channels and nodes of the graph
-- [getNetworkInfo](#getNetworkInfo) - Get high-level graph info
-- [getNode](#getNode) - Get graph info about a single node and its channels
+- [getNetworkCentrality](#getnetworkcentrality) - Get centrality score for nodes
+- [getNetworkGraph](#getnetworkgraph) - Get the channels and nodes of the graph
+- [getNetworkInfo](#getnetworkinfo) - Get high-level graph info
+- [getNode](#getnode) - Get graph info about a single node and its channels
 - [getPathfindingSettings](#getpathfindingsettings) - Get pathfinding system settings
-- [getPayment](#getPayment) - Get a past payment
-- [getPayments](#getPayments) - Get all past payments
-- [getPeers](#getPeers) - Get all connected peers
-- [getPendingChainBalance](#getPendingChainBalance) - Get pending chain balance
-- [getPendingChannels](#getPendingChannels) - Get channels in pending states
-- [getPublicKey](#getPublicKey) - Get a public key out of the seed
+- [getPayment](#getpayment) - Get a past payment
+- [getPayments](#getpayments) - Get all past payments
+- [getPeers](#getpeers) - Get all connected peers
+- [getPendingChainBalance](#getpendingchainbalance) - Get pending chain balance
+- [getPendingChannels](#getpendingchannels) - Get channels in pending states
+- [getPublicKey](#getpublickey) - Get a public key out of the seed
 - [getRouteConfidence](#getRouteConfidence) - Get confidence in a route
 - [getRouteThroughHops](#getRouteThroughHops) - Get a route through nodes
 - [getRouteToDestination](#getRouteToDestination) - Get a route to a destination
@@ -1606,6 +1607,88 @@ const {getConnectedWatchtowers} = require('ln-service');
 
 const {towers} = (await getConnectedWatchtowers({lnd}));
 ```
+
+### getFailedPayments
+
+Get failed payments made through channels.
+
+Requires `offchain:read` permission
+
+    {
+      [limit]: <Page Result Limit Number>
+      lnd: <Authenticated LND API Object>
+      [token]: <Opaque Paging Token String>
+    }
+
+    @returns via cbk or Promise
+    {
+      payments: [{
+        attempts: [{
+          [failure]: {
+            code: <Error Type Code Number>
+            [details]: {
+              [channel]: <Standard Format Channel Id String>
+              [height]: <Error Associated Block Height Number>
+              [index]: <Failed Hop Index Number>
+              [mtokens]: <Error Millitokens String>
+              [policy]: {
+                base_fee_mtokens: <Base Fee Millitokens String>
+                cltv_delta: <Locktime Delta Number>
+                fee_rate: <Fees Charged in Millitokens Per Million Number>
+                [is_disabled]: <Channel is Disabled Bool>
+                max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
+                min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+                updated_at: <Updated At ISO 8601 Date String>
+              }
+              [timeout_height]: <Error CLTV Timeout Height Number>
+              [update]: {
+                chain: <Chain Id Hex String>
+                channel_flags: <Channel Flags Number>
+                extra_opaque_data: <Extra Opaque Data Hex String>
+                message_flags: <Message Flags Number>
+                signature: <Channel Update Signature Hex String>
+              }
+            }
+            message: <Error Message String>
+          }
+          [index]: <Payment Add Index Number>
+          [confirmed_at]: <Payment Confirmed At ISO 8601 Date String>
+          is_confirmed: <Payment Attempt Succeeded Bool>
+          is_failed: <Payment Attempt Failed Bool>
+          is_pending: <Payment Attempt is Waiting For Resolution Bool>
+          route: {
+            fee: <Route Fee Tokens Number>
+            fee_mtokens: <Route Fee Millitokens String>
+            hops: [{
+              channel: <Standard Format Channel Id String>
+              channel_capacity: <Channel Capacity Tokens Number>
+              fee: <Fee Number>
+              fee_mtokens: <Fee Millitokens String>
+              forward: <Forward Tokens Number>
+              forward_mtokens: <Forward Millitokens String>
+              [public_key]: <Forward Edge Public Key Hex String>
+              [timeout]: <Timeout Block Height Number>
+            }]
+            mtokens: <Total Fee-Inclusive Millitokens String>
+            [payment]: <Payment Identifier Hex String>
+            timeout: <Timeout Block Height Number>
+            tokens: <Total Fee-Inclusive Tokens Number>
+            [total_mtokens]: <Total Millitokens String>
+          }
+        }]
+        created_at: <Payment at ISO-8601 Date String>
+        [destination]: <Destination Node Public Key Hex String>
+        id: <Payment Preimage Hash String>
+        [index]: <Payment Add Index Number>
+        is_confirmed: <Payment is Confirmed Bool>
+        is_outgoing: <Transaction Is Outgoing Bool>
+        mtokens: <Millitokens Attempted to Pay to Destination String>
+        [request]: <BOLT 11 Payment Request String>
+        safe_tokens: <Payment Tokens Attempted to Pay Rounded Up Number>
+        tokens: <Rounded Down Tokens Attempted to Pay to Destination Number>
+      }]
+      [next]: <Next Opaque Paging Token String>
+    }
 
 ### getFeeRates
 

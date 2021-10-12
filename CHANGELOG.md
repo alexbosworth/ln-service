@@ -1,5 +1,9 @@
 # Versions
 
+## 52.12.0
+
+- `getFailedPayments`: Add method to get payments that failed
+
 ## 52.11.0
 
 - `subscribeToRpcRequests`: Add `id` to provide for explicitly named middleware
