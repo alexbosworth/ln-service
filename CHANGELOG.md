@@ -1,5 +1,10 @@
 # Versions
 
+## 52.13.0
+
+- Add method `sendMessageToPeer` to send a custom peer message
+- Add method `subscribeToPeerMessages` to be notified on custom peer messages
+
 ## 52.12.1
 
 - `getFailedPayments`: Add method to get payments that failed

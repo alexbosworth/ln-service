@@ -38,7 +38,7 @@ const {getChannelBalance} = require('lightning');
 const {getChannels} = require('lightning');
 const {getClosedChannels} = require('lightning');
 const {getConnectedWatchtowers} = require('lightning');
-const {getFailedPayments} = require('lightning/lnd_methods');
+const {getFailedPayments} = require('lightning');
 const {getFeeRates} = require('lightning');
 const {getForwardingConfidence} = require('lightning');
 const {getForwardingReputations} = require('lightning');
@@ -78,7 +78,7 @@ const {parsePaymentRequest} = require('invoices');
 const {pay} = require('lightning');
 const {payViaPaymentDetails} = require('lightning');
 const {payViaPaymentRequest} = require('lightning');
-const {payViaRoutes} = require('lightning/lnd_methods');
+const {payViaRoutes} = require('lightning');
 const {prepareForChannelProposal} =  require('lightning');
 const {probeForRoute} = require('lightning');
 const {proposeChannel} = require('lightning');
@@ -89,6 +89,7 @@ const {requestChainFeeIncrease} = require('lightning');
 const {restrictMacaroon} = require('./macaroons');
 const {revokeAccess} = require('lightning');
 const {routeFromChannels} = require('bolt07');
+const {sendMessageToPeer} = require('lightning/lnd_methods');
 const {sendToChainAddress} = require('lightning');
 const {sendToChainAddresses} = require('lightning');
 const {sendToChainOutputScripts} = require('lightning');
@@ -115,9 +116,10 @@ const {subscribeToPastPayments} = require('lightning');
 const {subscribeToPayViaDetails} = require('lightning');
 const {subscribeToPayViaRequest} = require('lightning');
 const {subscribeToPayViaRoutes} = require('lightning');
+const {subscribeToPeerMessages} = require('lightning/lnd_methods');
 const {subscribeToPeers} = require('lightning');
 const {subscribeToProbeForRoute} = require('lightning');
-const {subscribeToRpcRequests} = require('lightning/lnd_methods');
+const {subscribeToRpcRequests} = require('lightning');
 const {subscribeToTransactions} = require('lightning');
 const {subscribeToWalletStatus} = require('lightning');
 const {unauthenticatedLndGrpc} = require('lightning');
@@ -225,6 +227,7 @@ module.exports = {
   restrictMacaroon,
   revokeAccess,
   routeFromChannels,
+  sendMessageToPeer,
   sendToChainAddress,
   sendToChainAddresses,
   sendToChainOutputScripts,
@@ -251,6 +254,7 @@ module.exports = {
   subscribeToPayViaDetails,
   subscribeToPayViaRequest,
   subscribeToPayViaRoutes,
+  subscribeToPeerMessages,
   subscribeToPeers,
   subscribeToProbeForRoute,
   subscribeToRpcRequests,

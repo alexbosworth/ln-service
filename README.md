@@ -191,38 +191,40 @@ for `unlocker` methods.
 - [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
 - [removePeer](#removePeer) - Disconnect from a connected peer
 - [requestChainFeeIncrease](#requestchainfeeincrease) - Request a CPFP spend on a UTXO
-- [restrictMacaroon](#restrictMacaroon) - Add limitations to a macaroon
-- [revokeAccess](#revokeAccess) - Revoke all access macaroons given to an id
-- [routeFromChannels](#routeFromChannels) - Convert channel series to a route
-- [sendToChainAddress](#sendToChainAddress) - Send on-chain to an address
-- [sendToChainAddresses](#sendToChainAddresses) - Send on-chain to addresses
+- [restrictMacaroon](#restrictmacaroon) - Add limitations to a macaroon
+- [revokeAccess](#revokeaccess) - Revoke all access macaroons given to an id
+- [routeFromChannels](#routefromchannels) - Convert channel series to a route
+- [sendMessageToPeer](#sendmessagetopeer) - Send a custom message to a peer
+- [sendToChainAddress](#sendtochainaddress) - Send on-chain to an address
+- [sendToChainAddresses](#sendtochainaddresses) - Send on-chain to addresses
 - [sendToChainOutputScripts](#sendtochainoutputscripts) - Send to on-chain script outputs
-- [setAutopilot](#setAutopilot) - Turn autopilot on and set autopilot scores
-- [settleHodlInvoice](#settleHodlInvoice) - Accept a HODL HTLC invoice
-- [signBytes](#signBytes) -  Sign over arbitrary bytes with node keys
-- [signMessage](#signMessage) - Sign a message with the node identity key
-- [signPsbt](#signPsbt) - Sign and finalize an unsigned PSBT using internal keys
-- [signTransaction](#signTransaction) - Sign an on-chain transaction
-- [stopDaemon](#stopDaemon) - Stop lnd
-- [subscribeToBackups](#subscribeToBackups) - Subscribe to channel backups
-- [subscribeToBlocks](#subscribeToBlocks) - Subscribe to on-chain blocks
-- [subscribeToChainAddress](#subscribeToChainAddress) - Subscribe to receives
-- [subscribeToChainSpend](#subscribeToChainSpend) - Subscribe to chain spends
-- [subscribeToChannels](#subscribeToChannels) - Subscribe to channel statuses
-- [subscribeToForwardRequests](#subscribeToForwardRequests) - Interactive route 
-- [subscribeToForwards](#subscribeToForwards) - Subscribe to HTLC events
-- [subscribeToGraph](#subscribeToGraph) - Subscribe to network graph updates
-- [subscribeToInvoice](#subscribeToInvoice) - Subscribe to invoice updates
-- [subscribeToInvoices](#subscribeToInvoices) - Subscribe to all invoices
-- [subscribeToOpenRequests](#subscribeToOpenRequests) - Approve open requests
-- [subscribeToPastPayment](#subscribeToPastPayment) - Subscribe to a payment
+- [setAutopilot](#setautopilot) - Turn autopilot on and set autopilot scores
+- [settleHodlInvoice](#settlehodlinvoice) - Accept a HODL HTLC invoice
+- [signBytes](#signbytes) -  Sign over arbitrary bytes with node keys
+- [signMessage](#signmessage) - Sign a message with the node identity key
+- [signPsbt](#signpsbt) - Sign and finalize an unsigned PSBT using internal keys
+- [signTransaction](#signtransaction) - Sign an on-chain transaction
+- [stopDaemon](#stopdaemon) - Stop lnd
+- [subscribeToBackups](#subscribetobackups) - Subscribe to channel backups
+- [subscribeToBlocks](#subscribetoblocks) - Subscribe to on-chain blocks
+- [subscribeToChainAddress](#subscribetochainaddress) - Subscribe to receives
+- [subscribeToChainSpend](#subscribetochainspend) - Subscribe to chain spends
+- [subscribeToChannels](#subscribetochannels) - Subscribe to channel statuses
+- [subscribeToForwardRequests](#subscribetoforwardrequests) - Interactively route
+- [subscribeToForwards](#subscribetoforwards) - Subscribe to HTLC events
+- [subscribeToGraph](#subscribetograph) - Subscribe to network graph updates
+- [subscribeToInvoice](#subscribetoinvoice) - Subscribe to invoice updates
+- [subscribeToInvoices](#subscribetoinvoices) - Subscribe to all invoices
+- [subscribeToOpenRequests](#subscribetoopenrequests) - Approve open requests
+- [subscribeToPastPayment](#subscribetopastpayment) - Subscribe to a payment
 - [subscribeToPastPayments](#subscribetopastpayments) - Subscribe to all sent payments
-- [subscribeToPayViaDetails](#subscribeToPayViaDetails) - Pay using details
-- [subscribeToPayViaRequest](#subscribeToPayViaRequest) - Pay using a request
-- [subscribeToPayViaRoutes](#subscribeToPayViaRoutes) - Pay using routes
-- [subscribeToPeers](#subscribeToPeers) - Subscribe to peers connectivity
-- [subscribeToProbe](#subscribeToProbe) - Subscribe to a probe for a route
-- [subscribeToProbeForRoute](#subscribeToProbeForRoute) - Probe for a route
+- [subscribeToPayViaDetails](#subscribetopayviadetails) - Pay using details
+- [subscribeToPayViaRequest](#subscribetopayviarequest) - Pay using a request
+- [subscribeToPayViaRoutes](#subscribetopayviaroutes) - Pay using routes
+- [subscribeToPeerMessages](#subscribetopeermessages) - Listen to incoming custom messages
+- [subscribeToPeers](#subscribetopeers) - Subscribe to peers connectivity
+- [subscribeToProbe](#subscribetoprobe) - Subscribe to a probe for a route
+- [subscribeToProbeForRoute](#subscribetoprobeforroute) - Probe for a route
 - [subscribeToRpcRequests](#subscribetorpcrequests) - Subscribe to rpc requests
 - [subscribeToTransactions](#subscribetotransactions) - Subscribe to chain tx
 - [subscribeToWalletStatus](#subscribetowalletstatus) - Subscribe to node state
@@ -4056,6 +4058,39 @@ const res = routeFromChannels({channels, destination, height, mtokens});
 const {route} = res;
 ```
 
+### sendMessageToPeer
+
+Send a custom message to a connected peer
+
+If specified, message type is expected to be between 32768 and 65535
+
+Message data should not be larger than 65533 bytes
+
+Note: this method is not supported in LND versions 0.13.3 and below
+
+Requires `offchain:write` permission
+
+    {
+      lnd: <Authenticated LND API Object>
+      message: <Message Hex String>
+      public_key: <To Peer Public Key Hex String>
+      [type]: <Message Type Number>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {sendMessageToPeer} = require('ln-service');
+
+await sendMessageToPeer({
+  lnd,
+  message: Buffer.from('Hello world').toString('hex'),
+  public_key: peerPublicKeyHex,
+});
+```
+
 ### sendToChainAddress
 
 Send tokens in a blockchain transaction.
@@ -5562,6 +5597,42 @@ const {getRouteToDestination, subscribeToPayViaRoutes} = require('ln-service');
 const {route} = getRouteToDestination({destination, lnd, tokens});
 const sub = subscribeToPayViaRoutes({lnd, routes: [route]});
 const [success] = await once(sub, 'success');
+```
+
+### subscribeToPeerMessages
+
+Subscribe to incoming peer messages
+
+Requires `offchain:read` permission
+
+This method is not supported in LND 0.13.3 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns
+    <EventEmitter Object>
+
+    // A message was received from a peer
+    @event 'message_received'
+    {
+      message: <Message Hex String>
+      public_key: <From Peer Public Key Hex String>
+      type: <Message Type Number>
+    }
+
+Example
+
+```node
+const {subscribeToPeerMessages} = require('ln-service');
+
+const sub = subscribeToPeerMessages({lnd});
+
+const messages = [];
+
+// Collect peer custom messages
+sub.on('message_received', received => messages.push(received.message));
 ```
 
 ### subscribeToPeers
