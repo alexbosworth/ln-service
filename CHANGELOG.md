@@ -1,5 +1,10 @@
 # Versions
 
+## 52.14.0
+
+- `probeForRoute`, `subscribeToProbeForRoute`, `subscribeToPayViaRoutes`,
+    `payViaRoutes`: When probing (no hash), delete the payment failure record after the probe
+
 ## 52.13.0
 
 - Add method `sendMessageToPeer` to send a custom peer message

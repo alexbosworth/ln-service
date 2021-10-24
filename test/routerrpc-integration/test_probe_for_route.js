@@ -6,6 +6,8 @@ const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {deleteForwardingReputations} = require('./../../');
+const {getFailedPayments} = require('./../../');
+const {getWalletVersion} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {sendToChainAddress} = require('./../../');
@@ -73,6 +75,16 @@ test('Probe for route', async ({end, equal, strictSame}) => {
     equal(code, 503, 'Failed to find route');
     equal(message, 'RoutingFailure', 'Hit a routing failure');
     equal(failure.reason, 'TemporaryChannelFailure', 'Temporary failure');
+  }
+
+  const {version} = await getWalletVersion({lnd});
+
+  const [, minor] = (version || '').split('.');
+
+  if (!version || parseInt(minor) <= 13) {
+    const {payments} = await getFailedPayments({lnd});
+
+    strictSame(payments, [], 'Probes do not leave a failed state behind');
   }
 
   // Create a new channel to increase total edge liquidity
