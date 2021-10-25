@@ -81,7 +81,7 @@ test('Probe for route', async ({end, equal, strictSame}) => {
 
   const [, minor] = (version || '').split('.');
 
-  if (!version || parseInt(minor) <= 13) {
+  if (!version || parseInt(minor) > 13) {
     const {payments} = await getFailedPayments({lnd});
 
     strictSame(payments, [], 'Probes do not leave a failed state behind');
