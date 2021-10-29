@@ -1,6 +1,6 @@
 # Versions
 
-## 52.14.0
+## 52.14.1
 
 - `probeForRoute`, `subscribeToProbeForRoute`, `subscribeToPayViaRoutes`,
     `payViaRoutes`: When probing (no hash), delete the payment failure record after the probe
