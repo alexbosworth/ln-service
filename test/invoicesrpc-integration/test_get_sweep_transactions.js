@@ -86,12 +86,17 @@ test(`Get sweep transactions`, async ({end, equal}) => {
   equal(!!transaction.confirmation_count, true, 'Sweep confirm count');
   equal(!!transaction.confirmation_height, true, 'Sweep confirm height');
   equal(!!transaction.created_at, true, 'Sweep creation date');
-  equal(transaction.description, undefined, 'Sweep has description');
   equal(transaction.fee, undefined, 'Sweep fee is undefined');
   equal(transaction.id.length, 64, 'Sweep has transaction id');
   equal(transaction.is_confirmed, true, 'Sweep is confirmed');
   equal(transaction.output_addresses.length, 1, 'Sweep has out address');
   equal(!!transaction.transaction.length, true, 'Sweep has transaction');
+
+  if (!!transaction.description) {
+    equal(transaction.description, '0:sweep', 'Sweep has description');
+  } else {
+    equal(transaction.description, undefined, 'Sweep has description');
+  }
 
   await cluster.kill({});
 
