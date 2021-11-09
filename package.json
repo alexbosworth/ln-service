@@ -11,7 +11,7 @@
     "cors": "2.8.5",
     "express": "4.17.1",
     "invoices": "2.0.1",
-    "lightning": "4.13.2",
+    "lightning": "4.13.3",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "8.2.3"
