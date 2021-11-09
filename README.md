@@ -9,7 +9,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.13.0-beta to v0.13.3-beta
+- v0.13.0-beta to v0.13.4-beta
 - v0.12.0-beta to v0.12.1-beta
 - v0.11.0-beta to v0.11.1-beta
 
@@ -806,7 +806,7 @@ Requires `offchain:write` permission
 
 Method not supported on LND 0.12.1 or below
 
-`id` is not supported on LND 0.13.3 or below
+`id` is not supported on LND 0.13.4 or below
 
     {
       [id]: <Delete Only Failed Attempt Records For Payment With Hash Hex String>
@@ -874,7 +874,7 @@ Delete a payment record
 
 Requires `offchain:write` permission
 
-Note: this method is not supported on LND 0.13.3 and below
+Note: this method is not supported on LND 0.13.4 and below
 
     {
       id: <Payment Preimage Hash Hex String>
@@ -2908,7 +2908,7 @@ Get wallet status.
 
 This method is not supported on LND 0.12.1 and below
 
-`is_ready` is not supported on LND 0.13.3 and below
+`is_ready` is not supported on LND 0.13.4 and below
 
     {
       lnd: <Unauthenticated LND API Object>
@@ -4066,7 +4066,7 @@ If specified, message type is expected to be between 32768 and 65535
 
 Message data should not be larger than 65533 bytes
 
-Note: this method is not supported in LND versions 0.13.3 and below
+Note: this method is not supported in LND versions 0.13.4 and below
 
 Requires `offchain:write` permission
 
@@ -4736,7 +4736,7 @@ Subscribe to HTLC events
 
 Requires `offchain:read` permission
 
-Note: LND 0.13.3 and below do not return `secret` for forwards
+Note: LND 0.13.4 and below do not return `secret` for forwards
 
     {
       lnd: <Authenticated LND API Object>
@@ -5156,7 +5156,7 @@ Subscribe to successful outgoing payments
 
 Requires `offchain:read` permission
 
-Note: Method not supported on LND 0.13.3 and below
+Note: Method not supported on LND 0.13.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -5605,7 +5605,7 @@ Subscribe to incoming peer messages
 
 Requires `offchain:read` permission
 
-This method is not supported in LND 0.13.3 and below
+This method is not supported in LND 0.13.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -5851,7 +5851,7 @@ Requires `macaroon:write` permission
 
 LND must be running with "RPC middleware" enabled: `rpcmiddleware.enable=1`
 
-This method is not supported in LND 0.13.3 and below
+This method is not supported in LND 0.13.4 and below
 
     {
       [id]: <RPC Middleware Interception Name String>
@@ -5870,7 +5870,7 @@ This method is not supported in LND 0.13.3 and below
     @event 'close_channel_request'
     {
       accept: ({}, [cbk]) => {}
-      id: <Request Id Number>
+      id: <Message Id Number>
       macaroon: <Base64 Encoded Macaroon String>
       reject: ({message: <Rejection String>}, [cbk]) => {}
       request: {
@@ -5888,7 +5888,7 @@ This method is not supported in LND 0.13.3 and below
     @event 'open_channel_request'
     {
       accept: ({}, [cbk]) => {}
-      id: <Request Id Number>
+      id: <Message Id Number>
       macaroon: <Base64 Encoded Macaroon String>
       reject: ({message: <Rejection String>}, [cbk]) => {}
       request: {
@@ -5909,7 +5909,7 @@ This method is not supported in LND 0.13.3 and below
     @event 'pay_via_route_request'
     {
       accept: ({}, [cbk]) => {}
-      id: <Request Id Number>
+      id: <Message Id Number>
       macaroon: <Base64 Encoded Macaroon String>
       reject: ({message: <Rejection String>}, [cbk]) => {}
       request: {
@@ -5939,14 +5939,16 @@ This method is not supported in LND 0.13.3 and below
 
     @event 'request'
     {
-      id: <Request Id Number>
+      call: <Call Identifier Number>
+      id: <Message Id Number>
       [macaroon]: <Base64 Encoded Macaroon String>
       [uri]: <RPC URI String>
     }
 
     @event 'response'
     {
-      id: <Request Id Number>
+      call: <Call Identifier Number>
+      id: <Message Id Number>
       [macaroon]: <Base64 Encoded Macaroon String>
       [uri]: <RPC URI String>
     }
@@ -6016,7 +6018,7 @@ Subscribe to wallet status events
 
 This method is not supported on LND 0.12.1 and below
 
-`ready` is not supported on LND 0.13.3 and below
+`ready` is not supported on LND 0.13.4 and below
 
     {
       lnd: <Unauthenticated LND API Object>
@@ -6256,7 +6258,7 @@ Setting both `base_fee_tokens` and `base_fee_mtokens` is not supported
 
 Requires `offchain:write` permission
 
-`failures` are not returned on LND 0.13.3 and below
+`failures` are not returned on LND 0.13.4 and below
 
     {
       [base_fee_mtokens]: <Base Fee Millitokens Charged String>
@@ -6293,7 +6295,7 @@ await updateRoutingFees({lnd, fee_rate: 2500});
 
 Verify an access token has a given set of permissions
 
-Note: this method is not supported in LND versions 0.13.3 and below
+Note: this method is not supported in LND versions 0.13.4 and below
 
 Requires `macaroon:read` permission
 

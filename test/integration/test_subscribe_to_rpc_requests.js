@@ -23,7 +23,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
     }
   })();
 
-  // LND 0.13.3 and below do not support rpc interception
+  // LND 0.13.4 and below do not support rpc interception
   if (!spawned) {
     return end();
   }

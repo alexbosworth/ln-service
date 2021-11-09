@@ -54,7 +54,7 @@ test(`Subscribe to past payment`, async ({end, rejects, strictSame}) => {
 
   [sub, sub2].forEach(n => n.removeAllListeners());
 
-  // LND 0.13.3 and below do not support preimages in forward notifications
+  // LND 0.13.4 and below do not support preimages in forward notifications
   if (!!sent && !!sent.secret) {
     strictSame(got, payment, 'Payment subscription notifies of payment');
   }

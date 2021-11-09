@@ -23,7 +23,7 @@ test(`Send peer message`, async ({end, equal, strictSame}) => {
   } catch (err) {
     const [code] = err;
 
-    // Send message to peer is not supported on LND 0.13.3 or lower
+    // Send message to peer is not supported on LND 0.13.4 or lower
     if (code === 501) {
       await cluster.kill({});
 
