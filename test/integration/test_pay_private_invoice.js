@@ -60,7 +60,6 @@ test(`Pay private invoice`, async ({end, equal, strictSame}) => {
     to: cluster.remote,
   });
 
-
   await addPeer({
     lnd,
     public_key: cluster.remote.public_key,

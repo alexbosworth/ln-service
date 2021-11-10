@@ -6,6 +6,7 @@ const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
+const {getPayment} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
@@ -15,7 +16,7 @@ const {waitForRoute} = require('./../macros');
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
-test(`Pay via payment request`, async ({end, equal, rejects}) => {
+test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
   const cluster = await createCluster({});
 
   const {lnd} = cluster.control;
@@ -71,6 +72,53 @@ test(`Pay via payment request`, async ({end, equal, rejects}) => {
     const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
 
     sub.once('forward_request', async forward => {
+      const {pending} = await getPayment({lnd, id: invoice.id});
+
+      equal(pending.destination, cluster.remote.public_key, 'Pending remote');
+      equal(!!pending.created_at, true, 'Has creation date');
+      equal(pending.id, invoice.id, 'Payment id is present');
+      equal(pending.mtokens, invoice.mtokens, 'Pending payment mtokens');
+
+      strictSame(
+        pending.paths,
+        [{
+          fee: 1,
+          fee_mtokens: '1000',
+          hops: [
+            {
+              channel: forward.in_channel,
+              channel_capacity: 1e6,
+              fee: 1,
+              fee_mtokens: '1000',
+              forward: 100,
+              forward_mtokens: '100000',
+              public_key: cluster.target.public_key,
+              timeout: 497,
+            },
+            {
+              channel: forward.out_channel,
+              channel_capacity: 1e6,
+              fee: 0,
+              fee_mtokens: '0',
+              forward: 100,
+              forward_mtokens: '100000',
+              public_key: cluster.remote.public_key,
+              timeout: 497,
+            },
+          ],
+          mtokens: '101000',
+          payment: invoice.payment,
+          timeout: 537,
+          tokens: 101,
+          total_mtokens: '100000',
+        }],
+        'Paths are present'
+      );
+
+      equal(pending.request, invoice.request, 'Pending pay of request');
+      equal(pending.timeout, 537, 'Pending timeout');
+      equal(pending.tokens, invoice.tokens, 'Pending pay of invoice tokens');
+
       const info = await getHeight({lnd: cluster.target.lnd});
 
       equal(forward.cltv_delta, 40, 'Forward has CLTV delta');

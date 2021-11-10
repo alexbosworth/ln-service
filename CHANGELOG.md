@@ -1,5 +1,9 @@
 # Versions
 
+## 52.15.0
+
+- `getPayment`, `subscribeToPastPayment`: Add `pending` for pending payment details
+
 ## 52.14.4
 
 - `probeForRoute`, `subscribeToProbeForRoute`, `subscribeToPayViaRoutes`,

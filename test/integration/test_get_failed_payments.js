@@ -123,6 +123,7 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
         is_failed: true,
         is_pending: false,
         payment: undefined,
+        pending: undefined,
       },
       'Got failed state'
     );

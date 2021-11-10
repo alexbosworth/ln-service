@@ -2324,6 +2324,30 @@ Requires `offchain:read` permission
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens Paid Number>
       }
+      [pending]: {
+        created_at: <Payment Created At ISO 8601 Date String>
+        destination: <Payment Destination Hex String>
+        id: <Payment Hash Hex String>
+        mtokens: <Total Millitokens Pending String>
+        paths: [{
+          fee_mtokens: <Total Fee Millitokens Paid String>
+          hops: [{
+            channel: <Standard Format Channel Id String>
+            channel_capacity: <Channel Capacity Tokens Number>
+            fee: <Fee Tokens Rounded Down Number>
+            fee_mtokens: <Fee Millitokens String>
+            forward: <Forwarded Tokens Number>
+            forward_mtokens: <Forward Millitokens String>
+            public_key: <Public Key Hex String>
+            timeout: <Timeout Block Height Number>
+          }]
+          mtokens: <Total Millitokens Pending String>
+        }]
+        [request]: <BOLT 11 Encoded Payment Request String>
+        safe_tokens: <Payment Tokens Rounded Up Number>
+        [timeout]: <Expiration Block Height Number>
+        tokens: <Total Tokens Pending Number>
+      }
     }
 
 Example:
@@ -5138,7 +5162,34 @@ Requires `offchain:read` permission
     }
 
     @event 'paying'
-    {}
+    {
+      created_at: <Payment Created At ISO 8601 Date String>
+      destination: <Payment Destination Hex String>
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens Pending String>
+      paths: [{
+        fee: <Total Fee Tokens Pending Number>
+        fee_mtokens: <Total Fee Millitokens Pending String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Tokens Rounded Down Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Pending String>
+        safe_fee: <Total Fee Tokens Pending Rounded Up Number>
+        safe_tokens: <Total Tokens Pending, Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+      }]
+      [request]: <BOLT 11 Encoded Payment Request String>
+      safe_tokens: <Total Tokens Pending, Rounded Up Number>
+      [timeout]: <Expiration Block Height Number>
+      tokens: <Total Tokens Pending Rounded Down Number>
+    }
 
 Example:
 
