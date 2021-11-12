@@ -5360,7 +5360,61 @@ Requires `offchain:write` permission
     }
 
     @event 'paying'
-    {}
+    {
+      created_at: <Payment Created At ISO 8601 Date String>
+      destination: <Payment Destination Hex String>
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens Pending String>
+      paths: [{
+        fee: <Total Fee Tokens Pending Number>
+        fee_mtokens: <Total Fee Millitokens Pending String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Tokens Rounded Down Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Pending String>
+        safe_fee: <Total Fee Tokens Pending Rounded Up Number>
+        safe_tokens: <Total Tokens Pending, Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+      }]
+      safe_tokens: <Total Tokens Pending, Rounded Up Number>
+      [timeout]: <Expiration Block Height Number>
+      tokens: <Total Tokens Pending Rounded Down Number>
+    }
+
+    @event 'routing_failure'
+    {
+      [channel]: <Standard Format Channel Id String>
+      index: <Failure Index Number>
+      [mtokens]: <Millitokens String>
+      [public_key]: <Public Key Hex String>
+      reason: <Failure Reason String>
+      route: {
+        fee: <Total Route Fee Tokens To Pay Number>
+        fee_mtokens: <Total Route Fee Millitokens To Pay String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Route Millitokens String>
+        [payment]: <Payment Identifier Hex String>
+        timeout: <Expiration Block Height Number>
+        tokens: <Total Route Tokens Number>
+        [total_mtokens]: <Total Millitokens String>
+      }
+    }
 
 Example:
 
@@ -5457,7 +5511,61 @@ Requires `offchain:write` permission
     }
 
     @event 'paying'
-    {}
+    {
+      created_at: <Payment Created At ISO 8601 Date String>
+      destination: <Payment Destination Hex String>
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens Pending String>
+      paths: [{
+        fee: <Total Fee Tokens Pending Number>
+        fee_mtokens: <Total Fee Millitokens Pending String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Tokens Rounded Down Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Pending String>
+        safe_fee: <Total Fee Tokens Pending Rounded Up Number>
+        safe_tokens: <Total Tokens Pending, Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+      }]
+      safe_tokens: <Total Tokens Pending, Rounded Up Number>
+      [timeout]: <Expiration Block Height Number>
+      tokens: <Total Tokens Pending Rounded Down Number>
+    }
+
+    @event 'routing_failure'
+    {
+      [channel]: <Standard Format Channel Id String>
+      index: <Failure Index Number>
+      [mtokens]: <Millitokens String>
+      [public_key]: <Public Key Hex String>
+      reason: <Failure Reason String>
+      route: {
+        fee: <Total Route Fee Tokens To Pay Number>
+        fee_mtokens: <Total Route Fee Millitokens To Pay String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Route Millitokens String>
+        [payment]: <Payment Identifier Hex String>
+        timeout: <Expiration Block Height Number>
+        tokens: <Total Route Tokens Number>
+        [total_mtokens]: <Total Millitokens String>
+      }
+    }
 
 Example:
 

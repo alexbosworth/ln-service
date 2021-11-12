@@ -1,3 +1,4 @@
+const {once} = require('events');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
@@ -10,6 +11,7 @@ const {getPayment} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
+const {subscribeToPayViaRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
@@ -62,6 +64,67 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
     );
 
     sub.removeAllListeners();
+
+    await deleteForwardingReputations({lnd});
+
+    const sub2 = subscribeToForwardRequests({lnd: cluster.target.lnd});
+
+    sub2.on('forward_request', forward => forward.reject());
+
+    const failures = [];
+    const paying = [];
+
+    const pay = subscribeToPayViaRequest({lnd, request: invoice.request});
+
+    pay.on('paying', pending => paying.push(pending));
+    pay.on('routing_failure', failure => failures.push(failure));
+
+    await once(pay, 'failed');
+
+    strictSame(
+      failures,
+      [{
+        channel: channel.id,
+        index: 1,
+        mtokens: '101000',
+        public_key: cluster.target.public_key,
+        reason: 'TemporaryChannelFailure',
+        route: {
+          fee: 1,
+          fee_mtokens: '1000',
+          hops: [
+            {
+              channel: channel.id,
+              channel_capacity: 1e6,
+              fee: 1,
+              fee_mtokens: '1000',
+              forward: 100,
+              forward_mtokens: '100000',
+              public_key: cluster.target.public_key,
+              timeout: 497,
+            },
+            {
+              channel: remoteChan.id,
+              channel_capacity: 1e6,
+              fee: 0,
+              fee_mtokens: '0',
+              forward: 100,
+              forward_mtokens: '100000',
+              public_key: cluster.remote.public_key,
+              timeout: 497,
+            },
+          ],
+          mtokens: '101000',
+          payment: invoice.payment,
+          timeout: 537,
+          tokens: 101,
+          total_mtokens: '100000',
+        },
+      }],
+      'Failure is emitted'
+    );
+
+    sub2.removeAllListeners();
   }
 
   await deleteForwardingReputations({lnd});
@@ -126,7 +189,7 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
       equal(forward.fee_mtokens, '1000', 'Forward has precise routing fee');
       equal(forward.hash, invoice.id, 'Forward has payment hash');
       equal(forward.in_channel, channel.id, 'Forward has inbound channel')
-      equal(forward.in_payment, [invoice].length, 'Forward has payment index');
+      equal(forward.in_payment, 2, 'Forward has payment index');
       equal(forward.messages.length, [].length, 'Forward has no messages');
       equal(forward.mtokens, invoice.mtokens, 'Forward has tokens out');
       equal(forward.out_channel, remoteChan.id, 'Forward has outbound chan');

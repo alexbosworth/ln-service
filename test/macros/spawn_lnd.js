@@ -7,7 +7,7 @@ const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const asyncMapSeries = require('async/mapSeries');
 const asyncRetry = require('async/retry');
-const {ECPair} = require('bitcoinjs-lib');
+const {ECPair} = require('ecpair');
 const {networks} = require('bitcoinjs-lib');
 const openPortFinder = require('portfinder');
 

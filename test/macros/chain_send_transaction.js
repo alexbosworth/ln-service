@@ -2,7 +2,7 @@ const {encode} = require('varuint-bitcoin');
 
 const {address} = require('bitcoinjs-lib');
 const {crypto} = require('bitcoinjs-lib');
-const {ECPair} = require('bitcoinjs-lib');
+const {ECPair} = require('ecpair');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');

@@ -49,13 +49,15 @@ test(`Send peer message`, async ({end, equal, strictSame}) => {
     }
   });
 
+  const [message] = messages;
+
   strictSame(
-    messages,
-    [{
+    message,
+    {
       message: Buffer.from('message').toString('hex'),
       public_key: cluster.control.public_key,
       type: 32768,
-    }],
+    },
     'Message successfully sent to peer'
   );
 

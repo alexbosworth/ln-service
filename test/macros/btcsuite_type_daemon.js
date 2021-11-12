@@ -2,7 +2,7 @@ const {join} = require('path');
 const {spawn} = require('child_process');
 
 const asyncAuto = require('async/auto');
-const {ECPair} = require('bitcoinjs-lib');
+const {ECPair} = require('ecpair');
 const openPortFinder = require('portfinder');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');

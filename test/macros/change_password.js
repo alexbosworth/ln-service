@@ -6,7 +6,7 @@ const {spawn} = require('child_process');
 const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
 const asyncRetry = require('async/retry');
-const {ECPair} = require('bitcoinjs-lib');
+const {ECPair} = require('ecpair');
 const {networks} = require('bitcoinjs-lib');
 const openPortFinder = require('portfinder');
 

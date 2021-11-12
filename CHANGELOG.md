@@ -1,5 +1,10 @@
 # Versions
 
+## 52.16.0
+
+- `subscribeToPayViaDetails`, `subscribeToPayViaRequest`: Add `paying`,  and
+    `routing_failure` events to follow in-flight attempts and encountered routing failures
+
 ## 52.15.0
 
 - `getPayment`, `subscribeToPastPayment`: Add `pending` for pending payment details
