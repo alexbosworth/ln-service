@@ -1,6 +1,6 @@
 # Versions
 
-## 52.16.0
+## 52.16.1
 
 - `subscribeToPayViaDetails`, `subscribeToPayViaRequest`: Add `paying`,  and
     `routing_failure` events to follow in-flight attempts and encountered routing failures
