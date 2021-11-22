@@ -1,7 +1,7 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
@@ -10,25 +10,23 @@ const {payViaPaymentRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
+const size = 3;
 const start = new Date().toISOString();
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
 test(`Pay`, async ({end, equal, rejects, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
+
+  const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
   const {id} = invoice;
 
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  await setupChannel({generate, lnd, to: target});
 
-  await rejects(getPayment({lnd, id}), [404, 'SentPaymentNotFound'], 'No res');
-
-  try {
-    await getPayment({lnd, id});
-  } catch (err) {}
+  await rejects(getPayment({lnd, id}), [404, 'SentPaymentNotFound'], 'None');
 
   try {
     await payViaPaymentRequest({lnd, request: invoice.request});
@@ -45,21 +43,16 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
   const [channel] = (await getChannels({lnd})).channels;
 
   await setupChannel({
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
-    to: cluster.remote,
+    lnd: target.lnd,
+    generate: target.generate,
+    to: remote,
   });
 
-  const [remoteChan] = (await getChannels({lnd: cluster.remote.lnd})).channels;
+  const [remoteChan] = (await getChannels({lnd: remote.lnd})).channels;
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  await waitForRoute({lnd, tokens, destination: cluster.remote.public_key});
+  await waitForRoute({lnd, tokens, destination: remote.id});
 
   await payViaPaymentRequest({lnd, request: invoice.request});
 
@@ -70,9 +63,9 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
 
     const {payment} = await getPayment({id, lnd});
 
-    equal(payment.confirmed_at > start, true, 'Got payment confirmation date');
+    equal(payment.confirmed_at > start, true, 'Got payment conf date');
     equal(payment.created_at > start, true, 'Got payment created at date');
-    equal(payment.destination, cluster.remote.public_key);
+    equal(payment.destination, remote.id);
     equal(payment.fee_mtokens, '1000', 'Fee mtokens tokens paid');
     equal(payment.id, id, 'Payment hash is equal on both sides');
     equal(payment.mtokens, '101000', 'Paid mtokens');
@@ -97,7 +90,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
         fee_mtokens: '1000',
         forward: invoice.tokens,
         forward_mtokens: invoice.mtokens,
-        public_key: cluster.target.public_key,
+        public_key: target.id,
       },
       {
         channel: remoteChan.id,
@@ -106,7 +99,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
         fee_mtokens: '0',
         forward: 100,
         forward_mtokens: '100000',
-        public_key: cluster.remote.public_key,
+        public_key: remote.id,
       },
     ];
 
@@ -115,7 +108,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     equal(err, null, 'No error is returned');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

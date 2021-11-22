@@ -1,43 +1,40 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {getNetworkCentrality} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {setupChannel} = require('./../macros');
 
-const interval = 1e4;
-const times = 100;
+const interval = 100;
+const size = 3;
+const times = 300;
 
 // Getting the network centrality should return the centrality scores
 test(`Get network centrality`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  await getNetworkCentrality({lnd: cluster.control.lnd});
-
-  const {control} = cluster;
-  const {remote} = cluster;
-  const {target} = cluster;
+  const [control, target, remote] = nodes;
 
   const {lnd} = control;
 
-  await setupChannel({lnd, generate: cluster.generate, to: target});
+  await setupChannel({lnd, generate: control.generate, to: target});
 
   await setupChannel({
-    generate: cluster.generate,
-    generator: target,
+    generate: target.generate,
     lnd: target.lnd,
     to: remote,
   });
 
   await asyncRetry({interval, times}, async () => {
-    await addPeer({lnd, public_key: remote.public_key, socket: remote.socket});
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
     const {nodes} = await getNetworkCentrality({lnd});
 
-    const controlScore = nodes.find(n => n.public_key === control.public_key);
-    const remoteScore = nodes.find(n => n.public_key === remote.public_key);
-    const targetScore = nodes.find(n => n.public_key === target.public_key);
+    const controlScore = nodes.find(n => n.public_key === control.id);
+    const remoteScore = nodes.find(n => n.public_key === remote.id);
+    const targetScore = nodes.find(n => n.public_key === target.id);
 
     if (!targetScore.betweenness || !targetScore.betweenness_normalized) {
       throw new Error('UnexpectedValueForTargetScoreBetweenness');
@@ -57,7 +54,7 @@ test(`Get network centrality`, async ({end, equal, strictSame}) => {
     return;
   });
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

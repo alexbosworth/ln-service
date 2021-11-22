@@ -1,5 +1,6 @@
 const {once} = require('events');
 
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
@@ -8,46 +9,40 @@ const {removePeer} = require('./../../');
 const {subscribeToPeers} = require('./../../');
 
 const all = promise => Promise.all(promise);
+const size = 2;
 
 // Subscribing to peer events should trigger reception of peer status changes
 test(`Subscribe to peers`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
   const sub = subscribeToPeers({lnd});
 
   sub.on('error', () => {});
 
-  await addPeer({
-    lnd,
-    public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
+  await addPeer({lnd, public_key: target.id, socket: target.socket});
 
-  const disconnect = removePeer({lnd, public_key: cluster.target.public_key});
+  const disconnect = removePeer({lnd, public_key: target.id});
   const receiveDisconnect = once(sub, 'disconnected');
 
   const [disconectMessage] = await all([receiveDisconnect, disconnect]);
 
   const [disconnected] = disconectMessage;
 
-  equal(disconnected.public_key, cluster.target.public_key, 'Got d/c event');
+  equal(disconnected.public_key, target.id, 'Got d/c event');
 
-  const connect = addPeer({
-    lnd,
-    public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
+  const connect = addPeer({lnd, public_key: target.id, socket: target.socket});
+
   const receiveConnectMessage = once(sub, 'connected');
 
   const [connectMessage] = await all([receiveConnectMessage, connect]);
 
   const [connected] = connectMessage;
 
-  equal(connected.public_key, cluster.target.public_key, 'Got connected');
+  equal(connected.public_key, target.id, 'Got connected');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

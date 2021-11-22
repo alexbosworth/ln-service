@@ -1,7 +1,6 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {delay} = require('./../macros');
-const {createCluster} = require('./../macros');
 const {getChannel} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {updateRoutingFees} = require('./../../');
@@ -15,18 +14,17 @@ const feeRate = 0;
 const giftTokens = 1e5;
 const mtokPerTok = 1e3;
 const n = 2;
+const size = 2;
 
 // Updating routing fees should update routing fees
 test(`Update routing fees`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target] = nodes;
 
-  const channelOpen = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const {generate, lnd} = control;
+
+  const channelOpen = await setupChannel({generate, lnd, to: target});
 
   const {id} = channelOpen;
 
@@ -42,15 +40,13 @@ test(`Update routing fees`, async ({end, equal, strictSame}) => {
   });
 
   const policy = (await getChannel({id, lnd})).policies.find(policy => {
-    return policy.public_key === cluster.control.public_key;
+    return policy.public_key === control.id;
   });
 
   equal(policy.base_fee_mtokens, `${baseFeeTokens * mtokPerTok}`, 'Base fee');
   equal(policy.cltv_delta, cltvDelta, 'CLTV delta updated');
   equal(policy.fee_rate, feeRate, 'Fee rate updated');
-
   equal(policy.max_htlc_mtokens, '10000', 'Max HTLC tokens updated');
-
   equal(policy.min_htlc_mtokens, '2000', 'Min HTLC tokens updated');
 
   const {failures} = await updateRoutingFees({
@@ -77,7 +73,7 @@ test(`Update routing fees`, async ({end, equal, strictSame}) => {
   }
 
   {
-    const lnd = cluster.target.lnd;
+    const lnd = target.lnd;
 
     await updateRoutingFees({
       lnd,
@@ -87,15 +83,15 @@ test(`Update routing fees`, async ({end, equal, strictSame}) => {
     });
 
     const policy = (await getChannel({id, lnd})).policies.find(policy => {
-      return policy.public_key === cluster.target.public_key;
+      return policy.public_key === target.id;
     });
 
-    equal(policy.base_fee_mtokens, `${baseFeeTokens*mtokPerTok*n}`, 'Basefee');
+    equal(policy.base_fee_mtokens, `${baseFeeTokens*mtokPerTok*n}`, 'Base');
     equal(policy.cltv_delta, cltvDelta*n, 'Global CLTV delta updated');
     equal(policy.fee_rate, feeRate*n, 'Global Fee rate updated');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

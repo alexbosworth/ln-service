@@ -1,9 +1,10 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
-const {createCluster} = require('./../macros');
+const {getChainBalance} = require('./../../');
 const {getHeight} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
@@ -14,6 +15,7 @@ const channelCapacityTokens = 1e6;
 const defaultFee = 1e3;
 const giveTokens = 1e5;
 const interval = 100;
+const size = 2;
 const times = 20;
 
 // Subscribing to channels should trigger channel events
@@ -22,15 +24,17 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   const channelAdding = [];
   const channelClosed = [];
   const channelOpened = [];
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
   const errors = [];
 
-  const {lnd} = cluster.control;
-  const {socket} = cluster.target;
+  const [control, target] = nodes;
+
+  const {generate, lnd} = control;
+
+  const {socket} = target;
 
   const {features} = await getWalletInfo({lnd});
   const sub = subscribeToChannels({lnd});
-  const startHeight = (await getHeight({lnd})).current_block_height
 
   const isAnchors = !!features.find(n => n.bit === 23);
 
@@ -40,12 +44,16 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   sub.on('channel_opening', update => channelAdding.push(update));
   sub.on('error', err => errors.push(err));
 
+  await asyncRetry({times: 150}, async () => {
+    if (!(await getChainBalance({lnd})).chain_balance) {
+      await generate({});
+
+      throw new Error('ExpectedChainBalanceToOpenChannel');
+    }
+  });
+
   const channelOpen = await asyncRetry({interval, times}, async () => {
-    await addPeer({
-      lnd,
-      public_key: cluster.target.public_key,
-      socket: cluster.target.socket,
-    });
+    await addPeer({lnd, public_key: target.id, socket: target.socket});
 
     // Create a channel from the control to the target node
     return await openChannel({
@@ -54,14 +62,14 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
       chain_fee_tokens_per_vbyte: defaultFee,
       give_tokens: giveTokens,
       local_tokens: channelCapacityTokens,
-      partner_public_key: cluster.target_node_public_key,
+      partner_public_key: target.id,
     });
   });
 
   // Wait for the channel to confirm
   await asyncRetry({interval, times}, async () => {
     // Generate to confirm the tx
-    await cluster.generate({});
+    await generate({});
 
     if (!channelOpened.length) {
       throw new Error('ExpectedChannelOpened');
@@ -99,14 +107,14 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   }
 
   equal(openEvent.capacity, channelCapacityTokens, 'Channel open capacity');
-  equal(openEvent.id, `${startHeight+1}x1x0`, 'Channel id is returned');
+  equal(!!openEvent.id, true, 'Channel id is returned');
   equal(openEvent.is_active, true, 'Channel is active');
   equal(openEvent.is_closing, false, 'Channel is not inactive');
   equal(openEvent.is_opening, false, 'Channel is no longer opening');
   equal(openEvent.is_partner_initiated, false, 'Channel was locally made');
   equal(openEvent.is_private, false, 'Channel is not private by default');
   equal(openEvent.local_reserve, 10000, 'Reserve tokens are reflected');
-  equal(openEvent.partner_public_key, cluster.target.public_key, 'Peer pk');
+  equal(openEvent.partner_public_key, target.id, 'Peer pk');
   equal(openEvent.pending_payments.length, [].length, 'No pending payments');
   equal(openEvent.received, 0, 'Not received anything yet');
   equal(openEvent.remote_balance, giveTokens, 'Gift tokens is remote balance');
@@ -121,7 +129,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
     try {
       // Close the channel
       const channelClose = await closeChannel({
-        lnd: cluster.control.lnd,
+        lnd,
         tokens_per_vbyte: defaultFee,
         transaction_id: channelOpen.transaction_id,
         transaction_vout: channelOpen.transaction_vout,
@@ -129,7 +137,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
     } catch (err) {}
 
     // Generate to confirm the close
-    await cluster.generate({count: 1, node: cluster.control});
+    await generate({});
 
     if (!channelClosed.length) {
       throw new Error('ExpectedChannelClosed');
@@ -150,13 +158,13 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   equal(!!closeEvent.close_confirm_height, true, 'Close confirm height');
   equal(!!closeEvent.close_transaction_id, true, 'Tx id');
   equal(closeEvent.final_time_locked_balance, 0, 'Close final locked balance');
-  equal(closeEvent.id, `${startHeight+1}x1x0`, 'Close channel id');
+  equal(!!closeEvent.id, true, 'Close channel id');
   equal(closeEvent.is_breach_close, false, 'Not breach close');
   equal(closeEvent.is_cooperative_close, true, 'Cooperative close');
   equal(closeEvent.is_funding_cancel, false, 'Not funding cancel');
   equal(closeEvent.is_local_force_close, false, 'Not local force close');
   equal(closeEvent.is_remote_force_close, false, 'Not remote force close');
-  equal(closeEvent.partner_public_key, cluster.target_node_public_key, 'Pk');
+  equal(closeEvent.partner_public_key, target.id, 'Pk');
   equal(closeEvent.transaction_id, channelOpen.transaction_id, 'Chan tx id');
   equal(closeEvent.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
@@ -174,7 +182,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
 
   sub.removeAllListeners();
 
-  await cluster.kill({});
+  await kill({});
 
-  return;
+  return end();
 });

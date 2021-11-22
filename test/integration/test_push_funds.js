@@ -1,5 +1,6 @@
 const asyncRetry = require('async/retry');
 const {decodeChanId} = require('bolt07');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createCluster} = require('./../macros');
@@ -7,6 +8,7 @@ const {createInvoice} = require('./../../');
 const {getChannel} = require('./../../');
 const {getChannelBalance} = require('./../../');
 const {getChannels} = require('./../../');
+const {getHeight} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {pay} = require('./../../');
@@ -18,33 +20,27 @@ const {floor} = Math;
 const interval = 1000;
 const mtokPerTok = 1e3;
 const reserveRatio = 0.02;
+const size = 2;
 const times = 100;
 const tokens = 1e3;
 
 // Pushing funds via a fee bump should result in the destination getting funds
 test('Push funds', async ({end, equal}) => {
-  let cluster;
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  try {
-    cluster = await createCluster({
-      is_circular_enabled: true,
-      is_remote_skipped: true,
-    });
-  } catch (err) {
-    cluster = await createCluster({is_remote_skipped: true});
-  }
+  const [control, target] = nodes;
 
-  const {lnd} = cluster.control;
+  const {lnd} = control;
 
   await setupChannel({
     lnd,
-    generate: cluster.generate,
+    generate: control.generate,
     give: floor(channelCapacityTokens * reserveRatio),
-    to: cluster.target,
+    to: target,
   });
 
-  const destination = (await getWalletInfo({lnd})).public_key;
-  const height = (await getWalletInfo({lnd})).current_block_height;
+  const destination = control.id;
+  const height = (await getHeight({lnd})).current_block_height;
   const initialBalance = (await getChannelBalance({lnd})).channel_balance;
   const invoice = await createInvoice({lnd});
   const mtokens = '1000';
@@ -82,7 +78,7 @@ test('Push funds', async ({end, equal}) => {
     equal(initialBalance - finalBalance, tokens, 'Funds pushed to peer');
   });
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

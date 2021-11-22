@@ -2,8 +2,8 @@ const asyncRetry = require('async/retry');
 
 const {getRouteToDestination} = require('./../../');
 
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 15;
+const interval = 10;
+const times = 1500;
 
 /** Wait for lnd to return a route
 

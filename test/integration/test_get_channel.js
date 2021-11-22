@@ -1,27 +1,27 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {setupChannel} = require('./../macros');
 
-const confirmationCount = 20;
 const {ceil} = Math;
+const size = 2;
 
 // Getting a channel should return channel details from the channel graph
 test(`Get channel`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  await setupChannel({generate, lnd, to: target});
 
   const [channel] = (await getChannels({lnd})).channels;
 
   const details = await getChannel({lnd, id: channel.id});
 
   equal(details.capacity, channel.capacity, 'Capacity');
-  equal(details.policies.length, [cluster.control, cluster.target].length);
+  equal(details.policies.length, size, 'Policies for both nodes');
 
   details.policies.forEach(policy => {
     equal(policy.base_fee_mtokens, '1000', 'Base fee mtokens');
@@ -41,7 +41,7 @@ test(`Get channel`, async ({end, equal}) => {
 
   equal(Date.now() - new Date(details.updated_at) < 1e5, true, 'Updated at');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

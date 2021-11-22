@@ -1,12 +1,12 @@
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {decodePsbt} = require('psbt');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
 
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
 const {fundPsbt} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
@@ -16,24 +16,30 @@ const {signPsbt} = require('./../../');
 
 const chainAddressRowType = 'chain_address';
 const confirmationCount = 6;
+const count = 100;
 const description = 'description';
 const format = 'p2wpkh';
 const {fromBech32} = address;
-const interval = retryCount => 10 * Math.pow(2, retryCount);
+const interval = 10;
 const regtestBech32AddressHrp = 'bcrt';
-const times = 20;
+const size = 2;
+const times = 2000;
 const tokens = 1e6;
 const txIdHexByteLength = 64;
 
 // Signing a PSBT should result in a finalized PSBT
 test(`Sign PSBT`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.target;
+  const [control, target] = nodes;
+
+  const {lnd} = target;
 
   const {address} = await createChainAddress({format, lnd});
 
-  const [utxo] = (await getUtxos({lnd: cluster.control.lnd})).utxos;
+  await control.generate({count});
+
+  const [utxo] = (await getUtxos({lnd: control.lnd})).utxos;
 
   const funded = await asyncRetry({interval, times}, async () => {
     try {
@@ -42,12 +48,12 @@ test(`Sign PSBT`, async ({end, equal}) => {
           transaction_id: utxo.transaction_id,
           transaction_vout: utxo.transaction_vout,
         }],
-        lnd: cluster.control.lnd,
+        lnd: control.lnd,
         outputs: [{address, tokens}],
       });
     } catch (err) {
       // On LND 0.11.1 and below, funding a PSBT is not supported
-      if (err.shift() === 501) {
+      if (err.slice().shift() === 501) {
         return;
       }
 
@@ -57,15 +63,12 @@ test(`Sign PSBT`, async ({end, equal}) => {
 
   // On LND 0.11.1 and below, funding a PSBT is not supported
   if (!funded) {
-    await cluster.kill({});
+    await kill({});
 
     return end();
   }
 
-  const finalized = await signPsbt({
-    lnd: cluster.control.lnd,
-    psbt: funded.psbt,
-  });
+  const finalized = await signPsbt({lnd: control.lnd, psbt: funded.psbt});
 
   const tx = Transaction.fromHex(finalized.transaction);
 
@@ -74,24 +77,30 @@ test(`Sign PSBT`, async ({end, equal}) => {
   equal(!!decoded, true, 'Got a finalized PSBT');
   equal(!!tx, true, 'Got a raw signed transaction');
 
-  await broadcastChainTransaction({
-    lnd: cluster.target.lnd,
-    transaction: finalized.transaction,
+  await asyncRetry({interval, times}, async () => {
+    await broadcastChainTransaction({
+      lnd: target.lnd,
+      transaction: finalized.transaction,
+    });
   });
 
+  const startBalance = (await getChainBalance({lnd})).chain_balance;
+
   await asyncRetry({interval, times}, async () => {
-    await cluster.generate({node: cluster.target});
+    await target.generate({});
 
     const chainBalance = (await getChainBalance({lnd})).chain_balance;
 
-    if (chainBalance !== 5000999000) {
+    if (chainBalance !== startBalance + tokens) {
       throw new Error('ExpectedTargetReceivedChainTransfer');
     }
+
+    equal(chainBalance, startBalance + tokens, 'Funds received');
 
     return;
   });
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

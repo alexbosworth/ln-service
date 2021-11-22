@@ -1,33 +1,34 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {setupChannel} = require('./../macros');
 
+const anchorFeatureBit = 23;
 const giveTokens = 1e5;
 const remoteCsv = 40;
+const size = 2;
 
 // Getting channels should return the list of channels
 test(`Get channels`, async ({end, equal, ok}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {generate} = cluster;
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
   const chan = await setupChannel({
+    generate,
     lnd,
-    generate: cluster.generate,
     give: giveTokens,
     partner_csv_delay: remoteCsv,
-    to: cluster.target,
+    to: target,
   });
 
   const [channel] = (await getChannels({lnd})).channels;
   const {features} = await getWalletInfo({lnd});
-  const [targetChan] = (await getChannels({lnd: cluster.target.lnd})).channels;
+  const [targetChan] = (await getChannels({lnd: target.lnd})).channels;
 
-  const isAnchors = !!features.find(n => n.bit === 23);
+  const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
 
   equal(targetChan.is_partner_initiated, true, 'Self-init channel');
 
@@ -73,7 +74,7 @@ test(`Get channels`, async ({end, equal, ok}) => {
   equal(channel.is_partner_initiated, false, 'Partner initiated channel');
   equal(channel.is_private, false, 'Channel not private');
   equal(channel.local_reserve, 10000, 'Local reserve');
-  equal(channel.partner_public_key, cluster.target.public_key, 'Pubkey');
+  equal(channel.partner_public_key, target.id, 'Pubkey');
   equal(channel.pending_payments.length, 0, 'No pending payments');
   equal(channel.received, 0, 'Channel received');
   equal(channel.remote_balance, 100000, 'Channel remote balance');
@@ -83,7 +84,7 @@ test(`Get channels`, async ({end, equal, ok}) => {
   equal(channel.transaction_vout, 0, 'Channel transactin vout');
   equal(channel.unsettled_balance, 0, 'Channel unsettled balance');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

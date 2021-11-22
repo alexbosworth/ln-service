@@ -1,6 +1,6 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
 const {getChannelBalance} = require('./../../');
@@ -12,51 +12,57 @@ const {pay} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
 const {setupChannel} = require('./../macros');
 
+const anchorFeatureBit = 23;
 const cltvDelta = 144;
+const size = 3;
 const sweepBlockCount = 40;
 const tokens = 100;
 
 // Create a hodl invoice
 test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target, remote] = nodes;
 
-  const {features} = await getWalletInfo({lnd});
+  const {features} = await getWalletInfo({lnd: control.lnd});
 
-  const isAnchors = !!features.find(n => n.bit === 23);
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
 
   await setupChannel({
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
-    to: cluster.remote,
+    generate: control.generate,
+    lnd: control.lnd,
+    to: target,
   });
 
-  const {id, request, secret} = await createInvoice({lnd: cluster.remote.lnd});
+  await setupChannel({
+    lnd: target.lnd,
+    generate: target.generate,
+    to: remote,
+  });
+
+  const {id, request, secret} = await createInvoice({lnd: remote.lnd});
 
   const invoice = await createHodlInvoice({
     id,
     tokens,
     cltv_delta: cltvDelta,
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
   });
 
   await rejects(
-    settleHodlInvoice({secret, lnd: cluster.target.lnd}),
+    settleHodlInvoice({secret, lnd: target.lnd}),
     [402, 'CannotSettleHtlcBeforeHtlcReceived'],
     'An HTLC cannot be settled before the accept stage'
   );
 
   await rejects(
-    settleHodlInvoice({lnd: cluster.target.lnd, secret: id}),
+    settleHodlInvoice({lnd: target.lnd, secret: id}),
     [404, 'SecretDoesNotMatchAnyExistingHodlInvoice'],
     'An HTLC cannot be settled if it does not exist'
   );
 
   setTimeout(async () => {
-    const {lnd} = cluster.target;
+    const {lnd} = target;
 
     const [channel] = (await getChannels({lnd})).channels
       .filter(n => n.pending_payments.length);
@@ -70,7 +76,7 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
     const gotCltvDelay = pending.timeout - wallet.current_block_height;
     const timeout = pending.timeout - sweepBlockCount;
 
-    const delay = gotCltvDelay === cltvDelta || gotCltvDelay === cltvDelta + 3;
+    const delay = gotCltvDelay === cltvDelta || gotCltvDelay === cltvDelta+3;
 
     equal(delay, true, 'invoice cltv delay as expected');
     equal(created.is_confirmed, false, 'invoices shows not yet been settled');
@@ -103,14 +109,14 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
 
     const {secret} = await pay({lnd, request, timeout, tokens});
 
-    await settleHodlInvoice({secret, lnd: cluster.target.lnd});
+    await settleHodlInvoice({secret, lnd: target.lnd});
 
     const [settled] = (await getInvoices({lnd})).invoices;
 
     equal(settled.is_confirmed, true, 'HTLC is settled back');
 
     return setTimeout(async () => {
-      await cluster.kill({});
+      await kill({});
 
       return end();
     },
@@ -118,7 +124,7 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
   },
   1000);
 
-  const paid = await pay({lnd, request: invoice.request});
+  const paid = await pay({lnd: control.lnd, request: invoice.request});
 
   equal(paid.secret, secret, 'Paying reveals the HTLC secret');
 

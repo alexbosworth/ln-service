@@ -1,10 +1,9 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {getIdentity} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 const tests = [
   {
@@ -23,33 +22,35 @@ const tests = [
 
 tests.forEach(({description, expected}) => {
   return test(description, async ({end, equal}) => {
-    const {kill, lnd} = await spawnLnd({});
+    const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
-    const {request} = await createInvoice({
-      lnd,
-      cltv_delta: expected.cltv_delta,
-      description: expected.description,
-      secret: expected.secret,
-      tokens: expected.tokens,
-    });
+    try {
+      const {request} = await createInvoice({
+        lnd,
+        cltv_delta: expected.cltv_delta,
+        description: expected.description,
+        secret: expected.secret,
+        tokens: expected.tokens,
+      });
 
-    const decoded = await decodePaymentRequest({lnd, request});
+      const decoded = await decodePaymentRequest({lnd, request});
 
-    equal(decoded.chain_addresses, expected.chain_addresses, 'Chain address');
-    equal(decoded.cltv_delta, expected.cltv_delta, 'Decode cltv delta');
-    equal(!!decoded.created_at, true, 'Created at date');
-    equal(decoded.description, expected.description, 'Decode description');
-    equal(decoded.description_hash, expected.description_hash, 'Desc hash');
-    equal(decoded.destination, (await getIdentity({lnd})).public_key, 'Pk');
-    equal(!!decoded.expires_at, true, 'Expiration date decoded');
-    equal(decoded.id, expected.id, 'Decoded payment hash');
-    equal(decoded.mtokens, expected.mtokens, 'Decode millitokens');
-    equal(decoded.safe_tokens, expected.safe_tokens, 'Decode safe amount');
-    equal(decoded.tokens, expected.tokens, 'Decode tokens amount');
+      equal(decoded.chain_addresses, expected.chain_addresses, 'Chain addr');
+      equal(decoded.cltv_delta, expected.cltv_delta, 'Decode cltv delta');
+      equal(!!decoded.created_at, true, 'Created at date');
+      equal(decoded.description, expected.description, 'Decode description');
+      equal(decoded.description_hash, expected.description_hash, 'Desc hash');
+      equal(decoded.destination, (await getIdentity({lnd})).public_key, 'Pk');
+      equal(!!decoded.expires_at, true, 'Expiration date decoded');
+      equal(decoded.id, expected.id, 'Decoded payment hash');
+      equal(decoded.mtokens, expected.mtokens, 'Decode millitokens');
+      equal(decoded.safe_tokens, expected.safe_tokens, 'Decode safe amount');
+      equal(decoded.tokens, expected.tokens, 'Decode tokens amount');
+    } catch (err) {
+      equal(err, null, 'Expected no error');
+    }
 
-    kill();
-
-    await waitForTermination({lnd});
+    await kill({});
 
     return end();
   });

@@ -1,6 +1,6 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
@@ -9,20 +9,16 @@ const {setupChannel} = require('./../macros');
 
 const description = 'description';
 const secret = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
+const size = 2;
 const tokens = 42;
 
 // getInvoice results in invoice details
 test(`Get an invoice`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true})
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    give: 1e5,
-    to: cluster.target,
-  });
+  const channel = await setupChannel({generate, lnd, give: 1e5, to: target});
 
   const created = await createInvoice({description, lnd, secret, tokens});
 
@@ -35,7 +31,7 @@ test(`Get an invoice`, async ({end, equal}) => {
   equal(invoice.secret, secret, 'Invoice secret');
   equal(invoice.tokens, tokens, 'Invoice tokens');
 
-  await pay({lnd: cluster.target.lnd, request: created.request});
+  await pay({lnd: target.lnd, request: created.request});
 
   const paid = await getInvoice({lnd, id: created.id});
 
@@ -59,7 +55,7 @@ test(`Get an invoice`, async ({end, equal}) => {
 
   equal(paid.is_confirmed, true, 'Invoice has been paid');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

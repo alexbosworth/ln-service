@@ -1,72 +1,47 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
-const {generateBlocks} = require('./../macros');
+const {getChainBalance} = require('./../../');
 const {getUtxos} = require('./../../');
-const {mineTransaction} = require('./../macros');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
-const {waitForUtxo} = require('./../macros');
 
-const count = 100;
-const defaultFee = 1e3;
-const defaultVout = 0;
-const format = 'np2wpkh';
+const format = 'p2wpkh';
+const times = 300;
 const tokens = 1e8;
 
 // Getting utxos should list out the utxos
 test(`Get utxos`, async ({end, equal, fail, strictSame}) => {
-  const node = await asyncRetry({}, async () => await spawnLnd({}));
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const cert = node.chain_rpc_cert_file;
-  const host = node.listen_ip;
-  const {kill} = node;
-  const pass = node.chain_rpc_pass;
-  const port = node.chain_rpc_port;
-  const {lnd} = node;
-  const user = node.chain_rpc_user;
-
-  const {address} = await createChainAddress({format, lnd});
+  const [{generate, lnd}] = nodes;
 
   // Generate some funds for LND
-  const {blocks} = await node.generate({count});
+  await asyncRetry({times}, async () => {
+    await generate({});
 
-  const [block] = blocks;
+    const wallet = await getChainBalance({lnd});
 
-  const [coinbaseTransaction] = block.transaction_ids;
-
-  const {transaction} = chainSendTransaction({
-    tokens,
-    destination: address,
-    fee: defaultFee,
-    private_key: node.mining_key,
-    spend_transaction_id: coinbaseTransaction,
-    spend_vout: defaultVout,
+    if (!wallet.chain_balance) {
+      throw new Error('ExpectedChainBalanceForNode');
+    }
   });
-
-  await mineTransaction({cert, host, pass, port, transaction, user});
-
-  await waitForUtxo({confirmations: 6, lnd, transaction});
 
   const {utxos} = await getUtxos({lnd});
 
-  equal(utxos.length, [transaction].length, 'Unspent output returned');
+  equal(!!utxos.length, true, 'Unspent output returned');
 
   const [utxo] = utxos;
 
-  equal(utxo.address, address, 'UTXO address returned');
+  equal(!!utxo.address, true, 'UTXO address returned');
   equal(utxo.address_format, format, 'UTXO address format returned');
-  equal(utxo.confirmation_count, 6, 'Confirmation count returned');
+  equal(utxo.confirmation_count, 100, 'Confirmation count returned');
   equal(!!utxo.output_script, true, 'Output script returned');
-  equal(utxo.tokens, tokens - defaultFee, 'UTXO amount returned');
+  equal(!!utxo.tokens, true, 'UTXO amount returned');
   equal(!!utxo.transaction_id, true, 'UTXO transaction id returned');
   equal(utxo.transaction_vout !== undefined, true, 'UTXO vout returned');
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

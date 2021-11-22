@@ -1,6 +1,6 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
@@ -15,33 +15,28 @@ const all = promise => Promise.all(promise);
 const capacity = 1e6;
 const {ceil} = Math;
 const {round} = Math;
+const size = 2;
 
 // Paying using multiple paths should execute the payment across paths
 test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
-  try {
-    await getWalletVersion({lnd});
-  } catch (err) {
-    await cluster.kill({});
-
-    return end();
-  }
+  await generate({count: 400});
 
   const channel1 = await setupChannel({
     capacity,
+    generate,
     lnd,
-    generate: cluster.generate,
-    to: cluster.target,
+    to: target,
   });
 
   const channel2 = await setupChannel({
     capacity,
+    generate,
     lnd,
-    generate: cluster.generate,
-    to: cluster.target,
+    to: target,
   });
 
   const channels = [channel1, channel2];
@@ -53,7 +48,7 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
 
   const tokens = payParts.reduce((sum, n) => sum + n, Number());
 
-  const {request} = await createInvoice({tokens, lnd: cluster.target.lnd});
+  const {request} = await createInvoice({tokens, lnd: target.lnd});
 
   // Payment should fail with only 1 path
   try {
@@ -79,7 +74,10 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
     equal(err, null, 'There is no error');
   }
 
-  const controlInvoice = await createInvoice({lnd, tokens: channel1.capacity});
+  const controlInvoice = await createInvoice({
+    lnd,
+    tokens: channel1.capacity,
+  });
 
   const parsed = parsePaymentRequest({request: controlInvoice.request});
 
@@ -87,7 +85,7 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
     cltv_delta: parsed.cltv_delta,
     destination: parsed.destination,
     features: parsed.features,
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
     outgoing_channel: channel1.id,
     payment: parsed.payment,
     tokens: ceil(parsed.tokens / channels.length),
@@ -98,7 +96,7 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
     cltv_delta: parsed.cltv_delta,
     destination: parsed.destination,
     features: parsed.features,
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
     outgoing_channel: channel2.id,
     payment: parsed.payment,
     tokens: ceil(parsed.tokens / channels.length),
@@ -112,7 +110,7 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
     const payRoutes = routes.map(route => {
       return payViaRoutes({
         id: parsed.id,
-        lnd: cluster.target.lnd,
+        lnd: target.lnd,
         routes: [route],
       });
     });
@@ -124,7 +122,7 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
     equal(err, null, 'Not expected any error');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

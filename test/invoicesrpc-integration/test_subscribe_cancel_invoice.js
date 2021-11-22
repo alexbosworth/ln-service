@@ -1,10 +1,10 @@
 const {createHash} = require('crypto');
 const {randomBytes} = require('crypto');
 
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {cancelHodlInvoice} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
@@ -13,21 +13,23 @@ const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
 
+const size = 2;
 const tokens = 100;
 
 // Subscribe to canceled invoice should return invoice canceled event
 test(`Subscribe to canceled invoice`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
+
+  const [{generate, lnd}, target] = nodes;
+
   let currentInvoice;
   const secret = randomBytes(32);
 
-  const {lnd} = cluster.control;
-
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  const channel = await setupChannel({generate, lnd, to: target});
 
   const sub = subscribeToInvoice({
     id: createHash('sha256').update(secret).digest('hex'),
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
   });
 
   sub.on('invoice_updated', data => currentInvoice = data);
@@ -35,7 +37,7 @@ test(`Subscribe to canceled invoice`, async ({end, equal}) => {
   const invoice = await createHodlInvoice({
     tokens,
     id: createHash('sha256').update(secret).digest('hex'),
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
   });
 
   await delay(1000);
@@ -54,7 +56,7 @@ test(`Subscribe to canceled invoice`, async ({end, equal}) => {
       equal(payment.confirmed_at, undefined, 'Payment not confirmed');
       equal(!!payment.created_at, true, 'Payment held at time');
       equal(!!payment.created_height, true, 'Payment creation height');
-      equal(payment.in_channel, '443x1x0', 'Payment in channel');
+      equal(payment.in_channel, channel.id, 'Payment in channel');
       equal(payment.is_canceled, false, 'Payment not canceled');
       equal(payment.is_confirmed, false, 'Payment not confirmed');
       equal(payment.is_held, true, 'Payment is held');
@@ -69,7 +71,7 @@ test(`Subscribe to canceled invoice`, async ({end, equal}) => {
 
     await cancelHodlInvoice({
       id: createHash('sha256').update(secret).digest('hex'),
-      lnd: cluster.target.lnd,
+      lnd: target.lnd,
     });
 
     await delay(1000);
@@ -83,7 +85,7 @@ test(`Subscribe to canceled invoice`, async ({end, equal}) => {
       equal(payment.confirmed_at, undefined, 'Payment not confirmed');
       equal(!!payment.created_at, true, 'Payment held at time');
       equal(!!payment.created_height, true, 'Payment creation height');
-      equal(payment.in_channel, '443x1x0', 'Payment in channel');
+      equal(payment.in_channel, channel.id, 'Payment in channel');
       equal(payment.is_canceled, true, 'Payment canceled');
       equal(payment.is_confirmed, false, 'Payment not confirmed');
       equal(payment.is_held, false, 'Payment is not held');
@@ -97,7 +99,7 @@ test(`Subscribe to canceled invoice`, async ({end, equal}) => {
     equal(!!currentInvoice.is_confirmed, false, 'Invoice is not confirmed');
 
     return setTimeout(async () => {
-      await cluster.kill({});
+      await kill({});
     },
     2000);
   },

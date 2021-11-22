@@ -1,63 +1,84 @@
 const EventEmitter = require('events');
+const {once} = require('events');
 
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
+const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getHeight} = require('./../../');
+const {getChainBalance} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
-const interval = 200;
-const times = 400;
+const interval = 1;
+const race = promises => Promise.race(promises);
+const times = 4000;
 
 // Subscribers to blocks should receive block notifications
 test(`Subscribe to blocks`, async ({end, equal, fail}) => {
-  const spawned = await spawnLnd({});
-
-  const {kill, lnd} = spawned;
-
   const blocks = [];
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  // Wait for chainrpc to be active
-  await asyncRetry({interval, times}, async () => {
-    const height = (await getHeight({lnd})).current_block_height;
-
-    if (!height) {
-      throw new Error('ExpectedCurrentHeight');
-    }
-
-    return;
-  });
-
-  const sub = subscribeToBlocks({lnd});
-  const startHeight = (await getHeight({lnd})).current_block_height;
-
-  sub.on('block', async data => blocks.push(data));
-  sub.on('error', err => {});
-
-  await spawned.generate({count: confirmationCount});
+  const [{generate, lnd}] = nodes;
 
   await asyncRetry({interval, times}, async () => {
-    if (blocks.length < confirmationCount) {
-      throw new Error('ExpectedAdditionalBlocks');
+    const subBlocks = subscribeToBlocks({lnd});
+
+    const [event] = await race([
+      once(subBlocks, 'block'),
+      once(subBlocks, 'error'),
+    ]);
+
+    if (!event.height) {
+      throw new Error('ExpectedBlockEvent');
     }
   });
 
-  blocks.forEach(({height, id}) => {
-    equal(!!height, true, 'Got expected block height');
-    equal(id.length, 64, 'Got expected block hash length');
-    return;
-  });
+  try {
+    // Wait for chainrpc to be active
+    await asyncRetry({interval, times}, async () => {
+      if (!!(await getChainBalance({lnd})).chain_balance) {
+        return;
+      }
 
-  kill();
+      await generate({});
 
-  await waitForTermination({lnd});
+      await getHeight({lnd});
 
-  return end();
+      throw new Error('ExpectedChainBalance');
+    });
 
-  return;
+    const sub = subscribeToBlocks({lnd});
+    const startHeight = (await getHeight({lnd})).current_block_height;
+
+    sub.on('block', data => blocks.push(data));
+    sub.on('error', err => {});
+
+    const {address} = await createChainAddress({lnd});
+
+    await asyncRetry({interval, times}, async () => {
+      await generate({});
+
+      if (blocks.length < confirmationCount) {
+        throw new Error('ExpectedAdditionalBlocks');
+      }
+    });
+
+    blocks.forEach(({height, id}) => {
+      equal(!!height, true, 'Got expected block height');
+      equal(id.length, 64, 'Got expected block hash length');
+      return;
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
+
+    return end();
+  }
 });

@@ -2,15 +2,18 @@ const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
 const {returnResult} = require('asyncjs-util');
 
+const {addPeer} = require('./../../');
 const {openChannel} = require('./../../');
+const {getChainBalance} = require('./../../');
 const waitForChannel = require('./wait_for_channel');
 const waitForPendingChannel = require('./wait_for_pending_channel');
 
 const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
+const confCount = 6;
+const count = 100;
 const defaultFee = 1e3;
-const interval = 200;
-const times = 50;
+const interval = 100;
+const times = 1500;
 
 /** Setup channel
 
@@ -38,6 +41,19 @@ const times = 50;
 module.exports = (args, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
+      // Make sure the node is connected
+      addPeer: cbk => {
+        return addPeer({
+          lnd: args.lnd,
+          public_key: args.to.id || args.to.public_key,
+          socket: args.to.socket,
+        },
+        cbk);
+      },
+
+      // Make sure the node has funds
+      generateFunds: async () => await args.generate({count}),
+
       // Open channel
       chanOpen: cbk => {
         return asyncRetry({interval, times}, cbk => {
@@ -48,7 +64,7 @@ module.exports = (args, cbk) => {
             lnd: args.lnd,
             local_tokens: args.capacity || channelCapacityTokens,
             partner_csv_delay: args.partner_csv_delay,
-            partner_public_key: args.to.public_key,
+            partner_public_key: args.to.public_key || args.to.id,
             socket: args.to.socket,
           },
           cbk);
@@ -67,15 +83,13 @@ module.exports = (args, cbk) => {
 
       // Generate blocks
       generate: ['waitPending', async ({}) => {
-        return await args.generate({
-          count: confirmationCount,
-          node: args.generator,
-        });
+        return await args.generate({count: confCount, node: args.generator});
       }],
 
       // Wait for open
-      channel: ['generate', ({chanOpen}, cbk) => {
+      channel: ['chanOpen', ({chanOpen}, cbk) => {
         return waitForChannel({
+          hidden: args.hidden,
           id: chanOpen.transaction_id,
           lnd: args.lnd,
         },

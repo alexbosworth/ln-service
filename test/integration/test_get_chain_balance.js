@@ -1,37 +1,19 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {chainSendTransaction} = require('./../macros');
-const {createChainAddress} = require('./../../');
-const {generateBlocks} = require('./../macros');
 const {getChainBalance} = require('./../../');
-const {mineTransaction} = require('./../macros');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
-const {waitForUtxo} = require('./../macros');
 
-const count = 100;
-const defaultFee = 1e3;
-const defaultVout = 0;
 const emptyChainBalance = 0;
-const format = 'np2wpkh';
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 15;
-const tokens = 1e8;
+const interval = 1;
+const times = 150;
+const tokens = 5000000000;
 
 // Getting chain balance should result in a chain balance
 test(`Get the chain balance`, async ({end, equal}) => {
-  const node = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const cert = node.chain_rpc_cert_file;
-  const host = node.listen_ip;
-  const {kill} = node;
-  const pass = node.chain_rpc_pass;
-  const port = node.chain_rpc_port;
-  const {lnd} = node;
-  const user = node.chain_rpc_user;
-
-  const {address} = await createChainAddress({format, lnd});
+  const [{generate, lnd}] = nodes;
 
   // The initial chain balance should be zero
   {
@@ -41,40 +23,14 @@ test(`Get the chain balance`, async ({end, equal}) => {
   }
 
   // Generate some funds for LND
-  const {blocks} = await node.generate({count});
-
-  const [block] = blocks;
-
-  const [coinbaseTransaction] = block.transaction_ids;
-
-  const {transaction} = chainSendTransaction({
-    tokens,
-    destination: address,
-    fee: defaultFee,
-    private_key: node.mining_key,
-    spend_transaction_id: coinbaseTransaction,
-    spend_vout: defaultVout,
-  });
-
-  // Wait for generation to be over
-  await asyncRetry({interval, times}, async () => {
-    await mineTransaction({cert, host, pass, port, transaction, user});
-
-    if (!(await getChainBalance({lnd})).chain_balance) {
-      throw new Error('ExpectedChainBalanceReflected');
-    }
-
-    return;
-  });
+  await generate({count: 100});
 
   // Check that the balance is updated
   const postDeposit = await getChainBalance({lnd});
 
-  equal(postDeposit.chain_balance, tokens - defaultFee, 'Deposited funds');
+  equal(postDeposit.chain_balance >= tokens, true, 'Got funds');
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

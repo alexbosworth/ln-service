@@ -1,40 +1,70 @@
+const {once} = require('events');
+
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getHeight} = require('./../../');
 const {getUtxos} = require('./../../');
 const {sendToChainAddress} = require('./../../');
+const {subscribeToBlocks} = require('./../../');
 const {subscribeToChainSpend} = require('./../../');
 
 const confirmationCount = 6;
+const count = 100;
 const format = 'p2wpkh';
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 15;
+const interval = 1;
+const race = promises => Promise.race(promises);
+const size = 2;
+const times = 1000;
 const tokens = 1e6;
 
 // Subscribing to chain spend should push events on spend confirmations
 test(`Subscribe to chain spend`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
   let gotAddressConf = false;
 
-  const {lnd} = cluster.control;
+  const {kill, nodes} = await spawnLightningCluster({size});
+
+  const [control, target] = nodes;
+
+  const cluster = {control, target};
+
+  const {address} = await createChainAddress({lnd: target.lnd});
+  const {lnd} = control;
+
+  // Wait for chainrpc to be active
+  await control.generate({count});
 
   const startHeight = (await getHeight({lnd})).current_block_height;
 
-  const {address} = await createChainAddress({
-    format,
-    lnd: cluster.target.lnd,
+  await asyncRetry({interval, times}, async () => {
+    const subBlocks = subscribeToBlocks({lnd});
+
+    const [event] = await race([
+      once(subBlocks, 'block'),
+      once(subBlocks, 'error'),
+    ]);
+
+    if (!event.height) {
+      throw new Error('ExpectedBlockEvent');
+    }
   });
 
-  const sent = await sendToChainAddress({address, lnd, tokens});
+  const sent = await asyncRetry({times}, async () => {
+    await control.generate({});
 
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+    return await sendToChainAddress({address, lnd, tokens});
+  });
 
-  const [utxo] = (await getUtxos({lnd: cluster.control.lnd})).utxos;
+  await control.generate({count: 1});
+
+  const {utxos} = await getUtxos({lnd});
+
+  const [utxo] = utxos;
+
+  await control.generate({count});
 
   const sub = subscribeToChainSpend({
     lnd,
@@ -54,7 +84,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
     return gotAddressConf = true;
   });
 
-  const toTarget = await createChainAddress({format, lnd: cluster.target.lnd});
+  const toTarget = await createChainAddress({lnd: target.lnd});
 
   // Wait for generation to be over
   await asyncRetry({interval, times}, async () => {
@@ -64,10 +94,11 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
         address: toTarget.address,
         is_send_all: true,
       });
-    } catch (err) {}
+    } catch (err) {
+    }
 
     // Generate to confirm the tx
-    await cluster.generate({count: 1, node: cluster.control});
+    await control.generate({count: confirmationCount});
 
     if (!gotAddressConf) {
       throw new Error('ExpectedSubscribeToAddressSeesConfirmation');
@@ -76,7 +107,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
     return;
   });
 
-  await cluster.kill({});
+  await kill({});
 
   equal(gotAddressConf, true, 'Subscribe to address sees confirmation');
 

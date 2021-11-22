@@ -1,12 +1,16 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
+const {getChainBalance} = require('./../../');
+const {getChainTransactions} = require('./../../');
 const {getHeight} = require('./../../');
 const {mineTransaction} = require('./../macros');
+const {sendToChainAddress} = require('./../../');
 const {spawnLnd} = require('./../macros');
 const {subscribeToChainAddress} = require('./../../');
 const {waitForTermination} = require('./../macros');
@@ -15,102 +19,104 @@ const count = 100;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const format = 'np2wpkh';
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 15;
+const interval = 1;
+const times = 1500;
 const tokens = 1e8;
 
 // Subscribing to chain transaction confirmations should trigger events
 test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
-  const node = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const cert = node.chain_rpc_cert_file;
-  const host = node.listen_ip;
-  const {kill} = node;
-  const pass = node.chain_rpc_pass;
-  const port = node.chain_rpc_port;
-  const {lnd} = node;
-  const user = node.chain_rpc_user;
+  const [{chain, generate, lnd}] = nodes;
 
-  const startHeight = (await getHeight({lnd})).current_block_height;
+  // Wait for chainrpc to be active
+  await asyncRetry({interval, times}, async () => {
+    if (!!(await getChainBalance({lnd})).chain_balance) {
+      return;
+    }
 
-  const {address} = await createChainAddress({format, lnd});
+    await generate({});
 
-  // Generate some funds for LND
-  const {blocks} = await node.generate({count});
+    await getHeight({lnd});
 
-  const [block] = blocks;
-
-  const [coinbaseTransactionId] = block.transaction_ids;
-
-  const {transaction} = chainSendTransaction({
-    tokens,
-    destination: address,
-    fee: defaultFee,
-    private_key: node.mining_key,
-    spend_transaction_id: coinbaseTransactionId,
-    spend_vout: defaultVout,
-  });
-
-  const sub = subscribeToChainAddress({
-    lnd,
-    min_height: startHeight,
-    p2sh_address: address,
+    throw new Error('ExpectedChainBalance');
   });
 
   let firstConf;
+  const {address} = await createChainAddress({format, lnd});
+  const startHeight = (await getHeight({lnd})).current_block_height;
 
-  sub.on('confirmation', conf => firstConf = conf);
-  sub.on('error', err => {});
-
-  // Wait for generation to be over
   await asyncRetry({interval, times}, async () => {
-    await mineTransaction({cert, host, pass, port, transaction, user});
+    const sub = subscribeToChainAddress({
+      lnd,
+      min_height: startHeight,
+      p2sh_address: address,
+    });
 
-    if (!firstConf) {
-      throw new Error('ExpectedSubscribeToChainAddressSeesConfirmation');
+    sub.on('confirmation', conf => firstConf = conf);
+    sub.on('error', err => {});
+
+    await generate({count});
+
+    await sendToChainAddress({lnd, address, tokens});
+
+    const {transactions} = await getChainTransactions({lnd});
+
+    const [{transaction}] = transactions
+      .filter(n => !n.is_confirmed)
+      .filter(n => !!n.is_outgoing);
+
+    if (!transaction) {
+      throw new Error('ExpectedTrnasaction');
     }
 
-    equal(firstConf.block.length, 64, 'Confirmation block hash is returned');
-    equal(firstConf.height, 102, 'Confirmation block height is returned');
-    equal(firstConf.transaction, transaction, 'Confirmation raw tx returned');
+    // Wait for generation to be over
+    await asyncRetry({interval, times}, async () => {
+      await generate({});
 
-    return;
+      if (!firstConf) {
+        throw new Error('ExpectedSubscribeToChainAddressSeesConf');
+      }
+
+      equal(firstConf.block.length, 64, 'Confirmation block hash returned');
+      equal(firstConf.height >= 102, true, 'Got confirmation block height');
+      equal(firstConf.transaction, transaction, 'Confirmation raw tx');
+
+      return;
+    });
+
+    let secondConf;
+
+    const sub2 = subscribeToChainAddress({
+      lnd,
+      min_confirmations: 6,
+      min_height: startHeight,
+      p2sh_address: address,
+    });
+
+    sub2.on('error', () => {});
+
+    sub2.on('confirmation', conf => secondConf = conf);
+
+    // Wait for generation to be over
+    await asyncRetry({interval, times}, async () => {
+      await generate({});
+
+      if (!secondConf) {
+        throw new Error('ExpectedSubscribeToChainAddressSeesConfirmation');
+      }
+
+      equal(secondConf.block.length, 64, 'Confirmation block hash returned');
+      equal(secondConf.height >= 102, true, 'Confirmation block height');
+      equal(secondConf.transaction, transaction, '2nd conf raw tx returned');
+
+      return;
+    });
+
+    [sub, sub2].forEach(n => n.removeAllListeners());
   });
 
-  let secondConf;
-
-  const sub2 = subscribeToChainAddress({
-    lnd,
-    min_confirmations: 6,
-    min_height: startHeight,
-    p2sh_address: address,
-  });
-
-  sub2.on('error', () => {});
-
-  sub2.on('confirmation', conf => secondConf = conf);
-
-  // Wait for generation to be over
-  await asyncRetry({interval, times}, async () => {
-    await mineTransaction({cert, host, pass, port, transaction, user});
-
-    if (!secondConf) {
-      throw new Error('ExpectedSubscribeToChainAddressSeesMultiConfirmation');
-    }
-
-    equal(secondConf.block.length, 64, 'Confirmation block hash is returned');
-    equal(secondConf.height, 102, 'Confirmation block height is returned');
-    equal(secondConf.transaction, transaction, 'Confirmation raw tx returned');
-
-    return;
-  });
-
-  sub.removeAllListeners();
-  sub2.removeAllListeners();
-
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

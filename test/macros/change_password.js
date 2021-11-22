@@ -33,10 +33,10 @@ const lightningTlsCertFileName = 'tls.cert';
 const lightningTlsKeyFileName = 'tls.key';
 const lightningWalletPassword = 'password';
 const lndWalletUnlockerService = 'WalletUnlocker';
-const localhost = '127.0.0.1';
+const localhost = 'localhost';
 const maxSpawnChainDaemonAttempts = 3;
 const readMacaroonFileName = 'readonly.macaroon';
-const retryCreateSeedCount = 5;
+const retryCreateSeedCount = 500;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
 const times = 100;
@@ -218,7 +218,7 @@ module.exports = ({network}, cbk) => {
       'spawnChainDaemon',
       ({getPorts, nonAuthenticatedLnd, spawnChainDaemon}, cbk) =>
     {
-      return asyncRetry(retryCreateSeedCount, cbk => {
+      return asyncRetry({interval, times: retryCreateSeedCount}, cbk => {
         const {dir} = spawnChainDaemon;
 
         const cert = readFileSync(join(dir, lightningTlsCertFileName));
@@ -289,7 +289,7 @@ module.exports = ({network}, cbk) => {
       return cbk(null, {
         macaroon,
         cert: readFileSync(certPath).toString('base64'),
-        host: `localhost:${getPorts.rpc}`,
+        host: `${localhost}:${getPorts.rpc}`,
       });
     }],
 
@@ -374,8 +374,7 @@ module.exports = ({network}, cbk) => {
       ({spawnChainDaemon}, cbk) =>
     {
       const {dir} = spawnChainDaemon;
-      const interval = retryCount => 50 * Math.pow(2, retryCount);
-      const times = 15;
+      const times = 150;
 
       const certPath = join(dir, lightningTlsCertFileName);
 
@@ -394,7 +393,7 @@ module.exports = ({network}, cbk) => {
       try {
         return cbk(null, unauthenticatedLndGrpc({
           cert,
-          socket: `localhost:${getPorts.rpc}`,
+          socket: `${localhost}:${getPorts.rpc}`,
         }).lnd);
       } catch (err) {
         return cbk([503, 'FailedToLaunchLightningDaemon', err]);
@@ -403,10 +402,13 @@ module.exports = ({network}, cbk) => {
 
     // Change password
     changePassword: ['restartedLnd', ({restartedLnd}, cbk) => {
-      return changePassword({
-        current_password: lightningWalletPassword,
-        lnd: restartedLnd,
-        new_password: 'changed_passphrase',
+      return asyncRetry({interval, times}, cbk => {
+        return changePassword({
+          current_password: lightningWalletPassword,
+          lnd: restartedLnd,
+          new_password: 'changed_passphrase',
+        },
+        cbk);
       },
       cbk);
     }],
@@ -428,7 +430,7 @@ module.exports = ({network}, cbk) => {
     process.on('uncaughtException', err => {
       kill();
 
-      setTimeout(() => process.exit(1), 5000);
+      setTimeout(() => process.exit(1), 1000);
     });
 
     return cbk(null, {lnd, kill});

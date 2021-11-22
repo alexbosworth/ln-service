@@ -1,14 +1,13 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {getMethods} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 // Getting LND methods should result in LND methods returned
 test(`Get LND methods`, async ({end, equal, type}) => {
-  const node = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const {kill, lnd} = node;
+  const [{lnd}] = nodes;
 
   try {
     const {methods} = await getMethods({lnd});
@@ -28,9 +27,7 @@ test(`Get LND methods`, async ({end, equal, type}) => {
     equal(message, 'ListPermissionsMethodNotSupported', 'Not supported msg');
   }
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

@@ -8,14 +8,16 @@ const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
 const signPsbtWithKey = require('psbt').signPsbt;
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
 
+const {addPeer} = require('./../../');
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
 const {fundPsbt} = require('./../../');
+const {getChainBalance} = require('./../../');
 const {getChannels} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getPublicKey} = require('./../../');
@@ -26,6 +28,7 @@ const {proposeChannel} = require('./../../');
 const {signPsbt} = require('./../../');
 const {signTransaction} = require('./../../');
 
+const anchorFeatureBit = 23;
 const capacity = 1e6;
 const {ceil} = Math;
 const cooperativeCloseDelay = 2016;
@@ -40,41 +43,70 @@ const {p2ms} = payments;
 const {p2pkh} = payments;
 const {regtest} = networks;
 const reserveRatio = 0.01;
+const size = 2;
 const temporaryFamily = 805;
 const times = 300;
 
 // Proposing a cooperative delay channel should open a cooperative delay chan
 test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {version} = await getWalletVersion({lnd: cluster.control.lnd});
+  const [control, target] = nodes;
+
+  const {lnd, generate} = control;
+
+  const {version} = await getWalletVersion({lnd});
 
   switch (version) {
   case '0.11.0-beta':
   case '0.11.1-beta':
     // Exit early when funding PSBTs is not supported
-    await cluster.kill({});
+    await kill({});
+
     return end();
-    break;
 
   default:
     break;
   }
 
-  const {features} = await getWalletInfo({lnd: cluster.control.lnd});
+  // Generate some funds for LND
+  await asyncRetry({times}, async () => {
+    await addPeer({lnd, public_key: target.id, socket: target.socket});
 
-  const isAnchors = !!features.find(n => n.bit === 23);
+    await generate({});
+
+    const wallet = await getChainBalance({lnd});
+
+    if (!wallet.chain_balance) {
+      throw new Error('ExpectedChainBalanceForNode');
+    }
+  });
+
+  // Generate some funds for LND
+  await asyncRetry({times}, async () => {
+    await target.generate({});
+
+    const wallet = await getChainBalance({lnd: target.lnd});
+
+    if (!wallet.chain_balance) {
+      throw new Error('ExpectedChainBalanceForNode');
+    }
+  });
+
+  const {features} = await getWalletInfo({lnd});
+
+  const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
 
   // Derive a temporary key for control to pay into
   const controlDerivedKey = await getPublicKey({
+    lnd,
     family: temporaryFamily,
-    lnd: cluster.control.lnd,
   });
 
   // Derive a temporary key for target to pay into
   const targetDerivedKey = await getPublicKey({
     family: temporaryFamily,
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
   });
 
   // Control should fund and sign a transaction going to the control temp key
@@ -95,7 +127,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
 
   // Control can now fund a transaction to pay to the temp address
   const controlFundPsbt = await fundPsbt({
-    lnd: cluster.control.lnd,
+    lnd,
     fee_tokens_per_vbyte: feeRate,
     outputs: [{
       address: controlDerivedAddress.address,
@@ -105,7 +137,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
 
   // Target can now fund a transaction to pay to the temp address
   const targetFundPsbt = await fundPsbt({
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
     fee_tokens_per_vbyte: feeRate,
     outputs: [{
       address: targetDerivedAddress.address,
@@ -114,14 +146,11 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   });
 
   // Control can sign the funding to the temporary address
-  const controlSignPsbt = await signPsbt({
-    lnd: cluster.control.lnd,
-    psbt: controlFundPsbt.psbt,
-  });
+  const controlSignPsbt = await signPsbt({lnd, psbt: controlFundPsbt.psbt});
 
   // Target can sign the funding to the temporary address
   const targetSignPsbt = await signPsbt({
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
     psbt: targetFundPsbt.psbt,
   });
 
@@ -138,16 +167,10 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   const targetId = fromHex(targetPsbt.unsigned_transaction).getId();
 
   // Derive a new control key for a 2:2 multisig
-  const controlMultiSigKey = await getPublicKey({
-    family,
-    lnd: cluster.control.lnd,
-  });
+  const controlMultiSigKey = await getPublicKey({family, lnd});
 
   // Derive a new target key for a 2:2 multisig
-  const targetMultiSigKey = await getPublicKey({
-    family,
-    lnd: cluster.target.lnd,
-  });
+  const targetMultiSigKey = await getPublicKey({family, lnd: target.lnd});
 
   const fundingMultiSigKeys = [
     controlMultiSigKey.public_key,
@@ -223,8 +246,11 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     return hash.equals(targetTxHash);
   });
 
+  const decodePayout = decodePsbt({psbt: psbtWithSpending.psbt});
+
   // Call signTransaction on the unsigned tx that pays from temp -> multisig
   const controlSignDerivedKey = await signTransaction({
+    lnd,
     inputs: [{
       key_family: temporaryFamily,
       key_index: controlDerivedKey.index,
@@ -234,8 +260,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
       vin: controlVin,
       witness_script: p2pkh({hash: controlDerivedAddress.hash}).output,
     }],
-    lnd: cluster.control.lnd,
-    transaction: decodePsbt({psbt: psbtWithSpending.psbt}).unsigned_transaction,
+    transaction: decodePayout.unsigned_transaction,
   });
 
   const [controlDerivedSignature] = controlSignDerivedKey.signatures;
@@ -266,7 +291,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
       vin: targetVin,
       witness_script: p2pkh({hash: targetDerivedAddress.hash}).output,
     }],
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
     transaction: decodePsbt({psbt: psbtWithSpending.psbt}).unsigned_transaction,
   });
 
@@ -292,7 +317,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     cooperative_close_delay: cooperativeCloseDelay,
     id: pendingChannelId.toString('hex'),
     key_index: targetMultiSigKey.index,
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
     remote_key: controlMultiSigKey.public_key,
     transaction_id: fundingTxId,
     transaction_vout: fundingTxVout,
@@ -300,7 +325,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
 
   const coopCloseAddress = await createChainAddress({
     format: 'np2wpkh',
-    lnd: cluster.control.lnd,
+    lnd: control.lnd,
   });
 
   // Propose the channel to the target
@@ -312,14 +337,14 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     id: pendingChannelId.toString('hex'),
     is_private: true,
     key_index: controlMultiSigKey.index,
-    lnd: cluster.control.lnd,
-    partner_public_key: cluster.target.public_key,
+    lnd: control.lnd,
+    partner_public_key: target.id,
     remote_key: targetMultiSigKey.public_key,
     transaction_id: fundingTxId,
     transaction_vout: fundingTxVout,
   });
 
-  const pendingTarget = await getPendingChannels({lnd: cluster.target.lnd});
+  const pendingTarget = await getPendingChannels({lnd: target.lnd});
 
   const [incoming] = pendingTarget.pending_channels;
 
@@ -341,7 +366,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   equal(incoming.is_partner_initiated, true, 'Peer initiated the channel');
   equal(incoming.local_balance, giveTokens, 'The incoming channel is split');
   equal(incoming.local_reserve, capacity * reserveRatio, 'Reserve ratio');
-  equal(incoming.partner_public_key, cluster.control.public_key, 'Peer key');
+  equal(incoming.partner_public_key, control.id, 'Peer key');
   equal(incoming.pending_balance, undefined, 'No tokens pending');
   equal(incoming.pending_payments, undefined, 'No HTLCs active');
   equal(incoming.received, 0, 'Nothing received');
@@ -370,27 +395,27 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
 
   // Broadcast the transaction to fund the control side
   await broadcastChainTransaction({
+    lnd,
     transaction: controlSignPsbt.transaction,
-    lnd: cluster.control.lnd,
   });
 
   // Broadcast the transaction to fund the target side
   await broadcastChainTransaction({
+    lnd,
     transaction: targetSignPsbt.transaction,
-    lnd: cluster.control.lnd,
   });
 
   // Broadcast the transaction to fund the channel
   await broadcastChainTransaction({
+    lnd,
     transaction: finalTempTx.transaction,
-    lnd: cluster.control.lnd,
   });
 
   // Mine the funding transactions into a block
   await asyncRetry({interval, times}, async () => {
-    await cluster.control.generate({});
+    await control.generate({});
 
-    const {channels} = await getChannels({lnd: cluster.control.lnd});
+    const {channels} = await getChannels({lnd});
 
     if (!channels.find(n => n.is_active)) {
       throw new Error('ExpectedActiveChannel');
@@ -399,7 +424,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     return;
   });
 
-  const controlChannels = await getChannels({lnd: cluster.control.lnd});
+  const controlChannels = await getChannels({lnd});
 
   const [controlChannel] = controlChannels.channels;
 
@@ -409,32 +434,30 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   if (isAnchors) {
     equal(controlChannel.commit_transaction_fee, 2810, 'Regular tx fee');
     equal(controlChannel.commit_transaction_weight, 1116, 'Regular tx size');
-    equal(controlChannel.is_static_remote_key, false, 'Not static remote key');
   } else {
     equal(controlChannel.commit_transaction_fee, 9050, 'Regular tx fee');
     equal(controlChannel.commit_transaction_weight, 724, 'Regular tx size');
-    equal(controlChannel.is_static_remote_key, true, 'Regular remote key');
   }
 
   equal(controlChannel.capacity, capacity, 'Channel with capacity created');
-  equal(controlChannel.cooperative_close_address, closeAddr, 'Got close addr');
-  equal(controlChannel.cooperative_close_delay_height, 2459, 'Thaw height');
-  equal(controlChannel.id, '443x3x0', 'Got channel id');
+  equal(controlChannel.cooperative_close_address, closeAddr, 'Got closeaddr');
+  equal(!!controlChannel.cooperative_close_delay_height, true, 'Thaw height');
+  equal(!!controlChannel.id, true, 'Got channel id');
   equal(controlChannel.is_active, true, 'Channel is active and ready');
   equal(controlChannel.is_closing, false, 'Channel is not closing');
   equal(controlChannel.is_opening, false, 'Channel is already opened');
   equal(controlChannel.is_partner_initiated, false, 'Control opened');
   equal(controlChannel.is_private, true, 'Channel is private');
-  equal(controlChannel.local_balance, incoming.remote_balance, 'Control toks');
+  equal(controlChannel.local_balance, incoming.remote_balance, 'Control tok');
   equal(controlChannel.local_csv, 144, 'Channel CSV');
   ok(controlChannel.local_dust >= 354, 'Channel dust');
   equal(controlChannel.local_given, giveTokens, 'Channel tokens given over');
   equal(controlChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
-  equal(controlChannel.partner_public_key, cluster.target.public_key, 'R-key');
+  equal(controlChannel.partner_public_key, target.id, 'R-key');
   equal(controlChannel.transaction_id, fundingTxId, 'Funding tx id');
   equal(controlChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
 
-  const targetChannels = await getChannels({lnd: cluster.target.lnd});
+  const targetChannels = await getChannels({lnd: target.lnd});
 
   const [targetChannel] = targetChannels.channels;
 
@@ -442,17 +465,15 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   if (isAnchors) {
     equal(targetChannel.commit_transaction_fee, 2810, 'Regular tx commit fee');
     equal(targetChannel.commit_transaction_weight, 1116, 'Regular tx size');
-    equal(targetChannel.is_static_remote_key, false, 'Anchor channel');
   } else {
     equal(targetChannel.commit_transaction_fee, 9050, 'Regular tx commit fee');
     equal(targetChannel.commit_transaction_weight, 724, 'Regular tx size');
-    equal(targetChannel.is_static_remote_key, true, 'Regular remote key');
   }
 
   equal(targetChannel.capacity, capacity, 'Channel with capacity created');
   equal(targetChannel.cooperative_close_address, undefined, 'No close addr');
-  equal(targetChannel.cooperative_close_delay_height, 2459, 'Thaw height');
-  equal(targetChannel.id, '443x3x0', 'Got channel id');
+  equal(!!targetChannel.cooperative_close_delay_height, true, 'Thaw height');
+  equal(!!targetChannel.id, true, 'Got channel id');
   equal(targetChannel.is_active, true, 'Channel is active and ready');
   equal(targetChannel.is_closing, false, 'Channel is not closing');
   equal(targetChannel.is_opening, false, 'Channel is already opened');
@@ -463,11 +484,11 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   ok(targetChannel.local_dust >= 354, 'Channel dust');
   equal(targetChannel.local_given, 0, 'No tokens given');
   equal(targetChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
-  equal(targetChannel.partner_public_key, cluster.control.public_key, 'R-key');
+  equal(targetChannel.partner_public_key, control.id, 'R-key');
   equal(targetChannel.transaction_id, fundingTxId, 'Funding tx id');
   equal(targetChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

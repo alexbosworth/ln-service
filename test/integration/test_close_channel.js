@@ -1,24 +1,29 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {closeChannel} = require('./../../');
 const {createCluster} = require('./../macros');
 const {setupChannel} = require('./../macros');
 
+const size = 2;
+
 // Closing a channel should close the channel
 test(`Close channel`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
+
+  const [control, target] = nodes;
 
   // Force close channel using tx id and vout
   try {
     const channelOpen = await setupChannel({
-      generate: cluster.generate,
-      lnd: cluster.control.lnd,
-      to: cluster.target,
+      generate: control.generate,
+      lnd: control.lnd,
+      to: target,
     });
 
     const channelClose = await closeChannel({
       is_force_close: true,
-      lnd: cluster.control.lnd,
+      lnd: control.lnd,
       transaction_id: channelOpen.transaction_id,
       transaction_vout: channelOpen.transaction_vout,
     });
@@ -32,14 +37,14 @@ test(`Close channel`, async ({end, equal}) => {
   // Coop close channel using the channel id
   try {
     const channelOpen = await setupChannel({
-      generate: cluster.generate,
-      lnd: cluster.control.lnd,
-      to: cluster.target,
+      generate: control.generate,
+      lnd: control.lnd,
+      to: target,
     });
 
     const channelClose = await closeChannel({
       id: channelOpen.id,
-      lnd: cluster.control.lnd,
+      lnd: control.lnd,
     });
 
     equal(channelClose.transaction_id.length, 64, 'Coop close id is returned');
@@ -48,7 +53,7 @@ test(`Close channel`, async ({end, equal}) => {
     equal(err, null, 'Expected no error coop closing');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

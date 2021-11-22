@@ -1,18 +1,15 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {authenticatedLndGrpc} = require('./../../');
 const {grantAccess} = require('./../../');
 const {verifyAccess} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
+const invalidPermissions = ['address:write'];
 const permissions = ['address:read'];
 
 // Verifying access should result in access verified
 test(`Verify access`, async ({end, equal, rejects, strictSame}) => {
-  const spawned = await spawnLnd({is_remote_skipped: true});
-
-  const {lnd, kill} = spawned;
+  const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   const {macaroon} = await grantAccess({lnd, permissions});
 
@@ -25,7 +22,7 @@ test(`Verify access`, async ({end, equal, rejects, strictSame}) => {
     const invalid = await verifyAccess({
       lnd,
       macaroon,
-      permissions: ['address:write'],
+      permissions: invalidPermissions,
     });
 
     strictSame(invalid, {is_valid: false}, 'Message is not valid');
@@ -33,9 +30,7 @@ test(`Verify access`, async ({end, equal, rejects, strictSame}) => {
     strictSame(err, [501, 'VerifyAccessMethodNotSupported'], 'Got error')
   }
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

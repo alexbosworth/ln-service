@@ -1,19 +1,18 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {authenticatedLndGrpc} = require('./../../');
 const {getAccessIds} = require('./../../');
 const {grantAccess} = require('./../../');
 const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 const defaultId = '0';
 const id = '1';
 
 // Getting access ids should return root macaroon ids
 test(`Get access ids`, async ({end, equal, rejects, strictSame}) => {
-  const spawned = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const {lnd, kill} = spawned;
+  const [{lnd}] = nodes;
 
   await grantAccess({id, lnd, is_ok_to_create_chain_addresses: true});
 
@@ -30,9 +29,7 @@ test(`Get access ids`, async ({end, equal, rejects, strictSame}) => {
     }
   }
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

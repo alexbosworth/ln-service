@@ -1,41 +1,38 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {getNetworkGraph} = require('./../../');
 const {getNode} = require('./../../');
 const {setupChannel} = require('./../macros');
 
 const {ceil} = Math;
 const interval = 250;
+const size = 3;
 const times = 50;
 
 // Getting the network graph should return the public nodes and connections
 test(`Get network graph`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {control} = cluster;
+  const [control, target] = nodes;
 
-  const {lnd} = control;
+  const {generate, lnd} = control;
 
-  const expectedChannel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const expectedChannel = await setupChannel({generate, lnd, to: target});
 
   // Wait until the node shows up in the graph
   const graph = await asyncRetry({interval, times}, async () => {
     const networkGraph = await getNetworkGraph({lnd});
 
-    if (!networkGraph.nodes.find(n => n.public_key === control.public_key)) {
+    if (!networkGraph.nodes.find(n => n.public_key === control.id)) {
       throw new Error('ExpectedToFindNodeInGraph');
     }
 
     return networkGraph;
   });
 
-  const node = graph.nodes.find(n => n.public_key === control.public_key);
+  const node = graph.nodes.find(n => n.public_key === control.id);
   const [channel] = graph.channels;
 
   const nodeDetails = await getNode({lnd, public_key: node.public_key});
@@ -46,10 +43,10 @@ test(`Get network graph`, async ({end, equal, strictSame}) => {
     strictSame(chan, channel, 'Graph channel matches node details channel');
   }
 
-  equal(node.alias, control.public_key.slice(0, 20), 'Node alias is own');
+  equal(node.alias, control.id.slice(0, 20), 'Node alias is own');
   equal(node.color, '#3399ff', 'Node color is default');
-  equal(node.public_key, control.public_key, 'Node pubkey is own');
-  strictSame(node.sockets, [`127.0.0.1:${control.listen_port}`], 'Socket');
+  equal(node.public_key, control.id, 'Node pubkey is own');
+  equal(node.sockets.length, 1, 'Socket');
   equal(new Date() - new Date(node.updated_at) < 1e5, true, 'Recent update');
 
   channel.policies.forEach(policy => {
@@ -71,7 +68,7 @@ test(`Get network graph`, async ({end, equal, strictSame}) => {
   equal(channel.transaction_vout, expectedChannel.transaction_vout, 'Tx Vout');
   equal(new Date() - new Date(channel.updated_at) < 1e5, true, 'Updated at');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

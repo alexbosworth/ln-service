@@ -1,5 +1,7 @@
 const {randomBytes} = require('crypto');
 
+const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
@@ -24,10 +26,13 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
+const interval = 10;
 const mtokPadding = '000';
 const regtestChain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const reserveRatio = 0.99;
+const size = 3;
 const start = new Date().toISOString();
+const times = 3000;
 const tlvType = '67676';
 const tlvValue = '010203';
 const tokens = 100;
@@ -35,53 +40,48 @@ const txIdHexLength = 32 * 2;
 
 // Paying via routes should successfully pay via routes
 test(`Pay via routes`, async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
-  const remoteLnd = cluster.remote.lnd;
-  const targetPubKey = cluster.target_node_public_key;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  await generate({count: 400});
 
-  const targetToRemoteChannel = await openChannel({
-    chain_fee_tokens_per_vbyte: defaultFee,
-    is_private: true,
-    lnd: cluster.target.lnd,
-    local_tokens: channelCapacityTokens,
-    partner_public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  const remoteLnd = remote.lnd;
+  const targetPubKey = target.id;
 
-  await waitForPendingChannel({
-    lnd: cluster.target.lnd,
-    id: targetToRemoteChannel.transaction_id,
-  });
+  const channel = await setupChannel({generate, lnd, to: target});
 
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  const targetToRemoteChan = await waitForChannel({
-    lnd: cluster.target.lnd,
-    id: targetToRemoteChannel.transaction_id,
+  const targetToRemoteChan = await setupChannel({
+    generate: target.generate,
+    hidden: true,
+    lnd: target.lnd,
+    to: remote,
   });
 
   const [remoteChannel] = (await getChannels({lnd: remoteLnd})).channels;
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await target.generate({count: confirmationCount});
 
-  await cluster.generate({count: confirmationCount, node: cluster.target});
+  await asyncRetry({interval, times}, async () => {
+    const {request} = await createInvoice({
+      tokens,
+      is_including_private_channels: true,
+      lnd: remote.lnd,
+    });
+
+    const {routes} = await decodePaymentRequest({lnd, request});
+
+    if (!!routes.length) {
+      return;
+    }
+
+    throw new Error('ExpectedRoutesOnInvoice');
+  });
 
   const invoice = await createInvoice({
     tokens,
     is_including_private_channels: true,
-    lnd: cluster.remote.lnd,
+    lnd: remote.lnd,
   });
 
   const {id} = invoice;
@@ -123,7 +123,7 @@ test(`Pay via routes`, async ({end, equal}) => {
   }
 
   const toRemote = await getChannel({
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
     id: targetToRemoteChan.id,
   });
 
@@ -146,7 +146,7 @@ test(`Pay via routes`, async ({end, equal}) => {
 
     let flags = !details.policy.is_disabled ? 0 : 1;
 
-    if (cluster.target_node_public_key > cluster.remote_node_public_key) {
+    if (target.id > remote.id) {
       flags = !flags ? 1 : 0;
     }
 
@@ -176,7 +176,7 @@ test(`Pay via routes`, async ({end, equal}) => {
 
   equal(payment.confirmed_at > start, true, 'Paid has confirm date');
 
-  const paidInvoice = await getInvoice({id, lnd: cluster.remote.lnd});
+  const paidInvoice = await getInvoice({id, lnd: remote.lnd});
 
   if (!!paidInvoice.payments.length) {
     const [payment] = paidInvoice.payments;
@@ -192,7 +192,7 @@ test(`Pay via routes`, async ({end, equal}) => {
   equal(paidInvoice.secret, invoice.secret, 'Paying invoice got secret');
   equal(paidInvoice.is_confirmed, true, 'Private invoice is paid');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

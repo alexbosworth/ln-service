@@ -1,9 +1,8 @@
 const {address} = require('bitcoinjs-lib');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 const formats = ['np2wpkh', 'p2wpkh'];
 const p2shAddressVersion = 196;
@@ -12,7 +11,7 @@ const regtestBech32AddressHrp = 'bcrt';
 
 // Creating addresses should result in addresses
 test(`Create address results in address creation`, async ({end, equal}) => {
-  const {kill, lnd} = await spawnLnd({});
+  const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   const createNewChainAddresses = formats
     .map(async format => await createChainAddress({lnd, format}));
@@ -35,9 +34,7 @@ test(`Create address results in address creation`, async ({end, equal}) => {
   equal(np2wpkh.address, unusedNp2wpkh.address, 'Nested is reused');
   equal(p2wpkh.address, unusedP2wpkh.address, 'Native is reused');
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

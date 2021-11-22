@@ -2,9 +2,9 @@ const {createHash} = require('crypto');
 const {randomBytes} = require('crypto');
 
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
@@ -13,26 +13,28 @@ const {settleHodlInvoice} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
 
-const interval = retryCount => 50 * Math.pow(2, retryCount);
-const times = 15;
+const interval = 10;
+const size = 2;
+const times = 1500;
 const tlvType = '67890';
 const tlvValue = '00';
 const tokens = 100;
 
 // Subscribe to a settled invoice should return invoice settled event
 test(`Subscribe to settled invoice`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
+
+  const [{generate, lnd}, target] = nodes;
+
   let currentInvoice;
 
-  const {lnd} = cluster.control;
-
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  await setupChannel({generate, lnd, to: target});
 
   const secret = randomBytes(32);
 
   const sub = subscribeToInvoice({
     id: createHash('sha256').update(secret).digest('hex'),
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
   });
 
   sub.on('invoice_updated', data => currentInvoice = data);
@@ -40,7 +42,7 @@ test(`Subscribe to settled invoice`, async ({end, equal}) => {
   const invoice = await createHodlInvoice({
     tokens,
     id: createHash('sha256').update(secret).digest('hex'),
-    lnd: cluster.target.lnd,
+    lnd: target.lnd,
   });
 
   await delay(1000);
@@ -64,7 +66,7 @@ test(`Subscribe to settled invoice`, async ({end, equal}) => {
     equal(!!currentInvoice.is_confirmed, false, 'Invoice is confirmed');
 
     await settleHodlInvoice({
-      lnd: cluster.target.lnd,
+      lnd: target.lnd,
       secret: secret.toString('hex'),
     });
 
@@ -94,10 +96,9 @@ test(`Subscribe to settled invoice`, async ({end, equal}) => {
     equal(!!currentInvoice.is_canceled, false, 'Invoice is not canceled yet');
     equal(!!currentInvoice.is_confirmed, true, 'Invoice is confirmed');
 
-    return setTimeout(async () => {
-      await cluster.kill({});
-    },
-    1000);
+    currentInvoice = 'finished';
+
+    await kill({});
   },
   1000);
 
@@ -109,7 +110,11 @@ test(`Subscribe to settled invoice`, async ({end, equal}) => {
 
   equal(paid.secret, secret.toString('hex'), 'Paying reveals the HTLC secret');
 
-  await delay(5000);
+  await asyncRetry({interval, times}, async () => {
+    if (currentInvoice !== 'finished') {
+      throw new Error('WaitingForSettlement');
+    }
+  });
 
   return end();
 });

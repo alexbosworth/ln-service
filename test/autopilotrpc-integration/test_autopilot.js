@@ -1,35 +1,29 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
-const {generateBlocks} = require('./../macros');
-const {getNetworkGraph} = require('./../../');
 const {getAutopilot} = require('./../../');
-const {openChannel} = require('./../../');
 const {setAutopilot} = require('./../../');
 const {setupChannel} = require('./../macros');
-const {spawnLnd} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
 const avg = array => array.reduce((a, b) => a + b) / array.length;
-const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
-const defaultFee = 1e3;
 const maxScore = 1e8;
 const score = 50000000;
+const size = 2;
 
 // Adjusting autopilot should result in changed autopilot status
 test(`Autopilot`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {kill} = cluster;
+  const [control, target] = nodes;
+
+  const cluster = {control, target};
 
   const {lnd} = cluster.control;
 
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  await setupChannel({lnd, generate: control.generate, to: cluster.target});
 
   equal((await getAutopilot({lnd})).is_enabled, false, 'Autopilot starts off');
 
@@ -41,7 +35,7 @@ test(`Autopilot`, async ({end, equal}) => {
 
   await addPeer({
     lnd,
-    public_key: cluster.target.public_key,
+    public_key: cluster.target.id,
     socket: cluster.target.socket,
   });
 
@@ -51,7 +45,7 @@ test(`Autopilot`, async ({end, equal}) => {
 
   equal((await getAutopilot({lnd})).is_enabled, false, 'Autopilot turned off');
 
-  const pubKey = cluster.control.public_key;
+  const pubKey = cluster.control.id;
 
   await setAutopilot({
     lnd,

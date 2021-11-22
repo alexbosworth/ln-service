@@ -1,3 +1,4 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
@@ -9,6 +10,7 @@ const {payViaPaymentRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
+const size = 3;
 const start = new Date().toISOString();
 const tlvType = '67890';
 const tlvValue = '0102';
@@ -16,21 +18,17 @@ const tokens = 100;
 
 // Paying an invoice should settle the invoice
 test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const channel = await setupChannel({generate, lnd, to: target});
 
   // Make sure that an error is returned when there is no route
   try {
-    const {request} = await createInvoice({tokens, lnd: cluster.remote.lnd});
+    const {request} = await createInvoice({tokens, lnd: remote.lnd});
 
-    rejects(
+    await rejects(
       payViaPaymentRequest({lnd, request}),
       [503, 'PaymentPathfindingFailedToFindPossibleRoute'],
       'A payment with no route returns an error'
@@ -40,25 +38,20 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
   }
 
   const remoteChan = await setupChannel({
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
-    to: cluster.remote,
+    lnd: target.lnd,
+    generate: target.generate,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  await waitForRoute({lnd, tokens, destination: cluster.remote.public_key});
+  await waitForRoute({lnd, tokens, destination: remote.id});
 
   // When a route exists, payment is successful
   try {
     const commitTxFee = channel.commit_transaction_fee;
     const height = (await getWalletInfo({lnd})).current_block_height;
-    const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
+    const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
     const paid = await payViaPaymentRequest({
       lnd,
@@ -90,7 +83,7 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
         fee_mtokens: '1000',
         forward: 100,
         forward_mtokens: invoice.mtokens,
-        public_key: cluster.target.public_key,
+        public_key: target.id,
       },
       {
         channel: remoteChan.id,
@@ -99,16 +92,13 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
         fee_mtokens: '0',
         forward: 100,
         forward_mtokens: '100000',
-        public_key: cluster.remote.public_key,
+        public_key: remote.id,
       },
     ];
 
     strictSame(paid.hops, expectedHops, 'Hops are returned');
 
-    const {payments} = await getInvoice({
-      id: paid.id,
-      lnd: cluster.remote.lnd,
-    });
+    const {payments} = await getInvoice({id: paid.id, lnd: remote.lnd});
 
     if (!!payments.length) {
       const [payment] = payments;
@@ -124,7 +114,7 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
     equal(err, null, 'Expected no error paying payment request');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

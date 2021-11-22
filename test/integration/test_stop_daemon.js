@@ -1,16 +1,12 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {delay} = require('./../macros');
 const {getWalletInfo} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {stopDaemon} = require('./../../');
-const {waitForTermination} = require('./../macros');
 
 // Stopping the daemon should gracefully shut down the daemon
 test(`Stop daemon`, async ({end, equal, fail}) => {
-  const {kill, lnd} = await spawnLnd({});
-
-  await delay(8000);
+  const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   await stopDaemon({lnd});
 
@@ -25,9 +21,7 @@ test(`Stop daemon`, async ({end, equal, fail}) => {
     equal(message, 'FailedToConnectToDaemon', 'Error msg indicates offline');
   }
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

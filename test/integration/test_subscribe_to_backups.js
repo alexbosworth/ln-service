@@ -1,10 +1,10 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
+const {addPeer} = require('./../../');
+const {getChainBalance} = require('./../../');
 const {openChannel} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {subscribeToBackups} = require('./../../');
 const {verifyBackup} = require('./../../');
 const {verifyBackups} = require('./../../');
@@ -14,40 +14,48 @@ const confirmationCount = 20;
 const defaultFee = 1e3;
 const giftTokens = 1e5;
 const interval = 250;
+const size = 2;
 const times = 50;
 
 // Subscribing to channel backups should trigger backup notifications
 test(`Subscribe to backups`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target] = nodes;
+
+  const {generate, lnd} = control;
 
   let channelOpen;
   const got = {};
-  const sub = subscribeToBackups({lnd: cluster.control.lnd});
+  const sub = subscribeToBackups({lnd});
 
   sub.on('error', () => {});
 
   sub.on('backup', ({backup, channels}) => {
     got.backup = backup;
+
     return got.channels = channels;
   });
 
+  await target.generate({count: 100});
+
   channelOpen = await asyncRetry({interval, times}, async () => {
+    await addPeer({lnd, public_key: target.id, socket: target.socket});
+
     return await openChannel({
-      lnd: cluster.target.lnd,
+      lnd: target.lnd,
       chain_fee_tokens_per_vbyte: defaultFee,
       give_tokens: giftTokens,
       local_tokens: channelCapacityTokens,
-      partner_public_key: cluster.control.public_key,
-      socket: cluster.control.socket,
+      partner_public_key: control.id,
+      socket: control.socket,
     });
   });
 
   // Wait for generation to be over
   await asyncRetry({interval, times}, async () => {
     // Generate to confirm the tx
-    await cluster.generate({count: 1, node: cluster.control});
+    await generate({});
 
     if (!got.channels) {
       throw new Error('ExpectedBackupWithChannelsData');
@@ -78,7 +86,7 @@ test(`Subscribe to backups`, async ({end, equal}) => {
 
   equal(singleVerification.is_valid, true, 'Single backup is valid');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

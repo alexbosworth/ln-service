@@ -1,33 +1,34 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {diffieHellmanComputeSecret} = require('./../../');
 
 const all = promise => Promise.all(promise);
+const size = 2;
 
 // Computing a shared secret should return the shared secret
 test('Diffie Hellman compute secret', async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
+
+  const [{generate, id, lnd}, target, remote] = nodes;
 
   try {
-    const [control, target] = await all([
-      diffieHellmanComputeSecret({
-        lnd: cluster.control.lnd,
-        partner_public_key: cluster.target.public_key,
-      }),
-      diffieHellmanComputeSecret({
-        lnd: cluster.target.lnd,
-        partner_public_key: cluster.control.public_key,
-      }),
+    const [control, {secret}] = await all([
+      diffieHellmanComputeSecret({lnd, partner_public_key: target.id}),
+      diffieHellmanComputeSecret({lnd: target.lnd, partner_public_key: id}),
     ]);
 
     equal(control.secret.length, 64, 'Got key back');
-    equal(control.secret, target.secret, 'Key exchange is done');
+    equal(control.secret, secret, 'Key exchange is done');
   } catch (err) {
-    strictSame(err, [400, 'ExpectedLndWithSupportForDeriveSharedKey'], 'Got err');
+    strictSame(
+      err,
+      [400, 'ExpectedLndWithSupportForDeriveSharedKey'],
+      'Got err'
+    );
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

@@ -352,6 +352,8 @@ module.exports = (args, cbk) => {
 
         events.push('active');
 
+        sub.removeAllListeners();
+
         return cbk();
       });
 

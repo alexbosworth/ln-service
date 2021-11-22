@@ -1,8 +1,8 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
@@ -14,52 +14,58 @@ const {subscribeToForwards} = require('./../../');
 const {subscribeToPastPayments} = require('./../../');
 const {waitForRoute} = require('./../macros');
 
+const size = 2;
 const tokens = 100;
 
 // Subscribing to past payments should notify on a payment
 test(`Subscribe to past payment`, async ({end, rejects, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
-  const forwards = [];
-  const payments = [];
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
-  const {lnd} = cluster.control;
+  try {
+    const [{generate, lnd}, target] = nodes;
 
-  const {id} = invoice;
+    const forwards = [];
+    const payments = [];
 
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+    const invoice = await createInvoice({tokens, lnd: target.lnd});
 
-  const sub = subscribeToPastPayments({lnd});
-  const sub2 = subscribeToForwards({lnd});
+    const {id} = invoice;
 
-  sub2.on('forward', forward => forwards.push(forward));
-  sub.on('payment', payment => payments.push(payment));
+    await setupChannel({generate, lnd, to: target});
 
-  await payViaPaymentRequest({lnd, request: invoice.request});
+    const sub = subscribeToPastPayments({lnd});
+    const sub2 = subscribeToForwards({lnd});
 
-  const {payment} = await getPayment({id, lnd});
+    sub2.on('forward', forward => forwards.push(forward));
+    sub.on('payment', payment => payments.push(payment));
 
-  await asyncRetry({}, async () => {
-    if (forwards.length !== 2) {
-      throw new Error('ExpectedForwardsEvents');
+    await payViaPaymentRequest({lnd, request: invoice.request});
+
+    const {payment} = await getPayment({id, lnd});
+
+    await asyncRetry({interval: 10, times: 1000}, async () => {
+      if (forwards.length !== 2) {
+        throw new Error('ExpectedForwardsEvents');
+      }
+
       return;
+    });
+
+    const [got] = payments;
+
+    const sent = forwards.find(n => n.is_confirmed && n.is_send);
+
+    [sub, sub2].forEach(n => n.removeAllListeners());
+
+    // LND 0.13.4 and below do not support preimages in forward notifications
+    if (!!sent && !!sent.secret) {
+      strictSame(got, payment, 'Payment subscription notifies of payment');
     }
-
-    return;
-  });
-
-  const [got] = payments;
-
-  const sent = forwards.find(n => n.is_confirmed && n.is_send);
-
-  [sub, sub2].forEach(n => n.removeAllListeners());
-
-  // LND 0.13.4 and below do not support preimages in forward notifications
-  if (!!sent && !!sent.secret) {
-    strictSame(got, payment, 'Payment subscription notifies of payment');
+  } catch (err) {
+    strictSame(err, null, 'Expected no error');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

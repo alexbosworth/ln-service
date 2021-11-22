@@ -1,7 +1,7 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
 const {getForwardingReputations} = require('./../../');
@@ -10,37 +10,28 @@ const {probeForRoute} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
+const size = 3;
 const tokens = 1e6 / 2;
 
 // Deleting forwarding reputations should eliminate forwarding reputations
 test('Delete forwarding reputations', async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
-  const {remote} = cluster;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const controlToTargetChan = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const controlToTargetChan = await setupChannel({generate, lnd, to: target});
 
   const targetToRemoteChan = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    generate: target.generate,
+    lnd: target.lnd,
+    to: remote,
   });
 
-  await addPeer({lnd, public_key: remote.public_key, socket: remote.socket});
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  const {id, request} = await createInvoice({tokens, lnd: cluster.remote.lnd});
+  const {id, request} = await createInvoice({tokens, lnd: remote.lnd});
 
-  await waitForRoute({
-    lnd,
-    tokens,
-    destination: cluster.remote.public_key,
-  });
+  await waitForRoute({lnd, tokens, destination: remote.id});
 
   try {
     await payViaPaymentRequest({lnd, request});
@@ -49,11 +40,13 @@ test('Delete forwarding reputations', async ({end, equal}) => {
   }
 
   try {
-    await probeForRoute({lnd, tokens, destination: remote.public_key});
+    await probeForRoute({lnd, tokens, destination: remote.id});
   } catch (err) {}
 
   {
     const {nodes} = await getForwardingReputations({lnd});
+
+    equal(nodes.length, 2, 'Reputations should exist');
   }
 
   await deleteForwardingReputations({lnd});
@@ -64,7 +57,7 @@ test('Delete forwarding reputations', async ({end, equal}) => {
     equal(nodes.length, [].length, 'Reputations should be wiped');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

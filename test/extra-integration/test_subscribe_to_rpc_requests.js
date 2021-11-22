@@ -234,7 +234,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
 
   spawned.kill({});
 
-  await waitForTermination({lnd});
+  await waitForTermination({lnd: spawned.lnd});
 
   return end();
 });

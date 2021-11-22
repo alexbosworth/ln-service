@@ -1,5 +1,7 @@
 const {randomBytes} = require('crypto');
 
+const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
@@ -22,42 +24,37 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
+const interval = 10;
 const mtokPadding = '000';
 const reserveRatio = 0.99;
+const size = 3;
+const times = 1000;
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
 // Paying an invoice should settle the invoice
 test(`Pay`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const channel = await setupChannel({generate, lnd, to: target});
 
   const remoteChan = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    generate: target.generate,
+    lnd: target.lnd,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  await delay(3000);
-
-  const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
+  const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
   const commitTxFee = channel.commit_transaction_fee;
-  const paid = await pay({lnd, request: invoice.request});
+
+  const paid = await asyncRetry({interval, times}, async () => {
+    return await pay({lnd, request: invoice.request});
+  });
 
   equal(paid.fee, 1, 'Fee paid for hop');
   equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
@@ -86,7 +83,7 @@ test(`Pay`, async ({end, equal, strictSame}) => {
       fee_mtokens: '1000',
       forward: 100,
       forward_mtokens: `${invoice.tokens}${mtokPadding}`,
-      public_key: cluster.target.public_key,
+      public_key: target.id,
     },
     {
       channel: remoteChan.id,
@@ -95,35 +92,41 @@ test(`Pay`, async ({end, equal, strictSame}) => {
       fee_mtokens: '0',
       forward: 100,
       forward_mtokens: '100000',
-      public_key: cluster.remote.public_key,
+      public_key: remote.id,
     },
   ];
 
   strictSame(paid.hops, expectedHops, 'Hops are returned');
 
-  const invoice2 = await createInvoice({lnd: cluster.remote.lnd, tokens: 100});
+  const invoice2 = await createInvoice({lnd: remote.lnd, tokens: 100});
 
   const {destination} = await decodePaymentRequest({
-    lnd: cluster.remote.lnd,
+    lnd: remote.lnd,
     request: invoice2.request,
   });
 
-  await cluster.generate({count: confirmationCount, node: cluster.control});
+  await generate({count: confirmationCount});
 
-  await delay(3000);
+  const route = await asyncRetry({interval, times}, async () => {
+    const {route} = await getRouteToDestination({
+      destination,
+      lnd,
+      payment: invoice2.payment,
+      tokens: invoice2.tokens,
+      total_mtokens: !!invoice2.payment ? invoice2.mtokens : undefined,
+    });
 
-  const {route} = await getRouteToDestination({
-    destination,
-    lnd,
-    payment: invoice2.payment,
-    tokens: invoice2.tokens,
-    total_mtokens: !!invoice2.payment ? invoice2.mtokens : undefined,
+    if (!route) {
+      throw new Error('ExpectedRouteToDestination');
+    }
+
+    return route;
   });
 
   // Test paying to a route, but to an id that isn't known
   try {
     await pay({
-      lnd: cluster.control.lnd,
+      lnd,
       path: {routes: [route], id: randomBytes(32).toString('hex')},
     });
   } catch (err) {
@@ -135,15 +138,15 @@ test(`Pay`, async ({end, equal, strictSame}) => {
 
   // Test paying regularly to a destination
   const directPay = await pay({
-    lnd: cluster.control.lnd,
+    lnd,
     path: {routes: [route], id: invoice2.id},
   });
 
-  const zeroInvoice = await createInvoice({lnd: cluster.target.lnd});
+  const zeroInvoice = await createInvoice({lnd: target.lnd});
 
   await pay({lnd, request: zeroInvoice.request, mtokens: '1000'});
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

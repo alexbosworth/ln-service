@@ -1,4 +1,6 @@
 const {once} = require('events');
+
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
@@ -15,45 +17,36 @@ const {subscribeToPayViaRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
+const size = 3;
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
 test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const channel = await setupChannel({generate, lnd, to: target});
+
+  await remote.generate({count: 100});
 
   const remoteChan = await setupChannel({
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
-    to: cluster.remote,
+    lnd: target.lnd,
+    generate: target.generate,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  const {routes} = await waitForRoute({
-    lnd,
-    tokens,
-    destination: cluster.remote.public_key,
-  });
+  const {routes} = await waitForRoute({lnd, tokens, destination: remote.id});
 
+  let height;
   const [route] = routes;
 
   {
-    const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
+    const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
-    const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
+    const sub = subscribeToForwardRequests({lnd: target.lnd});
 
     sub.on('forward_request', forward => forward.reject());
 
@@ -67,7 +60,7 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
 
     await deleteForwardingReputations({lnd});
 
-    const sub2 = subscribeToForwardRequests({lnd: cluster.target.lnd});
+    const sub2 = subscribeToForwardRequests({lnd: target.lnd});
 
     sub2.on('forward_request', forward => forward.reject());
 
@@ -75,6 +68,8 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
     const paying = [];
 
     const pay = subscribeToPayViaRequest({lnd, request: invoice.request});
+
+    height = (await getHeight({lnd})).current_block_height;
 
     pay.on('paying', pending => paying.push(pending));
     pay.on('routing_failure', failure => failures.push(failure));
@@ -87,7 +82,7 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
         channel: channel.id,
         index: 1,
         mtokens: '101000',
-        public_key: cluster.target.public_key,
+        public_key: target.id,
         reason: 'TemporaryChannelFailure',
         route: {
           fee: 1,
@@ -100,8 +95,8 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
               fee_mtokens: '1000',
               forward: 100,
               forward_mtokens: '100000',
-              public_key: cluster.target.public_key,
-              timeout: 497,
+              public_key: target.id,
+              timeout: height + 43,
             },
             {
               channel: remoteChan.id,
@@ -110,13 +105,13 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
               fee_mtokens: '0',
               forward: 100,
               forward_mtokens: '100000',
-              public_key: cluster.remote.public_key,
-              timeout: 497,
+              public_key: remote.id,
+              timeout: height + 43,
             },
           ],
           mtokens: '101000',
           payment: invoice.payment,
-          timeout: 537,
+          timeout: height + 40 + 43,
           tokens: 101,
           total_mtokens: '100000',
         },
@@ -130,14 +125,14 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
   await deleteForwardingReputations({lnd});
 
   {
-    const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
+    const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
-    const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
+    const sub = subscribeToForwardRequests({lnd: target.lnd});
 
     sub.once('forward_request', async forward => {
       const {pending} = await getPayment({lnd, id: invoice.id});
 
-      equal(pending.destination, cluster.remote.public_key, 'Pending remote');
+      equal(pending.destination, remote.id, 'Pending remote');
       equal(!!pending.created_at, true, 'Has creation date');
       equal(pending.id, invoice.id, 'Payment id is present');
       equal(pending.mtokens, invoice.mtokens, 'Pending payment mtokens');
@@ -155,8 +150,8 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
               fee_mtokens: '1000',
               forward: 100,
               forward_mtokens: '100000',
-              public_key: cluster.target.public_key,
-              timeout: 497,
+              public_key: target.id,
+              timeout: height + 43,
             },
             {
               channel: forward.out_channel,
@@ -165,13 +160,13 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
               fee_mtokens: '0',
               forward: 100,
               forward_mtokens: '100000',
-              public_key: cluster.remote.public_key,
-              timeout: 497,
+              public_key: remote.id,
+              timeout: height + 43,
             },
           ],
           mtokens: '101000',
           payment: invoice.payment,
-          timeout: 537,
+          timeout: height + 40 + 43,
           tokens: 101,
           total_mtokens: '100000',
         }],
@@ -179,10 +174,10 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
       );
 
       equal(pending.request, invoice.request, 'Pending pay of request');
-      equal(pending.timeout, 537, 'Pending timeout');
+      equal(pending.timeout, height + 40 + 43, 'Pending timeout');
       equal(pending.tokens, invoice.tokens, 'Pending pay of invoice tokens');
 
-      const info = await getHeight({lnd: cluster.target.lnd});
+      const info = await getHeight({lnd: target.lnd});
 
       equal(forward.cltv_delta, 40, 'Forward has CLTV delta');
       equal(forward.fee, 1, 'Forward has a routing fee');
@@ -203,10 +198,10 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
   }
 
   {
-    const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
+    const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
     const {secret} = invoice;
-    const sub = subscribeToForwardRequests({lnd: cluster.target.lnd});
+    const sub = subscribeToForwardRequests({lnd: target.lnd});
 
     sub.on('forward_request', async ({settle}) => settle({secret}));
 
@@ -214,12 +209,12 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
 
     equal(paid.secret, invoice.secret, 'The sender gets the preimage');
 
-    const inv = await getInvoice({id: invoice.id, lnd: cluster.remote.lnd});
+    const inv = await getInvoice({id: invoice.id, lnd: remote.lnd});
 
     equal(inv.is_confirmed, false, 'Receiver does not get the payment');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

@@ -1,37 +1,32 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {closeChannel} = require('./../../');
-const {createCluster} = require('./../macros');
 const {getWalletInfo} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
+const anchorsFeatureBit = 23;
 const defaultFee = 1e3;
-const giftTokens = 1e4;
+const give = 1e4;
+const size = 2;
 
 // Getting pending channels should show pending channels
 test(`Get pending channels`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
   const {features} = await getWalletInfo({lnd});
 
-  const isAnchors = !!features.find(n => n.bit === 23);
+  const isAnchors = !!features.find(n => n.bit === anchorsFeatureBit);
 
   // Target starts a channel with control
-  const coopChan = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    give: giftTokens,
-    to: cluster.target,
-  });
+  const coopChan = await setupChannel({generate, give, lnd, to: target});
 
   // Target closes the channel
   const niceClose = await closeChannel({
-    lnd: cluster.target.lnd,
-    public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
+    lnd: target.lnd,
     tokens_per_vbyte: defaultFee,
     transaction_id: coopChan.transaction_id,
     transaction_vout: coopChan.transaction_vout,
@@ -39,7 +34,7 @@ test(`Get pending channels`, async ({end, equal}) => {
 
   // Control views their pending channels
   const {channel} = await waitForPendingChannel({
-    lnd: cluster.control.lnd,
+    lnd,
     id: coopChan.transaction_id,
   });
 
@@ -61,7 +56,7 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(channel.is_closing, true, 'Closing');
   equal(channel.is_opening, false, 'Not Opening');
   equal(channel.local_reserve, 10000, 'Local reserve');
-  equal(channel.partner_public_key, cluster.target.public_key, 'target pubk');
+  equal(channel.partner_public_key, target.id, 'Target public key');
   equal(channel.pending_payments, undefined, 'No pending payments');
   equal(channel.received, 0, 'Never received');
   equal(channel.recovered_tokens, undefined, 'Nothing to recover in sweep');
@@ -74,10 +69,10 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(channel.transaction_weight, null, 'No funding tx weight data');
 
   if (!!channel.remote_balance) {
-    equal(channel.remote_balance, giftTokens, 'Opposing channel balance');
+    equal(channel.remote_balance, give, 'Opposing channel balance');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

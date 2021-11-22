@@ -1,23 +1,26 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deletePayment} = require('./../../');
 const {getPayments} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 
+const size = 2;
 const tokens = 100;
 
 // Deleting a payment should delete the payment record
 test('Delete payment', async ({afterEach, fail, end, equal, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target] = nodes;
 
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  const {lnd} = control;
 
-  const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
+  await setupChannel({lnd, generate: control.generate, to: target});
+
+  const invoice = await createInvoice({tokens, lnd: target.lnd});
 
   let paid;
 
@@ -26,7 +29,7 @@ test('Delete payment', async ({afterEach, fail, end, equal, strictSame}) => {
   } catch (err) {
     fail('Payment should be made to destination');
 
-    await cluster.kill({});
+    await kill({});
 
     return end();
   }
@@ -39,7 +42,7 @@ test('Delete payment', async ({afterEach, fail, end, equal, strictSame}) => {
   } catch (err) {
     strictSame(err, [501, 'DeletePaymentMethodNotSupported']);
 
-    await cluster.kill({});
+    await kill({});
 
     return end();
   }
@@ -48,7 +51,7 @@ test('Delete payment', async ({afterEach, fail, end, equal, strictSame}) => {
 
   equal(priorLength - wipedLength, [paid].length, 'Payment deleted');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

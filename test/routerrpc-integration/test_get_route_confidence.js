@@ -1,45 +1,41 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
-const {getForwardingReputations} = require('./../../');
 const {getRouteConfidence} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
+const size = 3;
 const tokens = 1e6 / 2;
 
 // Getting route confidence should return confidence in a route
 test('Get route confidence', async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
   // Create a channel from the control to the target node
   await setupChannel({
+    generate,
     lnd,
     capacity: channelCapacityTokens * 2,
-    generate: cluster.generate,
-    to: cluster.target,
+    to: target,
   });
 
+  // Create a too-small channel from target to remote
   await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
+    generate: target.generate,
     give: Math.round(channelCapacityTokens / 2),
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    lnd: target.lnd,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  const destination = cluster.remote.public_key;
+  const destination = remote.id;
 
   // Allow time for graph sync to complete
   const {routes} = await waitForRoute({destination, lnd, tokens});
@@ -49,15 +45,13 @@ test('Get route confidence', async ({end, equal}) => {
     await probeForRoute({destination, lnd, tokens});
   } catch (err) {}
 
-  const {nodes} = await getForwardingReputations({lnd});
-
   const [{hops}] = routes;
 
-  const odds = (await getRouteConfidence({lnd, hops})).confidence;
+  const {confidence} = await getRouteConfidence({lnd, hops});
 
-  equal((odds / 1e6) < 0.1, true, 'Due to fail, odds of success are low');
+  equal((confidence / 1e6) < 0.1, true, 'Due to fail, odds of success = low');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

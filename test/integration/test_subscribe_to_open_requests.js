@@ -1,48 +1,58 @@
-const {once} = require('events');
-
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
+const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {subscribeToOpenRequests} = require('./../../');
-const {verifyBackup} = require('./../../');
-const {verifyBackups} = require('./../../');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
+const count = 100;
 const defaultFee = 1e3;
 const dustLimit = 354;
 const giftTokens = 1e5;
-const interval = retryCount => 50 * Math.pow(2, retryCount);
+const interval = 10;
 const regtestGenesisHash = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
-const times = 10;
+const size = 2;
+const times = 2000;
 
 // Subscribing to open requests should trigger channel open notifications
 test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target, remote] = nodes;
 
-  const {address} = await createChainAddress({lnd, format: 'p2wpkh'});
+  const {id, lnd} = control;
+
+  await target.generate({count});
+
+  await addPeer({lnd, public_key: target.id, socket: target.socket});
+
+  const {address} = await createChainAddress({lnd});
   const failSub = subscribeToOpenRequests({lnd});
 
-  await delay(3000);
+  await asyncRetry({interval, times: 1000}, async () => {
+    const wallet = await getWalletInfo({lnd: target.lnd});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('ExpectedWalletSyncedToChain');
+    }
+  });
 
   failSub.on('channel_request', ({reject}) => reject({reason: 'reason'}));
 
   try {
     await openChannel({
-      lnd: cluster.target.lnd,
+      lnd: target.lnd,
       chain_fee_tokens_per_vbyte: defaultFee,
       give_tokens: giftTokens,
       local_tokens: channelCapacityTokens,
-      partner_public_key: cluster.control.public_key,
-      socket: cluster.control.socket,
+      partner_public_key: control.id,
+      socket: control.socket,
     });
 
     fail('Expected channel open failure');
@@ -60,7 +70,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
 
   failSub.removeAllListeners();
 
-  const acceptSub = subscribeToOpenRequests({lnd: cluster.control.lnd});
+  const acceptSub = subscribeToOpenRequests({lnd});
 
   acceptSub.on('channel_request', request => {
     // LND 0.11.1 and below defaulted the commit fee to a higher value
@@ -79,7 +89,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
     equal(request.max_pending_payments, 483, 'Got max pending payments');
     ok(request.min_chain_output >= dustLimit, 'Dust limit tokens returned');
     equal(request.min_htlc_mtokens, '1', 'Got min htlc amount');
-    equal(request.partner_public_key, cluster.target.public_key, 'Got pubkey');
+    equal(request.partner_public_key, target.id, 'Got pubkey');
 
     request.accept({
       cooperative_close_address: address,
@@ -96,13 +106,13 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
 
   try {
     await openChannel({
-      lnd: cluster.target.lnd,
+      lnd: target.lnd,
       chain_fee_tokens_per_vbyte: defaultFee,
       give_tokens: giftTokens,
       is_private: true,
       local_tokens: channelCapacityTokens,
-      partner_public_key: cluster.control.public_key,
-      socket: cluster.control.socket,
+      partner_public_key: control.id,
+      socket: control.socket,
     });
   } catch (err) {
     equal(err, null, 'Expected no error when a channel is accepted');
@@ -110,24 +120,32 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
 
   acceptSub.removeAllListeners();
 
-  await cluster.generate({count: confirmationCount, node: cluster.target});
+  await target.generate({count: confirmationCount});
 
   await asyncRetry({interval, times}, async () => {
     await openChannel({
-      lnd: cluster.target.lnd,
+      lnd: target.lnd,
       chain_fee_tokens_per_vbyte: defaultFee,
       give_tokens: giftTokens,
       local_tokens: channelCapacityTokens,
-      partner_public_key: cluster.control.public_key,
-      socket: cluster.control.socket,
+      partner_public_key: control.id,
+      socket: control.socket,
     });
 
     return;
   });
 
-  const {channels} = await getChannels({lnd});
+  const channel = await asyncRetry({interval, times}, async () => {
+    const [channel] = (await getChannels({lnd})).channels;
 
-  const [channel] = channels;
+    await control.generate({});
+
+    if (!channel) {
+      throw new Error('ExpectedChannelCreation');
+    }
+
+    return channel;
+  });
 
   // LND 0.11.1 and below do not support accepting with a custom address
   if (!!channel.cooperative_close_address) {
@@ -139,9 +157,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
     equal(channel.remote_min_htlc_mtokens, '2000', 'Got custom min htlcsize');
   }
 
-  await cluster.kill({});
+  await kill({});
 
-  end();
-
-  return;
+  return end();
 });

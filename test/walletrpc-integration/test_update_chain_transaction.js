@@ -1,46 +1,23 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {broadcastChainTransaction} = require('./../../');
-const {chainSendTransaction} = require('./../macros');
-const {createChainAddress} = require('./../../');
-const {generateBlocks} = require('./../macros');
 const {getChainTransactions} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {updateChainTransaction} = require('./../../');
-const {waitForTermination} = require('./../macros');
 
 const count = 100;
-const defaultVout = 0;
 const description = 'description';
-const fee = 1e3;
-const format = 'np2wpkh';
-const tokens = 1e8;
 
 // Test updating the description of a chain transaction
 test(`Send chain transaction`, async ({end, equal}) => {
-  const node = await spawnLnd({});
-
-  const {lnd} = node;
-  const {kill} = node;
+  const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   // Generate some funds
-  const {blocks} = await node.generate({count});
+  await generate({count});
 
-  const [block] = blocks;
+  const {transactions} = await getChainTransactions({lnd});
 
-  const [coinbaseTransactionId] = block.transaction_ids;
-
-  const {transaction} = chainSendTransaction({
-    fee,
-    tokens,
-    destination: (await createChainAddress({format, lnd})).address,
-    private_key: node.mining_key,
-    spend_transaction_id: coinbaseTransactionId,
-    spend_vout: defaultVout,
-  });
-
-  const {id} = await broadcastChainTransaction({transaction, lnd: node.lnd});
+  const [{id}] = transactions;
 
   await asyncRetry({}, async () => {
     await updateChainTransaction({description, id, lnd});
@@ -58,9 +35,7 @@ test(`Send chain transaction`, async ({end, equal}) => {
     return;
   });
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

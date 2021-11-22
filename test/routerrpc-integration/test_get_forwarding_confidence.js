@@ -1,7 +1,7 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {getChannels} = require('./../../');
 const {getForwardingConfidence} = require('./../../');
@@ -12,57 +12,37 @@ const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
+const size = 3;
+const mtokens = '1';
 const tokens = 1e6 / 2;
 
 // Getting forwarding confidence should return confidence score
 test('Get forwarding confidence', async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, id, lnd}, target, remote] = cluster.nodes;
 
   // Create a channel from the control to the target node
   await setupChannel({
+    generate,
     lnd,
     capacity: channelCapacityTokens * 2,
-    generate: cluster.generate,
-    to: cluster.target,
+    to: target,
   });
-
-  try {
-    await getForwardingConfidence({
-      lnd,
-      from: cluster.target.public_key,
-      mtokens: '1',
-      to: cluster.remote.public_key,
-    });
-  } catch (err) {
-    const [, code] = err;
-
-    equal(code, 'QueryProbabilityNotImplemented', 'Not implemented error');
-
-    await cluster.kill({});
-
-    return end();
-  }
 
   const [controlChannel] = (await getChannels({lnd})).channels;
 
   await setupChannel({
     capacity: channelCapacityTokens,
-    generate: cluster.generate,
-    generator: cluster.target,
+    generate: target.generate,
     give: Math.round(channelCapacityTokens / 2),
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    lnd: target.lnd,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  const destination = cluster.remote.public_key;
+  const destination = remote.id;
 
   // Allow time for graph sync to complete
   const {routes} = await waitForRoute({destination, lnd, tokens});
@@ -86,18 +66,18 @@ test('Get forwarding confidence', async ({end, equal}) => {
 
   const successHop = await getForwardingConfidence({
     lnd,
-    from: cluster.control.public_key,
-    mtokens: '1',
-    to: cluster.target.public_key,
+    mtokens,
+    from: id,
+    to: target.id,
   });
 
   equal(successHop.confidence, 950000, 'High confidence in A -> B');
 
   const failedHop = await getForwardingConfidence({
     lnd,
-    from: cluster.target.public_key,
+    from: target.id,
     mtokens: from.forward_mtokens,
-    to: cluster.remote.public_key,
+    to: remote.id,
   });
 
   equal(failedHop.confidence < 1e3, true, 'Low confidence in B -> C');

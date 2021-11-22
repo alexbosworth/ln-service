@@ -1,22 +1,26 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {getBackup} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {verifyBackup} = require('./../../');
 
+const size = 2;
+
 // Getting a channel backup should return a channel backup
 test(`Get channel backup`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
+
+  const [control, target] = nodes;
 
   const channel = await setupChannel({
-    generate: cluster.generate,
-    lnd: cluster.control.lnd,
-    to: cluster.target,
+    generate: control.generate,
+    lnd: control.lnd,
+    to: target,
   });
 
   const {backup} = await getBackup({
-    lnd: cluster.control.lnd,
+    lnd: control.lnd,
     transaction_id: channel.transaction_id,
     transaction_vout: channel.transaction_vout,
   });
@@ -25,14 +29,14 @@ test(`Get channel backup`, async ({end, equal}) => {
 
   const channelBackup = await verifyBackup({
     backup,
-    lnd: cluster.control.lnd,
+    lnd: control.lnd,
     transaction_id: channel.transaction_id,
     transaction_vout: channel.transaction_vout,
   });
 
   equal(channelBackup.is_valid, true, 'Channel backup is a valid backup');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

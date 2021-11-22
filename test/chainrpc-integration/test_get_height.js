@@ -1,24 +1,23 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {generateBlocks} = require('./../macros');
 const {getHeight} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
+const times = 100;
 
 // Get height should return height
 test(`Get height`, async ({end, equal, fail}) => {
-  const spawned = await spawnLnd({});
+  const {nodes} = await spawnLightningCluster({});
 
-  const {generate, kill, lnd} = spawned;
+  const [{chain, generate, kill, lnd}] = nodes;
 
   const startHeight = (await getHeight({lnd})).current_block_height;
 
-  await generate({count: confirmationCount});
+  await asyncRetry({times}, async () => {
+    await generate({});
 
-  await asyncRetry({}, async () => {
     const endHeight = (await getHeight({lnd})).current_block_height;
 
     if (endHeight - startHeight < confirmationCount) {
@@ -30,9 +29,7 @@ test(`Get height`, async ({end, equal, fail}) => {
     return;
   });
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

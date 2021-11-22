@@ -1,157 +1,143 @@
+const asyncRetry = require('async/retry');
 const {hopsFromChannels} = require('bolt07');
 const {routeFromHops} = require('bolt07');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
+const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
+const {pay} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');
 
 const channelCapacityTokens = 1e6;
 const description = 'x';
+const interval = 10;
 const invoiceId = '7426ba0604c3f8682c7016b44673f85c5bd9da2fa6c1080810cf53ae320c9863';
 const mtok = '000';
 const overPay = 1;
 const secret = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
+const size = 2;
 const tlvType = '68730';
 const tlvValue = '030201';
+const times = 3000;
 const tokens = 1e4;
 
 // Subscribing to invoices should trigger invoice events
 test('Subscribe to invoices', async ({end, equal, fail}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target] = nodes;
 
-  const destination = cluster.control.public_key;
+  const {generate, lnd} = control;
+
+  const destination = control.id;
 
   // Create a channel from the control to the target node
   const controlToTargetChannel = await setupChannel({
+    generate,
     lnd,
-    generate: cluster.generate,
     give: 1e5,
-    to: cluster.target,
+    to: target,
   });
 
   // Create a channel from the target back to the control
   const targetToControlChannel = await setupChannel({
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
+    lnd: target.lnd,
+    generate: target.generate,
     give: 1e5,
-    to: cluster.control,
+    to: control,
   });
 
-  let gotUnconfirmedInvoice = false;
-  let invoice;
-  const mtokens = `${tokens + overPay}${mtok}`;
-  const sub = subscribeToInvoices({lnd, restart_delay_ms: 100});
+  // Created invoices are emitted
+  {
+    const sub = subscribeToInvoices({lnd, restart_delay_ms: 1});
 
-  sub.on('invoice_updated', async invoice => {
-    equal(!!invoice.created_at, true, 'Invoice created at');
-    equal(invoice.description, description, 'Invoice description');
-    equal(!!invoice.expires_at, true, 'Invoice has expiration date');
-    equal(invoice.id, invoiceId, 'Invoice has id');
-    equal(invoice.index, [invoice].length, 'Invoice index is returned');
-    equal(invoice.secret, secret, 'Invoice secret');
-    equal(invoice.tokens, tokens, 'Invoice tokens');
+    const updates = [];
 
-    if (invoice.payments.length) {
-      equal(invoice.payments.length, [invoice].length, 'Invoice was paid');
+    sub.on('invoice_updated', updated => updates.push(updated));
 
-      const [payment] = invoice.payments;
+    const update = await asyncRetry({interval, times}, async () => {
+      await createInvoice({lnd});
 
-      const currentHeight = (await getHeight({lnd})).current_block_height;
+      const [update] = updates;
 
-      equal(payment.canceled_at, undefined, 'Payment was not canceled');
-      equal(!!payment.confirmed_at, true, 'Payment settle date returned');
-      equal(!!payment.created_at, true, 'Payment first held date returned');
-      equal(payment.created_height, currentHeight, 'Payment height recorded');
-      equal(!!payment.in_channel, true, 'Payment channel id returned');
-      equal(payment.is_canceled, false, 'Payment not canceled');
-      equal(payment.is_confirmed, true, 'Payment was settled');
-      equal(payment.is_held, false, 'Payment is no longer held');
-      equal(payment.mtokens, mtokens, 'Mtokens received');
-      equal(payment.pending_index, undefined, 'Pending index not defined');
-      equal(payment.tokens, tokens + overPay, 'Payment tokens returned');
-    }
-
-    if (invoice.is_confirmed && !gotUnconfirmedInvoice) {
-      fail('Expected unconfirmed invoice before confirmed invoice');
-    }
-
-    if (!!invoice.payments.length) {
-      const [payment] = invoice.payments;
-
-      if (!!payment.messages.length) {
-        const [{messages}] = invoice.payments;
-
-        const [{type, value}] = messages;
-
-        equal(type, tlvType, 'Got tlv type back in message');
-        equal(value, tlvValue, 'Got tlv value back in message');
+      if (!update) {
+        throw new Error('ExpectedInvoiceUpdate');
       }
-    }
 
-    if (invoice.is_confirmed) {
-      equal(!!invoice.confirmed_at, true, 'Invoice confirmed at date')
-      equal(invoice.confirmed_index, 1, 'Confirmation index is returned');
-      equal(invoice.received, tokens + overPay, 'Invoice tokens received');
-      equal(invoice.received_mtokens, `${tokens + overPay}${mtok}`, 'Mtokens');
+      return update;
+    });
 
-      return end();
-    } else {
-      equal(invoice.confirmed_at, undefined, 'Invoice not confirmed at date');
-      equal(invoice.received, 0, 'Invoice tokens not received');
-      equal(invoice.received_mtokens, '0', 'Invoice mtokens not received');
+    equal(update.tokens, 0, 'Invoiced zero');
 
-      return gotUnconfirmedInvoice = true;
-    }
-  });
+    sub.removeAllListeners();
+  }
 
-  sub.on('error', () => {});
+  // Paid invoices are emitted
+  {
+    const sub = subscribeToInvoices({lnd, restart_delay_ms: 1});
 
-  const height = (await getHeight({lnd})).current_block_height;
-  invoice = await createInvoice({description, lnd, secret, tokens});
+    const updates = [];
 
-  const inChanId = (await getChannels({lnd})).channels
-    .find(n => n.transaction_id === controlToTargetChannel.transaction_id).id;
+    sub.on('invoice_updated', updated => updates.push(updated));
 
-  const outChanId = (await getChannels({lnd: cluster.target.lnd})).channels
-    .find(n => n.transaction_id === targetToControlChannel.transaction_id).id;
+    const update = await asyncRetry({interval, times}, async () => {
+      await pay({
+        lnd: target.lnd,
+        request: (await createInvoice({lnd, tokens})).request,
+      });
 
-  await delay(1000);
+      const [update] = updates.filter(n => n.is_confirmed);
 
-  const inChan = await getChannel({lnd, id: inChanId});
-  const outChan = await getChannel({lnd, id: outChanId});
+      if (!update) {
+        throw new Error('ExpectedPaidInvoiceUpdate');
+      }
 
-  inChan.id = inChanId;
-  outChan.id = outChanId;
+      return update;
+    });
 
-  const {hops} = hopsFromChannels({destination, channels: [inChan, outChan]});
-  const {id} = invoice;
+    equal(!!update.confirmed_at, true, 'Got receive date');
+    equal(!!update.confirmed_index, true, 'Got confirm index');
+    equal(update.payments.length, 1, 'Got received HTLC');
+    equal(update.received, tokens, 'Got received tokens');
+    equal(update.received_mtokens, '10000000', 'Got invoice mtokens');
 
-  const routes = [routeFromHops({
-    height,
-    hops,
-    mtokens,
-    payment: invoice.payment,
-    initial_cltv: 40,
-    total_mtokens: !!invoice.payment ? mtokens : undefined,
-  })];
+    sub.removeAllListeners();
+  }
 
-  routes[0].messages = [{type: tlvType, value: tlvValue}];
+  // Old invoices are emitted
+  {
+    const sub = subscribeToInvoices({
+      lnd,
+      added_after: 1,
+      restart_delay_ms: 1,
+    });
 
-  const selfPay = await payViaRoutes({id, lnd, routes});
+    const updates = [];
 
-  sub.removeAllListeners();
+    sub.on('invoice_updated', updated => updates.push(updated));
 
-  await cluster.kill({});
+    const update = await asyncRetry({interval, times}, async () => {
+      const [update] = updates;
 
-  return;
+      if (!update) {
+        throw new Error('ExpectedPastInvoiceUpdate');
+      }
+
+      return update;
+    });
+
+    equal(update.index, 2, 'Got past update');
+
+    sub.removeAllListeners();
+  }
+
+  await kill({});
+
+  return end();
 });

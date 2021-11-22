@@ -1,23 +1,22 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {getPathfindingSettings} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {updatePathfindingSettings} = require('./../../');
-const {waitForTermination} = require('./../macros');
 
 // Updating pathfinding settings should update the pathfinding configuration
 test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
-  const {kill, lnd} = await asyncRetry({}, async () => await spawnLnd({}));
+  const {kill, nodes} = await spawnLightningCluster({});
+
+  const [{generate, lnd}] = nodes;
 
   try {
     await getPathfindingSettings({lnd});
   } catch (err) {
     // Get pathfinding settings is not supported in LND 0.12.1 and below
-    if (err[0] === 501) {
-      kill();
-
-      await waitForTermination({lnd});
+    if (err.slice().shift() === 501) {
+      await kill({});
 
       return end();
     }
@@ -64,9 +63,7 @@ test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
     strictSame(config, expected, 'Update can change singular values');
   }
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

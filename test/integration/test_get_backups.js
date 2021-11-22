@@ -1,22 +1,20 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {getBackups} = require('./../../');
 const {setupChannel} = require('./../macros');
+
+const size = 2;
 
 // Getting a set of channel backups should return channel backups
 test(`Get channel backup`, async ({end, equal}) => {
   await asyncRetry({}, async () => {
-    const cluster = await createCluster({is_remote_skipped: true});
+    const {kill, nodes} = await spawnLightningCluster({size});
 
-    const {lnd} = cluster.control;
+    const [{generate, lnd}, target] = nodes;
 
-    const channel = await setupChannel({
-      lnd,
-      generate: cluster.generate,
-      to: cluster.target,
-    });
+    const channel = await setupChannel({generate, lnd, to: target});
 
     const {backup, channels} = await getBackups({lnd});
 
@@ -26,10 +24,10 @@ test(`Get channel backup`, async ({end, equal}) => {
     const [chanBackup] = channels;
 
     equal(!!chanBackup.backup.length, true, 'Channel backup has its own blob');
-    equal(chanBackup.transaction_id, channel.transaction_id, 'Chan tx id given');
+    equal(chanBackup.transaction_id, channel.transaction_id, 'Chan tx id');
     equal(chanBackup.transaction_vout, channel.transaction_vout, 'Chan vout');
 
-    await cluster.kill({});
+    await kill({});
 
     return;
   });

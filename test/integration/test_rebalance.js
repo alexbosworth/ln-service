@@ -1,3 +1,4 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createCluster} = require('./../macros');
@@ -14,36 +15,24 @@ const {waitForPendingChannel} = require('./../macros');
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
+const size = 2;
 const tokens = 1e3;
 
 // Rebalancing channels should result in balanced channels
 test('Rebalance', async ({end, equal}) => {
-  let cluster;
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  try {
-    cluster = await createCluster({
-      is_circular_enabled: true,
-      is_remote_skipped: true,
-    });
-  } catch (err) {
-    cluster = await createCluster({is_remote_skipped: true});
-  }
+  const [control, target] = nodes;
 
-  const {lnd} = cluster.control;
+  const {generate, lnd} = control;
+
+  await setupChannel({generate, lnd, give: 1e5, to: target});
 
   await setupChannel({
-    lnd,
-    generate: cluster.generate,
+    generate: target.generate,
     give: 1e5,
-    to: cluster.target,
-  });
-
-  await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    give: 1e5,
-    lnd: cluster.target.lnd,
-    to: cluster.control,
+    lnd: target.lnd,
+    to: control,
   });
 
   const invoice = await createInvoice({lnd, tokens});
@@ -53,7 +42,7 @@ test('Rebalance', async ({end, equal}) => {
   const {route} = await getRouteToDestination({
     lnd,
     tokens,
-    destination: cluster.control.public_key,
+    destination: control.id,
     outgoing_channel: inChannelId,
     payment: invoice.payment,
     total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
@@ -63,7 +52,7 @@ test('Rebalance', async ({end, equal}) => {
 
   equal(selfPay.secret, invoice.secret, 'Payment made to self');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

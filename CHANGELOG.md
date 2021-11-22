@@ -1,5 +1,17 @@
 # Versions
 
+## 53.0.0
+
+- Removed support for determining the type of channel to support LND 0.14.0.
+
+- `createChainAddress`: Make address format optional and add p2wpkh as default
+- `sendToChainOutputScripts`: Fix specification of `fee_tokens_per_vbyte`
+
+### Breaking Changes
+
+- `getChannels`, `getPendingChannels`, `subscribeToChannels`: Remove
+    attributes `is_anchor`, `is_static_remote_key`, `is_variable_remote_key`.
+
 ## 52.16.1
 
 - `subscribeToPayViaDetails`, `subscribeToPayViaRequest`: Add `paying`,  and

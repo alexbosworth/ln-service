@@ -1,63 +1,93 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
+const {addPeer} = require('./../../');
 const {sendMessageToPeer} = require('./../../');
 const {subscribeToPeerMessages} = require('./../../');
 
 const interval = 10;
+const size = 3;
 const times = 1000;
 
 // Messages should be received from peers
 test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{lnd}, target, remote] = nodes;
+
+  await addPeer({
+    lnd,
+    public_key: target.id,
+    socket: target.socket,
+  });
+
+  await addPeer({
+    lnd: target.lnd,
+    public_key: remote.id,
+    socket: remote.socket,
+  });
 
   try {
     await sendMessageToPeer({
       lnd,
       message: Buffer.from('message').toString('hex'),
-      public_key: cluster.target.public_key,
+      public_key: target.id,
     });
   } catch (err) {
     const [code] = err;
 
     // Send message to peer is not supported on LND 0.13.4 or lower
     if (code === 501) {
-      await cluster.kill({});
+      await kill({});
 
       return end();
     }
   }
 
-  const targetSub = subscribeToPeerMessages({lnd: cluster.target.lnd});
-  const remoteSub = subscribeToPeerMessages({lnd: cluster.remote.lnd});
-
   const messages = [];
+  const targetSub = subscribeToPeerMessages({lnd: target.lnd});
+  const remoteSub = subscribeToPeerMessages({lnd: remote.lnd});
+  const targetMessages = [];
 
   remoteSub.on('message_received', message => messages.push(message));
 
   targetSub.on('message_received', async ({message, type}) => {
+    targetMessages.push(message);
+
     if (type !== 40805) {
       return;
     }
 
+    // Wait for message to appear
+    return await asyncRetry({interval, times}, async () => {
     // Relay message from control to remote
-    return await sendMessageToPeer({
-      message,
-      type,
-      lnd: cluster.target.lnd,
-      public_key: cluster.remote.public_key,
+      await sendMessageToPeer({
+        message,
+        type,
+        lnd: target.lnd,
+        public_key: remote.id,
+      });
+
+      if (!messages.length) {
+        throw new Error('ExpectedMessage');
+      }
     });
   });
 
-  // Control send a message to target peer
-  await sendMessageToPeer({
-    lnd,
-    message: Buffer.from('message to remote').toString('hex'),
-    public_key: cluster.target.public_key,
-    type: 40805,
+  // Wait for message to appear
+  await asyncRetry({interval, times}, async () => {
+    // Control send a message to target peer
+    await sendMessageToPeer({
+      lnd,
+      message: Buffer.from('message to remote').toString('hex'),
+      public_key: target.id,
+      type: 40805,
+    });
+
+    if (!targetMessages.length) {
+      throw new Error('ExpectedTargetMessageReceived');
+    }
   });
 
   // Wait for message to appear
@@ -71,13 +101,13 @@ test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
     messages,
     [{
       message: Buffer.from('message to remote').toString('hex'),
-      public_key: cluster.target.public_key,
+      public_key: target.id,
       type: 40805,
     }],
     'Message successfully relayed through target'
   );
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

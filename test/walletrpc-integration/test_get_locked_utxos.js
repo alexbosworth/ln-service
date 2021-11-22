@@ -1,32 +1,16 @@
-const asyncRetry = require('async/retry');
-const {address} = require('bitcoinjs-lib');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
-const {getChainBalance} = require('./../../');
-const {getChainTransactions} = require('./../../');
 const {getLockedUtxos} = require('./../../');
 const {getUtxos} = require('./../../');
 const {lockUtxo} = require('./../../');
-const {sendToChainAddress} = require('./../../');
 
-const chainAddressRowType = 'chain_address';
-const confirmationCount = 6;
-const description = 'description';
-const format = 'p2wpkh';
-const interval = retryCount => 10 * Math.pow(2, retryCount);
-const regtestBech32AddressHrp = 'bcrt';
-const times = 20;
-const tokens = 1e6;
-const txIdHexByteLength = 64;
+const count = 100;
+const expiry = () => new Date(Date.now() + (1000 * 60 * 5)).toISOString();
 
 // Locking a UTXO should result in the UTXO being unspendable
 test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
-
-  const {lnd} = cluster.target;
+  const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   try {
     await getLockedUtxos({lnd});
@@ -38,26 +22,26 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
       'Got unsupported error'
     );
 
-    await cluster.kill({});
+    await kill({});
 
     return end();
   }
 
-  const {address} = await createChainAddress({format, lnd});
+  await generate({count});
 
-  const [utxo] = (await getUtxos({lnd: cluster.control.lnd})).utxos;
+  const [utxo] = (await getUtxos({lnd})).utxos;
 
   try {
-    const expiresAt = new Date(Date.now() + (1000 * 60 * 5)).toISOString();
+    const expiresAt = expiry();
 
     const lock = await lockUtxo({
+      lnd,
       expires_at: expiresAt,
-      lnd: cluster.control.lnd,
       transaction_id: utxo.transaction_id,
       transaction_vout: utxo.transaction_vout,
     });
 
-    const [locked] = (await getLockedUtxos({lnd: cluster.control.lnd})).utxos;
+    const [locked] = (await getLockedUtxos({lnd})).utxos;
 
     const expected = {
       lock_expires_at: lock.expires_at,
@@ -75,7 +59,7 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
     );
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

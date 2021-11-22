@@ -1,13 +1,14 @@
 const asyncRetry = require('async/retry');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const {transactionAsPsbt} = require('psbt');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {fundPendingChannels} = require('./../../');
+const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
 const {getChannels} = require('./../../');
 const {getPeers} = require('./../../');
@@ -16,99 +17,98 @@ const {sendToChainAddresses} = require('./../../');
 
 const capacity = 1e6;
 const count = 10;
-const interval = 200;
+const interval = 1;
 const race = promises => Promise.race(promises);
+const size = 3;
 const timeout = 250 * 10;
-const times = 100;
+const times = 200;
 
 // Opening channels should open up channels
 test(`Open channels`, async ({end, equal}) => {
-  await asyncRetry({interval, times}, async () => {
-    const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-    try {
-      const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
-      const chainTx = (await getChainTransactions({lnd})).transactions;
+  await asyncRetry({times}, async () => {
+    if (!(await getChainBalance({lnd})).chain_balance) {
+      await generate({});
 
-      const spending = chainTx.map(({transaction}) => transaction);
-
-      await addPeer({
-        lnd,
-        public_key: cluster.remote.public_key,
-        socket: cluster.remote.socket,
-      });
-
-      const channels = [cluster.target, cluster.remote].map(node => ({
-        capacity,
-        partner_public_key: node.public_key,
-      }));
-
-      let pending;
-
-      // Wait for peers to be connected
-      await asyncRetry({interval, times}, async () => {
-        await addPeer({
-          lnd,
-          public_key: cluster.remote.public_key,
-          socket: cluster.remote.socket,
-        });
-
-        if ((await getPeers({lnd})).peers.length !== channels.length) {
-          throw new Error('ExpectedConnectedPeersToOpenChannels');
-        }
-
-        return;
-      });
-
-      await asyncRetry({interval, times}, async () => {
-        pending = (await openChannels({channels, lnd})).pending;
-      });
-
-      // Normally funding would involve an un-broadcast transaction
-      await sendToChainAddresses({lnd, send_to: pending});
-
-      await asyncRetry({interval, times}, async() => {
-        const {transactions} = await getChainTransactions({lnd});
-
-        if (transactions.length !== pending.length) {
-          throw new Error('ExpectedMultipleChainTransactions');
-        }
-
-        return;
-      });
-
-      const fundTx = (await getChainTransactions({lnd})).transactions
-        .map(({transaction}) => transaction)
-        .find(transaction => spending.find(spend => transaction !== spend));
-
-      const fundingPsbt = transactionAsPsbt({spending, transaction: fundTx});
-
-      const {psbt} = finalizePsbt({psbt: fundingPsbt.psbt});
-
-      const reconstitutedTransaction = extractTransaction({psbt});
-
-      await fundPendingChannels({
-        lnd,
-        channels: pending.map(({id}) => id),
-        funding: psbt,
-      });
-
-      await asyncRetry({interval, times}, async () => {
-        await cluster.generate({count});
-
-        const {channels} = await getChannels({lnd})
-
-        if (channels.filter(n => !!n.is_active).length !== pending.length) {
-          throw new Error('ExpectedNewChannelsCreatedAndActive');
-        }
-
-        return;
-      });
-    } finally {
-      return await cluster.kill({});
+      throw new Error('ExpectedChainBalanceToOpenChannel');
     }
   });
+
+  try {
+    const chainTx = (await getChainTransactions({lnd})).transactions;
+
+    const spending = chainTx.map(({transaction}) => transaction);
+
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
+    const channels = [target, remote].map(node => ({
+      capacity,
+      partner_public_key: node.id,
+    }));
+
+    let pending;
+
+    // Wait for peers to be connected
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
+      if ((await getPeers({lnd})).peers.length !== channels.length) {
+        throw new Error('ExpectedConnectedPeersToOpenChannels');
+      }
+
+      return;
+    });
+
+    await asyncRetry({interval, times}, async () => {
+      pending = (await openChannels({channels, lnd})).pending;
+    });
+
+    // Normally funding would involve an un-broadcast transaction
+    await sendToChainAddresses({lnd, send_to: pending});
+
+    await asyncRetry({interval, times}, async() => {
+      const {transactions} = await getChainTransactions({lnd});
+
+      if (transactions.length !== pending.length) {
+        throw new Error('ExpectedMultipleChainTransactions');
+      }
+
+      return;
+    });
+
+    const fundTx = (await getChainTransactions({lnd})).transactions
+      .map(({transaction}) => transaction)
+      .find(transaction => spending.find(spend => transaction !== spend));
+
+    const fundingPsbt = transactionAsPsbt({spending, transaction: fundTx});
+
+    const {psbt} = finalizePsbt({psbt: fundingPsbt.psbt});
+
+    const reconstitutedTransaction = extractTransaction({psbt});
+
+    await fundPendingChannels({
+      lnd,
+      channels: pending.map(({id}) => id),
+      funding: psbt,
+    });
+
+    await asyncRetry({interval, times}, async () => {
+      await generate({count});
+
+      const {channels} = await getChannels({lnd});
+
+      if (channels.filter(n => !!n.is_active).length !== pending.length) {
+        throw new Error('ExpectedNewChannelsCreatedAndActive');
+      }
+
+      return;
+    });
+  } finally {
+    return await kill({});
+  }
 
   return end();
 });

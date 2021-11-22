@@ -1,101 +1,108 @@
 const {randomBytes} = require('crypto');
 
+const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
+const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {openChannel} = require('./../../');
+const {parsePaymentRequest} = require('./../../');
 const {pay} = require('./../../');
+const {removePeer} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
+const count = 100;
 const defaultFee = 1e3;
 const defaultVout = 0;
+const interval = 10;
 const mtokPadding = '000';
 const reserveRatio = 0.99;
+const size = 3;
+const times = 1000;
 const tokens = 100;
 const txIdHexLength = 32 * 2;
 
 // Paying a private invoice should settle the invoice
 test(`Pay private invoice`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
-  const remoteLnd = cluster.remote.lnd;
+  try {
+    const [{generate, lnd}, target, remote] = nodes;
 
-  await addPeer({
-    lnd,
-    public_key: cluster.target.public_key,
-    socket: cluster.target.socket,
-  });
+    await generate({count: 400});
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+    const channel = await setupChannel({generate, lnd, to: target});
 
-  await addPeer({
-    lnd: cluster.target.lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+    const remoteChannel = await setupChannel({
+      capacity: channelCapacityTokens,
+      generate: target.generate,
+      hidden: true,
+      lnd: target.lnd,
+      to: remote,
+    });
 
-  const remoteChannel = await setupChannel({
-    capacity: channelCapacityTokens,
-    generate: cluster.generate,
-    generator: cluster.target,
-    hidden: true,
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
-  });
+    const invoice = await asyncRetry({interval, times}, async () => {
+      const invoice = await createInvoice({
+        tokens,
+        is_including_private_channels: true,
+        lnd: remote.lnd,
+      });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+      const {routes} = parsePaymentRequest({request: invoice.request});
 
-  await cluster.generate({count: confirmationCount, node: cluster.target});
+      // Wait for private routes to get picked up
+      if (!routes) {
+        await cancelHodlInvoice({id: invoice.id, lnd: remote.lnd});
 
-  const invoice = await createInvoice({
-    tokens,
-    is_including_private_channels: true,
-    lnd: cluster.remote.lnd,
-  });
+        throw new Error('ExpectedRouteForInvoice');
+      }
 
-  const {id} = invoice;
-  const {request} = invoice;
+      return invoice;
+    });
 
-  const decodedRequest = await decodePaymentRequest({lnd, request});
+    const {id} = invoice;
+    const {request} = invoice;
 
-  const {route} = await getRouteToDestination({
-    lnd,
-    destination: decodedRequest.destination,
-    payment: invoice.payment,
-    routes: decodedRequest.routes,
-    tokens: invoice.tokens,
-    total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
-  });
+    const decodedRequest = await decodePaymentRequest({lnd, request});
 
-  const payment = await pay({lnd, path: {id, routes: [route]}});
+    const route = await asyncRetry({interval: 10, times: 1000}, async () => {
+      const {route} = await getRouteToDestination({
+        lnd,
+        destination: decodedRequest.destination,
+        payment: invoice.payment,
+        routes: decodedRequest.routes,
+        tokens: invoice.tokens,
+        total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
+      });
 
-  const paidInvoice = await getInvoice({id, lnd: cluster.remote.lnd});
+      if (!route) {
+        throw new Error('ExpectedRouteToDestination');
+      }
 
-  equal(paidInvoice.secret, invoice.secret, 'Paying invoice got secret');
-  equal(paidInvoice.is_confirmed, true, 'Private invoice is paid');
+      return route;
+    });
 
-  await cluster.kill({});
+    const payment = await pay({lnd, path: {id, routes: [route]}});
+
+    const paidInvoice = await getInvoice({id, lnd: remote.lnd});
+
+    equal(paidInvoice.secret, invoice.secret, 'Paying invoice got secret');
+    equal(paidInvoice.is_confirmed, true, 'Private invoice is paid');
+  } catch (err) {
+    equal(err, null, 'Expected no error paying invoice');
+  }
+
+  await kill({});
 
   return end();
 });

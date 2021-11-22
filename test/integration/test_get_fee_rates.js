@@ -1,23 +1,20 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {getFeeRates} = require('./../../');
 const {setupChannel} = require('./../macros');
 
 const defaultBaseFee = 1;
 const defaultFeeRate = 1;
+const size = 2;
 
 // Getting fee rates should return the fee rates of nodes in the channel graph
 test(`Get fee rates`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, to] = nodes;
 
-  const channelOpen = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const channelOpen = await setupChannel({generate, lnd, to});
 
   const {channels} = await getFeeRates({lnd});
 
@@ -35,7 +32,7 @@ test(`Get fee rates`, async ({end, equal}) => {
   equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
   equal(channel.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

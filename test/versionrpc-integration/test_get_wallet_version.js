@@ -1,15 +1,16 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {getWalletVersion} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 // Getting the wallet version should return the wallet version
 test(`Get wallet version`, async ({end, equal, type}) => {
-  const spawned = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
+
+  const [{lnd}] = nodes;
 
   try {
-    const version = await getWalletVersion({lnd: spawned.lnd});
+    const version = await getWalletVersion({lnd});
 
     type(version.build_tags, Array, 'Got array of build tags');
     type(version.commit_hash, 'string', 'Got commit hash string');
@@ -27,9 +28,7 @@ test(`Get wallet version`, async ({end, equal, type}) => {
     equal(message, 'VersionMethodUnsupported', 'Got unsupported error');
   }
 
-  spawned.kill();
-
-  await waitForTermination({lnd: spawned.lnd});
+  await kill({});
 
   return end();
 });

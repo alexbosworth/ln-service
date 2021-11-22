@@ -1,10 +1,10 @@
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {decodePsbt} = require('psbt');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
 const {fundPsbt} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
@@ -13,8 +13,8 @@ const {sendToChainAddress} = require('./../../');
 
 const chainAddressRowType = 'chain_address';
 const confirmationCount = 6;
+const count = 100;
 const description = 'description';
-const format = 'p2wpkh';
 const {fromBech32} = address;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const regtestBech32AddressHrp = 'bcrt';
@@ -24,27 +24,28 @@ const txIdHexByteLength = 64;
 
 // Funding a transaction should result in a funded PSBT
 test(`Fund PSBT`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const {lnd} = cluster.target;
+  const [{generate, lnd}] = nodes;
 
-  const {address} = await createChainAddress({format, lnd});
+  await generate({count});
 
-  const [utxo] = (await getUtxos({lnd: cluster.control.lnd})).utxos;
+  const {address} = await createChainAddress({lnd});
+  const [utxo] = (await getUtxos({lnd})).utxos;
 
   const funded = await asyncRetry({interval, times}, async () => {
     try {
       return await fundPsbt({
+        lnd,
         inputs: [{
           transaction_id: utxo.transaction_id,
           transaction_vout: utxo.transaction_vout,
         }],
-        lnd: cluster.control.lnd,
         outputs: [{address, tokens}],
       });
     } catch (err) {
       // On LND 0.11.1 and below, funding a PSBT is not supported
-      if (err.shift() === 501) {
+      if (err.slice().shift() === 501) {
         return;
       }
 
@@ -54,7 +55,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
   // On LND 0.11.1 and below, funding a PSBT is not supported
   if (!funded) {
-    await cluster.kill({});
+    await kill({});
 
     return end();
   }
@@ -73,7 +74,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
   const output = funded.outputs.find(n => !n.is_change);
 
   equal(change.output_script.length, 44, 'Change address is returned');
-  equal(change.tokens, 4998990800, 'Got change output value');
+  equal(change.tokens, 4998992950, 'Got change output value');
 
   equal(output.tokens, tokens, 'Got expected tokens output');
 
@@ -91,9 +92,9 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
   equal(decodedInput.sighash_type, 1, 'PSBT has sighash all flag');
   equal(!!decodedInput.witness_utxo.script_pub, true, 'PSBT input address');
-  equal(decodedInput.witness_utxo.tokens, 4999999000, 'PSBT has input tokens');
+  equal(decodedInput.witness_utxo.tokens, 5000000000, 'PSBT has input tokens');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

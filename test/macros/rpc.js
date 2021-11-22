@@ -58,6 +58,7 @@ module.exports = (args, cbk) => {
             {
               agent,
               body: JSON.stringify({
+                jsonrpc: '1.0',
                 id: `${++requests}`,
                 method: args.cmd,
                 params: args.params,

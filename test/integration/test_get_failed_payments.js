@@ -1,11 +1,13 @@
+const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {deleteForwardingReputations} = require('./../../');
+const {getChainBalance} = require('./../../');
 const {getFailedPayments} = require('./../../');
 const {getPayment} = require('./../../');
 const {getPayments} = require('./../../');
@@ -15,55 +17,52 @@ const {setupChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
+const count = 100;
+const size = 3;
+const times = 1000;
 const tokens = 1e6 / 2;
 
 // Getting failed payments should return failed payments
 test('Get failed payments', async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const {address} = await createChainAddress({
-    format: 'p2wpkh',
-    lnd: cluster.remote.lnd,
-  });
+  const {address} = await createChainAddress({lnd: remote.lnd});
+
+  await generate({count});
 
   // Send coins to remote so that it can accept the channel
-  await sendToChainAddress({lnd, address, tokens: channelCapacityTokens})
+  await sendToChainAddress({lnd, address, tokens: channelCapacityTokens});
+
   // Generate to confirm the tx
-  await cluster.generate({count: confirmationCount, node: cluster.control});
-  await cluster.generate({count: confirmationCount, node: cluster.remote});
+  await generate({count: confirmationCount});
+  await remote.generate({count: confirmationCount});
 
   await setupChannel({
+    generate,
     lnd,
     capacity: channelCapacityTokens + channelCapacityTokens,
-    generate: cluster.generate,
-    to: cluster.target,
+    to: target,
   });
 
   await setupChannel({
     capacity: channelCapacityTokens,
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
+    lnd: target.lnd,
+    generate: target.generate,
+    generator: target,
     give: Math.round(channelCapacityTokens / 2),
-    to: cluster.remote,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
+  const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
   const bigInvoice = await createInvoice({
     tokens: (channelCapacityTokens / 2) + (channelCapacityTokens / 4),
-    lnd: cluster.remote.lnd,
+    lnd: remote.lnd,
   });
-
-  await delay(1000);
 
   try {
     await pay({lnd, request: bigInvoice.request});
@@ -73,26 +72,24 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
   // Create a new channel to increase total edge liquidity
   await setupChannel({
     capacity: channelCapacityTokens,
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
-    to: cluster.remote,
+    lnd: target.lnd,
+    generate: target.generate,
+    generator: target,
+    to: remote,
   });
 
   await deleteForwardingReputations({lnd});
 
-  try {
-    const {secret} = await pay({lnd, request: invoice.request});
-  } catch (err) {
-    equal(err, null, 'No error when probing for route');
-  }
+  await asyncRetry({times}, async () => {
+    await pay({lnd, request: invoice.request});
+  });
 
   {
     const {payments} = await getFailedPayments({lnd});
 
-    const [payment] = payments;
+    const [payment] = payments.filter(n => n.mtokens === bigInvoice.mtokens);
 
-    equal(payment.destination, cluster.remote.public_key, 'Payment to');
+    equal(payment.destination, remote.id, 'Payment to');
     equal(payment.confirmed_at, undefined, 'No confirmation date');
     equal(!!payment.created_at, true, 'Got payment created date');
     equal(payment.fee, undefined, 'No fee when not paid');
@@ -134,12 +131,12 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
 
     const [payment] = payments;
 
-    equal(payment.destination, cluster.remote.public_key, 'Paid to');
+    equal(payment.destination, remote.id, 'Paid to');
     equal(!!payment.confirmed_at, true, 'Got confirmation date');
     equal(!!payment.created_at, true, 'Got payment start date');
     equal(payment.fee, 1, 'Got fee paid');
     equal(payment.fee_mtokens, '1500', 'Got fee mtokens paid');
-    strictSame(payment.hops, [cluster.target.public_key], 'Got hops');
+    strictSame(payment.hops, [target.id], 'Got hops');
     equal(!!payment.id, true, 'Got a payment id');
     equal(!!payment.index, true, 'Got payment index');
     equal(payment.is_confirmed, true, 'Failed payment is not confirmed');
@@ -152,7 +149,7 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
     equal(payment.tokens, invoice.tokens, 'Failed has tokens');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

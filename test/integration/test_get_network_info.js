@@ -1,12 +1,13 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {getNetworkInfo} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 // Getting the network info should return basic network statistics
 test(`Get network info`, async ({end, equal}) => {
-  const {kill, lnd} = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
+
+  const [{lnd}] = nodes;
 
   const result = await getNetworkInfo({lnd});
 
@@ -18,9 +19,7 @@ test(`Get network info`, async ({end, equal}) => {
   equal(result.not_recently_updated_policy_count, 0, 'Not updated count');
   equal(result.total_capacity, 0, 'Total capacity');
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

@@ -1,62 +1,35 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {chainSendTransaction} = require('./../macros');
-const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
-const {generateBlocks} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
-const {getWalletVersion} = require('./../../');
-const {mineTransaction} = require('./../macros');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
-const {waitForUtxo} = require('./../macros');
+const {getWalletInfo} = require('./../../');
 
 const count = 100;
 const defaultFee = 1e3;
-const defaultVout = 0;
-const emptyChainBalance = 0;
 const format = 'np2wpkh';
-const interval = retryCount => 10 * Math.pow(2, retryCount);
-const times = 20;
-const tokens = 1e8;
+const times = 300;
 
 // Getting chain transactions should list out the chain transactions
-test(`Get chain transactions`, async ({end, equal, fail, strictSame}) => {
-  const node = await spawnLnd({});
+test(`Get chain transactions`, async ({end, equal, strictSame}) => {
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const cert = node.chain_rpc_cert_file;
-  const host = node.listen_ip;
-  const {kill} = node;
-  const pass = node.chain_rpc_pass;
-  const port = node.chain_rpc_port;
-  const {lnd} = node;
-  const user = node.chain_rpc_user;
-
-  const {address} = await createChainAddress({format, lnd});
+  const [{generate, lnd}] = nodes;
 
   // Generate some funds for LND
-  const {blocks} = await node.generate({count});
+  await generate({count});
 
-  const [block] = blocks;
+  await asyncRetry({interval: 10, times: 1000}, async () => {
+    const wallet = await getWalletInfo({lnd});
 
-  const [coinbaseTransaction] = block.transaction_ids;
-
-  const {transaction} = chainSendTransaction({
-    tokens,
-    destination: address,
-    fee: defaultFee,
-    private_key: node.mining_key,
-    spend_transaction_id: coinbaseTransaction,
-    spend_vout: defaultVout,
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('ExpectedWalletSyncedToChain');
+    }
   });
 
   // Wait for generation to be over
-  await asyncRetry({interval, times}, async () => {
-    // Generate to confirm the tx
-    await mineTransaction({cert, host, pass, port, transaction, user});
-
+  await asyncRetry({times}, async () => {
     const {transactions} = await getChainTransactions({lnd});
 
     const [tx] = transactions;
@@ -70,16 +43,22 @@ test(`Get chain transactions`, async ({end, equal, fail, strictSame}) => {
 
   const {transactions} = await getChainTransactions({lnd});
 
-  equal(transactions.length, [transaction].length, 'Transaction found');
+  equal(transactions.length > 1, true, 'Transaction found');
 
   const [tx] = transactions;
 
+  equal(!!tx.block_id, true, 'Transaction has block id');
+  equal(!!tx.confirmation_count, true, 'Transaction confirm count');
+  equal(!!tx.confirmation_height, true, 'Transaction confirm height');
+  equal(!!tx.created_at, true, 'Transaction record create time');
+  equal(tx.description, undefined, 'No tx description');
+  equal(tx.fee, undefined, 'No transaction fee');
+  equal(!!tx.id, true, 'Transaction id');
   equal(tx.is_confirmed, true, 'Transaction is confirmed');
   equal(tx.is_outgoing, false, 'Transaction is incoming');
-  strictSame(tx.output_addresses, [address], 'Address is returned');
-  equal(tx.tokens, tokens - defaultFee, 'Chain tokens are returned');
-
-  const wallet = await getWalletVersion({lnd});
+  equal(tx.output_addresses.length, 1, 'Tx output address');
+  equal(tx.tokens, 5000000000, 'Got coinbase reward tokens');
+  equal(!!tx.transaction, true, 'Got transaction hex');
 
   const onlyAfter = await getChainTransactions({
     lnd,
@@ -88,10 +67,11 @@ test(`Get chain transactions`, async ({end, equal, fail, strictSame}) => {
 
   equal(onlyAfter.transactions.length, [].length, 'No transactions after');
 
-  const onlyBefore = await getChainTransactions({
-    lnd,
-    before: tx.confirmation_height,
-  });
+  const [height] = transactions
+    .map(n => n.confirmation_height)
+    .sort((a, b) => a - b);
+
+  const onlyBefore = await getChainTransactions({lnd, before: height});
 
   equal(onlyBefore.transactions.length, [].length, 'No tx before');
 
@@ -103,9 +83,7 @@ test(`Get chain transactions`, async ({end, equal, fail, strictSame}) => {
 
   strictSame(between.transactions.length, [tx].length, 'One transaction');
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

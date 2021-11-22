@@ -2,92 +2,90 @@ const {createHash} = require('crypto');
 const {randomBytes} = require('crypto');
 
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
+const {addPeer} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');
 
-const interval = retryCount => 50 * Math.pow(2, retryCount);
+const interval = 10
 const keySendPreimageType = '5482373484';
 const preimageByteLength = 32;
-const times = 10;
+const size = 2;
+const times = 1000;
+const tokens = 100;
 
 // Pay a push payment
 test(`Pay push payment`, async ({end, equal, rejects}) => {
-  const cluster = await (async () => {
-    try {
-      return await createCluster({
-        is_keysend_enabled: true,
-        is_remote_skipped: true,
-      });
-    } catch (err) {}
-  })();
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  if (!cluster) {
-    return end();
+  try {
+    const [{generate, lnd}, target] = nodes;
+
+    await generate({count: 400});
+
+    await setupChannel({generate, lnd, to: target});
+
+    const preimage = randomBytes(preimageByteLength);
+    let updated;
+
+    const id = createHash('sha256').update(preimage).digest().toString('hex');
+    const secret = preimage.toString('hex');
+
+    const sub = subscribeToInvoices({lnd: target.lnd, restart_delay_ms: 1});
+
+    sub.on('invoice_updated', n => updated = n);
+
+    // Wait for the payment to be made
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({lnd, public_key: target.id, socket: target.socket});
+
+      const payment = await payViaPaymentDetails({
+        id,
+        lnd,
+        tokens,
+        destination: target.id,
+        messages: [{type: keySendPreimageType, value: secret}],
+      });
+    });
+
+    // Wait for the invoice to be emitted
+    await asyncRetry({interval, times}, async () => {
+      if (!updated) {
+        throw new Error('ExpectedInvoiceEmitted');
+      }
+
+      if (!updated.is_confirmed) {
+        throw new Error('ExpectedInvoiceConfirmed');
+      }
+
+      return;
+    });
+
+    sub.removeAllListeners();
+
+    equal(updated.secret, secret, 'Got invoice event secret');
+    equal(updated.is_push, true, 'Got invoice event push');
+
+    const gotInvoice = await getInvoice({id, lnd: target.lnd});
+    const {invoices} = await getInvoices({lnd: target.lnd});
+
+    const [invoice] = invoices;
+
+    equal(gotInvoice.secret, secret, 'Get invoice push payment');
+    equal(gotInvoice.is_push, true, 'Get invoice shows push payment');
+
+    equal(invoice.secret, secret, 'Get invoices push payment');
+    equal(invoice.is_push, true, 'Get invoices shows push payment');
+  } catch (err) {
+    equal(err, null, 'Expected push payment sent');
   }
 
-  await setupChannel({
-    generate: cluster.generate,
-    lnd: cluster.control.lnd,
-    to: cluster.target,
-  });
-
-  const preimage = randomBytes(preimageByteLength);
-  let updated;
-
-  const id = createHash('sha256').update(preimage).digest().toString('hex');
-  const secret = preimage.toString('hex');
-
-  const sub = subscribeToInvoices({lnd: cluster.target.lnd});
-
-  sub.on('invoice_updated', n => updated = n);
-
-  // Wait for the payment to be made
-  await asyncRetry({interval, times}, async () => {
-    const payment = await payViaPaymentDetails({
-      id,
-      destination: cluster.target.public_key,
-      lnd: cluster.control.lnd,
-      messages: [{type: keySendPreimageType, value: secret}],
-      tokens: 100,
-    });
-  });
-
-  // Wait for the invoice to be emitted
-  await asyncRetry({interval, times}, async () => {
-    if (!updated) {
-      throw new Error('ExpectedInvoiceEmitted');
-    }
-
-    if (!updated.is_confirmed) {
-      throw new Error('ExpectedInvoiceConfirmed');
-    }
-
-    return;
-  });
-
-  sub.removeAllListeners();
-
-  equal(updated.secret, secret, 'Got invoice event secret');
-  equal(updated.is_push, true, 'Got invoice event push');
-
-  const gotInvoice = await getInvoice({id, lnd: cluster.target.lnd});
-  const {invoices} = await getInvoices({lnd: cluster.target.lnd});
-
-  const [invoice] = invoices;
-
-  equal(gotInvoice.secret, secret, 'Get invoice push payment');
-  equal(gotInvoice.is_push, true, 'Get invoice shows push payment');
-
-  equal(invoice.secret, secret, 'Get invoices push payment');
-  equal(invoice.is_push, true, 'Get invoices shows push payment');
-
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

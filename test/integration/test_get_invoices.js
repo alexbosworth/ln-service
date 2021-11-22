@@ -1,55 +1,58 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 const limit = 1;
 
 // createInvoice should result in a created invoice
 test(`Create an invoice`, async ({end, equal}) => {
-  const {kill, lnd} = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
 
-  const invoices = [
-    await createInvoice({lnd, description: '3'}),
-    await createInvoice({lnd, description: '2'}),
-    await createInvoice({lnd, description: '1'}),
-  ];
+  try {
+    const [{generate, lnd}] = nodes;
 
-  invoices.reverse();
+    const invoices = [
+      await createInvoice({lnd, description: '3'}),
+      await createInvoice({lnd, description: '2'}),
+      await createInvoice({lnd, description: '1'}),
+    ];
 
-  const firstPage = await getInvoices({limit, lnd});
+    invoices.reverse();
 
-  equal(!!firstPage.next, true, 'First page has a next token');
+    const firstPage = await getInvoices({limit, lnd});
 
-  const secondPage = await getInvoices({lnd, token: firstPage.next});
+    equal(!!firstPage.next, true, 'First page has a next token');
 
-  equal(!!secondPage.next, true, 'Second page has a next token');
+    const secondPage = await getInvoices({lnd, token: firstPage.next});
 
-  const thirdPage = await getInvoices({lnd, token: secondPage.next});
+    equal(!!secondPage.next, true, 'Second page has a next token');
 
-  equal(!!thirdPage.next, false, 'Third page has no next token');
+    const thirdPage = await getInvoices({lnd, token: secondPage.next});
 
-  const receivedInvoices = []
-    .concat(firstPage.invoices)
-    .concat(secondPage.invoices)
-    .concat(thirdPage.invoices);
+    equal(!!thirdPage.next, false, 'Third page has no next token');
 
-  receivedInvoices.forEach((invoice, i) => {
-    const expected = invoices[i];
+    const receivedInvoices = []
+      .concat(firstPage.invoices)
+      .concat(secondPage.invoices)
+      .concat(thirdPage.invoices);
 
-    equal(invoice.chain_address, expected.chain_address, 'Chain address');
-    equal(invoice.confirmed_at, expected.confirmed_at, 'Confirmed at');
-    equal(invoice.id, expected.id, 'Invoice id');
-    equal(invoice.request, expected.request, 'Payment request');
-    equal(invoice.secret, expected.secret, 'Payment secret');
-    equal(invoice.tokens, expected.tokens, 'Tokens');
-  });
+    receivedInvoices.forEach((invoice, i) => {
+      const expected = invoices[i];
 
-  kill();
+      equal(invoice.chain_address, expected.chain_address, 'Chain address');
+      equal(invoice.confirmed_at, expected.confirmed_at, 'Confirmed at');
+      equal(invoice.id, expected.id, 'Invoice id');
+      equal(invoice.request, expected.request, 'Payment request');
+      equal(invoice.secret, expected.secret, 'Payment secret');
+      equal(invoice.tokens, expected.tokens, 'Tokens');
+    });
+  } catch (err) {
+    equal(err, null, 'No error is expected');
+  }
 
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

@@ -1,35 +1,32 @@
+const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deletePayments} = require('./../../');
 const {getPayments} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 
+const size = 2;
+const times = 1000;
 const tokens = 100;
 
 // Deleting payments should delete all payments
 test('Delete payments', async ({afterEach, fail, end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target] = nodes;
 
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  const {generate, lnd} = control;
 
-  const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
+  await setupChannel({generate, lnd, to: target});
 
-  let paid;
+  const invoice = await createInvoice({tokens, lnd: target.lnd});
 
-  try {
-    paid = await pay({lnd, request: invoice.request});
-  } catch (err) {
-    fail('Payment should be made to destination');
-
-    await cluster.kill({});
-
-    return end();
-  }
+  const paid = await asyncRetry({times}, async () => {
+    return await pay({lnd, request: invoice.request});
+  });
 
   const priorLength = (await getPayments({lnd})).payments.length;
 
@@ -39,7 +36,7 @@ test('Delete payments', async ({afterEach, fail, end, equal}) => {
 
   equal(priorLength - wipedLength, [paid].length, 'Payment history deleted');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

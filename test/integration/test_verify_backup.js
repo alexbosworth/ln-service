@@ -1,25 +1,27 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {getBackup} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {verifyBackup} = require('./../../');
 
 const giftTokens = 1e5;
+const size = 2;
 
 // Verifying a channel backup should show the backup is valid
 test(`Test verify backup`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target] = nodes;
+
+  const {generate, lnd} = control;
 
   const channelOpen = await setupChannel({
-    lnd: cluster.target.lnd,
-    generate: cluster.generate,
-    generator: cluster.target,
+    lnd: target.lnd,
+    generate: target.generate,
     give: giftTokens,
-    to: cluster.control,
+    to: control,
   });
 
   const {backup} = await getBackup({
@@ -45,7 +47,7 @@ test(`Test verify backup`, async ({end, equal}) => {
   equal(badBackup.is_valid, false, 'Invalid channel backup is invalid');
   equal(goodBackup.is_valid, true, 'Channel backup is validated');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

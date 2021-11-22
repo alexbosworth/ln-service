@@ -2,12 +2,11 @@ const {createHash} = require('crypto');
 
 const {decode} = require('bip66');
 const {ecdsaRecover} = require('secp256k1');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {signBytes} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {verifyBytesSignature} = require('./../../');
-const {waitForTermination} = require('./../macros');
 
 const preimage = '00';
 const recoveryFlags = [0, 1, 2, 3];
@@ -15,14 +14,16 @@ const sha256 = n => createHash('sha256').update(Buffer.from(n, 'hex'));
 
 // Verifying signature over bytes should result in validity
 test(`Verify bytes signature`, async ({end, equal}) => {
-  const spawned = await spawnLnd({});
+  const {kill, nodes} = await spawnLightningCluster({});
+
+  const [{id, lnd}] = nodes;
 
   try {
     const {signature} = await signBytes({
+      lnd,
       preimage,
       key_family: 6,
       key_index: 0,
-      lnd: spawned.lnd,
     });
 
     // Check the signature locally using ECDSA recovery
@@ -38,7 +39,7 @@ test(`Verify bytes signature`, async ({end, equal}) => {
       try {
         const key = Buffer.from(ecdsaRecover(realSig, flag, hash, true));
 
-        return key.equals(Buffer.from(spawned.public_key, 'hex'));
+        return key.equals(Buffer.from(id, 'hex'));
       } catch (err) {
         return false;
       }
@@ -48,19 +49,19 @@ test(`Verify bytes signature`, async ({end, equal}) => {
 
     // Ask the node for validity
     const validity = await verifyBytesSignature({
+      lnd,
       preimage,
       signature,
-      lnd: spawned.lnd,
-      public_key: spawned.public_key,
+      public_key: id,
     });
 
     equal(validity.is_valid, true, 'Signature is valid for public key');
 
     const invalid = await verifyBytesSignature({
+      lnd,
       signature,
-      lnd: spawned.lnd,
       preimage: '01',
-      public_key: spawned.public_key,
+      public_key: id,
     });
 
     equal(invalid.is_valid, false, 'Signature is not valid for preimage');
@@ -71,9 +72,7 @@ test(`Verify bytes signature`, async ({end, equal}) => {
     equal(message, 'ExpectedSignerRpcLndBuildTagToSignBytes', 'Invalid LND');
   }
 
-  spawned.kill();
-
-  await waitForTermination({lnd: spawned.lnd});
+  await kill({});
 
   return end();
 });

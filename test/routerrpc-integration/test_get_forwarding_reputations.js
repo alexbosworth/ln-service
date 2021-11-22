@@ -1,9 +1,8 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
-const {createInvoice} = require('./../../');
 const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {payViaRoutes} = require('./../../');
@@ -16,50 +15,46 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultOdds = 950000;
-const interval = 250;
-const times = 100;
+const interval = 10;
+const size = 3;
+const times = 2000;
 const tokens = 1e6 / 2;
 
 // Getting forwarding reputations should return reputations
 test('Get forwarding reputations', async ({end, equal}) => {
-  const cluster = await createCluster({});
+  const cluster = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, id, lnd}, target, remote] = cluster.nodes;
+
+  await generate({count: 400});
 
   // Create a channel from the control to the target node
   await setupChannel({
+    generate,
     lnd,
     capacity: channelCapacityTokens * 2,
-    generate: cluster.generate,
-    to: cluster.target,
+    to: target,
   });
 
   const targetToRemoteChan = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
+    generate: target.generate,
     give: Math.round(channelCapacityTokens / 2),
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    lnd: target.lnd,
+    to: remote,
   });
-
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
-
-  const {channels} = await getChannels({lnd: cluster.remote.lnd});
-
-  await createInvoice({tokens, lnd: cluster.remote.lnd});
-
-  await waitForRoute({lnd, tokens, destination: cluster.remote.public_key});
 
   await asyncRetry({interval, times}, async () => {
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
+    const {channels} = await getChannels({lnd: remote.lnd});
+
+    await waitForRoute({lnd, tokens, destination: remote.id});
+
     try {
       const res = await probeForRoute({
         lnd,
         tokens,
-        destination: cluster.remote.public_key,
+        destination: remote.id,
         is_ignoring_past_failures: true,
       });
     } catch (err) {
@@ -70,9 +65,17 @@ test('Get forwarding reputations', async ({end, equal}) => {
 
     const [node] = nodes;
 
+    if (!node) {
+      throw new Error('ExpectedForwardingNode');
+    }
+
     equal(!!node.public_key, true, 'Temp fail node added');
 
     const [peer] = node.peers;
+
+    if (!peer) {
+      throw new Error('ExpectedNodePeer');
+    }
 
     if (!peer.last_failed_forward_at) {
       throw new Error('ExpectedLastFailTimeReturned');

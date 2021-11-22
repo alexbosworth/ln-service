@@ -1,10 +1,13 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
+const {cancelHodlInvoice} = require('./../../');
 const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
+const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
@@ -12,48 +15,52 @@ const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
 
 const all = promise => Promise.all(promise);
-const interval = retryCount => 50 * Math.pow(2, retryCount);
+const interval = 10;
 const {isArray} = Array;
 const message = {type: '85805', value: '01'};
-const times = 15;
-const tokens = 100;
+const size = 3;
+const times = 3000;
+const tokens = 1000;
 
 // Getting a route to a destination should return a route to the destination
 test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  {
-    const {lnd} = cluster.target;
+  const [control, target, remote] = nodes;
 
-    const {request} = await createInvoice({lnd});
-
-    // Exit test early if features are not supported
-    if (!(await decodePaymentRequest({lnd, request})).features.length) {
-      await cluster.kill({});
-
-      return end();
-    }
-  }
+  await control.generate({count: 500});
 
   await setupChannel({
-    generate: cluster.generate,
-    lnd: cluster.control.lnd,
-    to: cluster.target,
+    generate: control.generate,
+    lnd: control.lnd,
+    to: target,
   });
 
   await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
+    generate: target.generate,
     give: 1e5,
     hidden: true,
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    lnd: target.lnd,
+    to: remote,
   });
 
-  const invoice = await createInvoice({
-    tokens,
-    is_including_private_channels: true,
-    lnd: cluster.remote.lnd,
+  const invoice = await asyncRetry({interval, times}, async () => {
+    const invoice = await createInvoice({
+      tokens,
+      is_including_private_channels: true,
+      lnd: remote.lnd,
+    });
+
+    const {routes} = parsePaymentRequest({request: invoice.request});
+
+    // Wait for private routes to get picked up
+    if (!routes) {
+      await cancelHodlInvoice({id: invoice.id, lnd: remote.lnd});
+
+      throw new Error('ExpectedRouteForInvoice');
+    }
+
+    return invoice;
   });
 
   const parsed = parsePaymentRequest({request: invoice.request});
@@ -62,7 +69,7 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
     const {route} = await getRouteToDestination({
       destination: parsed.destination,
       features: parsed.features,
-      lnd: cluster.control.lnd,
+      lnd: control.lnd,
       payment: parsed.payment,
       routes: parsed.routes,
       mtokens: parsed.mtokens,
@@ -71,37 +78,37 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
 
     const paid = await payViaRoutes({
       id: parsed.id,
-      lnd: cluster.control.lnd,
+      lnd: control.lnd,
       routes: [route],
     });
 
     equal(invoice.secret, paid.secret, 'Paid multi-hop private route');
   });
 
-  const inv = await createInvoice({tokens, lnd: cluster.target.lnd});
+  const inv = await createInvoice({tokens, lnd: target.lnd});
 
   const invDetails = await decodePaymentRequest({
-    lnd: cluster.control.lnd,
+    lnd: control.lnd,
     request: inv.request,
   });
 
   const controlToTarget = await getRouteToDestination({
-    destination: cluster.target.public_key,
+    destination: target.id,
     features: invDetails.features,
-    lnd: cluster.control.lnd,
+    lnd: control.lnd,
     messages: [message],
     payment: invDetails.payment,
-    tokens: invDetails.tokens / [cluster.control, cluster.remote].length,
+    tokens: invDetails.tokens / [control, remote].length,
     total_mtokens: invDetails.mtokens,
   });
 
   const remoteToTarget = await getRouteToDestination({
-    destination: cluster.target.public_key,
+    destination: target.id,
     features: invDetails.features,
-    lnd: cluster.remote.lnd,
+    lnd: remote.lnd,
     messages: [message],
     payment: invDetails.payment,
-    tokens: invDetails.tokens / [cluster.control, cluster.remote].length,
+    tokens: invDetails.tokens / [control, remote].length,
     total_mtokens: invDetails.mtokens,
   });
 
@@ -109,12 +116,12 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
     const [controlPay, remotePay] = await all([
       payViaRoutes({
         id: invDetails.id,
-        lnd: cluster.control.lnd,
+        lnd: control.lnd,
         routes: [controlToTarget.route],
       }),
       payViaRoutes({
         id: invDetails.id,
-        lnd: cluster.remote.lnd,
+        lnd: remote.lnd,
         routes: [remoteToTarget.route],
       }),
     ]);
@@ -124,7 +131,7 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
 
     const {payments} = await getInvoice({
       id: invDetails.id,
-      lnd: cluster.target.lnd,
+      lnd: target.lnd,
     });
 
     const [payment1, payment2] = payments;
@@ -138,7 +145,7 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
     equal(err, null, 'Unexpected error paying invoice');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

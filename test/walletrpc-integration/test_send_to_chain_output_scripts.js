@@ -1,8 +1,9 @@
+const asyncRetry = require('async/retry');
 const {script} = require('bitcoinjs-lib');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
 
-const {createCluster} = require('./../macros');
 const {getChainTransactions} = require('./../../');
 const {sendToChainOutputScripts} = require('./../../');
 
@@ -10,17 +11,23 @@ const asBuf = hex => Buffer.from(hex, 'hex');
 const asHex = buffer => buffer.toString('hex');
 const {compile} = script;
 const confirmationCount = 6;
+const count = 100;
 const {fromHex} = Transaction;
+const interval = 10;
 const OP_RETURN = 0x6a;
+const size = 2;
+const times = 1000;
 const tokens = 1e6;
 
 // Sending to chain output scripts should result in on-chain sent funds
 test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
-  const script = [].concat(OP_RETURN).concat(asBuf(cluster.target.public_key));
+  await generate({count});
+
+  const script = [].concat(OP_RETURN).concat(asBuf(target.id));
 
   const sendTo = [{tokens, script: asHex(compile(script))}];
 
@@ -34,7 +41,19 @@ test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
   strictSame(outs, sendTo, 'Got expected outputs');
 
   // Generate to confirm the tx
-  await cluster.generate({count: confirmationCount});
+  await generate({count: confirmationCount});
+
+  await asyncRetry({interval, times}, async () => {
+    const {transactions} = await getChainTransactions({lnd});
+
+    const tx = transactions.find(n => n.transaction === sent.transaction);
+
+    if (!!tx.is_confirmed) {
+      return;
+    }
+
+    throw new Error('WaitingForTransactionConfirmationPickup');
+  });
 
   const {transactions} = await getChainTransactions({lnd});
 
@@ -42,7 +61,7 @@ test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
 
   equal(tx.is_confirmed, true, 'Transaction is confirmed');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

@@ -1,7 +1,7 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {getIdentity} = require('./../../');
 const {getNode} = require('./../../');
@@ -16,27 +16,20 @@ const defaultFee = 1e3;
 const defaultAliasLength = '00000000000000000000'.length;
 const feeRate = 21;
 const mtokPerTok = BigInt(1e3);
+const size = 3;
 
 // Getting a node should return the public graph node info
 test(`Get node`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {control} = cluster;
+  const [{generate, id, lnd}, target, remote] = nodes;
 
-  const {generate} = cluster;
-  const {lnd} = control;
-
-  const controlToTarget = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const controlToTarget = await setupChannel({generate, lnd, to: target});
 
   const targetToRemote = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    generate: target.generate,
+    lnd: target.lnd,
+    to: remote,
   });
 
   await updateRoutingFees({
@@ -48,26 +41,17 @@ test(`Get node`, async ({end, equal, strictSame}) => {
     transaction_vout: controlToTarget.transaction_vout,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
   await delay(3000);
 
-  const controlListenIp = cluster.control.listen_ip;
-  const controlListenPort = cluster.control.listen_port;
-
-  const controlPublicKey = (await getIdentity({lnd})).public_key;
-
-  const node = await getNode({lnd, public_key: controlPublicKey});
+  const node = await getNode({lnd, public_key: id});
 
   {
     const {channels} = await getNode({
       lnd,
       is_omitting_channels: true,
-      public_key: controlPublicKey,
+      public_key: id,
     });
 
     equal(channels.length, [].length, 'Channels are omitted')
@@ -76,7 +60,7 @@ test(`Get node`, async ({end, equal, strictSame}) => {
   if (!!node.channels.length) {
     const [{policies}] = node.channels;
 
-    const policy = policies.find(n => n.public_key === control.public_key);
+    const policy = policies.find(n => n.public_key === id);
 
     equal(BigInt(policy.base_fee_mtokens), BigInt(baseFee)*mtokPerTok, 'Base');
     equal(policy.cltv_delta, cltvDelta, 'Got expected cltv delta');
@@ -88,14 +72,14 @@ test(`Get node`, async ({end, equal, strictSame}) => {
 
   const [socket] = node.sockets;
 
-  equal(node.alias, controlPublicKey.slice(0, defaultAliasLength), 'Alias');
+  equal(node.alias, id.slice(0, defaultAliasLength), 'Alias');
   equal(node.color, '#3399ff', 'Color');
   equal(node.sockets.length, 1, 'Socket');
-  equal(socket.socket, `127.0.0.1:${controlListenPort}`, 'Ip, port');
+  equal(!!socket.socket, true, 'Ip, port');
   equal(socket.type, 'tcp', 'Socket type');
   equal(node.updated_at.length, 24, 'Update date');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

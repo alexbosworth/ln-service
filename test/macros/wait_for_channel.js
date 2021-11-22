@@ -5,12 +5,13 @@ const {returnResult} = require('asyncjs-util');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 
-const interval = 100;
-const times = 500;
+const interval = 10;
+const times = 6000;
 
 /** Wait for channel to be open
 
   {
+    [hidden]: <Channel is Private True Bool>
     id: <Channel Transaction Id Hex String>
     lnd: <Authenticated LND gRPC API Object>
     [vout]: <Channel Output Index Number>
@@ -43,7 +44,7 @@ const times = 500;
     unsettled_balance: <Unsettled Balance Tokens Number>
   }
 */
-module.exports = ({id, lnd, vout}, cbk) => {
+module.exports = ({hidden, id, lnd, vout}, cbk) => {
   if (!id) {
     return cbk([400, 'ExpectedTransactionIdToWaitForChannelOpen']);
   }
@@ -80,6 +81,10 @@ module.exports = ({id, lnd, vout}, cbk) => {
 
       gotChannel: ['getChannel', ({getChannel}, cbk) => {
         const {policies} = getChannel;
+
+        if (!!hidden) {
+          return cbk();
+        }
 
         if (!!policies.find(n => !n.cltv_delta)) {
           return cbk([503, 'FailedToFindChannelWithFullPolicyDetails']);

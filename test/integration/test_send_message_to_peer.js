@@ -1,49 +1,55 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
+const {addPeer} = require('./../../');
 const {sendMessageToPeer} = require('./../../');
 const {subscribeToPeerMessages} = require('./../../');
 
 const interval = 10;
+const size = 2;
 const times = 1000;
 
 // Sending a message to a peer should result in the message received
 test(`Send peer message`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{id, lnd}, target] = nodes;
 
   try {
     await sendMessageToPeer({
       lnd,
       message: Buffer.from('message').toString('hex'),
-      public_key: cluster.target.public_key,
+      public_key: target.id,
     });
   } catch (err) {
     const [code] = err;
 
     // Send message to peer is not supported on LND 0.13.4 or lower
     if (code === 501) {
-      await cluster.kill({});
+      await kill({});
 
       return end();
     }
   }
 
-  const sub = subscribeToPeerMessages({lnd: cluster.target.lnd});
+  await asyncRetry({interval, times}, async () => {
+    await addPeer({lnd, public_key: target.id, socket: target.socket});
+  });
+
+  const sub = subscribeToPeerMessages({lnd: target.lnd});
 
   const messages = [];
 
   sub.on('message_received', message => messages.push(message));
 
-  await sendMessageToPeer({
-    lnd,
-    message: Buffer.from('message').toString('hex'),
-    public_key: cluster.target.public_key,
-  });
-
   await asyncRetry({interval, times}, async () => {
+    await sendMessageToPeer({
+      lnd,
+      message: Buffer.from('message').toString('hex'),
+      public_key: target.id,
+    });
+
     if (!messages.length) {
       throw new Error('ExpectedMessage');
     }
@@ -55,13 +61,13 @@ test(`Send peer message`, async ({end, equal, strictSame}) => {
     message,
     {
       message: Buffer.from('message').toString('hex'),
-      public_key: cluster.control.public_key,
+      public_key: id,
       type: 32768,
     },
     'Message successfully sent to peer'
   );
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

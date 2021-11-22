@@ -1,25 +1,33 @@
 const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
+const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
-const {createCluster} = require('./../macros');
+const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToGraph} = require('./../../');
 
 const capacity = 1e6;
-const interval = 100;
-const times = 100;
+const interval = 10;
+const size = 2;
+const times = 2000;
 
 // Subscribing to graph should trigger graph events
 test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
+
+  const [control, target] = nodes;
+
+  const {generate, lnd} = control;
 
   const channelClosed = [];
   const channelUpdated = [];
-  const {lnd} = cluster.control;
   const nodeUpdated = [];
-  const {socket} = cluster.target;
+  const {socket} = target;
+
+  await delay(3000);
 
   const sub = subscribeToGraph({lnd});
 
@@ -30,19 +38,33 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
 
   const channel = await setupChannel({
     capacity,
+    generate,
     lnd,
-    generate: cluster.generate,
-    to: cluster.target,
+    to: target,
   });
 
   const {id} = channel;
 
   const channelPolicies = await getChannel({id, lnd});
 
+  await asyncRetry({interval, times}, async () => {
+    await addPeer({lnd, public_key: target.id, socket: target.socket});
+
+    if (!channelUpdated.length) {
+      throw new Error('ExpectedChannelUpdated');
+    }
+
+    if (nodeUpdated.length !== [control, target].length) {
+      throw new Error('ExpectedNodesUpdated');
+    }
+
+    return;
+  });
+
   await closeChannel({id, lnd})
 
   await asyncRetry({interval, times}, async () => {
-    await cluster.generate({});
+    await generate({});
 
     if (!channelClosed.length) {
       throw new Error('ExpectedChannelClosed');
@@ -97,31 +119,30 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
     return;
   });
 
+
+  const gotControl = nodeUpdated.find(n => n.public_key === control.id);
+
   const expectedControl = {
-    alias: cluster.control.public_key.substring(0, 20),
+    alias: control.id.substring(0, 20),
     color: '#3399ff',
-    public_key: cluster.control.public_key,
-    sockets: [`127.0.0.1:${cluster.control.listen_port}`],
+    public_key: control.id,
+    sockets: gotControl.sockets,
   };
+
+  const gotTarget = nodeUpdated.find(n => n.public_key === target.id);
 
   const expectedTarget = {
-    alias: cluster.target.public_key.substring(0, 20),
+    alias: target.id.substring(0, 20),
     color: '#3399ff',
-    public_key: cluster.target.public_key,
-    sockets: [`127.0.0.1:${cluster.target.listen_port}`],
+    public_key: target.id,
+    sockets: gotTarget.sockets,
   };
-
-  const gotControl = nodeUpdated
-    .find(n => n.public_key === cluster.control.public_key);
 
   equal(!!gotControl.features, true, 'Got control features');
   equal(!!gotControl.updated_at, true, 'Got control updated at');
 
   delete gotControl.features;
   delete gotControl.updated_at;
-
-  const gotTarget = nodeUpdated
-    .find(n => n.public_key === cluster.target.public_key);
 
   delete gotTarget.features;
   delete gotTarget.updated_at;
@@ -131,7 +152,7 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
   strictSame(gotControl, expectedControl, 'Got control node announcement');
   strictSame(gotTarget, expectedTarget, 'Got target node announcement');
 
-  await cluster.kill({});
+  await kill({});
 
   return;
 });

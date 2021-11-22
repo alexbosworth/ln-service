@@ -1,35 +1,35 @@
 const asyncTimesSeries = require('async/timesSeries');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getPayments} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 
 const start = new Date().toISOString();
+const size = 2;
 const tokens = 100;
 
 // Getting payments should return the list of payments
 test('Get payments', async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target] = nodes;
 
-  await setupChannel({lnd, generate: cluster.generate, to: cluster.target});
+  await setupChannel({generate, lnd, to: target});
 
-  const invoice = await createInvoice({tokens, lnd: cluster.target.lnd});
+  const invoice = await createInvoice({tokens, lnd: target.lnd});
 
   const paid = await pay({lnd, request: invoice.request});
 
   const [payment] = (await getPayments({lnd})).payments;
 
-  equal(payment.destination, cluster.target_node_public_key, 'Destination');
+  equal(payment.destination, target.id, 'Destination');
   equal(payment.confirmed_at > start, true, 'Got confirmed date');
   equal(payment.created_at.length, 24, 'Created at time');
   equal(payment.fee, 0, 'Fee paid');
-  equal(payment.hops.length, 0, 'Hops');
+  equal(payment.hops.length, [].length, 'Hops');
   equal(payment.id, invoice.id, 'Id');
   equal(payment.is_confirmed, true, 'Confirmed');
   equal(payment.is_outgoing, true, 'Outgoing');
@@ -42,7 +42,7 @@ test('Get payments', async ({end, equal}) => {
   }
 
   await asyncTimesSeries(4, async () => {
-    const {request} = await createInvoice({tokens, lnd: cluster.target.lnd});
+    const {request} = await createInvoice({tokens, lnd: target.lnd});
 
     const paid = await pay({lnd, request});
   });
@@ -61,7 +61,7 @@ test('Get payments', async ({end, equal}) => {
 
   equal(!!page3.next, false, 'There is no page 4');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

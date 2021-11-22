@@ -1,21 +1,19 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {disableChannel} = require('./../../');
 const {getChannel} = require('./../../');
 const {setupChannel} = require('./../macros');
 
+const size = 2;
+
 // Disabling a channel should mark it as disabled
 test(`Disable channel`, async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, id, lnd}, target] = nodes;
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const channel = await setupChannel({generate, lnd, to: target});
 
   try {
     await disableChannel({
@@ -26,9 +24,7 @@ test(`Disable channel`, async ({end, equal}) => {
 
     const details = await getChannel({lnd, id: channel.id});
 
-    const policy = details.policies.find(policy => {
-      return policy.public_key === cluster.control.public_key
-    });
+    const policy = details.policies.find(policy => policy.public_key === id);
 
     equal(policy.is_disabled, true, 'Forwarding policy is disabled');
   } catch (err) {
@@ -37,7 +33,7 @@ test(`Disable channel`, async ({end, equal}) => {
     equal(code, 501, 'Method not supported yet');
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

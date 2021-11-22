@@ -57,7 +57,7 @@ module.exports = ({cert, chain, count, host, key, pass, port, user}, cbk) => {
       },
 
       // Generate blocks
-      generate: ['validate', async ({}, cbk) => {
+      generate: ['validate', ({}, cbk) => {
         let cmd;
         let params;
 
@@ -74,39 +74,34 @@ module.exports = ({cert, chain, count, host, key, pass, port, user}, cbk) => {
 
         default:
           cmd = 'generate';
-          params = [[count].length];
+          params = [count];
           break;
         }
 
-        return asyncTimesSeries(count, (i, cbk) => {
-          return rpc({
-            cert,
-            cmd,
-            host,
-            params,
-            pass,
-            port,
-            user,
-          },
-          (err, res) => {
-            if (!!err) {
-              return cbk([503, 'UnexpectedErrorGeneratingBlocks']);
-            }
-
-            if (!res) {
-              return cbk();
-            }
-
-            if (!Array.isArray(res)) {
-              return cbk([503, 'ExpectedBlockHashesForBlockGeneration', res]);
-            }
-
-            const [blockId] = res;
-
-            return cbk(null, blockId);
-          });
+        return rpc({
+          cert,
+          cmd,
+          host,
+          params,
+          pass,
+          port,
+          user,
         },
-        cbk);
+        (err, res) => {
+          if (!!err) {
+            return cbk([503, 'UnexpectedErrorGeneratingBlocks']);
+          }
+
+          if (!res) {
+            return cbk();
+          }
+
+          if (!Array.isArray(res)) {
+            return cbk([503, 'ExpectedBlockHashesForBlockGeneration', res]);
+          }
+
+          return cbk(null, res);
+        });
       }],
 
       // Get blocks with transaction ids

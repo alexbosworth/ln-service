@@ -490,7 +490,7 @@ Create a new receive address.
 Requires `address:write` permission
 
     {
-      format: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
+      [format]: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
       [is_unused]: <Get As-Yet Unused Address Bool>
       lnd: <Authenticated LND API Object>
     }
@@ -1452,13 +1452,10 @@ Requires `offchain:read` permission
         [cooperative_close_delay_height]: <Prevent Coop Close Until Height Number>
         id: <Standard Format Channel Id String>
         is_active: <Channel Active Bool>
-        is_anchor: <Channel Supports Anchor Outputs Bool>
         is_closing: <Channel Is Closing Bool>
         is_opening: <Channel Is Opening Bool>
         is_partner_initiated: <Channel Partner Opened Channel Bool>
         is_private: <Channel Is Private Bool>
-        is_static_remote_key: <Remote Key Is Static Bool>
-        is_variable_remote_key: <Remote Key Is Variable Bool>
         local_balance: <Local Balance Tokens Number>
         [local_csv]: <Local CSV Blocks Delay Number>
         [local_dust]: <Remote Non-Enforceable Amount Tokens Number>
@@ -2535,7 +2532,6 @@ Requires `offchain:read` permission
       pending_channels: [{
         [close_transaction_id]: <Channel Closing Transaction Id String>
         is_active: <Channel Is Active Bool>
-        is_anchor: <Channel Is Anchor Channel Type Bool>
         is_closing: <Channel Is Closing Bool>
         is_opening: <Channel Is Opening Bool>
         [is_partner_initiated]: <Channel Partner Initiated Channel Bool>
@@ -4656,13 +4652,10 @@ Requires `offchain:read` permission
       [cooperative_close_delay_height]: <Prevent Coop Close Until Height Number>
       id: <Standard Format Channel Id String>
       is_active: <Channel Active Bool>
-      is_anchor: <Channel Supports Anchor Outputs Bool>
       is_closing: <Channel Is Closing Bool>
       is_opening: <Channel Is Opening Bool>
       is_partner_initiated: <Channel Partner Opened Channel Bool>
       is_private: <Channel Is Private Bool>
-      is_static_remote_key: <Remote Key Is Static Bool>
-      is_variable_remote_key: <Remote Key Is Variable Bool>
       local_balance: <Local Balance Tokens Number>
       [local_given]: <Local Initially Pushed Tokens Number>
       local_reserve: <Local Reserved Tokens Number>

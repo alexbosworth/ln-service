@@ -2,9 +2,9 @@ const asyncRetry = require('async/retry');
 const {decodeChanId} = require('bolt07');
 const {hopsFromChannels} = require('bolt07');
 const {routeFromHops} = require('bolt07');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
@@ -16,28 +16,30 @@ const {setupChannel} = require('./../macros');
 
 const interval = retryCount => 50 * Math.pow(2, retryCount);
 const mtok = '000';
+const size = 2;
 const times = 15;
 const tokens = 1e3;
 
 // Encountering errors in payment should return valid error codes
 test('Payment errors', async ({end, equal}) => {
-  const cluster = await createCluster({is_remote_skipped: true});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [control, target] = nodes;
+
+  const {lnd} = control;
 
   // Create a channel from the control to the target node
   const controlToTargetChannel = await setupChannel({
     lnd,
-    generate: cluster.generate,
-    to: cluster.target,
+    generate: control.generate,
+    to: target,
   });
 
   // Create a channel from the target back to the control
   const targetToControlChannel = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    lnd: cluster.target.lnd,
-    to: cluster.control,
+    generate: target.generate,
+    lnd: target.lnd,
+    to: control,
   });
 
   const height = (await getHeight({lnd})).current_block_height;
@@ -49,7 +51,7 @@ test('Payment errors', async ({end, equal}) => {
 
   const [inChanId, outChanId] = channels.map(({id}) => id).sort();
 
-  const destination = (await getIdentity({lnd})).public_key;
+  const destination = control.id;
 
   try {
     let route;
@@ -93,7 +95,7 @@ test('Payment errors', async ({end, equal}) => {
     }
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

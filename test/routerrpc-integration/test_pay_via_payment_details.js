@@ -1,7 +1,7 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
@@ -13,6 +13,7 @@ const {payViaPaymentDetails} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
+const size = 3;
 const start = new Date().toISOString();
 const tlvData = '0000';
 const tlvType = '65537';
@@ -20,31 +21,22 @@ const tokens = 100;
 
 // Paying an invoice should settle the invoice
 test(`Pay`, async ({end, equal, rejects, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  const channel = await setupChannel({lnd, generate, to: target});
 
   const remoteChan = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    generate: target.generate,
+    lnd: target.lnd,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
-  });
+  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
   const height = (await getHeight({lnd})).current_block_height;
-  const invoice = await createInvoice({tokens, lnd: cluster.remote.lnd});
+  const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
   const {features} = await decodePaymentRequest({
     lnd,
@@ -59,7 +51,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
       fee_mtokens: '1000',
       forward: invoice.tokens,
       forward_mtokens: (BigInt(invoice.tokens) * BigInt(1e3)).toString(),
-      public_key: cluster.target.public_key,
+      public_key: target.id,
     },
     {
       channel: remoteChan.id,
@@ -68,21 +60,17 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
       fee_mtokens: '0',
       forward: invoice.tokens,
       forward_mtokens: '100000',
-      public_key: cluster.remote.public_key,
+      public_key: remote.id,
     },
   ];
 
-  await waitForRoute({
-    lnd,
-    destination: cluster.remote.public_key,
-    tokens: invoice.tokens,
-  });
+  await waitForRoute({lnd, destination: remote.id, tokens: invoice.tokens});
 
   try {
     const paid = await payViaPaymentDetails({
       features,
       lnd,
-      destination: cluster.remote.public_key,
+      destination: remote.id,
       payment: invoice.payment,
       tokens: invoice.tokens,
     });
@@ -94,7 +82,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     const tooSoonCltv = await payViaPaymentDetails({
       features,
       lnd,
-      destination: cluster.remote.public_key,
+      destination: remote.id,
       id: invoice.id,
       max_timeout_height: height + 46,
       payment: invoice.payment,
@@ -110,7 +98,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     const paid = await payViaPaymentDetails({
       features,
       lnd,
-      destination: cluster.remote.public_key,
+      destination: remote.id,
       id: invoice.id,
       max_timeout_height: height + 90,
       messages: [{type: tlvType, value: tlvData}],
@@ -139,10 +127,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
   }
 
   {
-    const {payments} = await getInvoice({
-      id: invoice.id,
-      lnd: cluster.remote.lnd,
-    });
+    const {payments} = await getInvoice({id: invoice.id, lnd: remote.lnd});
 
     if (!!payments) {
       const [payment] = payments;
@@ -157,7 +142,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
   }
 
   {
-    const {invoices} = await getInvoices({lnd: cluster.remote.lnd});
+    const {invoices} = await getInvoices({lnd: remote.lnd});
 
     const [{payments}] = invoices;
 
@@ -173,7 +158,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     }
   }
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });

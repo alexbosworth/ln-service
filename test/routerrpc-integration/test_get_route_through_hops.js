@@ -1,78 +1,75 @@
 const {randomBytes} = require('crypto');
 
+const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteThroughHops} = require('./../../');
 const {getRouteToDestination} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const confirmationCount = 6;
+const messages = [{type: '1000000', value: '01'}];
+const size = 3;
 const tokens = 100;
 
 // Getting a route through hops should result in a route through specified hops
 test(`Get route through hops`, async ({end, equal, strictSame}) => {
-  const cluster = await createCluster({});
+  const {kill, nodes} = await spawnLightningCluster({size});
 
-  const {lnd} = cluster.control;
+  const [{generate, lnd}, target, remote] = nodes;
 
-  const controlToTargetChan = await setupChannel({
-    lnd,
-    generate: cluster.generate,
-    to: cluster.target,
-  });
+  await target.generate({count: 100});
+  await remote.generate({count: 100});
+
+  const controlToTargetChan = await setupChannel({generate, lnd, to: target});
 
   const targetToRemoteChan = await setupChannel({
-    generate: cluster.generate,
-    generator: cluster.target,
-    lnd: cluster.target.lnd,
-    to: cluster.remote,
+    generate: target.generate,
+    lnd: target.lnd,
+    to: remote,
   });
 
-  await addPeer({
-    lnd,
-    public_key: cluster.remote.public_key,
-    socket: cluster.remote.socket,
+  await target.generate({count: confirmationCount});
+
+  await asyncRetry({interval: 10, times: 1000}, async () => {
+    const wallet = await getWalletInfo({lnd: remote.lnd});
+
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('ExpectedWalletSyncedToChain');
+    }
   });
 
-  await cluster.generate({count: confirmationCount, node: cluster.target});
-
-  const invoice = await createInvoice({
-    tokens,
-    is_including_private_channels: true,
-    lnd: cluster.remote.lnd,
-  });
+  const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
   const {id} = invoice;
   const {request} = invoice;
 
   const decodedRequest = await decodePaymentRequest({lnd, request});
 
-  await waitForRoute({
-    lnd,
-    destination: decodedRequest.destination,
-    tokens: invoice.tokens,
-  });
+  await waitForRoute({lnd, destination: remote.id, tokens: invoice.tokens});
 
   const {route} = await getRouteToDestination({
     lnd,
     cltv_delta: decodedRequest.cltv_delta,
     destination: decodedRequest.destination,
-    routes: decodedRequest.routes,
     tokens: invoice.tokens,
   });
 
   const res = await getRouteThroughHops({
     lnd,
+    messages,
     cltv_delta: decodedRequest.cltv_delta + 6,
-    messages: [{type: '1000000', value: '01'}],
     mtokens: (BigInt(invoice.tokens) * BigInt(1e3)).toString(),
     payment: decodedRequest.payment,
     public_keys: route.hops.map(n => n.public_key),
@@ -81,12 +78,12 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
 
   await payViaRoutes({lnd, id: invoice.id, routes: [res.route]});
 
-  const got = await getInvoice({lnd: cluster.remote.lnd, id: invoice.id});
+  const got = await getInvoice({lnd: remote.lnd, id: invoice.id});
 
   delete res.route.confidence;
   delete route.confidence;
 
-  route.messages = [{type: '1000000', value: '01'}];
+  route.messages = messages;
   route.payment = decodedRequest.payment;
   route.total_mtokens = decodedRequest.mtokens;
 
@@ -100,7 +97,7 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
 
   strictSame(payment.messages, route.messages, 'Remote got TLV messages');
 
-  await cluster.kill({});
+  await kill({});
 
   return end();
 });
