@@ -1,6 +1,6 @@
 # Versions
 
-## 53.0.0
+## 53.0.1
 
 - Removed support for determining the type of channel to support LND 0.14.0.
 
