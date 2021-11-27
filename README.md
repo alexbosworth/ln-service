@@ -9,7 +9,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.14.0-beta
+- v0.14.0-beta to v0.14.1-beta
 - v0.13.0-beta to v0.13.4-beta
 - v0.12.0-beta to v0.12.1-beta
 - v0.11.0-beta to v0.11.1-beta
