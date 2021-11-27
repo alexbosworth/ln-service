@@ -249,9 +249,13 @@ for `unlocker` methods.
 - [bolt07](https://npmjs.com/package/bolt07) - bolt07 channel gossip utilities
 - [bolt09](https://npmjs.com/package/bolt09) - bolt09 feature flag utilities
 - [invoices](https://npmjs.com/package/invoices) - bolt11 request utilities
-- [lightning](https://npmjs.com/package/lightning) - general lightning utilities
+- [lightning](https://npmjs.com/package/lightning) - methods with typescript
+    typing support
 - [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
-- [ln-pathfinding](https://npmjs.com/package/ln-accounting) - pathfinding utilities
+- [ln-docker-daemons](https://github.com/alexbosworth/ln-docker-daemons)
+    - run regtest integration tests
+- [ln-pathfinding](https://npmjs.com/package/ln-accounting) - pathfinding
+    utilities
 - [probing](https://npmjs.com/package/probing) - payment probing utilities
 - [psbt](https://www.npmjs.com/package/psbt) - BIP 174 PSBT utilities
 
@@ -3236,6 +3240,9 @@ minutes to fund the channels.
 If you do not fund the channels, be sure to `cancelPendingChannel`s on each
 channel that was not funded.
 
+Use `is_avoiding_broadcast` only when self-publishing the raw transaction
+after the funding step.
+
     {
       channels: [{
         capacity: <Channel Capacity Tokens Number>
@@ -3247,6 +3254,7 @@ channel that was not funded.
         [partner_csv_delay]: <Peer Output CSV Delay Number>
         [partner_socket]: <Peer Connection Host:Port String>
       }]
+      is_avoiding_broadcast: <Avoid Broadcast of All Channels Bool>
       lnd: <Authenticated LND API Object>
     }
 

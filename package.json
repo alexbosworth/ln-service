@@ -11,10 +11,10 @@
     "cors": "2.8.5",
     "express": "4.17.1",
     "invoices": "2.0.2",
-    "lightning": "5.0.1",
+    "lightning": "5.1.0",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
-    "ws": "8.2.3"
+    "ws": "8.3.0"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
@@ -23,7 +23,7 @@
     "async": "3.2.2",
     "asyncjs-util": "1.2.7",
     "bip66": "1.1.5",
-    "bitcoinjs-lib": "6.0.0",
+    "bitcoinjs-lib": "6.0.1",
     "bn.js": "5.2.0",
     "ecpair": "1.0.1",
     "ln-docker-daemons": "2.1.0",
@@ -54,5 +54,5 @@
   "scripts": {
     "test": "echo $DOCKER_LND_VERSION && tap -j 2 --branches=1 --functions=1 --lines=1 --statements=1 -t 200 test/autopilotrpc-integration/*.js test/chainrpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/routerrpc-integration/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js"
   },
-  "version": "53.0.1"
+  "version": "53.1.0"
 }

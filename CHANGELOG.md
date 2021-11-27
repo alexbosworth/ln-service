@@ -1,5 +1,10 @@
 # Versions
 
+## 53.1.0
+
+- Add support for LND 0.14.1
+- `openChannels`: Add `is_avoiding_broadcast` to avoid all funding broadcast
+
 ## 53.0.1
 
 - Removed support for determining the type of channel to support LND 0.14.0.
