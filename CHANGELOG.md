@@ -1,6 +1,6 @@
 # Versions
 
-## 53.1.1
+## 53.1.2
 
 - `openChannels`: Fix `cooperative_close_address` not being set on channels
 
