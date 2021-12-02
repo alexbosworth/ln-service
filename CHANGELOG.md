@@ -1,5 +1,9 @@
 # Versions
 
+## 53.1.1
+
+- `openChannels`: Fix `cooperative_close_address` not being set on channels
+
 ## 53.1.0
 
 - Add support for LND 0.14.1

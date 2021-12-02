@@ -3254,7 +3254,7 @@ after the funding step.
         [partner_csv_delay]: <Peer Output CSV Delay Number>
         [partner_socket]: <Peer Connection Host:Port String>
       }]
-      is_avoiding_broadcast: <Avoid Broadcast of All Channels Bool>
+      [is_avoiding_broadcast]: <Avoid Broadcast of All Channels Bool>
       lnd: <Authenticated LND API Object>
     }
 
