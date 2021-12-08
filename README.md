@@ -74,8 +74,8 @@ the LND directory. (~/.lnd or ~/Library/Application Support/Lnd)
 
 Be careful to avoid copying any newline characters in creds. To exclude them:
 
-    base64 ~/.lnd/tls.cert | tr -d '\n'
-    base64 ~/.lnd/data/chain/bitcoin/mainnet/admin.macaroon | tr -d '\n'
+    base64 -w0 ~/.lnd/tls.cert
+    base64 -w0 ~/.lnd/data/chain/bitcoin/mainnet/admin.macaroon
 
 You can then use these to interact with your LND node directly:
 
@@ -2535,6 +2535,7 @@ Requires `offchain:read` permission
     @returns via cbk or Promise
     {
       pending_channels: [{
+        capacity: <Channel Capacity Tokens Number>
         [close_transaction_id]: <Channel Closing Transaction Id String>
         is_active: <Channel Is Active Bool>
         is_closing: <Channel Is Closing Bool>
@@ -3205,11 +3206,11 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
       [is_private]: <Channel is Private Bool> // Defaults to false
       lnd: <Authenticated LND API Object>
-      local_tokens: <Local Tokens Number>
+      local_tokens: <Total Channel Capacity Tokens Number>
       [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
       [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
-      partner_public_key: <Public Key Hex String>
       [partner_csv_delay]: <Peer Output CSV Delay Number>
+      partner_public_key: <Public Key Hex String>
       [partner_socket]: <Peer Connection Host:Port String>
     }
 
@@ -3250,8 +3251,8 @@ after the funding step.
         [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
         [is_private]: <Channel is Private Bool> // Defaults to false
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
-        partner_public_key: <Public Key Hex String>
         [partner_csv_delay]: <Peer Output CSV Delay Number>
+        partner_public_key: <Public Key Hex String>
         [partner_socket]: <Peer Connection Host:Port String>
       }]
       [is_avoiding_broadcast]: <Avoid Broadcast of All Channels Bool>
@@ -6060,8 +6061,8 @@ This method is not supported in LND 0.13.4 and below
         local_tokens: <Local Tokens Number>
         [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
-        partner_public_key: <Public Key Hex String>
         [partner_csv_delay]: <Peer Output CSV Delay Number>
+        partner_public_key: <Public Key Hex String>
       }
       uri: <RPC URI String>
     }

@@ -359,6 +359,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     equal(incoming.transaction_weight, 724, 'Funding tx weight');
   }
 
+  equal(incoming.capacity, 1000000, 'Incoming capacity is defined');
   equal(incoming.close_transaction_id, undefined, 'Not a closing tx');
   equal(incoming.is_active, false, 'Not active yet');
   equal(incoming.is_closing, false, 'Channel is not closing');

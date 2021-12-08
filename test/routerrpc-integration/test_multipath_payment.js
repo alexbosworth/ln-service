@@ -103,7 +103,7 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
     total_mtokens: parsed.mtokens,
   });
 
-  // Pay using routes. Multiple channels must be used too avoid tempChanFail
+  // Pay using routes. Multiple channels must be used to avoid tempChanFail
   try {
     const routes = [route1.route, route2.route];
 

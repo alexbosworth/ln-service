@@ -68,6 +68,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     equal(pendingOpen.transaction_weight, 724, 'Channel tx weight');
   }
 
+  equal(pendingOpen.capacity, 1000000, 'Got channel opening capacity');
   equal(pendingOpen.close_transaction_id, undefined, 'Not closing');
   equal(pendingOpen.is_active, false, 'Not active yet');
   equal(pendingOpen.is_closing, false, 'Not closing yet');
@@ -111,6 +112,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     equal(waitClose.pending_balance, 980950, 'Waiting on balance');
   }
 
+  equal(waitClose.capacity, 1000000, 'Got channel closing capacity');
   equal(waitClose.close_transaction_id, undefined, 'Waiting for close tx');
   equal(waitClose.is_active, false, 'Not active yet');
   equal(waitClose.is_closing, true, 'Channel is closing');
@@ -166,6 +168,7 @@ test(`Get pending channels`, async ({end, equal}) => {
     equal(forceClose.pending_balance, 980950, 'Waiting on balance');
   }
 
+  equal(forceClose.capacity, 1000000, 'Got channel close capacity');
   equal(forceClose.close_transaction_id, channelClose.transaction_id, 'Txid');
   equal(forceClose.is_active, false, 'Not active anymore');
   equal(forceClose.is_closing, true, 'Channel is force closing');
