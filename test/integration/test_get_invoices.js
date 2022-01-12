@@ -1,13 +1,15 @@
+const asyncEach = require('async/each');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
+const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 
 const limit = 1;
 
 // createInvoice should result in a created invoice
-test(`Create an invoice`, async ({end, equal}) => {
+test(`Create an invoice`, async ({end, equal, strictSame}) => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   try {
@@ -48,6 +50,16 @@ test(`Create an invoice`, async ({end, equal}) => {
       equal(invoice.secret, expected.secret, 'Payment secret');
       equal(invoice.tokens, expected.tokens, 'Tokens');
     });
+
+    const reversed = invoices.slice().reverse();
+
+    await asyncEach(reversed.filter((n, i) => !!i), async (invoice) => {
+      return await cancelHodlInvoice({lnd, id: invoice.id});
+    });
+
+    const unconfirmed = await getInvoices({limit, lnd, is_unconfirmed: true});
+
+    strictSame(unconfirmed, thirdPage, 'Pending invoices are ignored');
   } catch (err) {
     equal(err, null, 'No error is expected');
   }

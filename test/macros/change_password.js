@@ -6,9 +6,9 @@ const {spawn} = require('child_process');
 const asyncAuto = require('async/auto');
 const asyncMapSeries = require('async/mapSeries');
 const asyncRetry = require('async/retry');
-const {ECPair} = require('ecpair');
 const {networks} = require('bitcoinjs-lib');
 const openPortFinder = require('portfinder');
+const tinysecp = require('tiny-secp256k1');
 
 const {changePassword} = require('./../../');
 const {createSeed} = require('./../../');
@@ -53,6 +53,9 @@ const times = 100;
 */
 module.exports = ({network}, cbk) => {
   return asyncAuto({
+    // Import ECPair library
+    ecp: async () => (await import('ecpair')).ECPairFactory(tinysecp),
+
     // Find open ports for the listen, REST and RPC ports
     getPorts: cbk => {
       return asyncMapSeries(['listen', 'rest', 'rpc'], (_, cbk) => {
@@ -77,14 +80,14 @@ module.exports = ({network}, cbk) => {
     },
 
     // Make a private key for mining rewards
-    miningKey: cbk => {
-      const keyPair = ECPair.makeRandom({network: networks.testnet});
+    miningKey: ['ecp', ({ecp}, cbk) => {
+      const keyPair = ecp.makeRandom({network: networks.testnet});
 
       return cbk(null, {
         private_key: keyPair.toWIF(),
         public_key: keyPair.publicKey.toString('hex'),
       });
-    },
+    }],
 
     // Spawn a backing chain daemon for lnd
     spawnChainDaemon: ['miningKey', ({miningKey}, cbk) => {

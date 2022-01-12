@@ -2,12 +2,11 @@ const {join} = require('path');
 const {spawn} = require('child_process');
 
 const asyncAuto = require('async/auto');
-const {ECPair} = require('ecpair');
 const openPortFinder = require('portfinder');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
+const tinysecp = require('tiny-secp256k1');
 
-const {fromPublicKey} = ECPair;
 const knownDaemons = ['btcd'];
 const localhost = '127.0.0.1';
 const notFoundIndex = -1;
@@ -37,6 +36,9 @@ const unableToStartServer = /Unable.to.start.server/;
 */
 module.exports = (args, cbk) => {
   return asyncAuto({
+    // Import ECPair library
+    ecp: async () => (await import('ecpair')).ECPairFactory(tinysecp),
+
     // Check arguments
     validate: cbk => {
       if (knownDaemons.indexOf(args.daemon) === notFoundIndex) {
@@ -85,11 +87,16 @@ module.exports = (args, cbk) => {
     }],
 
     // Spin up the chain daemon
-    spawnDaemon: ['listenPort', 'rpcPort', ({listenPort, rpcPort}, cbk) => {
+    spawnDaemon: [
+      'ecp',
+      'listenPort',
+      'rpcPort',
+      ({ecp, listenPort, rpcPort}, cbk) =>
+    {
       const miningKey = Buffer.from(args.mining_public_key, 'hex');
       const network = networks.testnet;
 
-      const pubkey = fromPublicKey(miningKey, network).publicKey;
+      const pubkey = ecp.fromPublicKey(miningKey, network).publicKey;
 
       const daemon = spawn(args.daemon, [
         '--datadir', args.dir,

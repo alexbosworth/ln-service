@@ -1952,6 +1952,7 @@ Requires `invoices:read` permission
 Invoice `payment` is not supported on LND 0.11.1 and below
 
     {
+      [is_unconfirmed]: <Omit Canceled and Settled Invoices Bool>
       [limit]: <Page Result Limit Number>
       lnd: <Authenticated LND API Object>
       [token]: <Opaque Paging Token String>

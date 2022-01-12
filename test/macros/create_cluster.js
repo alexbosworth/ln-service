@@ -3,6 +3,7 @@ const {promisify} = require('util');
 const asyncAuto = require('async/auto');
 const asyncEach = require('async/each');
 const asyncRetry = require('async/retry');
+const tinysecp = require('tiny-secp256k1');
 
 const {addPeer} = require('./../../');
 const chainSendTransaction = require('./chain_send_transaction');
@@ -62,6 +63,9 @@ const tokens = 50e8;
 */
 module.exports = (args, cbk) => {
   return asyncAuto({
+    // Import ECPair library
+    ecp: async () => (await import('ecpair')).ECPairFactory(tinysecp),
+
     // Create control lnd
     control: cbk => {
       return spawnLnd({
@@ -225,11 +229,13 @@ module.exports = (args, cbk) => {
     funding: [
       'control',
       'controlChainAddress',
+      'ecp',
       'generateBlocks',
       'targetChainAddress',
       ({
         control,
         controlChainAddress,
+        ecp,
         generateBlocks,
         targetChainAddress,
       },
@@ -243,6 +249,7 @@ module.exports = (args, cbk) => {
       const [targetCoinbase] = targetBlock.transaction_ids;
 
       const controlChainSend = chainSendTransaction({
+        ecp,
         tokens,
         destination: controlChainAddress.address,
         fee: defaultFee,
@@ -252,6 +259,7 @@ module.exports = (args, cbk) => {
       });
 
       const targetChainSend = chainSendTransaction({
+        ecp,
         tokens,
         destination: targetChainAddress.address,
         fee: defaultFee,

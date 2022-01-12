@@ -1,4 +1,5 @@
 const {test} = require('@alexbosworth/tap');
+const tinysecp = require('tiny-secp256k1');
 
 const {broadcastChainTransaction} = require('./../../');
 const {chainSendTransaction} = require('./../macros');
@@ -31,6 +32,7 @@ test(`Request chain fee increase`, async ({end, equal}) => {
     fee,
     tokens,
     destination: (await createChainAddress({format, lnd})).address,
+    ecp: (await import('ecpair')).ECPairFactory(tinysecp),
     private_key: node.mining_key,
     spend_transaction_id: coinbaseTransactionId,
     spend_vout: defaultVout,

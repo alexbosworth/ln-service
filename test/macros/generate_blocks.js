@@ -2,14 +2,13 @@ const asyncAuto = require('async/auto');
 const asyncMap = require('async/map');
 const asyncTimesSeries = require('async/timesSeries');
 const asyncRetry = require('async/retry');
-const {ECPair} = require('ecpair');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 const {returnResult} = require('asyncjs-util');
+const tinysecp = require('tiny-secp256k1');
 
 const rpc = require('./rpc');
 
-const {fromPublicKey} = ECPair;
 const interval = retryCount => 2000 * Math.random();
 const {p2pkh} = payments;
 const retryTimes = 50;
@@ -35,6 +34,9 @@ const retryTimes = 50;
 module.exports = ({cert, chain, count, host, key, pass, port, user}, cbk) => {
   return new Promise((resolve, reject) => {
     return asyncAuto({
+      // Import ECPair library
+      ecp: async () => (await import('ecpair')).ECPairFactory(tinysecp),
+
       // Check arguments
       validate: cbk => {
         if (!host) {
@@ -57,7 +59,7 @@ module.exports = ({cert, chain, count, host, key, pass, port, user}, cbk) => {
       },
 
       // Generate blocks
-      generate: ['validate', ({}, cbk) => {
+      generate: ['ecp', 'validate', ({ecp}, cbk) => {
         let cmd;
         let params;
 
@@ -66,7 +68,7 @@ module.exports = ({cert, chain, count, host, key, pass, port, user}, cbk) => {
           const miningKey = Buffer.from(key, 'hex');
           const network = networks.testnet;
 
-          const pubkey = fromPublicKey(miningKey, network).publicKey;
+          const pubkey = ecp.fromPublicKey(miningKey, network).publicKey;
 
           cmd = 'generatetoaddress';
           params = [[count].length, p2pkh({network, pubkey}).address];

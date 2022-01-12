@@ -2,12 +2,12 @@ const {encode} = require('varuint-bitcoin');
 
 const {address} = require('bitcoinjs-lib');
 const {crypto} = require('bitcoinjs-lib');
-const {ECPair} = require('ecpair');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
-const scriptBufAsScript = require('./script_buffers_as_script');
 const {Transaction} = require('bitcoinjs-lib');
+
+const scriptBufAsScript = require('./script_buffers_as_script');
 
 const defaultNetwork = 'testnet';
 const encodeSignature = script.signature.encode;
@@ -20,6 +20,7 @@ const {toOutputScript} = address;
 
   {
     destination: <Destination Address String>
+    ecp: <ECPair Object>
     fee: <Fee Tokens To Remove From Spend Number>
     private_key: <WIF Serialized Private Key String>
     spend_transaction_id: <Transaction Id to Spend Hex String>
@@ -32,9 +33,13 @@ const {toOutputScript} = address;
     transaction: <Transaction Hex Serialized String>
   }
 */
-module.exports = (args, cbk) => {
+module.exports = args => {
   if (!args.destination) {
     throw new Error('ExpectedDestinationAddressToSendTokensTo');
+  }
+
+  if (!args.ecp) {
+    throw new Error('ExpectedEcpairObjectToChainSendTransaction');
   }
 
   if (!args.private_key) {
@@ -55,7 +60,7 @@ module.exports = (args, cbk) => {
 
   const network = networks[defaultNetwork];
 
-  const keyPair = ECPair.fromWIF(args.private_key, network);
+  const keyPair = args.ecp.fromWIF(args.private_key, network);
   const outputScript = toOutputScript(args.destination, network);
   const tx = new Transaction();
 
