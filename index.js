@@ -19,6 +19,7 @@ const {deleteFailedPayAttempts} = require('lightning');
 const {deleteFailedPayments} = require('lightning');
 const {deletePayment} = require('lightning');
 const {deletePayments} = require('lightning');
+const {deletePendingChannel} = require('lightning');
 const {diffieHellmanComputeSecret} = require('lightning');
 const {disableChannel} = require('lightning');
 const {disconnectWatchtower} = require('lightning');
@@ -157,6 +158,7 @@ module.exports = {
   deleteForwardingReputations,
   deletePayment,
   deletePayments,
+  deletePendingChannel,
   diffieHellmanComputeSecret,
   disableChannel,
   disconnectWatchtower,

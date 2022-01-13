@@ -105,14 +105,16 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
   });
 
   try {
-    await openChannel({
-      lnd: target.lnd,
-      chain_fee_tokens_per_vbyte: defaultFee,
-      give_tokens: giftTokens,
-      is_private: true,
-      local_tokens: channelCapacityTokens,
-      partner_public_key: control.id,
-      socket: control.socket,
+    await asyncRetry({interval, times}, async () => {
+      return await openChannel({
+        lnd: target.lnd,
+        chain_fee_tokens_per_vbyte: defaultFee,
+        give_tokens: giftTokens,
+        is_private: true,
+        local_tokens: channelCapacityTokens,
+        partner_public_key: control.id,
+        socket: control.socket,
+      });
     });
   } catch (err) {
     equal(err, null, 'Expected no error when a channel is accepted');

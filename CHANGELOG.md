@@ -1,5 +1,9 @@
 # Versions
 
+## 53.4.0
+
+- `deletePendingChannel`: Add method to remove a stuck pending channel open
+
 ## 53.3.0
 
 - `getInvoices`: Add `is_unconfirmed` to filter out canceled/settled invoices

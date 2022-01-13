@@ -102,7 +102,7 @@ for `unlocker` methods.
 
 ## All Methods
 
-- [addPeer](#addPeer) - Connect to a peer
+- [addPeer](#addpeer) - Connect to a peer
 - [authenticatedLndGrpc](#authenticatedlndgrpc) - LND API Object
 - [broadcastChainTransaction](#broadcastchaintransaction) - Push a chain tx
 - [cancelHodlInvoice](#cancelhodlinvoice) - Cancel a held or any open invoice
@@ -118,17 +118,22 @@ for `unlocker` methods.
 - [createUnsignedRequest](#createunsignedrequest) - create an unsigned invoice
 - [createWallet](#createwallet) - Make a new wallet
 - [decodePaymentRequest](#decodepaymentrequest) - Decode a Lightning invoice
-- [deleteFailedPayAttempts](#deletefailedpayattempts) - Remove records of failed pay attempts
-- [deleteFailedPayments](#deletefailedpayments) - Remove records of payments that failed
+- [deleteFailedPayAttempts](#deletefailedpayattempts) - Remove records of 
+    failed pay attempts
+- [deleteFailedPayments](#deletefailedpayments) - Remove records of payments 
+    that failed
 - [deleteForwardingReputations](#deleteforwardingreputations) - Wipe node reps
 - [deletePayment](#deletepayment) - Delete the record of a single past payment
 - [deletePayments](#deletepayments) - Delete entire history of past payments
+- [deletePendingChannel](#deletependingchannel) - Delete a pending channel that
+    will never confirm due to a conflicting confirmed transaction
 - [diffieHellmanComputeSecret](#diffiehellmancomputesecret) - Get DH shared key
 - [disableChannel](#disablechannel) - Disable a channel for outgoing payments
 - [disconnectWatchtower](#disconnectwatchtower) - Disconnect a watchtower
 - [enableChannel](#enablechannel) - Enable a channel for outgoing payments
 - [fundPendingChannels](#fundpendingchannels) - Fund pending open channels
-- [fundPsbt](#fundpsbt) - Create an unsigned PSBT with funding inputs and spending outputs
+- [fundPsbt](#fundpsbt) - Create an unsigned PSBT with funding inputs and 
+    spending outputs
 - [getAccessIds](#getaccessids) - Get granted macaroon root access ids
 - [getAutopilot](#getautopilot) - Get autopilot status or node scores
 - [getBackup](#getbackup) - Get a backup of a channel
@@ -157,48 +162,53 @@ for `unlocker` methods.
 - [getNetworkGraph](#getnetworkgraph) - Get the channels and nodes of the graph
 - [getNetworkInfo](#getnetworkinfo) - Get high-level graph info
 - [getNode](#getnode) - Get graph info about a single node and its channels
-- [getPathfindingSettings](#getpathfindingsettings) - Get pathfinding system settings
+- [getPathfindingSettings](#getpathfindingsettings) - Get pathfinding system
+    settings
 - [getPayment](#getpayment) - Get a past payment
 - [getPayments](#getpayments) - Get all past payments
 - [getPeers](#getpeers) - Get all connected peers
 - [getPendingChainBalance](#getpendingchainbalance) - Get pending chain balance
 - [getPendingChannels](#getpendingchannels) - Get channels in pending states
 - [getPublicKey](#getpublickey) - Get a public key out of the seed
-- [getRouteConfidence](#getRouteConfidence) - Get confidence in a route
-- [getRouteThroughHops](#getRouteThroughHops) - Get a route through nodes
-- [getRouteToDestination](#getRouteToDestination) - Get a route to a destination
-- [getSweepTransactions](#getSweepTransactions) - Get transactions sweeping to self
-- [getTowerServerInfo](#getTowerServerInfo) - Get information about tower server
-- [getUtxos](#getUtxos) - Get on-chain unspent outputs
-- [getWalletInfo](#getWalletInfo) - Get general wallet info
+- [getRouteConfidence](#getrouteconfidence) - Get confidence in a route
+- [getRouteThroughHops](#getroutethroughhops) - Get a route through nodes
+- [getRouteToDestination](#getroutetodestination) - Get a route to a destination
+- [getSweepTransactions](#getsweeptransactions) - Get transactions sweeping to
+    self
+- [getTowerServerInfo](#gettowerserverinfo) - Get information about tower server
+- [getUtxos](#getutxos) - Get on-chain unspent outputs
+- [getWalletInfo](#getwalletinfo) - Get general wallet info
 - [getWalletStatus](#getwalletstatus) - Get the status of the wallet
-- [getWalletVersion](#getWalletVersion) - Get the build and version of the LND
-- [grantAccess](#grantAccess) - Grant an access credential macaroon
-- [grpcProxyServer](#grpcProxyServer) - REST proxy server for calling to gRPC
-- [isDestinationPayable](#isDestinationPayable) - Check can pay to destination
-- [lockUtxo](#lockUtxo) - Lock a UTXO temporarily to prevent it being used
-- [openChannel](#openChannel) - Open a new channel
-- [openChannels](#openChannels) - Open channels with external funding
-- [parsePaymentRequest](#parsePaymentRequest) - Parse a BOLT11 Payment Request
+- [getWalletVersion](#getwalletversion) - Get the build and version of the LND
+- [grantAccess](#grantaccess) - Grant an access credential macaroon
+- [grpcProxyServer](#grpcproxyserver) - REST proxy server for calling to gRPC
+- [isDestinationPayable](#isdestinationpayable) - Check can pay to destination
+- [lockUtxo](#lockutxo) - Lock a UTXO temporarily to prevent it being used
+- [openChannel](#openchannel) - Open a new channel
+- [openChannels](#openchannels) - Open channels with external funding
+- [parsePaymentRequest](#parsepaymentrequest) - Parse a BOLT11 Payment Request
 - [pay](#pay) - Send a payment
-- [payViaPaymentDetails](#payViaPaymentDetails) - Pay using decomposed details
-- [payViaPaymentRequest](#payViaPaymentRequest) - Pay using a payment request
-- [payViaRoutes](#payViaRoutes) - Make a payment over specified routes
-- [prepareForChannelProposal](#prepareForChannelProposal) - setup for a channel proposal
+- [payViaPaymentDetails](#payviapaymentdetails) - Pay using decomposed details
+- [payViaPaymentRequest](#payviapaymentrequest) - Pay using a payment request
+- [payViaRoutes](#payviaroutes) - Make a payment over specified routes
+- [prepareForChannelProposal](#prepareforchannelproposal) - setup for a channel
+    proposal
 - [probe](#probe) - Find a payable route by attempting a fake payment
-- [probeForRoute](#probeForRoute) - Actively probe to find a payable route
+- [probeForRoute](#probeforroute) - Actively probe to find a payable route
 - [proposeChannel](#proposechannel) - Offer a channel proposal to a peer
-- [recoverFundsFromChannel](#recoverFundsFromChannel) - Restore a channel
-- [recoverFundsFromChannels](#recoverFundsFromChannels) - Restore all channels
-- [removePeer](#removePeer) - Disconnect from a connected peer
-- [requestChainFeeIncrease](#requestchainfeeincrease) - Request a CPFP spend on a UTXO
+- [recoverFundsFromChannel](#recoverfundsfromchannel) - Restore a channel
+- [recoverFundsFromChannels](#recoverfundsfromchannels) - Restore all channels
+- [removePeer](#removepeer) - Disconnect from a connected peer
+- [requestChainFeeIncrease](#requestchainfeeincrease) - Request a CPFP spend on
+    a UTXO
 - [restrictMacaroon](#restrictmacaroon) - Add limitations to a macaroon
 - [revokeAccess](#revokeaccess) - Revoke all access macaroons given to an id
 - [routeFromChannels](#routefromchannels) - Convert channel series to a route
 - [sendMessageToPeer](#sendmessagetopeer) - Send a custom message to a peer
 - [sendToChainAddress](#sendtochainaddress) - Send on-chain to an address
 - [sendToChainAddresses](#sendtochainaddresses) - Send on-chain to addresses
-- [sendToChainOutputScripts](#sendtochainoutputscripts) - Send to on-chain script outputs
+- [sendToChainOutputScripts](#sendtochainoutputscripts) - Send to on-chain
+    script outputs
 - [setAutopilot](#setautopilot) - Turn autopilot on and set autopilot scores
 - [settleHodlInvoice](#settlehodlinvoice) - Accept a HODL HTLC invoice
 - [signBytes](#signbytes) -  Sign over arbitrary bytes with node keys
@@ -211,18 +221,21 @@ for `unlocker` methods.
 - [subscribeToChainAddress](#subscribetochainaddress) - Subscribe to receives
 - [subscribeToChainSpend](#subscribetochainspend) - Subscribe to chain spends
 - [subscribeToChannels](#subscribetochannels) - Subscribe to channel statuses
-- [subscribeToForwardRequests](#subscribetoforwardrequests) - Interactively route
+- [subscribeToForwardRequests](#subscribetoforwardrequests) - Interactively
+    route
 - [subscribeToForwards](#subscribetoforwards) - Subscribe to HTLC events
 - [subscribeToGraph](#subscribetograph) - Subscribe to network graph updates
 - [subscribeToInvoice](#subscribetoinvoice) - Subscribe to invoice updates
 - [subscribeToInvoices](#subscribetoinvoices) - Subscribe to all invoices
 - [subscribeToOpenRequests](#subscribetoopenrequests) - Approve open requests
 - [subscribeToPastPayment](#subscribetopastpayment) - Subscribe to a payment
-- [subscribeToPastPayments](#subscribetopastpayments) - Subscribe to all sent payments
+- [subscribeToPastPayments](#subscribetopastpayments) - Subscribe to all sent
+    payments
 - [subscribeToPayViaDetails](#subscribetopayviadetails) - Pay using details
 - [subscribeToPayViaRequest](#subscribetopayviarequest) - Pay using a request
 - [subscribeToPayViaRoutes](#subscribetopayviaroutes) - Pay using routes
-- [subscribeToPeerMessages](#subscribetopeermessages) - Listen to incoming custom messages
+- [subscribeToPeerMessages](#subscribetopeermessages) - Listen to incoming
+    custom messages
 - [subscribeToPeers](#subscribetopeers) - Subscribe to peers connectivity
 - [subscribeToProbe](#subscribetoprobe) - Subscribe to a probe for a route
 - [subscribeToProbeForRoute](#subscribetoprobeforroute) - Probe for a route
@@ -230,11 +243,14 @@ for `unlocker` methods.
 - [subscribeToTransactions](#subscribetotransactions) - Subscribe to chain tx
 - [subscribeToWalletStatus](#subscribetowalletstatus) - Subscribe to node state
 - [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
-- [unlockUtxo](#unlockUtxo) - Release a locked UTXO so that it can be used again
-- [unlockWallet](#unlockWallet) - Unlock a locked lnd
-- [updateChainTransaction](#updateChainTransaction) - Update a chain transaction
+- [unlockUtxo](#unlockutxo) - Release a locked UTXO so that it can be used
+    again
+- [unlockWallet](#unlockwallet) - Unlock a locked lnd
+- [updateChainTransaction](#updatechaintransaction) - Update a chain
+    transaction
 - [updateConnectedWatchtower](#updateconnectedwatchtower) - Update watchtower
-- [updatePathfindingSettings](#updatepathfindingsettings) - Update pathfinding configuration
+- [updatePathfindingSettings](#updatepathfindingsettings) - Update pathfinding
+    configuration
 - [updateRoutingFees](#updateroutingfees) - Change routing fees
 - [verifyAccess](#verifyaccess) - Verify a macaroon has access
 - [verifyBackup](#verifybackup) - Verify a channel backup
@@ -256,6 +272,7 @@ for `unlocker` methods.
     - run regtest integration tests
 - [ln-pathfinding](https://npmjs.com/package/ln-accounting) - pathfinding
     utilities
+- [ln-sync](https://www.npmjs.com/package/ln-sync) - metadata helper methods
 - [probing](https://npmjs.com/package/probing) - payment probing utilities
 - [psbt](https://www.npmjs.com/package/psbt) - BIP 174 PSBT utilities
 
@@ -916,6 +933,36 @@ const {deletePayments} = require('ln-service');
 
 // Eliminate all the records of past payments
 await deletePayments({lnd});
+```
+
+### deletePendingChannel
+
+Delete a pending channel
+
+Pass the confirmed conflicting transaction that spends the same input to
+make sure that no funds are being deleted.
+
+This method is not supported on LND 0.13.3 and below
+
+    {
+      confirmed_transaction: <Hex Encoded Conflicting Transaction String>
+      lnd: <Authenticated LND API Object>
+      pending_transaction: <Hex Encoded Pending Transaction String>
+      pending_transaction_vout: <Pending Channel Output Index Number>
+    }
+
+    @returns via cbk or Promise
+
+```node
+const {deletePendingChannel} = require('ln-service');
+
+// Delete a stuck pending channel
+await deletePendingChannel({
+  lnd,
+  confirmed_transaction: confirmedTransactionHex,
+  pending_transaction: stuckPendingChannelOpenTxHex,
+  pending_transaction_vout: pendingChannelOutputIndexNumber,
+});
 ```
 
 ### diffieHellmanComputeSecret
