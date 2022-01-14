@@ -1,5 +1,9 @@
 # Versions
 
+## 53.4.1
+
+- `pay`, `payViaPaymentRequest`: Fix support for `outgoing_channels` constraint
+
 ## 53.4.0
 
 - `deletePendingChannel`: Add method to remove a stuck pending channel open
