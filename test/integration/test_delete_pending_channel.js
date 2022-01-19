@@ -8,6 +8,7 @@ const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {broadcastChainTransaction} = require('./../../');
+const {cancelPendingChannel} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {deletePendingChannel} = require('./../../');
@@ -60,7 +61,7 @@ test(`Forfeit pending channel`, async ({end, equal}) => {
     // Sign the funding to the target
     const signTarget = await signPsbt({lnd, psbt: fundTarget.psbt});
 
-    // Fund the target channel
+    // Fund the target channel that will get stuck
     await fundPendingChannels({
       lnd,
       channels: proposeToTarget.pending.map(n => n.id),
@@ -123,6 +124,17 @@ test(`Forfeit pending channel`, async ({end, equal}) => {
     const [pending] = (await getPendingChannels({lnd})).pending_channels;
 
     const stuckTx = extractTransaction({psbt: signTarget.psbt});
+
+    const [stuckPending] = proposeToTarget.pending;
+
+    // Try to cancel the pending channel, it will fail
+    try {
+      await cancelPendingChannel({lnd, id: stuckPending.id});
+    } catch (err) {
+      const [code] = err;
+
+      equal(code, 503, 'Pending channel cannot be canceled');
+    }
 
     await deletePendingChannel({
       lnd,

@@ -762,6 +762,9 @@ Requires unlocked lnd and unauthenticated LND API Object
     }
 
     @returns via cbk or Promise
+    {
+      macaroon: <Base64 Encoded Admin Macaroon String>
+    }
 
 Example:
 

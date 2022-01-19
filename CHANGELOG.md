@@ -1,5 +1,9 @@
 # Versions
 
+## 53.5.0
+
+- `createWallet`: Add support for returning the admin `macaroon`
+
 ## 53.4.2
 
 - `pay`, `payViaPaymentRequest`: Fix support for `outgoing_channels` constraint
