@@ -9,9 +9,9 @@ const {spawnLnd} = require('./../macros');
 const {waitForTermination} = require('./../macros');
 
 const all = promise => Promise.all(promise);
-const interval = 100;
+const interval = 200;
 const nodes = [{watchers: true}, {tower: true}];
-const times = 200;
+const times = 1000;
 
 // Disconnecting a watchtower should remove a watchtower
 test(`Disconnect watchtower`, async ({end, equal, match}) => {

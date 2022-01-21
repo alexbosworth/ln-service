@@ -1,5 +1,9 @@
 # Versions
 
+## 53.5.1
+
+- `getPayments`: Correct paging issue that prevented paging through all results
+
 ## 53.5.0
 
 - `createWallet`: Add support for returning the admin `macaroon`
