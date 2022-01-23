@@ -22,6 +22,8 @@ test(`Get network centrality`, async ({end, equal, strictSame}) => {
   try {
     await control.generate({count: 100});
 
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
     await setupChannel({lnd, generate: control.generate, to: target});
 
     await setupChannel({

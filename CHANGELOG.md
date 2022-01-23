@@ -1,6 +1,6 @@
 # Versions
 
-## 53.5.1
+## 53.5.2
 
 - `getPayments`: Correct paging issue that prevented paging through all results
 

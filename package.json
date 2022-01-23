@@ -11,7 +11,7 @@
     "cors": "2.8.5",
     "express": "4.17.2",
     "invoices": "2.0.3",
-    "lightning": "5.3.4",
+    "lightning": "5.4.0",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "8.4.2"
@@ -31,7 +31,7 @@
     "psbt": "1.1.10",
     "rimraf": "3.0.2",
     "secp256k1": "4.0.3",
-    "tiny-secp256k1": "2.1.2",
+    "tiny-secp256k1": "2.2.0",
     "uuid": "8.3.2",
     "varuint-bitcoin": "1.1.2"
   },
@@ -55,5 +55,5 @@
   "scripts": {
     "test": "echo $DOCKER_LND_VERSION && tap -j 2 --branches=1 --functions=1 --lines=1 --statements=1 -t 200 test/autopilotrpc-integration/*.js test/chainrpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/routerrpc-integration/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js"
   },
-  "version": "53.5.1"
+  "version": "53.5.2"
 }
