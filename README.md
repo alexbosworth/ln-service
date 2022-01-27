@@ -187,6 +187,7 @@ for `unlocker` methods.
 - [openChannel](#openchannel) - Open a new channel
 - [openChannels](#openchannels) - Open channels with external funding
 - [parsePaymentRequest](#parsepaymentrequest) - Parse a BOLT11 Payment Request
+- [partiallySignPsbt](#partiallysignpsbt) - Sign a PSBT without finalizing it
 - [pay](#pay) - Send a payment
 - [payViaPaymentDetails](#payviapaymentdetails) - Pay using decomposed details
 - [payViaPaymentRequest](#payviapaymentrequest) - Pay using a payment request
@@ -3390,6 +3391,46 @@ Note: either description or description_hash will be returned
 ```
 const {parsePaymentRequest} = require('ln-service');
 const requestDetails = parsePaymentRequest({request: 'paymentRequestString'});
+```
+
+### partiallySignPsbt
+
+Sign a PSBT to produce a partially signed PSBT
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` tag
+
+This method is not supported in LND 0.14.1 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+      psbt: <Funded PSBT Hex String>
+    }
+
+    @returns via cbk or Promise
+    {
+      psbt: <Partially Signed PSBT Hex String>
+    }
+
+
+Example:
+
+```node
+const {broadcastChainTransaction} = require('ln-service');
+const {fundPsbt, partiallySignPsbt} = require('ln-service');
+const {extractTransaction, finalizePsbt} = require('psbt');
+
+const funding = await fundPsbt({
+  lnd,
+  outputs: [{address: chainAddress, tokens: 100000}]
+})
+
+const finalize = finalizePsbt({psbt: funding.psbt});
+
+const {transaction} = extractTransaction({psbt: finalize.psbt});
+
+await broadcastChainTransaction({lnd, transaction});
 ```
 
 ### pay

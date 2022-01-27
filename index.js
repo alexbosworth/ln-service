@@ -76,6 +76,7 @@ const {lockUtxo} = require('lightning');
 const {openChannel} = require('lightning');
 const {openChannels} = require('lightning');
 const {parsePaymentRequest} = require('invoices');
+const {partiallySignPsbt} = require('lightning');
 const {pay} = require('lightning');
 const {payViaPaymentDetails} = require('lightning');
 const {payViaPaymentRequest} = require('lightning');
@@ -215,6 +216,7 @@ module.exports = {
   openChannel,
   openChannels,
   parsePaymentRequest,
+  partiallySignPsbt,
   pay,
   payViaPaymentDetails,
   payViaPaymentRequest,

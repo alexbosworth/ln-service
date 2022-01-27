@@ -1,5 +1,9 @@
 # Versions
 
+## 53.6.0
+
+- `partiallySignPsbt`: Add method to add a partial signature to a PSBT
+
 ## 53.5.2
 
 - `getPayments`: Correct paging issue that prevented paging through all results

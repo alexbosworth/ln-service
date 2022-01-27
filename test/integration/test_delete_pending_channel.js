@@ -31,7 +31,7 @@ const timeout = 1000 * 5;
 const times = 200;
 
 // Forfeiting a pending channel should remove the pending channel
-test(`Forfeit pending channel`, async ({end, equal}) => {
+test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target, remote] = nodes;
@@ -136,16 +136,20 @@ test(`Forfeit pending channel`, async ({end, equal}) => {
       equal(code, 503, 'Pending channel cannot be canceled');
     }
 
-    await deletePendingChannel({
-      lnd,
-      confirmed_transaction: transaction,
-      pending_transaction: stuckTx.transaction,
-      pending_transaction_vout: pending.transaction_vout,
-    });
+    try {
+      await deletePendingChannel({
+        lnd,
+        confirmed_transaction: transaction,
+        pending_transaction: stuckTx.transaction,
+        pending_transaction_vout: pending.transaction_vout,
+      });
 
-    const [stillPending] = (await getPendingChannels({lnd})).pending_channels;
+      const [notPending] = (await getPendingChannels({lnd})).pending_channels;
 
-    equal(stillPending, undefined, 'Conflicting pending channel deleted');
+      equal(notPending, undefined, 'Conflicting pending channel deleted');
+    } catch (err) {
+      strictSame(err, [501, 'DeletePendingChannelMethodNotSupported']);
+    }
   } catch (err) {
     equal(err, null, 'No error is expected');
   } finally {

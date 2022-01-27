@@ -177,7 +177,14 @@ test(`Get pending channels`, async ({end, equal}) => {
   equal(forceClose.partner_public_key, target.id, 'pk');
   equal(forceClose.received, 0, 'No receive amount');
   equal(forceClose.recovered_tokens, undefined, 'No recovered amount');
-  equal(forceClose.remote_balance, 0, 'No remote balance');
+
+  // LND 0.14.1 and below do not support remote balance info
+  if (!!forceClose.remote_balance) {
+    equal(forceClose.remote_balance, giftTokens, 'Got gift remote balance');
+  } else {
+    equal(forceClose.remote_balance, 0, 'No remote balance');
+  }
+
   equal(forceClose.sent, 0, 'No sent amount');
   equal(!!forceClose.timelock_blocks, true, 'Timelock blocks set');
   equal(forceClose.timelock_expiration, startHeight + 265, 'Funds timelock');
