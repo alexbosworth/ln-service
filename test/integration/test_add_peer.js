@@ -17,30 +17,34 @@ test(`Add a peer`, async ({end, equal}) => {
 
   const [{lnd}, target] = nodes;
 
-  const connectedKeys = (await getPeers({lnd})).peers.map(n => n.public_key);
+  try {
+    const connectedKeys = (await getPeers({lnd})).peers.map(n => n.public_key);
 
-  equal(connectedKeys.find(n => n === target.id), undefined, 'No peer');
+    equal(connectedKeys.find(n => n === target.id), undefined, 'No peer');
 
-  await asyncRetry({interval, times}, async () => {
-    await addPeer({
-      lnd,
-      timeout,
-      public_key: target.id,
-      socket: target.socket,
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({
+        lnd,
+        timeout,
+        public_key: target.id,
+        socket: target.socket,
+      });
+
+      const {peers} = await getPeers({lnd});
+
+      const connected = peers.find(n => n.public_key === target.id);
+
+      if (!connected) {
+        throw new Error('ExpectedConnectionToTarget');
+      }
+
+      equal(connected.public_key, target.id, 'Connected to remote node');
     });
-
-    const {peers} = await getPeers({lnd});
-
-    const connected = peers.find(n => n.public_key === target.id);
-
-    if (!connected) {
-      throw new Error('ExpectedConnectionToTarget');
-    }
-
-    equal(connected.public_key, target.id, 'Connected to remote node');
-  });
-
-  await kill({});
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
+  }
 
   return end();
 });

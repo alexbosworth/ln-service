@@ -20,8 +20,8 @@ const {waitForRoute} = require('./../macros');
 const size = 3;
 const tokens = 100;
 
-// Paying an invoice should settle the invoice
-test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
+// Subscribing to forward requests should intercept forwards
+test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;

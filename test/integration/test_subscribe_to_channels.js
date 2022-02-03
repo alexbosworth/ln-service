@@ -16,7 +16,7 @@ const defaultFee = 1e3;
 const giveTokens = 1e5;
 const interval = 100;
 const size = 2;
-const times = 20;
+const times = 200;
 
 // Subscribing to channels should trigger channel events
 test('Subscribe to channels', async ({end, equal, fail}) => {

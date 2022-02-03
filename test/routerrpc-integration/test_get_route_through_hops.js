@@ -8,6 +8,7 @@ const {addPeer} = require('./../../');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {getInvoice} = require('./../../');
+const {getNetworkGraph} = require('./../../');
 const {getRouteThroughHops} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
@@ -17,8 +18,10 @@ const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const confirmationCount = 6;
+const interval = 10;
 const messages = [{type: '1000000', value: '01'}];
 const size = 3;
+const times = 1000;
 const tokens = 100;
 
 // Getting a route through hops should result in a route through specified hops
@@ -40,7 +43,7 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
 
   await target.generate({count: confirmationCount});
 
-  await asyncRetry({interval: 10, times: 1000}, async () => {
+  await asyncRetry({interval, times}, async () => {
     const wallet = await getWalletInfo({lnd: remote.lnd});
 
     await addPeer({lnd, public_key: remote.id, socket: remote.socket});
@@ -59,11 +62,25 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
 
   await waitForRoute({lnd, destination: remote.id, tokens: invoice.tokens});
 
-  const {route} = await getRouteToDestination({
-    lnd,
-    cltv_delta: decodedRequest.cltv_delta,
-    destination: decodedRequest.destination,
-    tokens: invoice.tokens,
+  const {route} = await asyncRetry({interval, times}, async () => {
+    return await getRouteToDestination({
+      lnd,
+      cltv_delta: decodedRequest.cltv_delta,
+      destination: decodedRequest.destination,
+      tokens: invoice.tokens,
+    });
+  });
+
+  await asyncRetry({interval, times}, async () => {
+    const {nodes} = await getNetworkGraph({lnd});
+
+    const limitedFeatures = nodes.find(node => {
+      return !node.features.find(n => n.bit === 14);
+    });
+
+    if (!!limitedFeatures) {
+      throw new Error('NetworkGraphSyncIncomplete');
+    }
   });
 
   const res = await getRouteThroughHops({

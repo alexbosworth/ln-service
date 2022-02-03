@@ -24,62 +24,66 @@ test(`Get node`, async ({end, equal, strictSame}) => {
 
   const [{generate, id, lnd}, target, remote] = nodes;
 
-  const controlToTarget = await setupChannel({generate, lnd, to: target});
+  try {
+    const controlToTarget = await setupChannel({generate, lnd, to: target});
 
-  const targetToRemote = await setupChannel({
-    generate: target.generate,
-    lnd: target.lnd,
-    to: remote,
-  });
-
-  await updateRoutingFees({
-    lnd,
-    base_fee_tokens: baseFee,
-    cltv_delta: cltvDelta,
-    fee_rate: feeRate,
-    transaction_id: controlToTarget.transaction_id,
-    transaction_vout: controlToTarget.transaction_vout,
-  });
-
-  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
-
-  await delay(3000);
-
-  const node = await getNode({lnd, public_key: id});
-
-  {
-    const {channels} = await getNode({
-      lnd,
-      is_omitting_channels: true,
-      public_key: id,
+    const targetToRemote = await setupChannel({
+      generate: target.generate,
+      lnd: target.lnd,
+      to: remote,
     });
 
-    equal(channels.length, [].length, 'Channels are omitted')
+    await updateRoutingFees({
+      lnd,
+      base_fee_tokens: baseFee,
+      cltv_delta: cltvDelta,
+      fee_rate: feeRate,
+      transaction_id: controlToTarget.transaction_id,
+      transaction_vout: controlToTarget.transaction_vout,
+    });
+
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
+    await delay(3000);
+
+    const node = await getNode({lnd, public_key: id});
+
+    {
+      const {channels} = await getNode({
+        lnd,
+        is_omitting_channels: true,
+        public_key: id,
+      });
+
+      equal(channels.length, [].length, 'Channels are omitted')
+    }
+
+    if (!!node.channels.length) {
+      const [{policies}] = node.channels;
+
+      const policy = policies.find(n => n.public_key === id);
+
+      equal(BigInt(policy.base_fee_mtokens), BigInt(baseFee)*mtokPerTok, 'bf');
+      equal(policy.cltv_delta, cltvDelta, 'Got expected cltv delta');
+      equal(policy.fee_rate, feeRate, 'Got expected fee rate');
+      equal(policy.is_disabled, false, 'Channel is not disabled');
+      equal(policy.max_htlc_mtokens, '990000000', 'Max HTLC mtokens returned');
+      equal(policy.min_htlc_mtokens, '1000', 'Min HTLC mtokens returned');
+    }
+
+    const [socket] = node.sockets;
+
+    equal(node.alias, id.slice(0, defaultAliasLength), 'Alias');
+    equal(node.color, '#3399ff', 'Color');
+    equal(node.sockets.length, 1, 'Socket');
+    equal(!!socket.socket, true, 'Ip, port');
+    equal(socket.type, 'tcp', 'Socket type');
+    equal(node.updated_at.length, 24, 'Update date');
+  } catch (err) {
+    strictSame(err, null, 'Expected no error');
+  } finally {
+    await kill({});
   }
-
-  if (!!node.channels.length) {
-    const [{policies}] = node.channels;
-
-    const policy = policies.find(n => n.public_key === id);
-
-    equal(BigInt(policy.base_fee_mtokens), BigInt(baseFee)*mtokPerTok, 'Base');
-    equal(policy.cltv_delta, cltvDelta, 'Got expected cltv delta');
-    equal(policy.fee_rate, feeRate, 'Got expected fee rate');
-    equal(policy.is_disabled, false, 'Channel is not disabled');
-    equal(policy.max_htlc_mtokens, '990000000', 'Max HTLC mtokens returned');
-    equal(policy.min_htlc_mtokens, '1000', 'Min HTLC mtokens returned');
-  }
-
-  const [socket] = node.sockets;
-
-  equal(node.alias, id.slice(0, defaultAliasLength), 'Alias');
-  equal(node.color, '#3399ff', 'Color');
-  equal(node.sockets.length, 1, 'Socket');
-  equal(!!socket.socket, true, 'Ip, port');
-  equal(socket.type, 'tcp', 'Socket type');
-  equal(node.updated_at.length, 24, 'Update date');
-
-  await kill({});
 
   return end();
 });

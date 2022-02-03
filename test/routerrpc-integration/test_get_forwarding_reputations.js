@@ -26,66 +26,70 @@ test('Get forwarding reputations', async ({end, equal}) => {
 
   const [{generate, id, lnd}, target, remote] = cluster.nodes;
 
-  await generate({count: 400});
+  await generate({count: 100});
 
-  // Create a channel from the control to the target node
-  await setupChannel({
-    generate,
-    lnd,
-    capacity: channelCapacityTokens * 2,
-    to: target,
-  });
+  try {
+    // Create a channel from the control to the target node
+    await setupChannel({
+      generate,
+      lnd,
+      capacity: channelCapacityTokens * 2,
+      to: target,
+    });
 
-  const targetToRemoteChan = await setupChannel({
-    generate: target.generate,
-    give: Math.round(channelCapacityTokens / 2),
-    lnd: target.lnd,
-    to: remote,
-  });
+    const targetToRemoteChan = await setupChannel({
+      generate: target.generate,
+      give: Math.round(channelCapacityTokens / 2),
+      lnd: target.lnd,
+      to: remote,
+    });
 
-  await asyncRetry({interval, times}, async () => {
-    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-    const {channels} = await getChannels({lnd: remote.lnd});
+      const {channels} = await getChannels({lnd: remote.lnd});
 
-    await waitForRoute({lnd, tokens, destination: remote.id});
+      await waitForRoute({lnd, tokens, destination: remote.id});
 
-    try {
-      const res = await probeForRoute({
-        lnd,
-        tokens,
-        destination: remote.id,
-        is_ignoring_past_failures: true,
-      });
-    } catch (err) {
-      equal(err, null, 'Expected no error probing');
-    }
+      try {
+        const res = await probeForRoute({
+          lnd,
+          tokens,
+          destination: remote.id,
+          is_ignoring_past_failures: true,
+        });
+      } catch (err) {
+        equal(err, null, 'Expected no error probing');
+      }
 
-    const {nodes} = await getForwardingReputations({lnd});
+      const {nodes} = await getForwardingReputations({lnd});
 
-    const [node] = nodes;
+      const [node] = nodes;
 
-    if (!node) {
-      throw new Error('ExpectedForwardingNode');
-    }
+      if (!node) {
+        throw new Error('ExpectedForwardingNode');
+      }
 
-    equal(!!node.public_key, true, 'Temp fail node added');
+      equal(!!node.public_key, true, 'Temp fail node added');
 
-    const [peer] = node.peers;
+      const [peer] = node.peers;
 
-    if (!peer) {
-      throw new Error('ExpectedNodePeer');
-    }
+      if (!peer) {
+        throw new Error('ExpectedNodePeer');
+      }
 
-    if (!peer.last_failed_forward_at) {
-      throw new Error('ExpectedLastFailTimeReturned');
-    }
+      if (!peer.last_failed_forward_at) {
+        throw new Error('ExpectedLastFailTimeReturned');
+      }
 
-    equal(!!peer.last_failed_forward_at, true, 'Last fail time returned');
-    equal(!!peer.to_public_key, true, 'Got peer pub key');
-  });
-
-  await cluster.kill({});
+      equal(!!peer.last_failed_forward_at, true, 'Last fail time returned');
+      equal(!!peer.to_public_key, true, 'Got peer pub key');
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await cluster.kill({});
+  }
 
   return end();
 });

@@ -18,6 +18,7 @@ const {openChannel} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {routeFromChannels} = require('./../../');
 const {setupChannel} = require('./../macros');
+const {subscribeToForwardRequests} = require('./../../');
 const {waitForChannel} = require('./../macros');
 const {waitForPendingChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
@@ -27,6 +28,7 @@ const confirmationCount = 6;
 const defaultFee = 1e3;
 const defaultVout = 0;
 const interval = 10;
+const intermediateRecord = {type: '65536', value: '5678'};
 const mtokPadding = '000';
 const regtestChain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const reserveRatio = 0.99;
@@ -39,7 +41,7 @@ const tokens = 100;
 const txIdHexLength = 32 * 2;
 
 // Paying via routes should successfully pay via routes
-test(`Pay via routes`, async ({end, equal}) => {
+test(`Pay via routes`, async ({end, equal, strictSame}) => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -170,9 +172,25 @@ test(`Pay via routes`, async ({end, equal}) => {
     equal(lowFeeErrMessage, 'FeeInsufficient', 'Low fee returns low fee msg');
   }
 
+  const [hopToTarget] = route.hops;
+
+  hopToTarget.messages = [intermediateRecord];
+
   route.messages = [{type: tlvType, value: tlvValue}];
 
+  const sub = subscribeToForwardRequests({lnd: target.lnd});
+
+  const forwardMessages = [];
+
+  sub.on('forward_request', request => {
+    request.messages.forEach(message => forwardMessages.push(message));
+
+    return request.accept();
+  });
+
   const payment = await payViaRoutes({id, lnd, routes: [route]});
+
+  strictSame(forwardMessages, [intermediateRecord], 'Got intermediate record');
 
   equal(payment.confirmed_at > start, true, 'Paid has confirm date');
 

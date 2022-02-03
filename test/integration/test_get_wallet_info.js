@@ -1,11 +1,14 @@
+const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {getWalletInfo} = require('./../../');
 
 const initHeight = 1;
+const interval = 10;
 const pubKeyHexLength = Buffer.alloc(33).toString('hex').length;
 const regtestChainId = '06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f';
+const times = 1000;
 const walletInfoType = 'wallet';
 
 // Getting the wallet info should return info about the wallet
@@ -15,6 +18,14 @@ test(`Get wallet info`, async ({end, equal, strictSame}) => {
   const [{lnd}] = nodes;
 
   const result = await getWalletInfo({lnd});
+
+  await asyncRetry({interval, times}, async () => {
+    if (result.current_block_height === initHeight) {
+      return;
+    }
+
+    throw new Error('ExpectedBlockHeightAtInitHeight');
+  });
 
   equal(result.active_channels_count, 0, 'Expected channels count');
   equal(!!result.alias, true, 'Expected alias');

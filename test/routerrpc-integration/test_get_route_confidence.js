@@ -17,41 +17,45 @@ test('Get route confidence', async ({end, equal}) => {
 
   const [{generate, lnd}, target, remote] = nodes;
 
-  // Create a channel from the control to the target node
-  await setupChannel({
-    generate,
-    lnd,
-    capacity: channelCapacityTokens * 2,
-    to: target,
-  });
-
-  // Create a too-small channel from target to remote
-  await setupChannel({
-    generate: target.generate,
-    give: Math.round(channelCapacityTokens / 2),
-    lnd: target.lnd,
-    to: remote,
-  });
-
-  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
-
-  const destination = remote.id;
-
-  // Allow time for graph sync to complete
-  const {routes} = await waitForRoute({destination, lnd, tokens});
-
-  // Run into a failure to inform future pathfinding
   try {
-    await probeForRoute({destination, lnd, tokens});
-  } catch (err) {}
+    // Create a channel from the control to the target node
+    await setupChannel({
+      generate,
+      lnd,
+      capacity: channelCapacityTokens * 2,
+      to: target,
+    });
 
-  const [{hops}] = routes;
+    // Create a too-small channel from target to remote
+    await setupChannel({
+      generate: target.generate,
+      give: Math.round(channelCapacityTokens / 2),
+      lnd: target.lnd,
+      to: remote,
+    });
 
-  const {confidence} = await getRouteConfidence({lnd, hops});
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-  equal((confidence / 1e6) < 0.1, true, 'Due to fail, odds of success = low');
+    const destination = remote.id;
 
-  await kill({});
+    // Allow time for graph sync to complete
+    const {routes} = await waitForRoute({destination, lnd, tokens});
+
+    // Run into a failure to inform future pathfinding
+    try {
+      await probeForRoute({destination, lnd, tokens});
+    } catch (err) {}
+
+    const [{hops}] = routes;
+
+    const {confidence} = await getRouteConfidence({lnd, hops});
+
+    equal((confidence / 1e6) < 0.1, true, 'Due to fail, odds of success low');
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
+  }
 
   return end();
 });

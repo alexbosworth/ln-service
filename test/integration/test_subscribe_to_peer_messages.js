@@ -16,98 +16,104 @@ test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
 
   const [{lnd}, target, remote] = nodes;
 
-  await addPeer({
-    lnd,
-    public_key: target.id,
-    socket: target.socket,
-  });
-
-  await addPeer({
-    lnd: target.lnd,
-    public_key: remote.id,
-    socket: remote.socket,
-  });
-
   try {
-    await sendMessageToPeer({
+    await addPeer({
       lnd,
-      message: Buffer.from('message').toString('hex'),
       public_key: target.id,
+      socket: target.socket,
     });
-  } catch (err) {
-    const [code] = err;
 
-    // Send message to peer is not supported on LND 0.13.4 or lower
-    if (code === 501) {
-      await kill({});
+    await addPeer({
+      lnd: target.lnd,
+      public_key: remote.id,
+      socket: remote.socket,
+    });
 
-      return end();
+    try {
+      await sendMessageToPeer({
+        lnd,
+        message: Buffer.from('message').toString('hex'),
+        public_key: target.id,
+      });
+    } catch (err) {
+      const [code] = err;
+
+      // Send message to peer is not supported on LND 0.13.4 or lower
+      if (code === 501) {
+        await kill({});
+
+        return end();
+      }
     }
-  }
 
-  const messages = [];
-  const targetSub = subscribeToPeerMessages({lnd: target.lnd});
-  const remoteSub = subscribeToPeerMessages({lnd: remote.lnd});
-  const targetMessages = [];
+    const messages = [];
+    const targetSub = subscribeToPeerMessages({lnd: target.lnd});
+    const remoteSub = subscribeToPeerMessages({lnd: remote.lnd});
+    const targetMessages = [];
 
-  remoteSub.on('message_received', message => messages.push(message));
+    remoteSub.on('message_received', message => messages.push(message));
 
-  targetSub.on('message_received', async ({message, type}) => {
-    targetMessages.push(message);
+    targetSub.on('message_received', async ({message, type}) => {
+      targetMessages.push(message);
 
-    if (type !== 40805) {
-      return;
-    }
+      if (type !== 40805) {
+        return;
+      }
+
+      // Wait for message to appear
+      return await asyncRetry({interval, times}, async () => {
+      // Relay message from control to remote
+        await sendMessageToPeer({
+          message,
+          type,
+          lnd: target.lnd,
+          public_key: remote.id,
+        });
+
+        if (!messages.length) {
+          throw new Error('ExpectedMessage');
+        }
+      });
+    });
 
     // Wait for message to appear
-    return await asyncRetry({interval, times}, async () => {
-    // Relay message from control to remote
+    await asyncRetry({interval, times}, async () => {
+      // Control send a message to target peer
       await sendMessageToPeer({
-        message,
-        type,
-        lnd: target.lnd,
-        public_key: remote.id,
+        lnd,
+        message: Buffer.from('message to remote').toString('hex'),
+        public_key: target.id,
+        type: 40805,
       });
 
+      if (!targetMessages.length) {
+        throw new Error('ExpectedTargetMessageReceived');
+      }
+    });
+
+    // Wait for message to appear
+    await asyncRetry({interval, times}, async () => {
       if (!messages.length) {
         throw new Error('ExpectedMessage');
       }
     });
-  });
 
-  // Wait for message to appear
-  await asyncRetry({interval, times}, async () => {
-    // Control send a message to target peer
-    await sendMessageToPeer({
-      lnd,
-      message: Buffer.from('message to remote').toString('hex'),
-      public_key: target.id,
-      type: 40805,
-    });
+    const [message] = messages;
 
-    if (!targetMessages.length) {
-      throw new Error('ExpectedTargetMessageReceived');
-    }
-  });
-
-  // Wait for message to appear
-  await asyncRetry({interval, times}, async () => {
-    if (!messages.length) {
-      throw new Error('ExpectedMessage');
-    }
-  });
-
-  strictSame(
-    messages,
-    [{
-      message: Buffer.from('message to remote').toString('hex'),
-      public_key: target.id,
-      type: 40805,
-    }],
-    'Message successfully relayed through target'
-  );
-
-  await kill({});
+    strictSame(
+      message,
+      {
+        message: Buffer.from('message to remote').toString('hex'),
+        public_key: target.id,
+        type: 40805,
+      },
+      'Message successfully relayed through target'
+    );
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
+  }
 
   return end();
 });
