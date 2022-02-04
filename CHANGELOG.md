@@ -1,6 +1,6 @@
 # Versions
 
-## 53.7.1
+## 53.7.2
 
 - `payViaRoutes`, `subscribeToPayViaRoutes`: Add support for relay messages
 

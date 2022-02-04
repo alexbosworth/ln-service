@@ -3,6 +3,7 @@ const {address} = require('bitcoinjs-lib');
 const {decodePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
+const tinysecp = require('tiny-secp256k1');
 
 const {createChainAddress} = require('./../../');
 const {fundPsbt} = require('./../../');
@@ -24,6 +25,8 @@ const txIdHexByteLength = 64;
 
 // Funding a transaction should result in a funded PSBT
 test(`Fund PSBT`, async ({end, equal}) => {
+  const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
+
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{generate, lnd}] = nodes;
@@ -86,7 +89,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
   equal(output.output_script, expectedOutput, 'Got expected output script');
 
-  const decoded = decodePsbt({psbt: funded.psbt});
+  const decoded = decodePsbt({ecp, psbt: funded.psbt});
 
   const [decodedInput] = decoded.inputs;
 

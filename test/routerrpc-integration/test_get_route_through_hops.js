@@ -83,14 +83,16 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
     }
   });
 
-  const res = await getRouteThroughHops({
-    lnd,
-    messages,
-    cltv_delta: decodedRequest.cltv_delta + 6,
-    mtokens: (BigInt(invoice.tokens) * BigInt(1e3)).toString(),
-    payment: decodedRequest.payment,
-    public_keys: route.hops.map(n => n.public_key),
-    total_mtokens: invoice.mtokens,
+  const res = await asyncRetry({interval, times}, async () => {
+    return await getRouteThroughHops({
+      lnd,
+      messages,
+      cltv_delta: decodedRequest.cltv_delta + 6,
+      mtokens: (BigInt(invoice.tokens) * BigInt(1e3)).toString(),
+      payment: decodedRequest.payment,
+      public_keys: route.hops.map(n => n.public_key),
+      total_mtokens: invoice.mtokens,
+    });
   });
 
   await payViaRoutes({lnd, id: invoice.id, routes: [res.route]});

@@ -3,6 +3,7 @@ const {address} = require('bitcoinjs-lib');
 const {decodePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
+const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
 
 const {broadcastChainTransaction} = require('./../../');
@@ -29,6 +30,8 @@ const txIdHexByteLength = 64;
 
 // Signing a PSBT should result in a finalized PSBT
 test(`Sign PSBT`, async ({end, equal}) => {
+  const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
+
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -72,7 +75,7 @@ test(`Sign PSBT`, async ({end, equal}) => {
 
   const tx = Transaction.fromHex(finalized.transaction);
 
-  const decoded = decodePsbt({psbt: finalized.psbt});
+  const decoded = decodePsbt({ecp, psbt: finalized.psbt});
 
   equal(!!decoded, true, 'Got a finalized PSBT');
   equal(!!tx, true, 'Got a raw signed transaction');

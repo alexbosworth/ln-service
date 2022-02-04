@@ -26,9 +26,9 @@
     "bitcoinjs-lib": "6.0.1",
     "bn.js": "5.2.0",
     "ecpair": "2.0.1",
-    "ln-docker-daemons": "2.2.3",
+    "ln-docker-daemons": "2.2.4",
     "portfinder": "1.0.28",
-    "psbt": "1.1.11",
+    "psbt": "2.0.0",
     "rimraf": "3.0.2",
     "secp256k1": "4.0.3",
     "tiny-secp256k1": "2.2.0",
@@ -64,7 +64,7 @@
     "integration-test-0.13.0": "DOCKER_LND_VERSION=v0.13.0-beta npm run test",
     "integration-test-0.12.1": "DOCKER_LND_VERSION=v0.12.1-beta npm run test",
     "integration-test-0.12.0": "DOCKER_LND_VERSION=v0.12.0-beta npm run test",
-    "test": "echo $DOCKER_LND_VERSION && tap -j 2 --branches=1 --functions=1 --lines=1 --statements=1 -t 200 test/autopilotrpc-integration/*.js test/chainrpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/routerrpc-integration/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js"
+    "test": "echo $DOCKER_LND_VERSION && tap -j 3 --branches=1 --functions=1 --lines=1 --statements=1 -t 200 test/autopilotrpc-integration/*.js test/chainrpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/routerrpc-integration/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js"
   },
-  "version": "53.7.1"
+  "version": "53.7.2"
 }

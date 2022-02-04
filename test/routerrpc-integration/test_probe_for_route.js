@@ -34,96 +34,100 @@ test('Probe for route', async ({end, equal, strictSame}) => {
   // Send coins to remote so that it can accept a channel
   await remote.generate({count});
 
-  await setupChannel({
-    generate,
-    lnd,
-    capacity: channelCapacityTokens + channelCapacityTokens,
-    to: target,
-  });
-
-  await setupChannel({
-    capacity: channelCapacityTokens,
-    lnd: target.lnd,
-    generate: target.generate,
-    give: Math.round(channelCapacityTokens / 2),
-    to: remote,
-  });
-
-  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
-
-  const invoice = await createInvoice({tokens, lnd: remote.lnd});
-
-  await delay(1000);
-
   try {
-    await probeForRoute({
+    await setupChannel({
+      generate,
       lnd,
-      destination: remote.id,
-      is_ignoring_past_failures: true,
-      tokens: invoice.tokens,
-    });
-  } catch (err) {
-    const [code, message, {failure}] = err;
-
-    equal(code, 503, 'Failed to find route');
-    equal(message, 'RoutingFailure', 'Hit a routing failure');
-    equal(failure.reason, 'TemporaryChannelFailure', 'Temporary failure');
-  }
-
-  const {version} = await getWalletVersion({lnd});
-
-  const [, minor] = (version || '').split('.');
-
-  if (!version || parseInt(minor) > 13) {
-    const {payments} = await getFailedPayments({lnd});
-
-    strictSame(payments, [], 'Probes do not leave a failed state behind');
-  }
-
-  // Create a new channel to increase total edge liquidity
-  await setupChannel({
-    capacity: channelCapacityTokens,
-    lnd: target.lnd,
-    generate: target.generate,
-    to: remote,
-  });
-
-  await deleteForwardingReputations({lnd});
-
-  await waitForRoute({lnd, destination: remote.id, tokens: invoice.tokens});
-
-  try {
-    const {route} = await probeForRoute({
-      lnd,
-      destination: remote.id,
-      payment: invoice.payment,
-      tokens: invoice.tokens,
-      total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
+      capacity: channelCapacityTokens + channelCapacityTokens,
+      to: target,
     });
 
-    if (!route) {
-      throw new Error('ExpectedRouteFromProbe');
+    await setupChannel({
+      capacity: channelCapacityTokens,
+      lnd: target.lnd,
+      generate: target.generate,
+      give: Math.round(channelCapacityTokens / 2),
+      to: remote,
+    });
+
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
+    const invoice = await createInvoice({tokens, lnd: remote.lnd});
+
+    await delay(1000);
+
+    try {
+      await probeForRoute({
+        lnd,
+        destination: remote.id,
+        is_ignoring_past_failures: true,
+        tokens: invoice.tokens,
+      });
+    } catch (err) {
+      const [code, message, {failure}] = err;
+
+      equal(code, 503, 'Failed to find route');
+      equal(message, 'RoutingFailure', 'Hit a routing failure');
+      equal(failure.reason, 'TemporaryChannelFailure', 'Temporary failure');
     }
 
-    equal(route.fee, 1, 'Found route fee');
-    equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
-    strictSame(route.hops.length, 2, 'Found route hops returned');
-    equal(route.mtokens, '500001500', 'Found route mtokens');
-    equal(route.timeout >= 400, true, 'Found route timeout');
-    equal(route.tokens, 500001, 'Found route tokens');
+    const {version} = await getWalletVersion({lnd});
 
-    const {secret} = await payViaRoutes({
-      lnd,
-      id: invoice.id,
-      routes: [route],
+    const [, minor] = (version || '').split('.');
+
+    if (!version || parseInt(minor) > 13) {
+      const {payments} = await getFailedPayments({lnd});
+
+      strictSame(payments, [], 'Probes do not leave a failed state behind');
+    }
+
+    // Create a new channel to increase total edge liquidity
+    await setupChannel({
+      capacity: channelCapacityTokens,
+      lnd: target.lnd,
+      generate: target.generate,
+      to: remote,
     });
 
-    equal(secret, invoice.secret, 'Route works');
-  } catch (err) {
-    equal(err, null, 'No error when probing for route');
-  }
+    await deleteForwardingReputations({lnd});
 
-  await kill({});
+    await waitForRoute({lnd, destination: remote.id, tokens: invoice.tokens});
+
+    try {
+      const {route} = await probeForRoute({
+        lnd,
+        destination: remote.id,
+        payment: invoice.payment,
+        tokens: invoice.tokens,
+        total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
+      });
+
+      if (!route) {
+        throw new Error('ExpectedRouteFromProbe');
+      }
+
+      equal(route.fee, 1, 'Found route fee');
+      equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
+      strictSame(route.hops.length, 2, 'Found route hops returned');
+      equal(route.mtokens, '500001500', 'Found route mtokens');
+      equal(route.timeout >= 400, true, 'Found route timeout');
+      equal(route.tokens, 500001, 'Found route tokens');
+
+      const {secret} = await payViaRoutes({
+        lnd,
+        id: invoice.id,
+        routes: [route],
+      });
+
+      equal(secret, invoice.secret, 'Route works');
+    } catch (err) {
+      equal(err, null, 'No error when probing for route');
+    }
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
+  }
 
   return end();
 });

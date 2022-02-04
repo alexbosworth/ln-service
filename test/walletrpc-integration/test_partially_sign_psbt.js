@@ -8,6 +8,7 @@ const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
+const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
 
@@ -30,6 +31,8 @@ const tokens = 1e6;
 
 // Partially signing a PSBT should result in a partially signed PSBT
 test(`Partially sign PSBT`, async ({end, equal, strictSame}) => {
+  const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
+
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target, remote] = nodes;
@@ -125,9 +128,9 @@ test(`Partially sign PSBT`, async ({end, equal, strictSame}) => {
     });
 
     // Decode the PSBTs to get signing key details
-    const controlDecoded = decodePsbt({psbt: controlFund.psbt});
-    const targetDecoded = decodePsbt({psbt: targetFund.psbt});
-    const remoteDecoded = decodePsbt({psbt: remoteFund.psbt});
+    const controlDecoded = decodePsbt({ecp, psbt: controlFund.psbt});
+    const targetDecoded = decodePsbt({ecp, psbt: targetFund.psbt});
+    const remoteDecoded = decodePsbt({ecp, psbt: remoteFund.psbt});
 
     // Collect all the BIP32 derivations
     const controlBip32Derivations = controlDecoded.inputs
@@ -157,6 +160,7 @@ test(`Partially sign PSBT`, async ({end, equal, strictSame}) => {
 
     // Update the PSBT so that it has the consolidated details
     const updated = updatePsbt({
+      ecp,
       bip32_derivations: bip32Derivations,
       psbt: base.psbt,
       sighashes: inputs.map(input => ({
@@ -175,10 +179,13 @@ test(`Partially sign PSBT`, async ({end, equal, strictSame}) => {
     });
 
     // Finalize the signatures
-    const finalize = finalizePsbt({psbt: combinePsbts({psbts}).psbt});
+    const finalize = finalizePsbt({
+      ecp,
+      psbt: combinePsbts({ecp, psbts}).psbt,
+    });
 
     // Pull out the transaction
-    const {transaction} = extractTransaction({psbt: finalize.psbt});
+    const {transaction} = extractTransaction({ecp, psbt: finalize.psbt});
 
     // Publish the transaction
     await broadcastChainTransaction({lnd: control.lnd, transaction});

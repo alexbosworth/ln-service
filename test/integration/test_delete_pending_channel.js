@@ -5,6 +5,7 @@ const asyncRetry = require('async/retry');
 const {extractTransaction} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
+const tinysecp = require('tiny-secp256k1');
 
 const {addPeer} = require('./../../');
 const {broadcastChainTransaction} = require('./../../');
@@ -27,11 +28,13 @@ const count = 100;
 const interval = 100;
 const race = promises => Promise.race(promises);
 const size = 3;
-const timeout = 1000 * 5;
+const timeout = 1000 * 20;
 const times = 200;
 
 // Forfeiting a pending channel should remove the pending channel
 test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
+  const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
+
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target, remote] = nodes;
@@ -105,7 +108,7 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
       funding: signRemote.psbt,
     });
 
-    const {transaction} = extractTransaction({psbt: signRemote.psbt});
+    const {transaction} = extractTransaction({ecp, psbt: signRemote.psbt});
 
     await broadcastChainTransaction({lnd, transaction});
 

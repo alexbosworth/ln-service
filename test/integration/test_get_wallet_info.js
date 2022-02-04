@@ -17,29 +17,33 @@ test(`Get wallet info`, async ({end, equal, strictSame}) => {
 
   const [{lnd}] = nodes;
 
-  const result = await getWalletInfo({lnd});
+  try {
+    const result = await asyncRetry({interval, times}, async () => {
+      const result = await getWalletInfo({lnd});
 
-  await asyncRetry({interval, times}, async () => {
-    if (result.current_block_height === initHeight) {
-      return;
-    }
+      if (result.current_block_height === initHeight) {
+        return result;
+      }
 
-    throw new Error('ExpectedBlockHeightAtInitHeight');
-  });
+      throw new Error('ExpectedBlockHeightAtInitHeight');
+    });
 
-  equal(result.active_channels_count, 0, 'Expected channels count');
-  equal(!!result.alias, true, 'Expected alias');
-  strictSame(result.chains, [regtestChainId], 'Got chains');
-  equal(!!result.current_block_hash, true, 'Expected best block hash');
-  equal(result.current_block_height, initHeight, 'Expected best block height');
-  equal(!!result.latest_block_at, true, 'Last block time');
-  equal(result.peers_count, 0, 'Expected wallet peers count');
-  equal(result.pending_channels_count, 0, 'Expected pending channels count');
-  equal(result.public_key.length, pubKeyHexLength, 'Expected public key');
-  strictSame(result.uris.length, 1, 'Expected node URI');
-  equal(!!result.version, true, 'Expected version');
-
-  await kill({});
+    equal(result.active_channels_count, 0, 'Expected channels count');
+    equal(!!result.alias, true, 'Expected alias');
+    strictSame(result.chains, [regtestChainId], 'Got chains');
+    equal(!!result.current_block_hash, true, 'Expected best block hash');
+    equal(result.current_block_height, initHeight, 'Expected best block height');
+    equal(!!result.latest_block_at, true, 'Last block time');
+    equal(result.peers_count, 0, 'Expected wallet peers count');
+    equal(result.pending_channels_count, 0, 'Expected pending channels count');
+    equal(result.public_key.length, pubKeyHexLength, 'Expected public key');
+    strictSame(result.uris.length, 1, 'Expected node URI');
+    equal(!!result.version, true, 'Expected version');
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
+  }
 
   return end();
 });

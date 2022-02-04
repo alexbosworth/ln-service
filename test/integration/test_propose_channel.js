@@ -10,6 +10,7 @@ const {script} = require('bitcoinjs-lib');
 const signPsbtWithKey = require('psbt').signPsbt;
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
+const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
 
@@ -49,447 +50,463 @@ const times = 300;
 
 // Proposing a cooperative delay channel should open a cooperative delay chan
 test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
+  const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
+
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
 
   const {lnd, generate} = control;
 
-  const {version} = await getWalletVersion({lnd});
+  try {
+    const {version} = await getWalletVersion({lnd});
 
-  switch (version) {
-  case '0.11.0-beta':
-  case '0.11.1-beta':
-    // Exit early when funding PSBTs is not supported
-    await kill({});
+    switch (version) {
+    case '0.11.0-beta':
+    case '0.11.1-beta':
+      // Exit early when funding PSBTs is not supported
+      await kill({});
 
-    return end();
+      return end();
 
-  default:
-    break;
-  }
-
-  // Generate some funds for LND
-  await asyncRetry({times}, async () => {
-    await addPeer({lnd, public_key: target.id, socket: target.socket});
-
-    await generate({});
-
-    const wallet = await getChainBalance({lnd});
-
-    if (!wallet.chain_balance) {
-      throw new Error('ExpectedChainBalanceForNode');
+    default:
+      break;
     }
-  });
 
-  // Generate some funds for LND
-  await asyncRetry({times}, async () => {
-    await target.generate({});
+    // Generate some funds for LND
+    await asyncRetry({times}, async () => {
+      await addPeer({lnd, public_key: target.id, socket: target.socket});
 
-    const wallet = await getChainBalance({lnd: target.lnd});
+      await generate({});
 
-    if (!wallet.chain_balance) {
-      throw new Error('ExpectedChainBalanceForNode');
-    }
-  });
+      const wallet = await getChainBalance({lnd});
 
-  const {features} = await getWalletInfo({lnd});
+      if (!wallet.chain_balance) {
+        throw new Error('ExpectedChainBalanceForNode');
+      }
+    });
 
-  const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
+    // Generate some funds for LND
+    await asyncRetry({times}, async () => {
+      await target.generate({});
 
-  // Derive a temporary key for control to pay into
-  const controlDerivedKey = await getPublicKey({
-    lnd,
-    family: temporaryFamily,
-  });
+      const wallet = await getChainBalance({lnd: target.lnd});
 
-  // Derive a temporary key for target to pay into
-  const targetDerivedKey = await getPublicKey({
-    family: temporaryFamily,
-    lnd: target.lnd,
-  });
+      if (!wallet.chain_balance) {
+        throw new Error('ExpectedChainBalanceForNode');
+      }
+    });
 
-  // Control should fund and sign a transaction going to the control temp key
-  const controlDerivedAddress = payments.p2wpkh({
-    network: regtest,
-    pubkey: Buffer.from(controlDerivedKey.public_key, 'hex'),
-  });
+    const {features} = await getWalletInfo({lnd});
 
-  // Target should fund and sign a transaction going to the target temp key
-  const targetDerivedAddress = payments.p2wpkh({
-    network: regtest,
-    pubkey: Buffer.from(targetDerivedKey.public_key, 'hex'),
-  });
+    const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
 
-  const temporaryKeys = [controlDerivedKey, targetDerivedKey];
+    // Derive a temporary key for control to pay into
+    const controlDerivedKey = await getPublicKey({
+      lnd,
+      family: temporaryFamily,
+    });
 
-  const giveTokens = ceil(capacity / temporaryKeys.length);
+    // Derive a temporary key for target to pay into
+    const targetDerivedKey = await getPublicKey({
+      family: temporaryFamily,
+      lnd: target.lnd,
+    });
 
-  // Control can now fund a transaction to pay to the temp address
-  const controlFundPsbt = await fundPsbt({
-    lnd,
-    fee_tokens_per_vbyte: feeRate,
-    outputs: [{
-      address: controlDerivedAddress.address,
-      tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
-    }],
-  });
+    // Control should fund and sign a transaction going to the control temp key
+    const controlDerivedAddress = payments.p2wpkh({
+      network: regtest,
+      pubkey: Buffer.from(controlDerivedKey.public_key, 'hex'),
+    });
 
-  // Target can now fund a transaction to pay to the temp address
-  const targetFundPsbt = await fundPsbt({
-    lnd: target.lnd,
-    fee_tokens_per_vbyte: feeRate,
-    outputs: [{
-      address: targetDerivedAddress.address,
-      tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
-    }],
-  });
+    // Target should fund and sign a transaction going to the target temp key
+    const targetDerivedAddress = payments.p2wpkh({
+      network: regtest,
+      pubkey: Buffer.from(targetDerivedKey.public_key, 'hex'),
+    });
 
-  // Control can sign the funding to the temporary address
-  const controlSignPsbt = await signPsbt({lnd, psbt: controlFundPsbt.psbt});
+    const temporaryKeys = [controlDerivedKey, targetDerivedKey];
 
-  // Target can sign the funding to the temporary address
-  const targetSignPsbt = await signPsbt({
-    lnd: target.lnd,
-    psbt: targetFundPsbt.psbt,
-  });
+    const giveTokens = ceil(capacity / temporaryKeys.length);
 
-  // Decode the control funded PSBT
-  const controlPsbt = decodePsbt({psbt: controlFundPsbt.psbt});
+    // Control can now fund a transaction to pay to the temp address
+    const controlFundPsbt = await fundPsbt({
+      lnd,
+      fee_tokens_per_vbyte: feeRate,
+      outputs: [{
+        address: controlDerivedAddress.address,
+        tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
+      }],
+    });
 
-  // Decode the target funded PSBT
-  const targetPsbt = decodePsbt({psbt: targetFundPsbt.psbt});
+    // Target can now fund a transaction to pay to the temp address
+    const targetFundPsbt = await fundPsbt({
+      lnd: target.lnd,
+      fee_tokens_per_vbyte: feeRate,
+      outputs: [{
+        address: targetDerivedAddress.address,
+        tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
+      }],
+    });
 
-  // Derive the id of the control pre-funding tx
-  const controlId = fromHex(controlPsbt.unsigned_transaction).getId();
+    // Control can sign the funding to the temporary address
+    const controlSignPsbt = await signPsbt({lnd, psbt: controlFundPsbt.psbt});
 
-  // Derive the id of the target pre-funding tx
-  const targetId = fromHex(targetPsbt.unsigned_transaction).getId();
+    // Target can sign the funding to the temporary address
+    const targetSignPsbt = await signPsbt({
+      lnd: target.lnd,
+      psbt: targetFundPsbt.psbt,
+    });
 
-  // Derive a new control key for a 2:2 multisig
-  const controlMultiSigKey = await getPublicKey({family, lnd});
+    // Decode the control funded PSBT
+    const controlPsbt = decodePsbt({ecp, psbt: controlFundPsbt.psbt});
 
-  // Derive a new target key for a 2:2 multisig
-  const targetMultiSigKey = await getPublicKey({family, lnd: target.lnd});
+    // Decode the target funded PSBT
+    const targetPsbt = decodePsbt({ecp, psbt: targetFundPsbt.psbt});
 
-  const fundingMultiSigKeys = [
-    controlMultiSigKey.public_key,
-    targetMultiSigKey.public_key,
-  ];
+    // Derive the id of the control pre-funding tx
+    const controlId = fromHex(controlPsbt.unsigned_transaction).getId();
 
-  // Make the channel 2:2 funding output from control and target keys
-  const dualFundingChannelAddress = payments.p2wsh({
-    redeem: p2ms({
-      m: fundingMultiSigKeys.length,
-      pubkeys: fundingMultiSigKeys.sort().map(n => Buffer.from(n, 'hex')),
-    }),
-  });
+    // Derive the id of the target pre-funding tx
+    const targetId = fromHex(targetPsbt.unsigned_transaction).getId();
 
-  const pendingChannelId = dualFundingChannelAddress.hash;
+    // Derive a new control key for a 2:2 multisig
+    const controlMultiSigKey = await getPublicKey({family, lnd});
 
-  // Create the basic PSBT that spends temporary funds to the 2:2 funding
-  const dualFundPsbt = createPsbt({
-    outputs: [{
-      script: dualFundingChannelAddress.output.toString('hex'),
-      tokens: capacity,
-    }],
-    utxos: [
-      {
-        id: fromHex(controlSignPsbt.transaction).getId(),
-        vout: controlFundPsbt.outputs.findIndex(n => !n.is_change),
-      },
-      {
-        id: fromHex(targetSignPsbt.transaction).getId(),
-        vout: targetFundPsbt.outputs.findIndex(n => !n.is_change),
-      },
-    ],
-  });
+    // Derive a new target key for a 2:2 multisig
+    const targetMultiSigKey = await getPublicKey({family, lnd: target.lnd});
 
-  const controlWithoutWitnessTx = fromHex(controlSignPsbt.transaction);
-  const targetWithoutWitnessTx = fromHex(targetSignPsbt.transaction);
+    const fundingMultiSigKeys = [
+      controlMultiSigKey.public_key,
+      targetMultiSigKey.public_key,
+    ];
 
-  // Eliminate the witnesses
-  controlWithoutWitnessTx.ins.forEach((input, index) => {
-    return controlWithoutWitnessTx.setWitness(index, []);
-  });
+    // Make the channel 2:2 funding output from control and target keys
+    const dualFundingChannelAddress = payments.p2wsh({
+      redeem: p2ms({
+        m: fundingMultiSigKeys.length,
+        pubkeys: fundingMultiSigKeys.sort().map(n => Buffer.from(n, 'hex')),
+      }),
+    });
 
-  targetWithoutWitnessTx.ins.forEach((input, index) => {
-    return targetWithoutWitnessTx.setWitness(index, []);
-  });
+    const pendingChannelId = dualFundingChannelAddress.hash;
 
-  // Add the spending transactions to the psbt
-  const psbtWithSpending = updatePsbt({
-    psbt: dualFundPsbt.psbt,
-    transactions: [
-      controlWithoutWitnessTx.toHex(),
-      targetWithoutWitnessTx.toHex(),
-    ],
-  });
+    // Create the basic PSBT that spends temporary funds to the 2:2 funding
+    const dualFundPsbt = createPsbt({
+      outputs: [{
+        script: dualFundingChannelAddress.output.toString('hex'),
+        tokens: capacity,
+      }],
+      utxos: [
+        {
+          id: fromHex(controlSignPsbt.transaction).getId(),
+          vout: controlFundPsbt.outputs.findIndex(n => !n.is_change),
+        },
+        {
+          id: fromHex(targetSignPsbt.transaction).getId(),
+          vout: targetFundPsbt.outputs.findIndex(n => !n.is_change),
+        },
+      ],
+    });
 
-  const finalFundingPsbt = decodePsbt({psbt: dualFundPsbt.psbt});
+    const controlWithoutWitnessTx = fromHex(controlSignPsbt.transaction);
+    const targetWithoutWitnessTx = fromHex(targetSignPsbt.transaction);
 
-  const fundingTx = fromHex(finalFundingPsbt.unsigned_transaction);
+    // Eliminate the witnesses
+    controlWithoutWitnessTx.ins.forEach((input, index) => {
+      return controlWithoutWitnessTx.setWitness(index, []);
+    });
 
-  const fundingTxId = fundingTx.getId();
+    targetWithoutWitnessTx.ins.forEach((input, index) => {
+      return targetWithoutWitnessTx.setWitness(index, []);
+    });
 
-  const fundingTxVout = fundingTx.outs.findIndex(n => n.value === capacity);
+    // Add the spending transactions to the psbt
+    const psbtWithSpending = updatePsbt({
+      ecp,
+      psbt: dualFundPsbt.psbt,
+      transactions: [
+        controlWithoutWitnessTx.toHex(),
+        targetWithoutWitnessTx.toHex(),
+      ],
+    });
 
-  const controlTxHash = controlWithoutWitnessTx.getHash();
+    const finalFundingPsbt = decodePsbt({ecp, psbt: dualFundPsbt.psbt});
 
-  const targetTxHash = targetWithoutWitnessTx.getHash();
+    const fundingTx = fromHex(finalFundingPsbt.unsigned_transaction);
 
-  const controlVin = fundingTx.ins.findIndex(({hash}) => {
-    return hash.equals(controlTxHash);
-  });
+    const fundingTxId = fundingTx.getId();
 
-  const targetVin = fundingTx.ins.findIndex(({hash}) => {
-    return hash.equals(targetTxHash);
-  });
+    const fundingTxVout = fundingTx.outs.findIndex(n => n.value === capacity);
 
-  const decodePayout = decodePsbt({psbt: psbtWithSpending.psbt});
+    const controlTxHash = controlWithoutWitnessTx.getHash();
 
-  // Call signTransaction on the unsigned tx that pays from temp -> multisig
-  const controlSignDerivedKey = await signTransaction({
-    lnd,
-    inputs: [{
-      key_family: temporaryFamily,
-      key_index: controlDerivedKey.index,
-      output_script: dualFundingChannelAddress.output.toString('hex'),
-      output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
-      sighash: Transaction.SIGHASH_ALL,
-      vin: controlVin,
-      witness_script: p2pkh({hash: controlDerivedAddress.hash}).output,
-    }],
-    transaction: decodePayout.unsigned_transaction,
-  });
+    const targetTxHash = targetWithoutWitnessTx.getHash();
 
-  const [controlDerivedSignature] = controlSignDerivedKey.signatures;
+    const controlVin = fundingTx.ins.findIndex(({hash}) => {
+      return hash.equals(controlTxHash);
+    });
 
-  const controlSignSpendingPsbt = updatePsbt({
-    psbt: psbtWithSpending.psbt,
-    signatures: controlSignDerivedKey.signatures.map(sig => {
-      return {
-        signature: Buffer.concat([
-          Buffer.from(sig, 'hex'),
-          Buffer.from([Transaction.SIGHASH_ALL]),
-        ]).toString('hex') ,
-        hash_type: Transaction.SIGHASH_ALL,
-        public_key: controlDerivedKey.public_key,
+    const targetVin = fundingTx.ins.findIndex(({hash}) => {
+      return hash.equals(targetTxHash);
+    });
+
+    const decodePayout = decodePsbt({ecp, psbt: psbtWithSpending.psbt});
+
+    // Call signTransaction on the unsigned tx that pays from temp -> multisig
+    const controlSignDerivedKey = await signTransaction({
+      lnd,
+      inputs: [{
+        key_family: temporaryFamily,
+        key_index: controlDerivedKey.index,
+        output_script: dualFundingChannelAddress.output.toString('hex'),
+        output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
+        sighash: Transaction.SIGHASH_ALL,
         vin: controlVin,
-      };
-    }),
-  });
+        witness_script: p2pkh({hash: controlDerivedAddress.hash}).output,
+      }],
+      transaction: decodePayout.unsigned_transaction,
+    });
 
-  // Call signTransaction on the unsigned tx that pays from temp -> multisig
-  const targetSignDerivedKey = await signTransaction({
-    inputs: [{
-      key_family: temporaryFamily,
-      key_index: targetDerivedKey.index,
-      output_script: dualFundingChannelAddress.output.toString('hex'),
-      output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
-      sighash: Transaction.SIGHASH_ALL,
-      vin: targetVin,
-      witness_script: p2pkh({hash: targetDerivedAddress.hash}).output,
-    }],
-    lnd: target.lnd,
-    transaction: decodePsbt({psbt: psbtWithSpending.psbt}).unsigned_transaction,
-  });
+    const [controlDerivedSignature] = controlSignDerivedKey.signatures;
 
-  const [targetDerivedSignature] = targetSignDerivedKey.signatures;
+    const controlSignSpendingPsbt = updatePsbt({
+      ecp,
+      psbt: psbtWithSpending.psbt,
+      signatures: controlSignDerivedKey.signatures.map(sig => {
+        return {
+          signature: Buffer.concat([
+            Buffer.from(sig, 'hex'),
+            Buffer.from([Transaction.SIGHASH_ALL]),
+          ]).toString('hex') ,
+          hash_type: Transaction.SIGHASH_ALL,
+          public_key: controlDerivedKey.public_key,
+          vin: controlVin,
+        };
+      }),
+    });
 
-  const targetSignSpendingPsbt = updatePsbt({
-    psbt: psbtWithSpending.psbt,
-    signatures: targetSignDerivedKey.signatures.map(sig => {
-      return {
-        signature: Buffer.concat([
-          Buffer.from(sig, 'hex'),
-          Buffer.from([Transaction.SIGHASH_ALL]),
-        ]).toString('hex') ,
-        hash_type: Transaction.SIGHASH_ALL,
-        public_key: targetDerivedKey.public_key,
+    // Call signTransaction on the unsigned tx that pays from temp -> multisig
+    const targetSignDerivedKey = await signTransaction({
+      inputs: [{
+        key_family: temporaryFamily,
+        key_index: targetDerivedKey.index,
+        output_script: dualFundingChannelAddress.output.toString('hex'),
+        output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
+        sighash: Transaction.SIGHASH_ALL,
         vin: targetVin,
-      };
-    }),
-  });
+        witness_script: p2pkh({hash: targetDerivedAddress.hash}).output,
+      }],
+      lnd: target.lnd,
+      transaction: decodePsbt({
+        ecp,
+        psbt: psbtWithSpending.psbt,
+      }).unsigned_transaction,
+    });
 
-  // Use the anticipated funding tx to prepare for a new channel open
-  await prepareForChannelProposal({
-    cooperative_close_delay: cooperativeCloseDelay,
-    id: pendingChannelId.toString('hex'),
-    key_index: targetMultiSigKey.index,
-    lnd: target.lnd,
-    remote_key: controlMultiSigKey.public_key,
-    transaction_id: fundingTxId,
-    transaction_vout: fundingTxVout,
-  });
+    const [targetDerivedSignature] = targetSignDerivedKey.signatures;
 
-  const coopCloseAddress = await createChainAddress({
-    format: 'np2wpkh',
-    lnd: control.lnd,
-  });
+    const targetSignSpendingPsbt = updatePsbt({
+      ecp,
+      psbt: psbtWithSpending.psbt,
+      signatures: targetSignDerivedKey.signatures.map(sig => {
+        return {
+          signature: Buffer.concat([
+            Buffer.from(sig, 'hex'),
+            Buffer.from([Transaction.SIGHASH_ALL]),
+          ]).toString('hex') ,
+          hash_type: Transaction.SIGHASH_ALL,
+          public_key: targetDerivedKey.public_key,
+          vin: targetVin,
+        };
+      }),
+    });
 
-  // Propose the channel to the target
-  await proposeChannel({
-    capacity,
-    cooperative_close_address: coopCloseAddress.address,
-    cooperative_close_delay: cooperativeCloseDelay,
-    give_tokens: capacity / fundingMultiSigKeys.length,
-    id: pendingChannelId.toString('hex'),
-    is_private: true,
-    key_index: controlMultiSigKey.index,
-    lnd: control.lnd,
-    partner_public_key: target.id,
-    remote_key: targetMultiSigKey.public_key,
-    transaction_id: fundingTxId,
-    transaction_vout: fundingTxVout,
-  });
+    // Use the anticipated funding tx to prepare for a new channel open
+    await prepareForChannelProposal({
+      cooperative_close_delay: cooperativeCloseDelay,
+      id: pendingChannelId.toString('hex'),
+      key_index: targetMultiSigKey.index,
+      lnd: target.lnd,
+      remote_key: controlMultiSigKey.public_key,
+      transaction_id: fundingTxId,
+      transaction_vout: fundingTxVout,
+    });
 
-  const pendingTarget = await getPendingChannels({lnd: target.lnd});
+    const coopCloseAddress = await createChainAddress({
+      format: 'np2wpkh',
+      lnd: control.lnd,
+    });
 
-  const [incoming] = pendingTarget.pending_channels;
+    // Propose the channel to the target
+    await proposeChannel({
+      capacity,
+      cooperative_close_address: coopCloseAddress.address,
+      cooperative_close_delay: cooperativeCloseDelay,
+      give_tokens: capacity / fundingMultiSigKeys.length,
+      id: pendingChannelId.toString('hex'),
+      is_private: true,
+      key_index: controlMultiSigKey.index,
+      lnd: control.lnd,
+      partner_public_key: target.id,
+      remote_key: targetMultiSigKey.public_key,
+      transaction_id: fundingTxId,
+      transaction_vout: fundingTxVout,
+    });
 
-  // LND 0.11.1 and before do not use anchor channels
-  if (isAnchors) {
-    equal(incoming.remote_balance, 496530, 'Remote balance amount');
-    equal(incoming.transaction_fee, 2810, 'Commit tx fee');
-    equal(incoming.transaction_weight, 1116, 'Funding tx weight');
-  } else {
-    equal(incoming.remote_balance, giveTokens - 9050, 'Remote balance amount');
-    equal(incoming.transaction_fee, 9050, 'Commit tx fee');
-    equal(incoming.transaction_weight, 724, 'Funding tx weight');
-  }
+    const pendingTarget = await getPendingChannels({lnd: target.lnd});
 
-  equal(incoming.capacity, 1000000, 'Incoming capacity is defined');
-  equal(incoming.close_transaction_id, undefined, 'Not a closing tx');
-  equal(incoming.is_active, false, 'Not active yet');
-  equal(incoming.is_closing, false, 'Channel is not closing');
-  equal(incoming.is_opening, true, 'Channel is opening');
-  equal(incoming.is_partner_initiated, true, 'Peer initiated the channel');
-  equal(incoming.local_balance, giveTokens, 'The incoming channel is split');
-  equal(incoming.local_reserve, capacity * reserveRatio, 'Reserve ratio');
-  equal(incoming.partner_public_key, control.id, 'Peer key');
-  equal(incoming.pending_balance, undefined, 'No tokens pending');
-  equal(incoming.pending_payments, undefined, 'No HTLCs active');
-  equal(incoming.received, 0, 'Nothing received');
-  equal(incoming.recovered_tokens, undefined, 'No recovery');
-  equal(incoming.remote_reserve, capacity * reserveRatio, 'Got peer reserve');
-  equal(incoming.sent, 0, 'Nothing sent');
-  equal(incoming.timelock_expiration, undefined, 'No timelock');
-  equal(incoming.transaction_id, fundingTxId, 'Funding tx id is correct');
-  equal(incoming.transaction_vout, fundingTxVout, 'Funding vout is correct');
+    const [incoming] = pendingTarget.pending_channels;
 
-  // Setup the combined signed PSBTs that fund the channel
-  const combinedTempPsbt = combinePsbts({
-    psbts: [controlSignSpendingPsbt, targetSignSpendingPsbt].map(n => n.psbt),
-  });
-
-  // Finalize the combined PSBT
-  const finalTempPsbt = finalizePsbt({psbt: combinedTempPsbt.psbt});
-
-  // Pull out the signed broadcast-ready transaction from the PSBT
-  const finalTempTx = extractTransaction({psbt: finalTempPsbt.psbt});
-
-  // Calculate the size of the tx
-  const txSize = fromHex(finalTempTx.transaction).virtualSize();
-
-  equal(txSize <= fundingFee, true, 'Transaction size is not too large');
-
-  // Broadcast the transaction to fund the control side
-  await broadcastChainTransaction({
-    lnd,
-    transaction: controlSignPsbt.transaction,
-  });
-
-  // Broadcast the transaction to fund the target side
-  await broadcastChainTransaction({
-    lnd,
-    transaction: targetSignPsbt.transaction,
-  });
-
-  // Broadcast the transaction to fund the channel
-  await broadcastChainTransaction({
-    lnd,
-    transaction: finalTempTx.transaction,
-  });
-
-  // Mine the funding transactions into a block
-  await asyncRetry({interval, times}, async () => {
-    await control.generate({});
-
-    const {channels} = await getChannels({lnd});
-
-    if (!channels.find(n => n.is_active)) {
-      throw new Error('ExpectedActiveChannel');
+    // LND 0.11.1 and before do not use anchor channels
+    if (isAnchors) {
+      equal(incoming.remote_balance, 496530, 'Remote balance amount');
+      equal(incoming.transaction_fee, 2810, 'Commit tx fee');
+      equal(incoming.transaction_weight, 1116, 'Funding tx weight');
+    } else {
+      equal(incoming.remote_balance, giveTokens - 9050, 'Remote balance');
+      equal(incoming.transaction_fee, 9050, 'Commit tx fee');
+      equal(incoming.transaction_weight, 724, 'Funding tx weight');
     }
 
-    return;
-  });
+    equal(incoming.capacity, 1000000, 'Incoming capacity is defined');
+    equal(incoming.close_transaction_id, undefined, 'Not a closing tx');
+    equal(incoming.is_active, false, 'Not active yet');
+    equal(incoming.is_closing, false, 'Channel is not closing');
+    equal(incoming.is_opening, true, 'Channel is opening');
+    equal(incoming.is_partner_initiated, true, 'Peer initiated the channel');
+    equal(incoming.local_balance, giveTokens, 'The incoming channel is split');
+    equal(incoming.local_reserve, capacity * reserveRatio, 'Reserve ratio');
+    equal(incoming.partner_public_key, control.id, 'Peer key');
+    equal(incoming.pending_balance, undefined, 'No tokens pending');
+    equal(incoming.pending_payments, undefined, 'No HTLCs active');
+    equal(incoming.received, 0, 'Nothing received');
+    equal(incoming.recovered_tokens, undefined, 'No recovery');
+    equal(incoming.remote_reserve, capacity * reserveRatio, 'Got reserve');
+    equal(incoming.sent, 0, 'Nothing sent');
+    equal(incoming.timelock_expiration, undefined, 'No timelock');
+    equal(incoming.transaction_id, fundingTxId, 'Funding tx id is correct');
+    equal(incoming.transaction_vout, fundingTxVout, 'Funding vout is correct');
 
-  const controlChannels = await getChannels({lnd});
+    // Setup the combined signed PSBTs that fund the channel
+    const combinedTempPsbt = combinePsbts({
+      ecp,
+      psbts: [
+        controlSignSpendingPsbt,
+        targetSignSpendingPsbt,
+      ].map(n => n.psbt),
+    });
 
-  const [controlChannel] = controlChannels.channels;
+    // Finalize the combined PSBT
+    const finalTempPsbt = finalizePsbt({ecp, psbt: combinedTempPsbt.psbt});
 
-  const closeAddr = coopCloseAddress.address;
+    // Pull out the signed broadcast-ready transaction from the PSBT
+    const finalTempTx = extractTransaction({ecp, psbt: finalTempPsbt.psbt});
 
-  // LND 0.11.1 and before do not use anchor channels
-  if (isAnchors) {
-    equal(controlChannel.commit_transaction_fee, 2810, 'Regular tx fee');
-    equal(controlChannel.commit_transaction_weight, 1116, 'Regular tx size');
-  } else {
-    equal(controlChannel.commit_transaction_fee, 9050, 'Regular tx fee');
-    equal(controlChannel.commit_transaction_weight, 724, 'Regular tx size');
+    // Calculate the size of the tx
+    const txSize = fromHex(finalTempTx.transaction).virtualSize();
+
+    equal(txSize <= fundingFee, true, 'Transaction size is not too large');
+
+    // Broadcast the transaction to fund the control side
+    await broadcastChainTransaction({
+      lnd,
+      transaction: controlSignPsbt.transaction,
+    });
+
+    // Broadcast the transaction to fund the target side
+    await broadcastChainTransaction({
+      lnd,
+      transaction: targetSignPsbt.transaction,
+    });
+
+    // Broadcast the transaction to fund the channel
+    await broadcastChainTransaction({
+      lnd,
+      transaction: finalTempTx.transaction,
+    });
+
+    // Mine the funding transactions into a block
+    await asyncRetry({interval, times}, async () => {
+      await control.generate({});
+
+      const {channels} = await getChannels({lnd});
+
+      if (!channels.find(n => n.is_active)) {
+        throw new Error('ExpectedActiveChannel');
+      }
+
+      return;
+    });
+
+    const controlChannels = await getChannels({lnd});
+
+    const [controlChannel] = controlChannels.channels;
+
+    const closeAddr = coopCloseAddress.address;
+
+    // LND 0.11.1 and before do not use anchor channels
+    if (isAnchors) {
+      equal(controlChannel.commit_transaction_fee, 2810, 'Regular tx fee');
+      equal(controlChannel.commit_transaction_weight, 1116, 'Regular tx size');
+    } else {
+      equal(controlChannel.commit_transaction_fee, 9050, 'Regular tx fee');
+      equal(controlChannel.commit_transaction_weight, 724, 'Regular tx size');
+    }
+
+    equal(controlChannel.capacity, capacity, 'Channel with capacity created');
+    equal(controlChannel.cooperative_close_address, closeAddr, 'Got addr');
+    equal(!!controlChannel.cooperative_close_delay_height, true, 'Thaw');
+    equal(!!controlChannel.id, true, 'Got channel id');
+    equal(controlChannel.is_active, true, 'Channel is active and ready');
+    equal(controlChannel.is_closing, false, 'Channel is not closing');
+    equal(controlChannel.is_opening, false, 'Channel is already opened');
+    equal(controlChannel.is_partner_initiated, false, 'Control opened');
+    equal(controlChannel.is_private, true, 'Channel is private');
+    equal(controlChannel.local_balance, incoming.remote_balance, 'Control');
+    equal(controlChannel.local_csv, 144, 'Channel CSV');
+    ok(controlChannel.local_dust >= 354, 'Channel dust');
+    equal(controlChannel.local_given, giveTokens, 'Channel tokens given over');
+    equal(controlChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
+    equal(controlChannel.partner_public_key, target.id, 'R-key');
+    equal(controlChannel.transaction_id, fundingTxId, 'Funding tx id');
+    equal(controlChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
+
+    const targetChannels = await getChannels({lnd: target.lnd});
+
+    const [targetChannel] = targetChannels.channels;
+
+    // LND 0.11.1 and before do not use anchor channels
+    if (isAnchors) {
+      equal(targetChannel.commit_transaction_fee, 2810, 'Regular tx fee');
+      equal(targetChannel.commit_transaction_weight, 1116, 'Regular tx size');
+    } else {
+      equal(targetChannel.commit_transaction_fee, 9050, 'Regular tx fee');
+      equal(targetChannel.commit_transaction_weight, 724, 'Regular tx size');
+    }
+
+    equal(targetChannel.capacity, capacity, 'Channel with capacity created');
+    equal(targetChannel.cooperative_close_address, undefined, 'No close addr');
+    equal(!!targetChannel.cooperative_close_delay_height, true, 'Thaw height');
+    equal(!!targetChannel.id, true, 'Got channel id');
+    equal(targetChannel.is_active, true, 'Channel is active and ready');
+    equal(targetChannel.is_closing, false, 'Channel is not closing');
+    equal(targetChannel.is_opening, false, 'Channel is already opened');
+    equal(targetChannel.is_partner_initiated, true, 'Control opened');
+    equal(targetChannel.is_private, true, 'Channel is private');
+    equal(targetChannel.local_balance, giveTokens, 'Target tokens');
+    equal(targetChannel.local_csv, 144, 'Channel CSV');
+    ok(targetChannel.local_dust >= 354, 'Channel dust');
+    equal(targetChannel.local_given, 0, 'No tokens given');
+    equal(targetChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
+    equal(targetChannel.partner_public_key, control.id, 'R-key');
+    equal(targetChannel.transaction_id, fundingTxId, 'Funding tx id');
+    equal(targetChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
   }
-
-  equal(controlChannel.capacity, capacity, 'Channel with capacity created');
-  equal(controlChannel.cooperative_close_address, closeAddr, 'Got closeaddr');
-  equal(!!controlChannel.cooperative_close_delay_height, true, 'Thaw height');
-  equal(!!controlChannel.id, true, 'Got channel id');
-  equal(controlChannel.is_active, true, 'Channel is active and ready');
-  equal(controlChannel.is_closing, false, 'Channel is not closing');
-  equal(controlChannel.is_opening, false, 'Channel is already opened');
-  equal(controlChannel.is_partner_initiated, false, 'Control opened');
-  equal(controlChannel.is_private, true, 'Channel is private');
-  equal(controlChannel.local_balance, incoming.remote_balance, 'Control tok');
-  equal(controlChannel.local_csv, 144, 'Channel CSV');
-  ok(controlChannel.local_dust >= 354, 'Channel dust');
-  equal(controlChannel.local_given, giveTokens, 'Channel tokens given over');
-  equal(controlChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
-  equal(controlChannel.partner_public_key, target.id, 'R-key');
-  equal(controlChannel.transaction_id, fundingTxId, 'Funding tx id');
-  equal(controlChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
-
-  const targetChannels = await getChannels({lnd: target.lnd});
-
-  const [targetChannel] = targetChannels.channels;
-
-  // LND 0.11.1 and before do not use anchor channels
-  if (isAnchors) {
-    equal(targetChannel.commit_transaction_fee, 2810, 'Regular tx commit fee');
-    equal(targetChannel.commit_transaction_weight, 1116, 'Regular tx size');
-  } else {
-    equal(targetChannel.commit_transaction_fee, 9050, 'Regular tx commit fee');
-    equal(targetChannel.commit_transaction_weight, 724, 'Regular tx size');
-  }
-
-  equal(targetChannel.capacity, capacity, 'Channel with capacity created');
-  equal(targetChannel.cooperative_close_address, undefined, 'No close addr');
-  equal(!!targetChannel.cooperative_close_delay_height, true, 'Thaw height');
-  equal(!!targetChannel.id, true, 'Got channel id');
-  equal(targetChannel.is_active, true, 'Channel is active and ready');
-  equal(targetChannel.is_closing, false, 'Channel is not closing');
-  equal(targetChannel.is_opening, false, 'Channel is already opened');
-  equal(targetChannel.is_partner_initiated, true, 'Control opened');
-  equal(targetChannel.is_private, true, 'Channel is private');
-  equal(targetChannel.local_balance, giveTokens, 'Target tokens');
-  equal(targetChannel.local_csv, 144, 'Channel CSV');
-  ok(targetChannel.local_dust >= 354, 'Channel dust');
-  equal(targetChannel.local_given, 0, 'No tokens given');
-  equal(targetChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
-  equal(targetChannel.partner_public_key, control.id, 'R-key');
-  equal(targetChannel.transaction_id, fundingTxId, 'Funding tx id');
-  equal(targetChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
-
-  await kill({});
 
   return end();
 });

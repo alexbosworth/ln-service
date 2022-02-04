@@ -20,36 +20,40 @@ test(`Subscribe to peers`, async ({end, equal}) => {
 
   const [{generate, lnd}, target] = nodes;
 
-  const sub = subscribeToPeers({lnd});
+  try {
+    const sub = subscribeToPeers({lnd});
 
-  sub.on('error', () => {});
+    sub.on('error', () => {});
 
-  await asyncRetry({interval, times}, async () => {
-    await addPeer({lnd, public_key: target.id, socket: target.socket});
-  });
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({lnd, public_key: target.id, socket: target.socket});
+    });
 
-  const disconnect = removePeer({lnd, public_key: target.id});
-  const receiveDisconnect = once(sub, 'disconnected');
+    const disconnect = removePeer({lnd, public_key: target.id});
+    const receiveDisconnect = once(sub, 'disconnected');
 
-  const [disconectMessage] = await all([receiveDisconnect, disconnect]);
+    const [disconectMessage] = await all([receiveDisconnect, disconnect]);
 
-  const [disconnected] = disconectMessage;
+    const [disconnected] = disconectMessage;
 
-  equal(disconnected.public_key, target.id, 'Got d/c event');
+    equal(disconnected.public_key, target.id, 'Got d/c event');
 
-  const connect = asyncRetry({interval, times}, async () => {
-    return addPeer({lnd, public_key: target.id, socket: target.socket});
-  });
+    const connect = asyncRetry({interval, times}, async () => {
+      return addPeer({lnd, public_key: target.id, socket: target.socket});
+    });
 
-  const receiveConnectMessage = once(sub, 'connected');
+    const receiveConnectMessage = once(sub, 'connected');
 
-  const [connectMessage] = await all([receiveConnectMessage, connect]);
+    const [connectMessage] = await all([receiveConnectMessage, connect]);
 
-  const [connected] = connectMessage;
+    const [connected] = connectMessage;
 
-  equal(connected.public_key, target.id, 'Got connected');
-
-  await kill({});
+    equal(connected.public_key, target.id, 'Got connected');
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
+  }
 
   return end();
 });

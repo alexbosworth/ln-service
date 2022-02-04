@@ -4,6 +4,7 @@ const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
+const tinysecp = require('tiny-secp256k1');
 const {transactionAsPsbt} = require('psbt');
 
 const {addPeer} = require('./../../');
@@ -29,27 +30,29 @@ const times = 2000;
 
 // Opening channels should open up channels
 test(`Open channels`, async ({end, equal}) => {
+  const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
+
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
 
   await generate({count: maturity});
 
-  await asyncRetry({interval, times}, async () => {
-    const lnds = [lnd, target.lnd, remote.lnd];
+  try {
+    await asyncRetry({interval, times}, async () => {
+      const lnds = [lnd, target.lnd, remote.lnd];
 
-    const heights = await asyncMap(lnds, async lnd => {
-      return (await getHeight({lnd})).current_block_height;
+      const heights = await asyncMap(lnds, async lnd => {
+        return (await getHeight({lnd})).current_block_height;
+      });
+
+      const [controlHeight, targetHeight, remoteHeight] = heights;
+
+      if (controlHeight !== targetHeight || controlHeight !== remoteHeight) {
+        throw new Error('ExpectedSyncHeights');
+      }
     });
 
-    const [controlHeight, targetHeight, remoteHeight] = heights;
-
-    if (controlHeight !== targetHeight || controlHeight !== remoteHeight) {
-      throw new Error('ExpectedSyncHeights');
-    }
-  });
-
-  try {
     const chainTx = (await getChainTransactions({lnd})).transactions;
 
     const spending = chainTx.map(({transaction}) => transaction);
@@ -97,11 +100,15 @@ test(`Open channels`, async ({end, equal}) => {
       .map(({transaction}) => transaction)
       .find(transaction => spending.find(spend => transaction !== spend));
 
-    const fundingPsbt = transactionAsPsbt({spending, transaction: fundTx});
+    const fundingPsbt = transactionAsPsbt({
+      ecp,
+      spending,
+      transaction: fundTx,
+    });
 
-    const {psbt} = finalizePsbt({psbt: fundingPsbt.psbt});
+    const {psbt} = finalizePsbt({ecp, psbt: fundingPsbt.psbt});
 
-    const reconstitutedTransaction = extractTransaction({psbt});
+    const reconstitutedTransaction = extractTransaction({ecp, psbt});
 
     await fundPendingChannels({
       lnd,
