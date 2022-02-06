@@ -8,7 +8,7 @@ const {subscribeToPeerMessages} = require('./../../');
 
 const interval = 10;
 const size = 2;
-const times = 1000;
+const times = 2000;
 
 // Sending a message to a peer should result in the message received
 test(`Send peer message`, async ({end, equal, strictSame}) => {
@@ -33,39 +33,50 @@ test(`Send peer message`, async ({end, equal, strictSame}) => {
     }
   }
 
-  await asyncRetry({interval, times}, async () => {
-    await addPeer({lnd, public_key: target.id, socket: target.socket});
-  });
-
-  const sub = subscribeToPeerMessages({lnd: target.lnd});
-
-  const messages = [];
-
-  sub.on('message_received', message => messages.push(message));
-
-  await asyncRetry({interval, times}, async () => {
-    await sendMessageToPeer({
-      lnd,
-      message: Buffer.from('message').toString('hex'),
-      public_key: target.id,
+  try {
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({
+        lnd,
+        public_key: target.id,
+        retry_count: 1,
+        retry_delay: 1,
+        socket: target.socket,
+        timeout: 1000,
+      });
     });
 
-    if (!messages.length) {
-      throw new Error('ExpectedMessage');
-    }
-  });
+    const sub = subscribeToPeerMessages({lnd: target.lnd});
 
-  const [message] = messages;
+    const messages = [];
 
-  strictSame(
-    message,
-    {
-      message: Buffer.from('message').toString('hex'),
-      public_key: id,
-      type: 32768,
-    },
-    'Message successfully sent to peer'
-  );
+    sub.on('message_received', message => messages.push(message));
+
+    await asyncRetry({interval, times}, async () => {
+      await sendMessageToPeer({
+        lnd,
+        message: Buffer.from('message').toString('hex'),
+        public_key: target.id,
+      });
+
+      if (!messages.length) {
+        throw new Error('ExpectedMessage');
+      }
+    });
+
+    const [message] = messages;
+
+    strictSame(
+      message,
+      {
+        message: Buffer.from('message').toString('hex'),
+        public_key: id,
+        type: 32768,
+      },
+      'Message successfully sent to peer'
+    );
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  }
 
   await kill({});
 

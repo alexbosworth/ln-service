@@ -8,7 +8,6 @@ const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {getChannel} = require('./../../');
-const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {openChannel} = require('./../../');

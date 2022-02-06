@@ -4,13 +4,9 @@ const {routeFromHops} = require('bolt07');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
 const {getChannel} = require('./../../');
-const {getChannels} = require('./../../');
-const {getHeight} = require('./../../');
 const {pay} = require('./../../');
-const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');
 
@@ -37,107 +33,113 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
 
   const destination = control.id;
 
-  // Create a channel from the control to the target node
-  const controlToTargetChannel = await setupChannel({
-    generate,
-    lnd,
-    give: 1e5,
-    to: target,
-  });
+  try {
+    await generate({count: 100});
 
-  // Create a channel from the target back to the control
-  const targetToControlChannel = await setupChannel({
-    lnd: target.lnd,
-    generate: target.generate,
-    give: 1e5,
-    to: control,
-  });
-
-  // Created invoices are emitted
-  {
-    const sub = subscribeToInvoices({lnd, restart_delay_ms: 1});
-
-    const updates = [];
-
-    sub.on('invoice_updated', updated => updates.push(updated));
-
-    const update = await asyncRetry({interval, times}, async () => {
-      await createInvoice({lnd});
-
-      const [update] = updates;
-
-      if (!update) {
-        throw new Error('ExpectedInvoiceUpdate');
-      }
-
-      return update;
+    // Create a channel from the control to the target node
+    const controlToTargetChannel = await setupChannel({
+      generate,
+      lnd,
+      give: 1e5,
+      to: target,
     });
 
-    equal(update.tokens, 0, 'Invoiced zero');
+    // Create a channel from the target back to the control
+    const targetToControlChannel = await setupChannel({
+      lnd: target.lnd,
+      generate: target.generate,
+      give: 1e5,
+      to: control,
+    });
 
-    sub.removeAllListeners();
-  }
+    // Created invoices are emitted
+    {
+      const sub = subscribeToInvoices({lnd, restart_delay_ms: 1});
 
-  // Paid invoices are emitted
-  {
-    const sub = subscribeToInvoices({lnd, restart_delay_ms: 1});
+      const updates = [];
 
-    const updates = [];
+      sub.on('invoice_updated', updated => updates.push(updated));
 
-    sub.on('invoice_updated', updated => updates.push(updated));
+      const update = await asyncRetry({interval, times}, async () => {
+        await createInvoice({lnd});
 
-    const update = await asyncRetry({interval, times}, async () => {
-      await pay({
-        lnd: target.lnd,
-        request: (await createInvoice({lnd, tokens})).request,
+        const [update] = updates;
+
+        if (!update) {
+          throw new Error('ExpectedInvoiceUpdate');
+        }
+
+        return update;
       });
 
-      const [update] = updates.filter(n => n.is_confirmed);
+      equal(update.tokens, 0, 'Invoiced zero');
 
-      if (!update) {
-        throw new Error('ExpectedPaidInvoiceUpdate');
-      }
+      sub.removeAllListeners();
+    }
 
-      return update;
-    });
+    // Paid invoices are emitted
+    {
+      const sub = subscribeToInvoices({lnd, restart_delay_ms: 1});
 
-    equal(!!update.confirmed_at, true, 'Got receive date');
-    equal(!!update.confirmed_index, true, 'Got confirm index');
-    equal(update.payments.length, 1, 'Got received HTLC');
-    equal(update.received, tokens, 'Got received tokens');
-    equal(update.received_mtokens, '10000000', 'Got invoice mtokens');
+      const updates = [];
 
-    sub.removeAllListeners();
+      sub.on('invoice_updated', updated => updates.push(updated));
+
+      const update = await asyncRetry({interval, times}, async () => {
+        await pay({
+          lnd: target.lnd,
+          request: (await createInvoice({lnd, tokens})).request,
+        });
+
+        const [update] = updates.filter(n => n.is_confirmed);
+
+        if (!update) {
+          throw new Error('ExpectedPaidInvoiceUpdate');
+        }
+
+        return update;
+      });
+
+      equal(!!update.confirmed_at, true, 'Got receive date');
+      equal(!!update.confirmed_index, true, 'Got confirm index');
+      equal(update.payments.length, 1, 'Got received HTLC');
+      equal(update.received, tokens, 'Got received tokens');
+      equal(update.received_mtokens, '10000000', 'Got invoice mtokens');
+
+      sub.removeAllListeners();
+    }
+
+    // Old invoices are emitted
+    {
+      const sub = subscribeToInvoices({
+        lnd,
+        added_after: 1,
+        restart_delay_ms: 1,
+      });
+
+      const updates = [];
+
+      sub.on('invoice_updated', updated => updates.push(updated));
+
+      const update = await asyncRetry({interval, times}, async () => {
+        const [update] = updates;
+
+        if (!update) {
+          throw new Error('ExpectedPastInvoiceUpdate');
+        }
+
+        return update;
+      });
+
+      equal(update.index, 2, 'Got past update');
+
+      sub.removeAllListeners();
+    }
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
   }
-
-  // Old invoices are emitted
-  {
-    const sub = subscribeToInvoices({
-      lnd,
-      added_after: 1,
-      restart_delay_ms: 1,
-    });
-
-    const updates = [];
-
-    sub.on('invoice_updated', updated => updates.push(updated));
-
-    const update = await asyncRetry({interval, times}, async () => {
-      const [update] = updates;
-
-      if (!update) {
-        throw new Error('ExpectedPastInvoiceUpdate');
-      }
-
-      return update;
-    });
-
-    equal(update.index, 2, 'Got past update');
-
-    sub.removeAllListeners();
-  }
-
-  await kill({});
 
   return end();
 });

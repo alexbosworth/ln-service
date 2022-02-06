@@ -12,16 +12,18 @@ const {getNetworkGraph} = require('./../../');
 const {getRouteThroughHops} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const confirmationCount = 6;
+const flatten = arr => [].concat(...arr);
 const interval = 10;
+const maturity = 100;
 const messages = [{type: '1000000', value: '01'}];
 const size = 3;
 const times = 1000;
+const tlvOnionBit = 14;
 const tokens = 100;
 
 // Getting a route through hops should result in a route through specified hops
@@ -30,8 +32,7 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
 
   const [{generate, lnd}, target, remote] = nodes;
 
-  await target.generate({count: 100});
-  await remote.generate({count: 100});
+  await target.generate({count: maturity});
 
   const controlToTargetChan = await setupChannel({generate, lnd, to: target});
 
@@ -53,6 +54,26 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
     }
   });
 
+  await asyncRetry({interval, times}, async () => {
+    const {channels, nodes} = await getNetworkGraph({lnd});
+
+    const limitedFeatures = nodes.find(node => {
+      return !node.features.find(n => n.bit === tlvOnionBit);
+    });
+
+    const policies = flatten(channels.map(n => n.policies));
+
+    const cltvDeltas = policies.map(n => n.cltv_delta);
+
+    if (!!cltvDeltas.filter(n => !n).length) {
+      throw new Error('ExpectedAllChannelPolicies');
+    }
+
+    if (!!limitedFeatures) {
+      throw new Error('NetworkGraphSyncIncomplete');
+    }
+  });
+
   const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
   const {id} = invoice;
@@ -69,18 +90,6 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
       destination: decodedRequest.destination,
       tokens: invoice.tokens,
     });
-  });
-
-  await asyncRetry({interval, times}, async () => {
-    const {nodes} = await getNetworkGraph({lnd});
-
-    const limitedFeatures = nodes.find(node => {
-      return !node.features.find(n => n.bit === 14);
-    });
-
-    if (!!limitedFeatures) {
-      throw new Error('NetworkGraphSyncIncomplete');
-    }
   });
 
   const res = await asyncRetry({interval, times}, async () => {

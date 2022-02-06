@@ -4,7 +4,6 @@ const {test} = require('@alexbosworth/tap');
 const {createInvoice} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');

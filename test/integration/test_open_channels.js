@@ -36,9 +36,9 @@ test(`Open channels`, async ({end, equal}) => {
 
   const [{generate, lnd}, target, remote] = nodes;
 
-  await generate({count: maturity});
-
   try {
+    await generate({count: maturity});
+
     await asyncRetry({interval, times}, async () => {
       const lnds = [lnd, target.lnd, remote.lnd];
 

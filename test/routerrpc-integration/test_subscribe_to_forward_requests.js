@@ -10,7 +10,6 @@ const {deleteForwardingReputations} = require('./../../');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getPayment} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');

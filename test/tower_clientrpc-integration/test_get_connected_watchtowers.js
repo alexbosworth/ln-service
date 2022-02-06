@@ -1,12 +1,9 @@
 const {test} = require('@alexbosworth/tap');
 
-const {closeChannel} = require('./../../');
 const {connectWatchtower} = require('./../../');
-const {createInvoice} = require('./../../');
 const {createCluster} = require('./../macros');
 const {delay} = require('./../macros');
 const {disconnectWatchtower} = require('./../../');
-const {getChannels} = require('./../../');
 const {getConnectedWatchtowers} = require('./../../');
 const {getTowerServerInfo} = require('./../../');
 const {openChannel} = require('./../../');

@@ -1,3 +1,4 @@
+const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
@@ -15,8 +16,10 @@ const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultAliasLength = '00000000000000000000'.length;
 const feeRate = 21;
+const interval = 10;
 const mtokPerTok = BigInt(1e3);
 const size = 3;
+const times = 1000;
 
 // Getting a node should return the public graph node info
 test(`Get node`, async ({end, equal, strictSame}) => {
@@ -42,7 +45,16 @@ test(`Get node`, async ({end, equal, strictSame}) => {
       transaction_vout: controlToTarget.transaction_vout,
     });
 
-    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({
+        lnd,
+        public_key: remote.id,
+        retry_count: 1,
+        retry_delay: 1,
+        socket: remote.socket,
+        timeout: 1000,
+      });
+    });
 
     await delay(3000);
 

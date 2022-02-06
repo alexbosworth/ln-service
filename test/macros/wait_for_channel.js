@@ -6,7 +6,7 @@ const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 
 const interval = 10;
-const times = 6000;
+const times = 10000;
 
 /** Wait for channel to be open
 

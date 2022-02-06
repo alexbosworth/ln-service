@@ -5,7 +5,7 @@ const {test} = require('@alexbosworth/tap');
 const {addPeer} = require('./../../');
 const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
-const {payViaRoutes} = require('./../../');
+const {getNetworkGraph} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
@@ -15,9 +15,12 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultOdds = 950000;
+const flatten = arr => [].concat(...arr);
 const interval = 10;
+const maturity = 100;
 const size = 3;
 const times = 2000;
+const tlvOnionBit = 14;
 const tokens = 1e6 / 2;
 
 // Getting forwarding reputations should return reputations
@@ -26,9 +29,9 @@ test('Get forwarding reputations', async ({end, equal}) => {
 
   const [{generate, id, lnd}, target, remote] = cluster.nodes;
 
-  await generate({count: 100});
-
   try {
+    await generate({count: maturity});
+
     // Create a channel from the control to the target node
     await setupChannel({
       generate,
@@ -45,22 +48,47 @@ test('Get forwarding reputations', async ({end, equal}) => {
     });
 
     await asyncRetry({interval, times}, async () => {
-      await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+      const {channels, nodes} = await getNetworkGraph({lnd});
+
+      const limitedFeatures = nodes.find(node => {
+        return !node.features.find(n => n.bit === tlvOnionBit);
+      });
+
+      const policies = flatten(channels.map(n => n.policies));
+
+      const cltvDeltas = policies.map(n => n.cltv_delta);
+
+      if (!!cltvDeltas.filter(n => !n).length) {
+        throw new Error('ExpectedAllChannelPolicies');
+      }
+
+      if (!!limitedFeatures) {
+        throw new Error('NetworkGraphSyncIncomplete');
+      }
+    });
+
+    await asyncRetry({interval, times}, async () => {
+      await generate({});
+
+      await addPeer({
+        lnd,
+        public_key: remote.id,
+        socket: remote.socket,
+        retry_count: 1,
+        retry_delay: 1,
+        timeout: 1,
+      });
 
       const {channels} = await getChannels({lnd: remote.lnd});
 
       await waitForRoute({lnd, tokens, destination: remote.id});
 
-      try {
-        const res = await probeForRoute({
-          lnd,
-          tokens,
-          destination: remote.id,
-          is_ignoring_past_failures: true,
-        });
-      } catch (err) {
-        equal(err, null, 'Expected no error probing');
-      }
+      await probeForRoute({
+        lnd,
+        tokens,
+        destination: remote.id,
+        is_ignoring_past_failures: true,
+      });
 
       const {nodes} = await getForwardingReputations({lnd});
 

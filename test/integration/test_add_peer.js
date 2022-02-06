@@ -8,8 +8,8 @@ const {getPeers} = require('./../../');
 
 const interval = 100;
 const size = 2;
-const times = 100;
-const timeout = 1000;
+const times = 2000;
+const timeout = 100;
 
 // Adding peers should result in a connected peer
 test(`Add a peer`, async ({end, equal}) => {

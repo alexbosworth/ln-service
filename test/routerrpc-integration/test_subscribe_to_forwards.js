@@ -17,7 +17,7 @@ const {subscribeToForwards} = require('./../../');
 const anchorsFeatureBit = 23;
 const interval = 10;
 const size = 3;
-const times = 100;
+const times = 1000;
 const tokens = 100;
 
 // Subscribing to forwards should show forwarding events
@@ -41,7 +41,16 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
       to: remote,
     });
 
-    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({
+        lnd,
+        public_key: remote.id,
+        retry_count: 1,
+        retry_delay: 1,
+        socket: remote.socket,
+        timeout: 1000,
+      });
+    });
 
     await delay(3000);
 

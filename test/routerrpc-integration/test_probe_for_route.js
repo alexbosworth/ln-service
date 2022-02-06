@@ -31,10 +31,12 @@ test('Probe for route', async ({end, equal, strictSame}) => {
 
   const [{generate, lnd}, target, remote] = nodes;
 
-  // Send coins to remote so that it can accept a channel
-  await remote.generate({count});
-
   try {
+    // Send coins to remote so that it can accept a channel
+    await remote.generate({count});
+
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+
     await setupChannel({
       generate,
       lnd,
@@ -49,8 +51,6 @@ test('Probe for route', async ({end, equal, strictSame}) => {
       give: Math.round(channelCapacityTokens / 2),
       to: remote,
     });
-
-    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
     const invoice = await createInvoice({tokens, lnd: remote.lnd});
 

@@ -2,7 +2,6 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
-const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');

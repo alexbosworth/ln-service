@@ -10,7 +10,6 @@ const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
-const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {getRouteToDestination} = require('./../../');

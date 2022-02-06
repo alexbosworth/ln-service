@@ -8,7 +8,6 @@ const {delay} = require('./../macros');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');

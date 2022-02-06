@@ -15,27 +15,38 @@ test('Get peers', async ({end, equal}) => {
 
   const [{lnd}, target] = nodes;
 
-  await asyncRetry({interval, times}, async () => {
-    await addPeer({lnd, public_key: target.id, socket: target.socket});
+  try {
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({
+        lnd,
+        public_key: target.id,
+        retry_count: 1,
+        retry_delay: 1,
+        socket: target.socket,
+        timeout: 100,
+      });
 
-    const [peer] = (await getPeers({lnd})).peers;
+      const [peer] = (await getPeers({lnd})).peers;
 
-    if (!peer || !peer.is_sync_peer) {
-      throw new Error('ExpectedSyncPeer');
-    }
+      if (!peer || !peer.is_sync_peer) {
+        throw new Error('ExpectedSyncPeer');
+      }
 
-    equal(peer.bytes_received !== undefined, true, 'Bytes received');
-    equal(peer.bytes_sent !== undefined, true, 'Bytes sent');
-    equal(peer.is_inbound, false, 'Is inbound peer');
-    equal(peer.is_sync_peer, true, 'Is sync peer');
-    equal(peer.ping_time, 0, 'Ping time');
-    equal(peer.public_key, target.id, 'Public key');
-    equal(!!peer.socket, true, 'Socket');
-    equal(peer.tokens_received, 0, 'Tokens received');
-    equal(peer.tokens_sent, 0, 'Tokens sent');
+      equal(peer.bytes_received !== undefined, true, 'Bytes received');
+      equal(peer.bytes_sent !== undefined, true, 'Bytes sent');
+      equal(peer.is_inbound, false, 'Is inbound peer');
+      equal(peer.is_sync_peer, true, 'Is sync peer');
+      equal(peer.ping_time, 0, 'Ping time');
+      equal(peer.public_key, target.id, 'Public key');
+      equal(!!peer.socket, true, 'Socket');
+      equal(peer.tokens_received, 0, 'Tokens received');
+      equal(peer.tokens_sent, 0, 'Tokens sent');
 
-    return;
-  });
+      return;
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  }
 
   await kill({});
 

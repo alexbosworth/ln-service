@@ -12,16 +12,18 @@ const times = 1000;
 const walletInfoType = 'wallet';
 
 // Getting the wallet info should return info about the wallet
-test(`Get wallet info`, async ({end, equal, strictSame}) => {
+test(`Get wallet info`, async ({end, equal, ok, strictSame}) => {
   const {kill, nodes} = await spawnLightningCluster({});
 
-  const [{lnd}] = nodes;
+  const [{generate, lnd}] = nodes;
 
   try {
     const result = await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       const result = await getWalletInfo({lnd});
 
-      if (result.current_block_height === initHeight) {
+      if (result.current_block_height >= initHeight) {
         return result;
       }
 
@@ -32,7 +34,7 @@ test(`Get wallet info`, async ({end, equal, strictSame}) => {
     equal(!!result.alias, true, 'Expected alias');
     strictSame(result.chains, [regtestChainId], 'Got chains');
     equal(!!result.current_block_hash, true, 'Expected best block hash');
-    equal(result.current_block_height, initHeight, 'Expected best block height');
+    ok(result.current_block_height >= initHeight, 'Expected block height');
     equal(!!result.latest_block_at, true, 'Last block time');
     equal(result.peers_count, 0, 'Expected wallet peers count');
     equal(result.pending_channels_count, 0, 'Expected pending channels count');

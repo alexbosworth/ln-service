@@ -17,10 +17,12 @@ test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
   const [{lnd}, target, remote] = nodes;
 
   try {
-    await addPeer({
-      lnd,
-      public_key: target.id,
-      socket: target.socket,
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({
+        lnd,
+        public_key: target.id,
+        socket: target.socket,
+      });
     });
 
     await addPeer({

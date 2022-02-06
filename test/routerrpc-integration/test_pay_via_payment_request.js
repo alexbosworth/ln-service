@@ -22,99 +22,111 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
 
   const [{generate, lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({generate, lnd, to: target});
-
-  // Make sure that an error is returned when there is no route
   try {
-    const {request} = await createInvoice({tokens, lnd: remote.lnd});
+    await generate({count: 100});
 
-    await rejects(
-      payViaPaymentRequest({lnd, request}),
-      [503, 'PaymentPathfindingFailedToFindPossibleRoute'],
-      'A payment with no route returns an error'
-    );
-  } catch (err) {
-    equal(err, null, 'Expected no error creating invoice');
-  }
+    const channel = await setupChannel({generate, lnd, to: target});
 
-  const remoteChan = await setupChannel({
-    lnd: target.lnd,
-    generate: target.generate,
-    to: remote,
-  });
+    // Make sure that an error is returned when there is no route
+    try {
+      const {request} = await createInvoice({tokens, lnd: remote.lnd});
 
-  await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+      await rejects(
+        payViaPaymentRequest({lnd, request}),
+        [503, 'PaymentPathfindingFailedToFindPossibleRoute'],
+        'A payment with no route returns an error'
+      );
+    } catch (err) {
+      equal(err, null, 'Expected no error creating invoice');
+    }
 
-  await waitForRoute({lnd, tokens, destination: remote.id});
-
-  // When a route exists, payment is successful
-  try {
-    const commitTxFee = channel.commit_transaction_fee;
-    const height = (await getWalletInfo({lnd})).current_block_height;
-    const invoice = await createInvoice({tokens, lnd: remote.lnd});
-
-    const paid = await payViaPaymentRequest({
-      lnd,
-      max_timeout_height: height + 40 + 43,
-      messages: [{type: tlvType, value: tlvValue}],
-      request: invoice.request,
+    await addPeer({
+      lnd: target.lnd,
+      public_key: remote.id,
+      socket: remote.socket,
     });
 
-    equal(paid.confirmed_at > start, true, 'Got confirmation date');
-    equal(paid.fee, 1, 'Fee tokens paid');
-    equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
-    equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
-    equal(paid.mtokens, '101000', 'Paid mtokens');
-    equal(paid.secret, invoice.secret, 'Paid for invoice secret');
-
-    paid.hops.forEach(n => {
-      equal(n.timeout === height + 40 || n.timeout === height + 43, true);
-
-      delete n.timeout;
-
-      return;
+    const remoteChan = await setupChannel({
+      lnd: target.lnd,
+      generate: target.generate,
+      to: remote,
     });
 
-    const expectedHops = [
-      {
-        channel: channel.id,
-        channel_capacity: 1000000,
-        fee: 1,
-        fee_mtokens: '1000',
-        forward: 100,
-        forward_mtokens: invoice.mtokens,
-        public_key: target.id,
-      },
-      {
-        channel: remoteChan.id,
-        channel_capacity: 1000000,
-        fee: 0,
-        fee_mtokens: '0',
-        forward: 100,
-        forward_mtokens: '100000',
-        public_key: remote.id,
-      },
-    ];
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
-    strictSame(paid.hops, expectedHops, 'Hops are returned');
+    await waitForRoute({lnd, tokens, destination: remote.id});
 
-    const {payments} = await getInvoice({id: paid.id, lnd: remote.lnd});
+    // When a route exists, payment is successful
+    try {
+      const commitTxFee = channel.commit_transaction_fee;
+      const height = (await getWalletInfo({lnd})).current_block_height;
+      const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
-    if (!!payments.length) {
-      const [payment] = payments;
+      const paid = await payViaPaymentRequest({
+        lnd,
+        max_timeout_height: height + 40 + 43,
+        messages: [{type: tlvType, value: tlvValue}],
+        request: invoice.request,
+      });
 
-      if (!!payment.messages.length) {
-        const [message] = payment.messages;
+      equal(paid.confirmed_at > start, true, 'Got confirmation date');
+      equal(paid.fee, 1, 'Fee tokens paid');
+      equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
+      equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
+      equal(paid.mtokens, '101000', 'Paid mtokens');
+      equal(paid.secret, invoice.secret, 'Paid for invoice secret');
 
-        equal(message.type, tlvType, 'Got TLV message type');
-        equal(message.value, tlvValue, 'Got TLV message value');
+      paid.hops.forEach(n => {
+        equal(n.timeout === height + 40 || n.timeout === height + 43, true);
+
+        delete n.timeout;
+
+        return;
+      });
+
+      const expectedHops = [
+        {
+          channel: channel.id,
+          channel_capacity: 1000000,
+          fee: 1,
+          fee_mtokens: '1000',
+          forward: 100,
+          forward_mtokens: invoice.mtokens,
+          public_key: target.id,
+        },
+        {
+          channel: remoteChan.id,
+          channel_capacity: 1000000,
+          fee: 0,
+          fee_mtokens: '0',
+          forward: 100,
+          forward_mtokens: '100000',
+          public_key: remote.id,
+        },
+      ];
+
+      strictSame(paid.hops, expectedHops, 'Hops are returned');
+
+      const {payments} = await getInvoice({id: paid.id, lnd: remote.lnd});
+
+      if (!!payments.length) {
+        const [payment] = payments;
+
+        if (!!payment.messages.length) {
+          const [message] = payment.messages;
+
+          equal(message.type, tlvType, 'Got TLV message type');
+          equal(message.value, tlvValue, 'Got TLV message value');
+        }
       }
+    } catch (err) {
+      equal(err, null, 'Expected no error paying payment request');
     }
   } catch (err) {
-    equal(err, null, 'Expected no error paying payment request');
+    equal(err, 'Expected no errors');
+  } finally {
+    await kill({});
   }
-
-  await kill({});
 
   return end();
 });

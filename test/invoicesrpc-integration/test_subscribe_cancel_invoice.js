@@ -8,7 +8,6 @@ const {cancelHodlInvoice} = require('./../../');
 const {createHodlInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
-const {getInvoices} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');

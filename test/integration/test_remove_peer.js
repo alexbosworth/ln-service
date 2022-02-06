@@ -14,21 +14,25 @@ test(`Remove a peer`, async ({end, equal}) => {
 
   const [{id, lnd}, target] = nodes;
 
-  await asyncRetry({interval: 10, times: 2000}, async () => {
-    await addPeer({lnd, public_key: target.id, socket: target.socket});
-  });
+  try {
+    await asyncRetry({interval: 10, times: 2000}, async () => {
+      await addPeer({lnd, public_key: target.id, socket: target.socket});
+    });
 
-  const {peers} = await getPeers({lnd});
+    const {peers} = await getPeers({lnd});
 
-  const [targetPeer] = peers;
+    const [targetPeer] = peers;
 
-  equal(targetPeer.public_key, target.id, 'Peer is added');
+    equal(targetPeer.public_key, target.id, 'Peer is added');
 
-  await removePeer({lnd, public_key: targetPeer.public_key});
+    await removePeer({lnd, public_key: targetPeer.public_key});
 
-  const postRemovalPeers = await getPeers({lnd});
+    const postRemovalPeers = await getPeers({lnd});
 
-  equal(postRemovalPeers.peers.length, [].length, 'Peer is removed');
+    equal(postRemovalPeers.peers.length, [].length, 'Peer is removed');
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  }
 
   await kill({});
 

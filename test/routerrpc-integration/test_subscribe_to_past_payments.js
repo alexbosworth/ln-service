@@ -2,11 +2,8 @@ const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {addPeer} = require('./../../');
 const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
-const {getChannels} = require('./../../');
-const {getHeight} = require('./../../');
 const {getPayment} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {setupChannel} = require('./../macros');

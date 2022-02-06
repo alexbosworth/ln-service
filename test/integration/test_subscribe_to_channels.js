@@ -5,7 +5,6 @@ const {test} = require('@alexbosworth/tap');
 const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
 const {getChainBalance} = require('./../../');
-const {getHeight} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {removePeer} = require('./../../');
