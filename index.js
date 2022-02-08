@@ -49,6 +49,7 @@ const {getIdentity} = require('lightning');
 const {getInvoice} = require('lightning');
 const {getInvoices} = require('lightning');
 const {getLockedUtxos} = require('lightning');
+const {getMasterPublicKeys} = require('lightning');
 const {getMethods} = require('lightning');
 const {getNetworkCentrality} = require('lightning');
 const {getNetworkGraph} = require('lightning');
@@ -189,6 +190,7 @@ module.exports = {
   getInvoice,
   getInvoices,
   getLockedUtxos,
+  getMasterPublicKeys,
   getMethods,
   getNetworkCentrality,
   getNetworkGraph,

@@ -158,6 +158,11 @@ test(`Partially sign PSBT`, async ({end, equal, strictSame}) => {
 
     const bip32Derivations = flatten(allDerivations);
 
+    // Exit early when derivations are not supported
+    if (!!bip32Derivations.filter(n => !n).length) {
+      await partiallySignPsbt({lnd: control.lnd, psbt: base.psbt});
+    }
+
     // Update the PSBT so that it has the consolidated details
     const updated = updatePsbt({
       ecp,

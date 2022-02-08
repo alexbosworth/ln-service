@@ -157,6 +157,7 @@ for `unlocker` methods.
 - [getInvoice](#getinvoice) - Get a previously created invoice
 - [getInvoices](#getinvoices) - Get all previously created invoices
 - [getLockedUtxos](#getlockedutxos) - Get all previously locked UTXOs
+- [getMasterPublicKeys](#getmasterpublickeys) - Get a list of master pub keys
 - [getMethods](#getmethods) - Get available methods and associated permissions
 - [getNetworkCentrality](#getnetworkcentrality) - Get centrality score for nodes
 - [getNetworkGraph](#getnetworkgraph) - Get the channels and nodes of the graph
@@ -2100,6 +2101,41 @@ Example:
 const {getLockedUtxos} = require('ln-service');
 
 const numLockedUtxos = (await getLockedUtxos({lnd})).utxos.length;
+```
+
+### getMasterPublicKeys
+
+Get the currently tracked master public keys
+
+Requires LND compiled with `walletrpc` build tag
+
+Requires `onchain:read` permission
+
+This method is not supported in LND 0.13.3 and below
+
+    {
+      lnd: <Authenticated API LND Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      keys: [{
+        derivation_path: <Key Derivation Path String>
+        extended_public_key: <Base58 Encoded Master Public Key String>
+        external_key_count: <Used External Keys Count Number>
+        internal_key_count: <Used Internal Keys Count Number>
+        is_watch_only: <Node has Master Private Key Bool>
+        named: <Account Name String>
+      }]
+    }
+
+```node
+const {getMasterPublicKeys} = require('ln-service');
+
+const {keys} = await getMasterPublicKeys({lnd});
+
+// Find the master public key that derives pay to witness public key hash keys
+const masterAddressesKey = keys.find(n => n.derivation_path === `m/84'/0'/0'`);
 ```
 
 ### getMethods

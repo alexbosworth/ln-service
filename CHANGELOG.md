@@ -1,5 +1,9 @@
 # Versions
 
+## 53.8.0
+
+- `getMasterPublicKeys`: Add method to get bip32 master public keys
+
 ## 53.7.3
 
 - `payViaRoutes`, `subscribeToPayViaRoutes`: Add support for relay messages
