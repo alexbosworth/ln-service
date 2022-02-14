@@ -61,6 +61,7 @@ const {getPayments} = require('lightning');
 const {getPeers} = require('lightning');
 const {getPendingChainBalance} = require('lightning');
 const {getPendingChannels} = require('lightning');
+const {getPendingPayments} = require('lightning');
 const {getPublicKey} = require('lightning');
 const {getRouteConfidence} = require('lightning');
 const {getRouteThroughHops} = require('lightning');
@@ -202,6 +203,7 @@ module.exports = {
   getPeers,
   getPendingChainBalance,
   getPendingChannels,
+  getPendingPayments,
   getPublicKey,
   getRouteConfidence,
   getRouteThroughHops,
