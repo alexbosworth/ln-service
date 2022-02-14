@@ -1,5 +1,9 @@
 # Versions
 
+## 53.8.1
+
+- `fundPsbt`: Fix bip32 key derivation error
+
 ## 53.8.0
 
 - `getMasterPublicKeys`: Add method to get bip32 master public keys
