@@ -1,5 +1,9 @@
 # Versions
 
+## 53.9.0
+
+- `getPendingPayments`: Add method to get payments in flight
+
 ## 53.8.1
 
 - `fundPsbt`: Fix bip32 key derivation error
