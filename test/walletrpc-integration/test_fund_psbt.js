@@ -1,14 +1,14 @@
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {createPsbt} = require('psbt');
-const {crypto} = require('bitcoinjs-lib');
 const {decodePsbt} = require('psbt');
 const {networks} = require('bitcoinjs-lib');
-const {script} = require('bitcoinjs-lib');
+const {signHash} = require('p2tr');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
+const {v1OutputScript} = require('p2tr');
 
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -20,28 +20,16 @@ const {sendToChainAddress} = require('./../../');
 const {signPsbt} = require('./../../');
 
 const chainAddressRowType = 'chain_address';
-const {compile} = script;
 const confirmationCount = 6;
 const count = 100;
 const description = 'description';
-const extra = Buffer.alloc(32);
 const {fromBech32} = address;
 const {fromHex} = Transaction;
 const {fromOutputScript} = address;
 const hexAsBuffer = hex => Buffer.from(hex, 'hex');
 const interval = retryCount => 10 * Math.pow(2, retryCount);
-const isLowPublicKey = keyPair => keyPair.publicKey[0] === 2;
-const makeTaprootKey = (k, h) => tinysecp.xOnlyPointAddTweak(k, h).xOnlyPubkey;
-const nLess1 = 'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140';
-const one256BitBigEndian = '0000000000000000000000000000000000000000000000000000000000000001';
-const OP_1 = 81;
-const {privateAdd} = tinysecp;
-const {privateSub} = tinysecp;
 const regtestBech32AddressHrp = 'bcrt';
-const shortKey = keyPair =>  keyPair.publicKey.slice(1, 33);
-const {signSchnorr} = tinysecp;
 const smallTokens = 2e5;
-const tapHash = k => crypto.taggedHash('TapTweak', k.publicKey.slice(1, 33));
 const times = 20;
 const {toOutputScript} = address;
 const tokens = 1e6;
@@ -126,10 +114,11 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
     const keyPair = ecp.makeRandom({network: networks.regtest});
 
-    const outputKey = makeTaprootKey(shortKey(keyPair), tapHash(keyPair));
-    const tweakHash = tapHash(keyPair);
+    const output = v1OutputScript({
+      internal_key: keyPair.publicKey.toString('hex'),
+    });
 
-    const outputScript = compile([OP_1, Buffer.from(outputKey)]);
+    const outputScript = hexAsBuffer(output.script);
 
     const [utxo] = (await getUtxos({lnd})).utxos.reverse();
 
@@ -175,16 +164,13 @@ test(`Fund PSBT`, async ({end, equal}) => {
       );
     });
 
-    const isLow = isLowPublicKey(keyPair);
-    const ONE = hexAsBuffer(one256BitBigEndian);
-    const subtract = privateSub(hexAsBuffer(nLess1), keyPair.privateKey);
+    const signedInput = signHash({
+      private_key: keyPair.privateKey.toString('hex'),
+      public_key: keyPair.publicKey.toString('hex'),
+      sign_hash: hashToSign.toString('hex'),
+    });
 
-    const privateKey = isLow ? keyPair.privateKey : privateAdd(subtract, ONE);
-
-    // Only low keys are allowed to save a leading byte on the public key
-    const lowPrivateKey = privateAdd(privateKey, tweakHash);
-
-    const signature = signSchnorr(hashToSign, lowPrivateKey, extra);
+    const signature = hexAsBuffer(signedInput.signature);
 
     // Add the signature to the input
     tx.ins.forEach((input, i) => tx.setWitness(i, [Buffer.from(signature)]));

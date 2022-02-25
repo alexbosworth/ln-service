@@ -1,6 +1,6 @@
 # Versions
 
-## 53.9.1
+## 53.9.2
 
 - `getPendingPayments`: Add method to get payments in flight
 
