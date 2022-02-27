@@ -1,9 +1,14 @@
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
+const {controlBlock} = require('p2tr');
 const {createPsbt} = require('psbt');
 const {decodePsbt} = require('psbt');
+const {hashForTree} = require('p2tr');
+const {leafHash} = require('p2tr');
 const {networks} = require('bitcoinjs-lib');
+const {script} = require('bitcoinjs-lib');
 const {signHash} = require('p2tr');
+const {signSchnorr} = require('tiny-secp256k1');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
@@ -20,14 +25,18 @@ const {sendToChainAddress} = require('./../../');
 const {signPsbt} = require('./../../');
 
 const chainAddressRowType = 'chain_address';
+const {compile} = script;
 const confirmationCount = 6;
 const count = 100;
+const defaultInternalKey = '0350929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0';
 const description = 'description';
+const {from} = Buffer;
 const {fromBech32} = address;
 const {fromHex} = Transaction;
 const {fromOutputScript} = address;
 const hexAsBuffer = hex => Buffer.from(hex, 'hex');
 const interval = retryCount => 10 * Math.pow(2, retryCount);
+const OP_CHECKSIG = 172;
 const regtestBech32AddressHrp = 'bcrt';
 const smallTokens = 2e5;
 const times = 20;
@@ -107,6 +116,99 @@ test(`Fund PSBT`, async ({end, equal}) => {
   equal(decodedInput.sighash_type, 1, 'PSBT has sighash all flag');
   equal(!!decodedInput.witness_utxo.script_pub, true, 'PSBT input address');
   equal(decodedInput.witness_utxo.tokens, 5000000000, 'PSBT has input tokens');
+
+  // A Taproot script output should be funded
+  try {
+    await generate({count});
+
+    const keyPair = ecp.makeRandom({network: networks.regtest});
+
+    const witnessScript = compile([keyPair.publicKey.slice(1), OP_CHECKSIG]);
+
+    const branches = [{script: witnessScript.toString('hex')}];
+
+    const {hash} = hashForTree({branches});
+
+    const output = v1OutputScript({hash, internal_key: defaultInternalKey});
+
+    const [utxo] = (await getUtxos({lnd})).utxos.reverse();
+
+    // Make a PSBT paying to the Taproot output
+    const {psbt} = createPsbt({
+      outputs: [{tokens, script: output.script}],
+      utxos: [{id: utxo.transaction_id, vout: utxo.transaction_vout}],
+    });
+
+    // Sign the PSBT
+    const signed = await signPsbt({
+      lnd,
+      psbt: (await fundPsbt({lnd, psbt})).psbt,
+    });
+
+    // Send the tx to the chain
+    await broadcastChainTransaction({lnd, transaction: signed.transaction});
+
+    // Make a new tx that will spend the output back into the wallet
+    const tx = new Transaction();
+
+    // The new tx spends the Taproot output
+    tx.addInput(
+      fromHex(signed.transaction).getHash(),
+      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
+    );
+
+    // Make an output to pay back into the wallet
+    const chainOutput = toOutputScript(
+      (await createChainAddress({lnd})).address,
+      networks.regtest
+    );
+
+    // Add output to the pay back transaction
+    tx.addOutput(chainOutput, smallTokens);
+
+    const [hashToSign] = tx.ins.map((input, i) => {
+      return tx.hashForWitnessV1(
+        i,
+        [hexAsBuffer(output.script)],
+        [tokens],
+        Transaction.SIGHASH_DEFAULT,
+        hexAsBuffer(leafHash({script: witnessScript.toString('hex')}).hash),
+      );
+    });
+
+    const signature = from(signSchnorr(hashToSign, keyPair.privateKey));
+
+    const {block} = controlBlock({
+      external_key: output.external_key,
+      leaf_script: witnessScript.toString('hex'),
+      script_branches: branches,
+    });
+
+    // Add the signature to the input
+    tx.ins.forEach((input, i) => {
+      return tx.setWitness(i, [
+        signature,
+        witnessScript,
+        hexAsBuffer(block),
+      ]);
+    });
+
+    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+
+    await asyncRetry({interval, times}, async () => {
+      await generate({});
+
+      const {utxos} = await getUtxos({lnd});
+
+      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+
+      if (!utxo || !utxo.confirmation_count) {
+        throw new Error('ExpectedReceivedTaprootSpend');
+      }
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  }
 
   // A Taproot output should be funded
   try {
