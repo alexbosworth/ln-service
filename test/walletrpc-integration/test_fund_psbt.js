@@ -6,6 +6,8 @@ const {decodePsbt} = require('psbt');
 const {hashForTree} = require('p2tr');
 const {leafHash} = require('p2tr');
 const {networks} = require('bitcoinjs-lib');
+const {pointAdd} = require('tiny-secp256k1');
+const {privateAdd} = require('tiny-secp256k1');
 const {script} = require('bitcoinjs-lib');
 const {signHash} = require('p2tr');
 const {signSchnorr} = require('tiny-secp256k1');
@@ -117,7 +119,105 @@ test(`Fund PSBT`, async ({end, equal}) => {
   equal(!!decodedInput.witness_utxo.script_pub, true, 'PSBT input address');
   equal(decodedInput.witness_utxo.tokens, 5000000000, 'PSBT has input tokens');
 
-  // A Taproot script output should be funded
+  // A Taproot script can be funded and spent with internal key + script hash
+  try {
+    await generate({count});
+
+    const keyPair1 = ecp.makeRandom({network: networks.regtest});
+    const keyPair2 = ecp.makeRandom({network: networks.regtest});
+    const unusedKey = ecp.makeRandom({network: networks.regtest});
+
+    const witnessScript = compile([unusedKey.publicKey.slice(1), OP_CHECKSIG]);
+
+    const branches = [{script: witnessScript.toString('hex')}];
+
+    const {hash} = hashForTree({branches});
+
+    // Create a combined key using public key material
+    const combinedPoint = pointAdd(keyPair1.publicKey, keyPair2.publicKey);
+
+    const output = v1OutputScript({
+      hash,
+      internal_key: Buffer.from(combinedPoint).toString('hex'),
+    });
+
+    const [utxo] = (await getUtxos({lnd})).utxos.reverse();
+
+    // Make a PSBT paying to the Taproot output
+    const {psbt} = createPsbt({
+      outputs: [{tokens, script: output.script}],
+      utxos: [{id: utxo.transaction_id, vout: utxo.transaction_vout}],
+    });
+
+    // Sign the PSBT
+    const signed = await signPsbt({
+      lnd,
+      psbt: (await fundPsbt({lnd, psbt})).psbt,
+    });
+
+    // Send the tx to the chain
+    await broadcastChainTransaction({lnd, transaction: signed.transaction});
+
+    // Make a new tx that will spend the output back into the wallet
+    const tx = new Transaction();
+
+    // The new tx spends the Taproot output
+    tx.addInput(
+      fromHex(signed.transaction).getHash(),
+      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
+    );
+
+    // Make an output to pay back into the wallet
+    const chainOutput = toOutputScript(
+      (await createChainAddress({lnd})).address,
+      networks.regtest
+    );
+
+    // Add output to the pay back transaction
+    tx.addOutput(chainOutput, smallTokens);
+
+    const [hashToSign] = tx.ins.map((input, i) => {
+      return tx.hashForWitnessV1(
+        i,
+        [hexAsBuffer(output.script)],
+        [tokens],
+        Transaction.SIGHASH_DEFAULT,
+      );
+    });
+
+    // Ready for private key combining
+    const combinedKey = privateAdd(keyPair1.privateKey, keyPair2.privateKey);
+
+    const signedInput = signHash({
+      hash,
+      private_key: Buffer.from(combinedKey).toString('hex'),
+      public_key: Buffer.from(combinedPoint).toString('hex'),
+      sign_hash: hashToSign.toString('hex'),
+    });
+
+    const signature = hexAsBuffer(signedInput.signature);
+
+    // Add the signature to the input
+    tx.ins.forEach((input, i) => tx.setWitness(i, [signature]));
+
+    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+
+    await asyncRetry({interval, times}, async () => {
+      await generate({});
+
+      const {utxos} = await getUtxos({lnd});
+
+      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+
+      if (!utxo || !utxo.confirmation_count) {
+        throw new Error('ExpectedReceivedTaprootSpend');
+      }
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  }
+
+  // A Taproot script output should be funded and spent with script
   try {
     await generate({count});
 
@@ -210,7 +310,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
     equal(err, null, 'Expected no error');
   }
 
-  // A Taproot output should be funded
+  // A Taproot output should be funded for a regular key spend
   try {
     await generate({count});
 
