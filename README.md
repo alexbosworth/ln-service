@@ -3685,7 +3685,7 @@ Requires `offchain:write` permission
       [outgoing_channels]: [<Pay Out of Outgoing Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       [payment]: <Payment Identifier Hex String>
-      routes: [[{
+      [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
         [cltv_delta]: <CLTV Blocks Delta Number>
