@@ -10,7 +10,6 @@ const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getHeight} = require('./../../');
 const {getChainBalance} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
 

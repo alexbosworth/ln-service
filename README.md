@@ -514,10 +514,17 @@ Create a new receive address.
 
 Requires `address:write` permission
 
+LND 0.14.3 and below do not support p2tr addresses
+
     {
-      [format]: <Receive Address Type String> // "np2wpkh" || "p2wpkh"
+      [format]: <Receive Address Type String> // "np2wpkh" || "p2tr" || "p2wpkh"
       [is_unused]: <Get As-Yet Unused Address Bool>
       lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      address: <Chain Address String>
     }
 
 Example:
@@ -3530,7 +3537,7 @@ Requires `onchain:write` permission
 
 Requires LND built with `walletrpc` tag
 
-This method is not supported in LND 0.14.2 and below
+This method is not supported in LND 0.14.3 and below
 
     {
       lnd: <Authenticated LND API Object>

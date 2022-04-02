@@ -11,7 +11,6 @@ const {getChainTransactions} = require('./../../');
 const {getHeight} = require('./../../');
 const {mineTransaction} = require('./../macros');
 const {sendToChainAddress} = require('./../../');
-const {spawnLnd} = require('./../macros');
 const {subscribeToChainAddress} = require('./../../');
 const {waitForTermination} = require('./../macros');
 

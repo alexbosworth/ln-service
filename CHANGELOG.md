@@ -1,5 +1,10 @@
 # Versions
 
+## 53.10.0
+
+- `createChainAddress`: Add support for creating P2TR addresses
+- `getUtxos`: Add support for showing P2TR address types
+
 ## 53.9.4
 
 - `getPendingPayments`: Add method to get payments in flight
