@@ -1,5 +1,10 @@
 # Versions
 
+## 53.11.0
+
+- Use TLV for all hops when sending HTLCs along routes
+- `signTransaction`: Add `spending` attribute for specifying external inputs
+
 ## 53.10.0
 
 - `createChainAddress`: Add support for creating P2TR addresses

@@ -4621,9 +4621,13 @@ const {transaction} = await signPsbt({lnd, psbt});
 
 Sign transaction
 
-Requires LND built with `signerrpc` build tag
+`spending` is required for non-internal inputs for a Taproot signature
+
+Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
+
+`spending` is not supported in LND 0.14.3 and below
 
     {
       inputs: [{
@@ -4636,12 +4640,11 @@ Requires `signer:generate` permission
         witness_script: <Witness Script Hex String>
       }]
       lnd: <Authenticated LND API Object>
+      [spending]: [{
+        output_script: <Non-Internal Spend Output Script Hex String>
+        output_tokens: <Non-Internal Spend Output Tokens Number>
+      }]
       transaction: <Unsigned Transaction Hex String>
-    }
-
-    @returns via cbk or Promise
-    {
-      signatures: [<Signature Hex String>]
     }
 
 Example:
@@ -4790,9 +4793,14 @@ Subscribe to confirmations of a spend
 
 A chain address or raw output script is required
 
+When specifying a P2TR output script, `transaction_id` and `transaction_vout`
+are required.
+
 Requires LND built with `chainrpc` build tag
 
 Requires `onchain:read` permission
+
+Subscribing to P2TR outputs is not supported in LND 0.14.3 and below
 
     {
       [bech32_address]: <Bech32 P2WPKH or P2WSH Address String>
