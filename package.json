@@ -11,7 +11,7 @@
     "cors": "2.8.5",
     "express": "4.17.3",
     "invoices": "2.0.6",
-    "lightning": "5.11.0",
+    "lightning": "5.12.0",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "8.5.0"
@@ -57,6 +57,7 @@
   },
   "scripts": {
     "integration-test-daily-lnd-build": "DOCKER_LND_VERSION=daily-testing-only npm run test",
+    "integration-test-0.14.3": "DOCKER_LND_VERSION=v0.14.3-beta npm run test",
     "integration-test-0.14.2": "DOCKER_LND_VERSION=v0.14.2-beta npm run test",
     "integration-test-0.14.1": "DOCKER_LND_VERSION=v0.14.1-beta npm run test",
     "integration-test-0.14.0": "DOCKER_LND_VERSION=v0.14.0-beta npm run test",
