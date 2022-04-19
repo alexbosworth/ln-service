@@ -249,8 +249,10 @@ for `unlocker` methods.
 - [unlockUtxo](#unlockutxo) - Release a locked UTXO so that it can be used
     again
 - [unlockWallet](#unlockwallet) - Unlock a locked lnd
+- [updateAlias](#updatealias) - Update node graph identity alias
 - [updateChainTransaction](#updatechaintransaction) - Update a chain
     transaction
+- [updateColor](#updatecolor) - Update node graph color value
 - [updateConnectedWatchtower](#updateconnectedwatchtower) - Update watchtower
 - [updatePathfindingSettings](#updatepathfindingsettings) - Update pathfinding
     configuration
@@ -271,8 +273,8 @@ for `unlocker` methods.
 - [lightning](https://npmjs.com/package/lightning) - methods with typescript
     typing support
 - [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
-- [ln-docker-daemons](https://github.com/alexbosworth/ln-docker-daemons)
-    - run regtest integration tests
+- [ln-docker-daemons](https://github.com/alexbosworth/ln-docker-daemons) -
+    run regtest integration tests
 - [ln-pathfinding](https://npmjs.com/package/ln-accounting) - pathfinding
     utilities
 - [ln-sync](https://www.npmjs.com/package/ln-sync) - metadata helper methods
@@ -3537,7 +3539,7 @@ Requires `onchain:write` permission
 
 Requires LND built with `walletrpc` tag
 
-This method is not supported in LND 0.14.3 and below
+This method is not supported in LND 0.14.1 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -6571,6 +6573,32 @@ const {lnd} = unauthenticatedLndGrpc({});
 await unlockWallet({lnd, password: 'walletSecretPassword'});
 ```
 
+### updateAlias
+
+Update the node alias as advertised in the graph
+
+Note: this method is not supported in LND versions 0.14.3 and below
+
+Requires LND built with `peersrpc` build tag
+
+Requires `peers:write` permissions
+
+    {
+      alias: <Node Alias String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {updateAlias} = require('ln-service');
+
+// Set the node alias to "foo"
+await updateAlias({lnd, alias: 'foo'});
+```
+
 ### updateChainTransaction
 
 Update an on-chain transaction record metadata
@@ -6597,6 +6625,32 @@ const {transactions} = await getChainTransactions({lnd});
 const [{id}] = transactions;
 
 await updateChainTransaction({id, lnd, description: 'First transaction'});
+```
+
+### updateColor
+
+Update the node color as advertised in the graph
+
+Note: this method is not supported in LND versions 0.14.3 and below
+
+Requires LND built with `peersrpc` build tag
+
+Requires `peers:write` permissions
+
+    {
+      color: <Node Color String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {updateColor} = require('ln-service');
+
+// Update the node color identity in the network graph
+await updateColor({lnd, color: '#123456'});
 ```
 
 ### updateConnectedWatchtower

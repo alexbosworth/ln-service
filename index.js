@@ -129,7 +129,9 @@ const {subscribeToWalletStatus} = require('lightning');
 const {unauthenticatedLndGrpc} = require('lightning');
 const {unlockUtxo} = require('lightning');
 const {unlockWallet} = require('lightning');
+const {updateAlias} = require('lightning');
 const {updateChainTransaction} = require('lightning');
+const {updateColor} = require('lightning');
 const {updateConnectedWatchtower} = require('lightning');
 const {updatePathfindingSettings} = require('lightning');
 const {updateRoutingFees} = require('lightning');
@@ -271,7 +273,9 @@ module.exports = {
   unauthenticatedLndGrpc,
   unlockUtxo,
   unlockWallet,
+  updateAlias,
   updateChainTransaction,
+  updateColor,
   updateConnectedWatchtower,
   updatePathfindingSettings,
   updateRoutingFees,

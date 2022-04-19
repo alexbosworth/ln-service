@@ -1,5 +1,10 @@
 # Versions
 
+## 53.12.0
+
+- `updateAlias`: Add method to update the node graph announcement alias
+- `updateColor`: Add method to update the node graph announcement color
+
 ## 53.11.0
 
 - Use TLV for all hops when sending HTLCs along routes
