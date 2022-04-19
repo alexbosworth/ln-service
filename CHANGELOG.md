@@ -1,5 +1,9 @@
 # Versions
 
+## 53.13.0
+
+- `getWalletVersion`: Add support for LND 0.14.3-beta
+
 ## 53.12.0
 
 - `updateAlias`: Add method to update the node graph announcement alias
