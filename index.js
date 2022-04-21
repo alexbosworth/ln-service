@@ -1,3 +1,4 @@
+const {addExternalSocket} = require('lightning');
 const {addPeer} = require('lightning');
 const {authenticatedLndGrpc} = require('lightning');
 const {broadcastChainTransaction} = require('lightning');
@@ -88,6 +89,7 @@ const {probeForRoute} = require('lightning');
 const {proposeChannel} = require('lightning');
 const {recoverFundsFromChannel} = require('lightning');
 const {recoverFundsFromChannels} = require('lightning');
+const {removeExternalSocket} = require('lightning');
 const {removePeer} = require('lightning');
 const {requestChainFeeIncrease} = require('lightning');
 const {restrictMacaroon} = require('./macaroons');
@@ -142,6 +144,7 @@ const {verifyBytesSignature} = require('lightning');
 const {verifyMessage} = require('lightning');
 
 module.exports = {
+  addExternalSocket,
   addPeer,
   authenticatedLndGrpc,
   broadcastChainTransaction,
@@ -232,6 +235,7 @@ module.exports = {
   proposeChannel,
   recoverFundsFromChannel,
   recoverFundsFromChannels,
+  removeExternalSocket,
   removePeer,
   requestChainFeeIncrease,
   restrictMacaroon,

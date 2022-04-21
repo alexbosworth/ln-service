@@ -102,6 +102,7 @@ for `unlocker` methods.
 
 ## All Methods
 
+- [addExternalSocket](#addexternalsocket) - Advertise a new p2p host:ip address
 - [addPeer](#addpeer) - Connect to a peer
 - [authenticatedLndGrpc](#authenticatedlndgrpc) - LND API Object
 - [broadcastChainTransaction](#broadcastchaintransaction) - Push a chain tx
@@ -201,6 +202,7 @@ for `unlocker` methods.
 - [proposeChannel](#proposechannel) - Offer a channel proposal to a peer
 - [recoverFundsFromChannel](#recoverfundsfromchannel) - Restore a channel
 - [recoverFundsFromChannels](#recoverfundsfromchannels) - Restore all channels
+- [removeExternalSocket](#removeexternalsocket) - Remove a p2p host:ip announce
 - [removePeer](#removepeer) - Disconnect from a connected peer
 - [requestChainFeeIncrease](#requestchainfeeincrease) - Request a CPFP spend on
     a UTXO
@@ -280,6 +282,32 @@ for `unlocker` methods.
 - [ln-sync](https://www.npmjs.com/package/ln-sync) - metadata helper methods
 - [probing](https://npmjs.com/package/probing) - payment probing utilities
 - [psbt](https://www.npmjs.com/package/psbt) - BIP 174 PSBT utilities
+
+### addExternalSocket
+
+Add a new advertised p2p socket address
+
+Note: this method is not supported in LND versions 0.14.3 and below
+
+Requires LND built with `peersrpc` build tag
+
+Requires `peers:write` permissions
+
+    {
+      lnd: <Authenticated LND API Object>
+      socket: <Add Socket Address String>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {addExternalSocket} = require('ln-service');
+
+// Add a new address to advertise on the graph via gossip
+await addExternalSocket({lnd, socket: '192.168.0.1:9735'});
+```
 
 ### addPeer
 
@@ -4137,6 +4165,32 @@ Example:
 const {getBackups, recoverFundsFromChannels} = require('ln-service');
 const {backup} = await getBackups({lnd});
 await recoverFundsFromChannels({backup, lnd});
+```
+
+### removeExternalSocket
+
+Remove an existing advertised p2p socket address
+
+Note: this method is not supported in LND versions 0.14.3 and below
+
+Requires LND built with `peersrpc` build tag
+
+Requires `peers:write` permissions
+
+    {
+      lnd: <Authenticated LND API Object>
+      socket: <Remove Socket Address String>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {removeExternalSocket} = require('ln-service');
+
+// Stop an address being advertised on the graph via gossip
+await removeExternalSocket({lnd, socket: '127.0.0.1:9735'});
 ```
 
 ### removePeer

@@ -1,5 +1,10 @@
 # Versions
 
+## 53.14.0
+
+- `addExternalSocket`: Add method to add a socket to graph announcements
+- `removeExternalSocket`: Add method to remove sockets from graph announcements
+
 ## 53.13.0
 
 - `getWalletVersion`: Add support for LND 0.14.3-beta
