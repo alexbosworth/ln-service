@@ -2931,8 +2931,11 @@ Call this iteratively after failed route attempts to get new routes
 
 Requires `info:read` permission
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       destination: <Final Send Destination Hex Encoded Public Key String>
       [features]: [{
         bit: <Feature Bit Number>
@@ -3331,8 +3334,11 @@ Determine if a payment destination is actually payable by probing it
 
 Requires `offchain:write` permission
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       destination: <Pay to Node with Public Key Hex String>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
@@ -3612,7 +3618,10 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Additional Fee Tokens To Pay Number>
@@ -3699,8 +3708,11 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       destination: <Destination Public Key String>
       [features]: [{
         bit: <Feature Bit Number>
@@ -3786,7 +3798,10 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
@@ -3988,8 +4003,11 @@ If `total_mtokens` are specified, a `payment` nonce is required.
 
 Requires `offchain:write` permission
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       destination: <Destination Public Key Hex String>
       [features]: [{
         bit: <Feature Bit Number>
@@ -5573,8 +5591,11 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       destination: <Destination Public Key String>
       [features]: [{
         bit: <Feature Bit Number>
@@ -5736,7 +5757,10 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       [incoming_peer]: <Pay Through Specific Final Hop Public Key Hex String>
       lnd: <Authenticated LND API Object>
       [max_fee]: <Maximum Fee Tokens To Pay Number>
@@ -6144,8 +6168,11 @@ Subscribe to a probe attempt
 
 Requires `offchain:write` permission
 
+Preferred `confidence` is not supported on LND 0.14.3 and below
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
+      [confidence]: <Preferred Route Confidence Number Out of One Million Number>
       destination: <Destination Public Key Hex String>
       [features]: [{
         bit: <Feature Bit Number>

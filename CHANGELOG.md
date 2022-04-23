@@ -1,5 +1,12 @@
 # Versions
 
+## 53.15.0
+
+- `getRouteToDestination`, `isDestinationPayable`, `pay`,
+    `payViaPaymentDetails`, `payViaPaymentRequest`, `probeForRoute`,
+    `subscribeToPayViaDetails`, `subscribeToPayViaRequest`,
+    `subscribeToProbeForRoute` - add support for pathfinding `confidence`
+
 ## 53.14.1
 
 - `signTransaction`: Fix multi-input signing for upcoming Taproot API changes
