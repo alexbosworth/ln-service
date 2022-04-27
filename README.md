@@ -277,7 +277,7 @@ for `unlocker` methods.
 - [ln-accounting](https://npmjs.com/package/ln-accounting) - accounting records
 - [ln-docker-daemons](https://github.com/alexbosworth/ln-docker-daemons) -
     run regtest integration tests
-- [ln-pathfinding](https://npmjs.com/package/ln-accounting) - pathfinding
+- [ln-pathfinding](https://npmjs.com/package/ln-pathfinding) - pathfinding
     utilities
 - [ln-sync](https://www.npmjs.com/package/ln-sync) - metadata helper methods
 - [probing](https://npmjs.com/package/probing) - payment probing utilities
