@@ -1,6 +1,7 @@
 const {addExternalSocket} = require('lightning');
 const {addPeer} = require('lightning');
 const {authenticatedLndGrpc} = require('lightning');
+const {beginGroupSigningSession} = require('lightning');
 const {broadcastChainTransaction} = require('lightning');
 const {cancelHodlInvoice} = require('lightning');
 const {cancelPendingChannel} = require('lightning');
@@ -25,6 +26,7 @@ const {diffieHellmanComputeSecret} = require('lightning');
 const {disableChannel} = require('lightning');
 const {disconnectWatchtower} = require('lightning');
 const {enableChannel} = require('lightning');
+const {endGroupSigningSession} = require('lightning');
 const {fundPendingChannels} = require('lightning');
 const {fundPsbt} = require('lightning');
 const {getAccessIds} = require('lightning');
@@ -135,6 +137,7 @@ const {updateAlias} = require('lightning');
 const {updateChainTransaction} = require('lightning');
 const {updateColor} = require('lightning');
 const {updateConnectedWatchtower} = require('lightning');
+const {updateGroupSigningSession} = require('lightning');
 const {updatePathfindingSettings} = require('lightning');
 const {updateRoutingFees} = require('lightning');
 const {verifyAccess} = require('lightning');
@@ -147,6 +150,7 @@ module.exports = {
   addExternalSocket,
   addPeer,
   authenticatedLndGrpc,
+  beginGroupSigningSession,
   broadcastChainTransaction,
   cancelHodlInvoice,
   cancelPendingChannel,
@@ -171,6 +175,7 @@ module.exports = {
   disableChannel,
   disconnectWatchtower,
   enableChannel,
+  endGroupSigningSession,
   fundPendingChannels,
   fundPsbt,
   getAccessIds,
@@ -281,6 +286,7 @@ module.exports = {
   updateChainTransaction,
   updateColor,
   updateConnectedWatchtower,
+  updateGroupSigningSession,
   updatePathfindingSettings,
   updateRoutingFees,
   verifyAccess,

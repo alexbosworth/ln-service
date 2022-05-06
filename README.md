@@ -105,6 +105,7 @@ for `unlocker` methods.
 - [addExternalSocket](#addexternalsocket) - Advertise a new p2p host:ip address
 - [addPeer](#addpeer) - Connect to a peer
 - [authenticatedLndGrpc](#authenticatedlndgrpc) - LND API Object
+- [beginGroupSigningSession](#begingroupsigningsession) - Start MuSig2 session
 - [broadcastChainTransaction](#broadcastchaintransaction) - Push a chain tx
 - [cancelHodlInvoice](#cancelhodlinvoice) - Cancel a held or any open invoice
 - [cancelPendingChannel](#cancelpendingchannel) - Cancel a pending open channel
@@ -132,6 +133,7 @@ for `unlocker` methods.
 - [disableChannel](#disablechannel) - Disable a channel for outgoing payments
 - [disconnectWatchtower](#disconnectwatchtower) - Disconnect a watchtower
 - [enableChannel](#enablechannel) - Enable a channel for outgoing payments
+- [endGroupSigningSession](#endgroupsigningsession) - Complete MuSig2 session
 - [fundPendingChannels](#fundpendingchannels) - Fund pending open channels
 - [fundPsbt](#fundpsbt) - Create an unsigned PSBT with funding inputs and 
     spending outputs
@@ -256,6 +258,7 @@ for `unlocker` methods.
     transaction
 - [updateColor](#updatecolor) - Update node graph color value
 - [updateConnectedWatchtower](#updateconnectedwatchtower) - Update watchtower
+- [updateGroupSigningSession](#updategroupsigningsession) - Sign with MuSig2
 - [updatePathfindingSettings](#updatepathfindingsettings) - Update pathfinding
     configuration
 - [updateRoutingFees](#updateroutingfees) - Change routing fees
@@ -378,6 +381,46 @@ const {lnd} = lnService.authenticatedLndGrpc({
   socket: '127.0.0.1:10009',
 });
 const wallet = await lnService.getWalletInfo({lnd});
+```
+
+### beginGroupSigningSession
+
+Start a MuSig2 group signing session
+
+Requires LND built with `signrpc`, `walletrpc` build tags
+
+Requires `address:read`, `signer:generate` permissions
+
+This method is not supported in LND 0.14.3 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+      [is_key_spend]: <Key Is BIP 86 Key Spend Key Bool>
+      key_family: <HD Seed Key Family Number>
+      key_index: <Key Index Number>
+      public_keys: [<External Public Key Hex String>]
+      [root_hash]: <Taproot Script Root Hash Hex String>
+    }
+
+    @returns via cbk or Promise
+    {
+      external_key: <Final Script or Top Level Public Key Hex String>
+      id: <Session Id Hex String>
+      [internal_key]: <Internal Top Level Public Key Hex String>
+      nonce: <Session Compound Nonces Hex String>
+    }
+
+Example:
+
+```node
+const {beginGroupSigningSession} = require('ln-service');
+
+const session = await beginGroupSigningSession({
+  lnd,
+  key_family: 0,
+  key_index: 0,
+  public_keys: [externalPublicKey],
+});
 ```
 
 ### broadcastChainTransaction
@@ -1116,6 +1159,36 @@ await enableChannel({
   transaction_id: channel.transaction_id,
   transaction_vout: channel.transaction_vout,
 });
+```
+
+### endGroupSigningSession
+
+Complete a MuSig2 signing session
+
+Requires LND built with `signrpc` build tag
+
+Requires `signer:generate` permission
+
+This method is not supported in LND 0.14.3 and below
+
+    {
+      id: <Session Id Hex String>
+      lnd: <Authenticated LND API Object>
+      [signatures]: [<Combine External Partial Signature Hex String>]
+    }
+
+    @returns via cbk or Promise
+    {
+      [signature]: <Combined Signature Hex String>
+    }
+
+Example:
+
+```node
+const {endGroupSigningSession} = require('ln-service');
+
+// Cancel a group signing session
+await endGroupSigningSession({id, lnd});
 ```
 
 ### fundPendingChannels
@@ -6758,6 +6831,43 @@ await updateConnectedWatchtower({
   lnd,
   add_socket: additionalWatchtowerNetworkAddress,
   public_key: watchtowerPublicKey,
+});
+```
+
+### updateGroupSigningSession
+
+Update a MuSig2 signing session with nonces and generate a partial sig
+
+All remote nonces are expected to be passed
+
+Requires LND built with `signrpc` build tag
+
+Requires `signer:generate` permission
+
+This method is not supported in LND 0.14.3 and below
+
+    {
+      hash: <Hash to Sign Hex String>
+      id: <MuSig2 Session Id Hex String>
+      lnd: <Authenticated LND API Object>
+      nonces: [<Nonce Hex String>]
+    }
+
+    @returns via cbk or Promise
+    {
+      signature: <Partial Signature Hex String>
+    }
+
+Example:
+
+```node
+const {updateGroupSigningSession} = require('ln-service');
+
+const {signature} = await updateGroupSigningSession({
+  lnd,
+  hash: v1TxDigestHash,
+  id: sessionId,
+  nonces: [externalNonce],
 });
 ```
 

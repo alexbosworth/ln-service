@@ -66,7 +66,7 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
       .filter(n => !!n.is_outgoing);
 
     if (!transaction) {
-      throw new Error('ExpectedTrnasaction');
+      throw new Error('ExpectedTransactionInSubscribeToChainAddressResult');
     }
 
     // Wait for generation to be over
