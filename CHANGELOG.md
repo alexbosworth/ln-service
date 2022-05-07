@@ -1,5 +1,11 @@
 # Versions
 
+## 53.16.1
+
+- `getFailedPayments`, `getPayments`, `getPendingPayments`: Remove
+    `confirmed_at` date when a payment is not confirmed, add `created_at` and
+    `failed_at` dates for attempt start and attempt failed dates.
+
 ## 53.16.0
 
 - `beginGroupSigningSession`: Add method to start a MuSig2 signing session

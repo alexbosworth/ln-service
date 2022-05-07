@@ -1819,7 +1819,9 @@ Requires `offchain:read` permission
             message: <Error Message String>
           }
           [index]: <Payment Add Index Number>
-          [confirmed_at]: <Payment Confirmed At ISO 8601 Date String>
+          [confirmed_at]: <Payment Attempt Succeeded At ISO 8601 Date String>
+          created_at: <Attempt Was Started At ISO 8601 Date String>
+          [failed_at]: <Payment Attempt Failed At ISO 8601 Date String>
           is_confirmed: <Payment Attempt Succeeded Bool>
           is_failed: <Payment Attempt Failed Bool>
           is_pending: <Payment Attempt is Waiting For Resolution Bool>
@@ -2602,6 +2604,9 @@ Requires `offchain:read` permission
             }
             message: <Error Message String>
           }
+          [confirmed_at]: <Payment Attempt Succeeded At ISO 8601 Date String>
+          created_at: <Attempt Was Started At ISO 8601 Date String>
+          [failed_at]: <Payment Attempt Failed At ISO 8601 Date String>
           is_confirmed: <Payment Attempt Succeeded Bool>
           is_failed: <Payment Attempt Failed Bool>
           is_pending: <Payment Attempt is Waiting For Resolution Bool>
@@ -2817,7 +2822,9 @@ Requires `offchain:read` permission
             message: <Error Message String>
           }
           [index]: <Payment Add Index Number>
-          [confirmed_at]: <Payment Confirmed At ISO 8601 Date String>
+          [confirmed_at]: <Payment Attempt Succeeded At ISO 8601 Date String>
+          created_at: <Attempt Was Started At ISO 8601 Date String>
+          [failed_at]: <Payment Attempt Failed At ISO 8601 Date String>
           is_confirmed: <Payment Attempt Succeeded Bool>
           is_failed: <Payment Attempt Failed Bool>
           is_pending: <Payment Attempt is Waiting For Resolution Bool>
