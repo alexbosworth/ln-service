@@ -1,5 +1,9 @@
 # Versions
 
+## 53.17.0
+
+- `signTransaction`: Add `root_hash` to support Taproot signatures with scripts
+
 ## 53.16.1
 
 - `getFailedPayments`, `getPayments`, `getPendingPayments`: Remove

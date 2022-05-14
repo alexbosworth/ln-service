@@ -4781,6 +4781,7 @@ Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
 
+`root_hash` is not supported in LND 0.14.3 and below
 `spending` is not supported in LND 0.14.3 and below
 
     {
@@ -4789,9 +4790,10 @@ Requires `signer:generate` permission
         key_index: <Key Index Number>
         output_script: <Output Script Hex String>
         output_tokens: <Output Tokens Number>
+        [root_hash]: <Taproot Root Hash Hex String>
         sighash: <Sighash Type Number>
         vin: <Input Index To Sign Number>
-        witness_script: <Witness Script Hex String>
+        [witness_script]: <Witness Script Hex String>
       }]
       lnd: <Authenticated LND API Object>
       [spending]: [{

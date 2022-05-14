@@ -15,7 +15,7 @@ test(`Sign transaction`, async ({end, equal}) => {
     inputs: [{
       key_family: 6,
       key_index: 1,
-      output_script: '00',
+      output_script: '00147ab105a90ccd7e49d96672abcac2995bdb852baa',
       output_tokens: 1e8,
       sighash: Transaction.SIGHASH_ALL,
       vin: 0,
