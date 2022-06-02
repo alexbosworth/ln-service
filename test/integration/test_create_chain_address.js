@@ -41,6 +41,9 @@ test(`Create address results in address creation`, async ({end, equal}) => {
     equal(address.startsWith(prefixForV1), true, 'A taproot address is made');
   } catch (err) {
     // LND 0.14.3 and below do not support TR addresses
+    const [code] = err;
+
+    equal(code, 501, 'Taproot addresses are unsupported');
   }
 
   await kill({});

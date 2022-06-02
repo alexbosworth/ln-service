@@ -126,7 +126,7 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
 
     const [pending] = (await getPendingChannels({lnd})).pending_channels;
 
-    const stuckTx = extractTransaction({psbt: signTarget.psbt});
+    const stuckTx = extractTransaction({ecp, psbt: signTarget.psbt});
 
     const [stuckPending] = proposeToTarget.pending;
 
