@@ -3400,6 +3400,7 @@ const {app, server, wss} = grpcProxyServer({
 // Create an authenticated LND for the gRPC REST gateway
 const {lnd} = lndGateway({
   request,
+  websocket,
   macaroon: base64EncodedMacaroonFileString,
   url: `http://localhost:${port}${path}`,
 });
