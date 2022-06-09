@@ -11,16 +11,16 @@
     "cors": "2.8.5",
     "express": "4.18.1",
     "invoices": "2.0.7",
-    "lightning": "5.16.2",
+    "lightning": "5.16.3",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
-    "ws": "8.7.0"
+    "ws": "8.8.0"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
     "@alexbosworth/tap": "15.0.11",
     "@alexbosworth/node-fetch": "2.6.2",
-    "async": "3.2.3",
+    "async": "3.2.4",
     "asyncjs-util": "1.2.9",
     "bip32": "3.0.1",
     "bip66": "1.1.5",
@@ -28,10 +28,10 @@
     "bn.js": "5.2.1",
     "bs58check": "2.1.2",
     "ecpair": "2.0.1",
-    "ln-docker-daemons": "2.2.12",
+    "ln-docker-daemons": "2.3.0",
     "p2tr": "1.3.1",
     "portfinder": "1.0.28",
-    "psbt": "2.4.0",
+    "psbt": "2.6.0",
     "rimraf": "3.0.2",
     "secp256k1": "4.0.3",
     "tiny-secp256k1": "2.2.1",
@@ -70,5 +70,5 @@
     "integration-test-0.12.0": "DOCKER_LND_VERSION=v0.12.0-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && tap -j 2 --branches=1 --functions=1 --lines=1 --statements=1 -t 200 test/autopilotrpc-integration/*.js test/chainrpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/peersrpc-integration/*.js test/routerrpc-integration/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js"
   },
-  "version": "53.17.2"
+  "version": "53.17.3"
 }
