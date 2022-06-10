@@ -6286,7 +6286,7 @@ Preferred `confidence` is not supported on LND 0.14.3 and below
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         public_key: <Forward Edge Public Key Hex String>
       }]]
-      [tokens]: <Tokens to Probe Number>
+      tokens: <Tokens to Probe Number>
       [total_mtokens]: <Total Millitokens Across Paths String>
     }
 
