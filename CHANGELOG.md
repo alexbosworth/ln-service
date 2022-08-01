@@ -1,6 +1,6 @@
 # Versions
 
-## 53.17.4
+## 53.17.5
 
 - `signTransaction`: Add `root_hash` to support Taproot signatures with scripts
 

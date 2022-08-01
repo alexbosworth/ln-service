@@ -1627,7 +1627,7 @@ Requires `offchain:read` permission
         is_private: <Channel Is Private Bool>
         local_balance: <Local Balance Tokens Number>
         [local_csv]: <Local CSV Blocks Delay Number>
-        [local_dust]: <Remote Non-Enforceable Amount Tokens Number>
+        [local_dust]: <Local Non-Enforceable Amount Tokens Number>
         [local_given]: <Local Initially Pushed Tokens Number>
         [local_max_htlcs]: <Local Maximum Attached HTLCs Number>
         [local_max_pending_mtokens]: <Local Maximum Pending Millitokens String>
