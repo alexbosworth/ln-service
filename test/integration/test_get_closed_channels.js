@@ -72,11 +72,13 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   equal(channels.length, [channelOpen].length, 'Channel close listed');
 
+  const spend = maxChanTokens - channel.final_local_balance;
+
   // LND 0.11.1 and below do not use anchors
   if (isAnchors) {
-    equal(maxChanTokens - channel.final_local_balance, 2810, 'Final');
+    equal([53345, 2810].includes(spend), true, 'Final');
   } else {
-    equal(maxChanTokens - channel.final_local_balance, 9050, 'Final');
+    equal(spend, 9050, 'Final');
   }
 
   equal(channel.capacity, maxChanTokens, 'Channel capacity reflected');

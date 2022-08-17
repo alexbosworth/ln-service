@@ -26,9 +26,9 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const give = 1e5;
-const interval = 200;
+const interval = 50;
 const size = 2;
-const times = 1000;
+const times = 10000;
 const tokens = 100;
 
 // Force close a channel and get the resulting sweep transaction
@@ -76,8 +76,15 @@ test(`Get sweep transactions`, async ({end, equal}) => {
       .map(n => n.tokens).sort();
 
     equal(transactions.length, 2, 'Got closed channel sweep');
-    equal(anchorTokens, 149, 'Sweep has tokens amount');
-    equal(sweepTokens, 890455, 'Sweep has tokens amount');
+
+    // LND 0.15.0 and before have different sweep tokens
+    if (sweepTokens === 890455) {
+      equal(anchorTokens, 149, 'Sweep has tokens amount');
+      equal(sweepTokens, 890455, 'Sweep has tokens amount');
+    } else {
+      equal(anchorTokens, 136, 'Sweep has tokens amount');
+      equal(sweepTokens, 889855, 'Sweep has tokens amount');
+    }
   } else {
     equal(transactions.length, [channel].length, 'Got closed channel sweep');
     equal(transaction.spends.length, 1, 'Sweep has spends');

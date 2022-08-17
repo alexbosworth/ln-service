@@ -6,7 +6,9 @@ const {addPeer} = require('./../../');
 const {getPeers} = require('./../../');
 const {removePeer} = require('./../../');
 
+const interval = 10;
 const size = 2;
+const times = 2000;
 
 // Removing peers should result in a removed peer
 test(`Remove a peer`, async ({end, equal}) => {
@@ -15,7 +17,7 @@ test(`Remove a peer`, async ({end, equal}) => {
   const [{id, lnd}, target] = nodes;
 
   try {
-    await asyncRetry({interval: 10, times: 2000}, async () => {
+    await asyncRetry({interval, times}, async () => {
       await addPeer({lnd, public_key: target.id, socket: target.socket});
     });
 
@@ -27,9 +29,15 @@ test(`Remove a peer`, async ({end, equal}) => {
 
     await removePeer({lnd, public_key: targetPeer.public_key});
 
-    const postRemovalPeers = await getPeers({lnd});
+    await asyncRetry({interval, times}, async () => {
+      const postRemovalPeers = await getPeers({lnd});
 
-    equal(postRemovalPeers.peers.length, [].length, 'Peer is removed');
+      if (!!postRemovalPeers.peers.length) {
+        throw new Error('ExpectedPeerRemoved');
+      }
+
+      equal(postRemovalPeers.peers.length, [].length, 'Peer is removed');
+    });
   } catch (err) {
     equal(err, null, 'Expected no error');
   }

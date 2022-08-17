@@ -334,7 +334,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     });
 
     const coopCloseAddress = await createChainAddress({
-      format: 'np2wpkh',
+      format: 'p2wpkh',
       lnd: control.lnd,
     });
 
