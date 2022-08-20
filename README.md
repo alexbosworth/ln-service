@@ -151,6 +151,7 @@ for `unlocker` methods.
 - [getChannels](#getchannels) - Get all open channels
 - [getClosedChannels](#getclosedchannels) - Get previously open channels
 - [getConnectedWatchtowers](#getconnectedwatchtowers) - Get connected towers
+- [getEphemeralChannelIds](#getephemeralchannelids) - Get other channel ids
 - [getFailedPayments](#getfailedpayments) - Get payments that were failed back
 - [getFeeRates](#getfeerates) - Get current routing fee rates
 - [getForwardingConfidence](#getforwardingconfidence) - Get pairwise confidence
@@ -1602,6 +1603,8 @@ Requires `offchain:read` permission
 `in_channel`, `in_payment`, `is_forward`, `out_channel`, `out_payment`,
 `payment` are not supported on LND 0.11.1 and below
 
+`is_trusted_funding` is not supported on LND 0.15.0 and below
+
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
       [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -1625,6 +1628,7 @@ Requires `offchain:read` permission
         is_opening: <Channel Is Opening Bool>
         is_partner_initiated: <Channel Partner Opened Channel Bool>
         is_private: <Channel Is Private Bool>
+        [is_trusted_funding]: <Funding Output is Trusted Bool>
         local_balance: <Local Balance Tokens Number>
         [local_csv]: <Local CSV Blocks Delay Number>
         [local_dust]: <Local Non-Enforceable Amount Tokens Number>
@@ -1633,6 +1637,7 @@ Requires `offchain:read` permission
         [local_max_pending_mtokens]: <Local Maximum Pending Millitokens String>
         [local_min_htlc_mtokens]: <Local Minimum HTLC Millitokens String>
         local_reserve: <Local Reserved Tokens Number>
+        other_ids: [<Other Channel Id String>]
         partner_public_key: <Channel Partner Public Key String>
         past_states: <Total Count of Past Channel States Number>
         pending_payments: [{
@@ -1682,6 +1687,8 @@ Multiple close type flags are supported.
 
 Requires `offchain:read` permission
 
+`other_ids is not supported on LND 0.15.0 and below
+
     {
       [is_breach_close]: <Only Return Breach Close Channels Bool>
       [is_cooperative_close]: <Only Return Cooperative Close Channels Bool>
@@ -1719,6 +1726,7 @@ Requires `offchain:read` permission
         [is_partner_closed]: <Channel Was Closed By Channel Peer Bool>
         [is_partner_initiated]: <Channel Was Initiated By Channel Peer Bool>
         is_remote_force_close: <Is Remote Force Close Bool>
+        other_ids: [<Other Channel Id String>]
         partner_public_key: <Partner Public Key Hex String>
         transaction_id: <Channel Funding Transaction Id Hex String>
         transaction_vout: <Channel Funding Output Index Number>
@@ -1774,6 +1782,35 @@ Example:
 const {getConnectedWatchtowers} = require('ln-service');
 
 const {towers} = (await getConnectedWatchtowers({lnd}));
+```
+
+### getEphemeralChannelIds
+
+Get ephemeral channel ids
+
+Requires `offchain:read` permission
+
+This method is not supported on LND 0.15.0 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      channels: [{
+        other_ids: [<Channel Identifier String>]
+        reference_id: <Top Level Channel Identifier String>
+      }]
+    }
+
+Example:
+
+```node
+const {getEphemeralChannelIds} = require('ln-service');
+
+// Get the list of ephemeral ids related to channels
+const {channels} = await getEphemeralChannelIds({lnd});
 ```
 
 ### getFailedPayments
@@ -1859,6 +1896,15 @@ Requires `offchain:read` permission
       }]
       [next]: <Next Opaque Paging Token String>
     }
+
+Example:
+
+```node
+const {getFailedPayments} = require('ln-service');
+
+// Get the list of failed payments
+const {payments} = await getFailedPayments({lnd});
+```
 
 ### getFeeRates
 
@@ -3550,12 +3596,17 @@ channel that was not funded.
 Use `is_avoiding_broadcast` only when self-publishing the raw transaction
 after the funding step.
 
+`is_trusted_funding` is not supported on LND 0.15.0 and below and requires
+`--protocol.option-scid-alias` and `--protocol.zero-conf` set on both sides
+as well as a channel open request listener to accept the trusted funding.
+
     {
       channels: [{
         capacity: <Channel Capacity Tokens Number>
         [cooperative_close_address]: <Restrict Coop Close To Address String>
         [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
         [is_private]: <Channel is Private Bool> // Defaults to false
+        [is_trusted_funding]: <Peer Should Avoid Waiting For Confirmation Bool>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
         [partner_csv_delay]: <Peer Output CSV Delay Number>
         partner_public_key: <Public Key Hex String>
@@ -5002,6 +5053,8 @@ Subscribe to channel updates
 
 Requires `offchain:read` permission
 
+`is_trusted_funding`, `other_ids` are not supported on LND 0.15.0 and below
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -5046,6 +5099,7 @@ Requires `offchain:read` permission
       [is_partner_closed]: <Channel Was Closed By Channel Peer Bool>
       [is_partner_initiated]: <Channel Was Initiated By Channel Peer Bool>
       is_remote_force_close: <Is Remote Force Close Bool>
+      other_ids: [<Other Channel Id String>]
       partner_public_key: <Partner Public Key Hex String>
       transaction_id: <Channel Funding Transaction Id Hex String>
       transaction_vout: <Channel Funding Output Index Number>
@@ -5064,6 +5118,7 @@ Requires `offchain:read` permission
       is_opening: <Channel Is Opening Bool>
       is_partner_initiated: <Channel Partner Opened Channel Bool>
       is_private: <Channel Is Private Bool>
+      [is_trusted_funding]: <Funding Output is Trusted Bool>
       local_balance: <Local Balance Tokens Number>
       [local_given]: <Local Initially Pushed Tokens Number>
       local_reserve: <Local Reserved Tokens Number>
@@ -5451,6 +5506,8 @@ To return to default behavior of accepting all channel requests, remove all
 listeners to `channel_request`
 
 LND 0.11.1 and below do not support `accept` or `reject` arguments
+
+LND 0.15.0 and below do not support `is_trusted_funding`
 
     {
       lnd: <Authenticated LND API Object>

@@ -56,8 +56,6 @@ test(`Get node`, async ({end, equal, strictSame}) => {
       });
     });
 
-    await delay(3000);
-
     const node = await getNode({lnd, public_key: id});
 
     {

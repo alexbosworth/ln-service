@@ -1,5 +1,14 @@
 # Versions
 
+## 53.18.0
+
+- `getChannels`: Add support for `is_trusted_funding` and `other_ids`
+- `getClosedChannels`: Add support for `other_ids`
+- `getEphemeralChannelIds`: Add method to get other channel ids
+- `openChannels`: Add support for `is_trusted_funding` for instant opening
+- `subscribeToChannels`: Add support for `is_trusted_funding`, `other_ids`
+- `subscribeToOpenRequests`: Add support for `is_trusted_funding`
+
 ## 53.17.5
 
 - `signTransaction`: Add `root_hash` to support Taproot signatures with scripts
