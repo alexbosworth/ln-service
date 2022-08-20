@@ -72,6 +72,30 @@ test(`Verify bytes signature`, async ({end, equal}) => {
     equal(message, 'ExpectedSignerRpcLndBuildTagToSignBytes', 'Invalid LND');
   }
 
+  try {
+    const schnorr = await signBytes({
+      lnd,
+      key_family: 6,
+      key_index: 0,
+      preimage: Buffer.alloc(32).toString('hex'),
+      type: 'schnorr',
+    });
+
+    const validity = await verifyBytesSignature({
+      lnd,
+      preimage: Buffer.alloc(32).toString('hex'),
+      public_key: id.slice(2),
+      signature: schnorr.signature,
+    });
+
+    equal(validity.is_valid, true, 'Schnorr signature is valid');
+  } catch (err) {
+    const [code, message] = Array.isArray(err) ? err : [];
+
+    equal(code, 503, 'A 503 code is thrown if schnorr is unsupported');
+    equal(message, 'UnexpectedSignatureLengthInSignBytesResponse', 'Sig len');
+  }
+
   await kill({});
 
   return end();

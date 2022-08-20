@@ -1,5 +1,10 @@
 # Versions
 
+## 53.19.0
+
+- `signBytes`: Add `type` and support for specifying `schnorr` type signing
+- `verifyBytesSignature`: Add support for verifying Schnorr signatures
+
 ## 53.18.0
 
 - `getChannels`: Add support for `is_trusted_funding` and `other_ids`

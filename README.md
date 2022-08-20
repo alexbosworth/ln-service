@@ -4735,15 +4735,20 @@ await settleHodlInvoice({lnd, secret});
 
 Sign a sha256 hash of arbitrary bytes
 
+Supported signature types: `ecdsa`, `schnorr`
+
 Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
+
+`schnorr` signature type is not supported on LND 0.15.0 and below
 
     {
       key_family: <Key Family Number>
       key_index: <Key Index Number>
       lnd: <Authenticated LND gRPC API Object>
       preimage: <Bytes To Hash and Sign Hex Encoded String>
+      [type]: <Signature Type String>
     }
 
     @returns via cbk or Promise
@@ -7096,9 +7101,13 @@ const isValid = (await verifyBackups({backup, channels, lnd})).is_valid;
 
 Verify signature of arbitrary bytes
 
+When passing a schnorr signature, a BIP-340 x-only public key should be given
+
 Requires LND built with `signrpc` build tag
 
 Requires `signer:read` permission
+
+Validating `schnorr` signatures is unsupported in LND 0.15.0 and below
 
     {
       lnd: <Authenticated LND API Object>
