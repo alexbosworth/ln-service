@@ -13,7 +13,6 @@ Supported LND versions:
 - v0.14.0-beta to v0.14.3-beta
 - v0.13.0-beta to v0.13.4-beta
 - v0.12.0-beta to v0.12.1-beta
-- v0.11.0-beta to v0.11.1-beta
 
 For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
 
@@ -529,17 +528,23 @@ Either an id or a transaction id / transaction output index is required
 
 If cooperatively closing, pass a public key and socket to connect
 
-Requires `info:read`, `offchain:write`, `onchain:write`, `peers:write` permissions
+`max_tokens_per_vbyte` will be ignored when closing a peer initiated channel
+
+Requires `info:read`, `offchain:write`, `onchain:write`, `peers:write`
+permissions
+
+`max_tokens_per_vbyte` is not supported in LND 0.15.0 and below
 
     {
       [address]: <Request Sending Local Channel Funds To Address String>
       [id]: <Standard Format Channel Id String>
       [is_force_close]: <Is Force Close Bool>
       lnd: <Authenticated LND API Object>
+      [max_tokens_per_vbyte]: <Fail Cooperative Close Above Fee Rate Number>
       [public_key]: <Peer Public Key String>
       [socket]: <Peer Socket String>
       [target_confirmations]: <Confirmation Target Number>
-      [tokens_per_vbyte]: <Tokens Per Virtual Byte Number>
+      [tokens_per_vbyte]: <Target Tokens Per Virtual Byte Number>
       [transaction_id]: <Transaction Id Hex String>
       [transaction_vout]: <Transaction Output Index Number>
     }
@@ -1486,10 +1491,12 @@ Get chain transactions.
 
 Requires `onchain:read` permission
 
+`inputs` are not supported on LND 0.15.0 and below
+
     {
       [after]: <Confirmed After Current Best Chain Block Height Number>
       [before]: <Confirmed Before Current Best Chain Block Height Number>
-      lnd: <Authenticated LND Object>
+      lnd: <Authenticated LND API Object>
     }
 
     @returns via cbk or Promise
@@ -1502,6 +1509,11 @@ Requires `onchain:read` permission
         [description]: <Transaction Label String>
         [fee]: <Fees Paid Tokens Number>
         id: <Transaction Id String>
+        inputs: [{
+          is_local: <Spent Outpoint is Local Bool>
+          transaction_id: <Transaction Id Hex String>
+          transaction_vout: <Transaction Output Index Number>
+        }]
         is_confirmed: <Is Confirmed Bool>
         is_outgoing: <Transaction Outbound Bool>
         output_addresses: [<Address String>]
@@ -6615,6 +6627,8 @@ Subscribe to transactions
 
 Requires `onchain:read` permission
 
+`inputs` are not supported on LND 0.15.0 and below
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -6633,6 +6647,11 @@ Requires `onchain:read` permission
       created_at: <Created ISO 8601 Date String>
       [fee]: <Fees Paid Tokens Number>
       id: <Transaction Id String>
+      inputs: [{
+        is_local: <Spent Outpoint is Local Bool>
+        transaction_id: <Transaction Id Hex String>
+        transaction_vout: <Transaction Output Index Number>
+      }]
       is_confirmed: <Is Confirmed Bool>
       is_outgoing: <Transaction Outbound Bool>
       output_addresses: [<Address String>]

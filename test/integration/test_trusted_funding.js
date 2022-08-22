@@ -25,7 +25,7 @@ const size = 2;
 const times = 2000;
 
 // Opening unconfirmed channels should in immediate channel opening
-test(`Open unconfirmed channels`, async ({end, equal, strictSame}) => {
+test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
   // Unconfirmed channels are not supported on LND 0.15.0 and below
   {
     const {kill, nodes} = await spawnLightningCluster({});
@@ -126,15 +126,15 @@ test(`Open unconfirmed channels`, async ({end, equal, strictSame}) => {
 
     // Make sure the channel reflects that it is trusted funding
     strictSame(channel.other_ids, [], 'Got no ephemeral ids');
-    equal(channel.id, '16000000x0x0', 'Channel id is faked');
+    match(channel.id, /16000000x0/, 'Channel id is faked');
     equal(channel.is_trusted_funding, true, 'Channel funding is trusted');
 
     // Make sure the open channel event reflected that it was trusted funding
     const [event] = opened;
 
-    strictSame(event.other_ids, [], 'Got no ephemeral ids');
-    equal(event.id, '16000000x0x0', 'Channel id is faked');
-    equal(event.is_trusted_funding, true, 'Channel funding is trusted');
+    strictSame(event.other_ids, [], 'Got no event ephemeral ids');
+    match(event.id, /16000000x0/, 'Channel event id is faked');
+    equal(event.is_trusted_funding, true, 'Channel event funding is trusted');
 
     // Make sure the channel can be used immediately
     await pay({lnd, request: invoice.request});
@@ -156,7 +156,11 @@ test(`Open unconfirmed channels`, async ({end, equal, strictSame}) => {
 
     equal(confirmed.id, '102x1x0', 'Channel id is real now');
     equal(confirmed.is_trusted_funding, true, 'Channel funding was trusted');
-    strictSame(confirmed.other_ids, ['16000000x0x0'], 'Got ephemeral ids');
+    equal(confirmed.other_ids.length, 1, 'Got ephemeral id');
+
+    const [otherId] = confirmed.other_ids;
+
+    match(otherId, /16000000x0/, 'Got ephemeral id');
 
     await closeChannel({lnd, id: confirmed.id});
 
@@ -210,7 +214,11 @@ test(`Open unconfirmed channels`, async ({end, equal, strictSame}) => {
       return confirmed;
     });
 
-    strictSame(privateConfirmed.other_ids, ['16000000x0x1'], 'Got private id');
+    equal(privateConfirmed.other_ids.length, 1, 'Got private ephemeral ids');
+
+    const [privateOtherId] = privateConfirmed.other_ids;
+
+    match(privateOtherId, /16000000x0/, 'Got private id');
 
     const [closedChannel] = (await getClosedChannels({lnd})).channels;
 
@@ -224,16 +232,12 @@ test(`Open unconfirmed channels`, async ({end, equal, strictSame}) => {
 
     const ephemeralIds = await getEphemeralChannelIds({lnd});
 
-    strictSame(
-      ephemeralIds,
-      {
-        channels: [
-          {other_ids: [], reference_id: '16000000x0x0'},
-          {other_ids: [], reference_id: '16000000x0x1'},
-        ],
-      },
-      'Ephemeral ids are returned'
-    );
+    equal(ephemeralIds.channels.length, 2, 'Got ephemeral channel ids');
+
+    const [firstChannel, secondChannel] = ephemeralIds.channels;
+
+    match(firstChannel.reference_id, /16000000x0/, 'Got first channel id');
+    match(secondChannel.reference_id, /16000000x0/, 'Got second channel id');
   } catch (err) {
     equal(err, null, 'No error is reported');
   } finally {

@@ -75,10 +75,15 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
 
     await once(pay, 'failed');
 
+    equal(failures.length, 1, 'Got a failure');
+
+    const [failed] = failures;
+
+    delete failed.channel;
+
     strictSame(
-      failures,
-      [{
-        channel: channel.id,
+      failed,
+      {
         index: 1,
         mtokens: '101000',
         public_key: target.id,
@@ -114,7 +119,7 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
           tokens: 101,
           total_mtokens: '100000',
         },
-      }],
+      },
       'Failure is emitted'
     );
 
@@ -135,10 +140,13 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
       equal(!!pending.created_at, true, 'Has creation date');
       equal(pending.id, invoice.id, 'Payment id is present');
       equal(pending.mtokens, invoice.mtokens, 'Pending payment mtokens');
+      equal(pending.paths.length, 1, 'Path is present');
+
+      const [path] = pending.paths;
 
       strictSame(
-        pending.paths,
-        [{
+        path,
+        {
           fee: 1,
           fee_mtokens: '1000',
           hops: [
@@ -168,7 +176,7 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
           timeout: height + 40 + 43,
           tokens: 101,
           total_mtokens: '100000',
-        }],
+        },
         'Paths are present'
       );
 

@@ -219,14 +219,14 @@ test(`Get closed channels`, async ({end, equal}) => {
   equal(!!settleHtlc.transaction_id, true, 'Output tx id');
   equal(settleHtlc.transaction_vout !== undefined, true, 'Output tx vout');
 
-  const alsoDead = await asyncRetry({interval: 2000, times: 99}, async () => {
+  const alsoDead = await asyncRetry({interval: 20, times: 7000}, async () => {
     const {channels} = await getClosedChannels({lnd: target.lnd});
 
     if (channels.length === [toForceClose, channelOpen].length) {
       return channels;
     }
 
-    await target.generate({count: 100});
+    await target.generate({});
 
     throw new Error('WaitingForTargetForceClose');
   });

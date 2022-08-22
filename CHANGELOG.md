@@ -1,5 +1,11 @@
 # Versions
 
+## 53.20.0
+
+- `closeChannel`: Add support for `max_tokens_per_vbyte` to set max fee rate
+- `getChainTransactions`: Add `inputs` support for previous outpoints
+- `subscribeToTransactions`: Add `inputs` support for previous outpoints
+
 ## 53.19.0
 
 - `signBytes`: Add `type` and support for specifying `schnorr` type signing

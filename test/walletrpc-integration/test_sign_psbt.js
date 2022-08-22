@@ -10,7 +10,6 @@ const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
 const {fundPsbt} = require('./../../');
 const {getChainBalance} = require('./../../');
-const {getChainTransactions} = require('./../../');
 const {getUtxos} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 const {signPsbt} = require('./../../');

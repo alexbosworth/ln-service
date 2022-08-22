@@ -18,6 +18,7 @@ const {fundPsbt} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChannels} = require('./../../');
 const {getLockedUtxos} = require('./../../');
+const {getMasterPublicKeys} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {openChannels} = require('./../../');
 const {signPsbt} = require('./../../');
@@ -40,6 +41,17 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
   const [control, target, remote] = nodes;
 
   const {generate, lnd} = control;
+
+  try {
+    const {keys} = await getMasterPublicKeys({lnd});
+  } catch (err) {
+    // LND 0.13.3 and below should not be tested
+    strictSame(err, [501, 'GetMasterPublicKeysMethodNotSupported'], 'Got err');
+
+    await kill({});
+
+    return end();
+  }
 
   try {
     await control.generate({count});
