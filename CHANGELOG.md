@@ -1,5 +1,9 @@
 # Versions
 
+## 53.21.0
+
+- `getLockedUtxos`: Add support for locked UTXO `output_script`, `tokens`
+
 ## 53.20.0
 
 - `closeChannel`: Add support for `max_tokens_per_vbyte` to set max fee rate

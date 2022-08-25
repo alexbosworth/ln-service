@@ -2253,6 +2253,8 @@ Requires LND built with `walletrpc` build tag
 
 This method is not supported on LND 0.12.1 and below
 
+`output_script`, `tokens` are not supported on LND 0.15.0 and below
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -2262,6 +2264,8 @@ This method is not supported on LND 0.12.1 and below
       utxos: [{
         lock_expires_at: <Lock Expires At ISO 8601 Date String>
         lock_id: <Locking Id Hex String>
+        [output_script]: <Outpoint Output Script Hex String>
+        [tokens]: <Token Value of Outpoint Number>
         transaction_id: <Transaction Id Hex String>
         transaction_vout: <Transaction Output Index Number>
       }]
