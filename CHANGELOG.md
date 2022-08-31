@@ -1,5 +1,9 @@
 # Versions
 
+## 53.22.0
+
+- `parsePaymentRequest`: Add support for parsing payment request metadata
+
 ## 53.21.0
 
 - `getLockedUtxos`: Add support for locked UTXO `output_script`, `tokens`

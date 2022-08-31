@@ -9,7 +9,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.15.0-beta
+- v0.15.0-beta to v0.15.1-beta
 - v0.14.0-beta to v0.14.3-beta
 - v0.13.0-beta to v0.13.4-beta
 - v0.12.0-beta to v0.12.1-beta
@@ -3695,6 +3695,7 @@ Note: either description or description_hash will be returned
       }]
       id: <Payment Request Hash String>
       is_expired: <Invoice is Expired Bool>
+      [metadata]: <Payment Metadata Hex String>
       [mtokens]: <Requested Milli-Tokens Value String> (can exceed Number limit)
       network: <Network Name String>
       [payment]: <Payment Identifier Hex Encoded String>
