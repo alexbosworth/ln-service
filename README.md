@@ -48,7 +48,7 @@ If you're going to use extended gRPC APIs, make sure to add the APIs to make
 tags.
 
 ```sh
-make && make install tags="autopilotrpc chainrpc invoicesrpc routerrpc signrpc walletrpc watchtowerrpc wtclientrpc"
+make && make install tags="autopilotrpc chainrpc invoicesrpc peersrpc routerrpc signrpc walletrpc watchtowerrpc wtclientrpc"
 ```
 
 ## Using gRPC
