@@ -1437,6 +1437,8 @@ Get a chain fee estimate for a prospective chain send
 
 Requires `onchain:read` permission
 
+Specifying 0 for `utxo_confirmations` is not supported in LND 0.13.0 or below
+
     {
       lnd: <Authenticated LND API Object>
       send_to: [{
@@ -5545,6 +5547,7 @@ LND 0.15.0 and below do not support `is_trusted_funding`
     {
       accept: <Accept Request Function> ({
         [cooperative_close_address]: <Restrict Coop Close To Address String>
+        [is_trusted_funding]: <Accept Funding as Trusted Bool>
         [min_confirmations]: <Required Confirmations Before Channel Open Number>
         [remote_csv]: <Peer Unilateral Balance Output CSV Delay Number>
         [remote_reserve]: <Minimum Tokens Peer Must Keep On Their Side Number>
@@ -5558,6 +5561,7 @@ LND 0.15.0 and below do not support `is_trusted_funding`
       csv_delay: <CSV Delay Blocks Number>
       id: <Request Id Hex String>
       is_private: <Incoming Channel Is Private Bool>
+      is_trusted_funding: <Request Immediate Trusted Funding Bool>
       local_balance: <Channel Local Tokens Balance Number>
       local_reserve: <Channel Local Reserve Tokens Number>
       max_pending_mtokens: <Maximum Millitokens Pending In Channel String>

@@ -1,5 +1,9 @@
 # Versions
 
+## 53.23.0
+
+- `getChainFeeEstimate`: Add support for specifying min `utxo_confirmations`
+
 ## 53.22.0
 
 - `parsePaymentRequest`: Add support for parsing payment request metadata
