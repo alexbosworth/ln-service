@@ -9,6 +9,7 @@ const {createInvoice} = require('./../../');
 const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
+const {getLockedUtxos} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {setupChannel} = require('./../macros');
@@ -25,6 +26,15 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
+
+  try {
+    await getLockedUtxos({lnd});
+  } catch (err) {
+    // Skip test on LND 0.12 due to timeout timing
+    await kill({});
+
+    return end();
+  }
 
   try {
     const {features} = await getWalletInfo({lnd});

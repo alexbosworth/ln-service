@@ -10,6 +10,7 @@ const {delay} = require('./../macros');
 const {payViaPaymentRequest} = require('./../../');
 const {getChainTransactions} = require('./../../');
 const {getClosedChannels} = require('./../../');
+const {getLockedUtxos} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getSweepTransactions} = require('./../../');
 const {getUtxos} = require('./../../');
@@ -35,6 +36,15 @@ test(`Get closed channels`, async ({end, equal}) => {
   const [control, target] = nodes;
 
   const {generate, lnd} = control;
+
+  try {
+    await getLockedUtxos({lnd});
+  } catch (err) {
+    // Skip test on LND 0.12 due to sweep timing
+    await kill({});
+
+    return end();
+  }
 
   const channelOpen = await setupChannel({
     generate,
