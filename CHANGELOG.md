@@ -1,5 +1,11 @@
 # Versions
 
+## 54.0.0
+
+### Breaking Changes
+
+- Versions of Node.js before 14 are no longer supported
+
 ## 53.23.0
 
 - `getChainFeeEstimate`: Add support for specifying min `utxo_confirmations`
