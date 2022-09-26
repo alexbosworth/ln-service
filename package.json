@@ -27,7 +27,7 @@
     "bitcoinjs-lib": "6.0.2",
     "bn.js": "5.2.1",
     "bs58check": "2.1.2",
-    "ecpair": "2.0.1",
+    "ecpair": "2.1.0",
     "ln-docker-daemons": "3.0.0",
     "p2tr": "1.3.2",
     "portfinder": "1.0.32",
