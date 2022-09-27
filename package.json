@@ -11,7 +11,7 @@
     "cors": "2.8.5",
     "express": "4.18.1",
     "invoices": "2.2.0",
-    "lightning": "6.1.0",
+    "lightning": "6.1.1",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "8.9.0"
@@ -71,5 +71,5 @@
     "integration-test-0.12.0": "DOCKER_LND_VERSION=v0.12.0-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && tap -j 2 --branches=1 --functions=1 --lines=1 --statements=1 -t 200 test/autopilotrpc-integration/*.js test/chainrpc-integration/*.js test/integration/*.js test/invoicesrpc-integration/*.js test/peersrpc-integration/*.js test/routerrpc-integration/*.js test/signerrpc-integration/*.js test/tower_clientrpc-integration/*.js test/tower_serverrpc-integration/*.js test/walletrpc-integration/*.js"
   },
-  "version": "54.1.0"
+  "version": "54.1.1"
 }

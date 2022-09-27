@@ -1,6 +1,6 @@
 # Versions
 
-## 54.1.0
+## 54.1.1
 
 - `subscribeToPayments`: Add method to listen to all outgoing payments
 
