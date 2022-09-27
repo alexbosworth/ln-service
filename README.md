@@ -242,6 +242,7 @@ for `unlocker` methods.
 - [subscribeToPayViaDetails](#subscribetopayviadetails) - Pay using details
 - [subscribeToPayViaRequest](#subscribetopayviarequest) - Pay using a request
 - [subscribeToPayViaRoutes](#subscribetopayviaroutes) - Pay using routes
+- [subscribeToPayments](#subscribetopayments) - Subscribe to outgoing payments
 - [subscribeToPeerMessages](#subscribetopeermessages) - Listen to incoming
     custom messages
 - [subscribeToPeers](#subscribetopeers) - Subscribe to peers connectivity
@@ -6252,6 +6253,111 @@ const {getRouteToDestination, subscribeToPayViaRoutes} = require('ln-service');
 const {route} = getRouteToDestination({destination, lnd, tokens});
 const sub = subscribeToPayViaRoutes({lnd, routes: [route]});
 const [success] = await once(sub, 'success');
+```
+
+### subscribeToPayments
+
+Subscribe to outgoing payments
+
+Requires `offchain:read` permission
+
+Note: Method not supported on LND 0.15.2 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @throws
+    <Error>
+
+
+    @returns
+    <Subscription EventEmitter Object>
+
+    @event 'confirmed'
+    {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
+      created_at: <Payment Created At ISO 8601 Date String>
+      destination: <Payment Destination Hex String>
+      fee: <Total Fee Tokens Paid Rounded Down Number>
+      fee_mtokens: <Total Fee Millitokens Paid String>
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens Paid String>
+      paths: [{
+        fee: <Total Fee Tokens Paid Number>
+        fee_mtokens: <Total Fee Millitokens Paid String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Tokens Rounded Down Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Paid String>
+        safe_fee: <Total Fee Tokens Paid Rounded Up Number>
+        safe_tokens: <Total Tokens Paid, Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+      }]
+      [request]: <BOLT 11 Encoded Payment Request String>
+      safe_fee: <Total Fee Tokens Paid Rounded Up Number>
+      safe_tokens: <Total Tokens Paid, Rounded Up Number>
+      secret: <Payment Preimage Hex String>
+      timeout: <Expiration Block Height Number>
+      tokens: <Total Tokens Paid Rounded Down Number>
+    }
+
+    @event 'failed'
+    {
+      is_insufficient_balance: <Failed Due To Lack of Balance Bool>
+      is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
+      is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
+      is_route_not_found: <Failed Due to Absence of Path Through Graph Bool>
+    }
+
+    @event 'paying'
+    {
+      created_at: <Payment Created At ISO 8601 Date String>
+      destination: <Payment Destination Hex String>
+      id: <Payment Hash Hex String>
+      mtokens: <Total Millitokens Pending String>
+      paths: [{
+        fee: <Total Fee Tokens Pending Number>
+        fee_mtokens: <Total Fee Millitokens Pending String>
+        hops: [{
+          channel: <Standard Format Channel Id String>
+          channel_capacity: <Channel Capacity Tokens Number>
+          fee: <Fee Tokens Rounded Down Number>
+          fee_mtokens: <Fee Millitokens String>
+          forward: <Forward Tokens Number>
+          forward_mtokens: <Forward Millitokens String>
+          public_key: <Public Key Hex String>
+          timeout: <Timeout Block Height Number>
+        }]
+        mtokens: <Total Millitokens Pending String>
+        safe_fee: <Total Fee Tokens Pending Rounded Up Number>
+        safe_tokens: <Total Tokens Pending, Rounded Up Number>
+        timeout: <Expiration Block Height Number>
+      }]
+      [request]: <BOLT 11 Encoded Payment Request String>
+      safe_tokens: <Total Tokens Pending, Rounded Up Number>
+      [timeout]: <Expiration Block Height Number>
+      tokens: <Total Tokens Pending Rounded Down Number>
+    }
+
+Example:
+
+```node
+const {subscribeToPayments} = require('ln-service');
+
+const sub = subscribeToPayments({lnd});
+
+const payments = [];
+
+// Collect sent payments
+sub.on('confirmed', n => payments.push(n));
 ```
 
 ### subscribeToPeerMessages

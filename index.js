@@ -125,6 +125,7 @@ const {subscribeToPastPayments} = require('lightning');
 const {subscribeToPayViaDetails} = require('lightning');
 const {subscribeToPayViaRequest} = require('lightning');
 const {subscribeToPayViaRoutes} = require('lightning');
+const {subscribeToPayments} = require('lightning');
 const {subscribeToPeerMessages} = require('lightning');
 const {subscribeToPeers} = require('lightning');
 const {subscribeToProbeForRoute} = require('lightning');
@@ -275,6 +276,7 @@ module.exports = {
   subscribeToPayViaDetails,
   subscribeToPayViaRequest,
   subscribeToPayViaRoutes,
+  subscribeToPayments,
   subscribeToPeerMessages,
   subscribeToPeers,
   subscribeToProbeForRoute,
