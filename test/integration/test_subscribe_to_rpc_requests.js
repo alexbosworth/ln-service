@@ -1,37 +1,50 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const asyncRetry = require('async/retry');
 const {closeChannel} = require('./../../');
 const {createInvoice} = require('./../../');
+const {delay} = require('./../macros');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {spawnLnd} = require('./../macros');
+const {sendMessageToPeer} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 const {subscribeToRpcRequests} = require('./../../');
-const {waitForTermination} = require('./../macros');
 
+const message = '00';
 const subscribeInvoiceUri = '/invoicesrpc.Invoices/SubscribeSingleInvoice';
 
 // Subscribing to RPC requests should listen for RPC requests
 test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
-  const spawned = await (async () => {
-    try {
-      return await spawnLnd({intercept: true});
-    } catch (err) {
-      return;
-    }
-  })();
+  // LND 0.13.4 and below do not support subscribing to RPC requests
+  {
+    const [{id, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
-  // LND 0.13.4 and below do not support rpc interception
-  if (!spawned) {
-    return end();
+    try {
+      await sendMessageToPeer({lnd, message, public_key: id});
+    } catch (err) {
+      const [, code] = err;
+
+      if (code === 'SendMessageToPeerMethodNotSupported') {
+        await kill({});
+
+        return end();
+      }
+    }
+
+    await kill({});
   }
 
-  const {lnd} = spawned;
-  const pubKey = spawned.public_key;
+  const {kill, nodes} = await spawnLightningCluster({
+    lnd_configuration: ['--rpcmiddleware.enable'],
+  });
+
+  const [{lnd, id: key}] = nodes;
 
   const rpcRequestsSub = (await subscribeToRpcRequests({lnd})).subscription;
+
+  await delay(2000);
 
   const intercepted = [];
 
@@ -94,13 +107,15 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
       await openChannel({
         lnd,
         local_tokens: 1e6,
-        partner_public_key: spawned.public_key,
+        partner_public_key: key,
       });
 
       fail('ExpectedChannelCannotBeOpened');
     } catch (err) {
       strictSame(err, [400, 'CannotOpenChannelToOwnNode'], 'RPC req accepted');
     }
+
+    await delay(2000);
 
     subscription.removeAllListeners();
   }
@@ -127,7 +142,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
         lnd,
         give_tokens: 1e5,
         local_tokens: 1e6,
-        partner_public_key: spawned.public_key,
+        partner_public_key: Buffer.alloc(33, 2).toString('hex'),
       });
 
       fail('ExpectedChannelRejected');
@@ -186,12 +201,14 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
       is_intercepting_pay_via_routes_requests: true,
     });
 
+    await delay(2000);
+
     subscription.on('pay_via_route_request', async intercepted => {
       // Stop all route requests that have a non zero fee and pay to own key
       const feeMtokens = intercepted.request.route.fee_mtokens;
       const [finalHop] = intercepted.request.route.hops.reverse();
 
-      if (feeMtokens === '0' && finalHop.public_key === pubKey) {
+      if (feeMtokens === '0' && finalHop.public_key === key) {
         await intercepted.reject({message: 'message'});
       } else {
         await intercepted.accept({});
@@ -212,7 +229,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
             fee_mtokens: '0',
             forward: 0,
             forward_mtokens: '1',
-            public_key: pubKey,
+            public_key: key,
             timeout: 1,
           }],
           mtokens: '1',
@@ -232,9 +249,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
     subscription.removeAllListeners();
   }
 
-  spawned.kill({});
-
-  await waitForTermination({lnd: spawned.lnd});
+  await kill({});
 
   return end();
 });
