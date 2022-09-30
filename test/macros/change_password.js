@@ -39,7 +39,7 @@ const readMacaroonFileName = 'readonly.macaroon';
 const retryCreateSeedCount = 500;
 const startPortRange = 7593;
 const startWalletTimeoutMs = 4500;
-const times = 100;
+const times = 200;
 
 /** Run a change password test
 

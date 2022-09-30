@@ -14,7 +14,7 @@ const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
-const interval = 1;
+const interval = 10;
 const race = promises => Promise.race(promises);
 const times = 4000;
 
