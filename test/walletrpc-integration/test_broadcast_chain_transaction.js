@@ -1,57 +1,60 @@
+const asyncRetry = require('async/retry');
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
-const tinysecp = require('tiny-secp256k1');
 
 const {broadcastChainTransaction} = require('./../../');
-const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
-const {generateBlocks} = require('./../macros');
+const {fundPsbt} = require('./../../');
 const {getChainTransactions} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
+const {signPsbt} = require('./../../');
 
 const count = 100;
-const defaultVout = 0;
-const fee = 1e3;
-const format = 'np2wpkh';
+const description = 'description';
+const interval = 10;
+const times = 2000;
 const tokens = 1e8;
 
 // Test sending a chain transaction to Bitcoin network peers
-test(`Send chain transaction`, async ({end, equal}) => {
-  const node = await spawnLnd({});
+test(`Broadcast chain transaction`, async ({end, equal}) => {
+  const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
-  const {lnd} = node;
+  try {
+    await generate({count});
 
-  // Generate some funds
-  const {blocks} = await node.generate({count});
+    const {address} = await createChainAddress({lnd});
 
-  const [block] = blocks;
+    const {psbt} = await fundPsbt({lnd, outputs: [{address, tokens}]});
 
-  const [coinbaseTransactionId] = block.transaction_ids;
+    const {transaction} = await signPsbt({lnd, psbt});
 
-  const {transaction} = chainSendTransaction({
-    fee,
-    tokens,
-    destination: (await createChainAddress({format, lnd})).address,
-    ecp: (await import('ecpair')).ECPairFactory(tinysecp),
-    private_key: node.mining_key,
-    spend_transaction_id: coinbaseTransactionId,
-    spend_vout: defaultVout,
-  });
+    const {id} = await broadcastChainTransaction({
+      description,
+      lnd,
+      transaction,
+    });
 
-  const {id} = await broadcastChainTransaction({transaction, lnd: node.lnd});
+    await asyncRetry({interval, times}, async () => {
+      const {transactions} = await getChainTransactions({lnd});
 
-  await delay(5000);
+      await generate({});
 
-  const {transactions} = await getChainTransactions({lnd});
+      const tx = transactions.find(n => n.id === id);
 
-  const [tx] = transactions;
+      if (!tx) {
+        throw new Error('ExpectedTransactionBroadcast');
+      }
 
-  equal(id, tx.id, 'Transaction is found in broadcast');
+      if (!tx.is_confirmed) {
+        throw new Error('ExpectedTransactionConfirmed');
+      }
 
-  node.kill();
+      equal(tx.description, description, 'Description is set');
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error');
+  }
 
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });
