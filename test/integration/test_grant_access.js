@@ -1,19 +1,15 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
-const {authenticatedLndGrpc} = require('./../../');
 const {createChainAddress} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {grantAccess} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
 const format = 'np2wpkh';
 
 // Granting access should result in access granted
 test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
-  const spawned = await spawnLnd({});
-
-  const {lnd, kill} = spawned;
+  const [{lnd, kill, rpc}] = (await spawnLightningCluster({})).nodes;
 
   await grantAccess({lnd, is_ok_to_create_chain_addresses: true});
 
@@ -27,17 +23,11 @@ test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
 
   strictSame(makeChainAddresses.permissions, permissions, 'Got permissions');
 
-  const canPay = authenticatedLndGrpc({
-    cert: spawned.lnd_cert,
+  const canPay = rpc({
     macaroon: (await grantAccess({lnd, is_ok_to_pay: true})).macaroon,
-    socket: `localhost:${spawned.rpc_port}`,
   });
 
-  const makeAddress = authenticatedLndGrpc({
-    cert: spawned.lnd_cert,
-    macaroon: makeChainAddresses.macaroon,
-    socket: `localhost:${spawned.rpc_port}`,
-  });
+  const makeAddress = rpc({macaroon: makeChainAddresses.macaroon});
 
   await rejects(
     grantAccess({lnd: makeAddress.lnd, is_ok_to_create_chain_addresses: true}),
@@ -64,10 +54,8 @@ test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
       methods: ['createChainAddress'],
     });
 
-    const authenticatedToCreateAddress = authenticatedLndGrpc({
-      cert: spawned.lnd_cert,
+    const authenticatedToCreateAddress = rpc({
       macaroon: createChainAddressCredential.macaroon,
-      socket: `localhost:${spawned.rpc_port}`,
     });
 
     const created = await createChainAddress({
@@ -78,9 +66,7 @@ test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
     equal(!!created, true, 'Can make address with URI credential');
   }
 
-  kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });
