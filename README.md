@@ -3571,9 +3571,14 @@ If give_tokens is set, it is a gift and it does not alter the capacity
 
 Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 
+`base_fee_mtokens` is not supported on LND 0.15.2 and below
+`fee_rate` is not supported on LND 0.15.2 and below
+
     {
+      [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
       [cooperative_close_address]: <Restrict Cooperative Close To Address String>
+      [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
       [is_private]: <Channel is Private Bool> // Defaults to false
       lnd: <Authenticated LND API Object>
@@ -3619,10 +3624,15 @@ after the funding step.
 `--protocol.option-scid-alias` and `--protocol.zero-conf` set on both sides
 as well as a channel open request listener to accept the trusted funding.
 
+`base_fee_mtokens` is not supported on LND 0.15.2 and below
+`fee_rate` is not supported on LND 0.15.2 and below
+
     {
       channels: [{
+        [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
         capacity: <Channel Capacity Tokens Number>
         [cooperative_close_address]: <Restrict Coop Close To Address String>
+        [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
         [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
         [is_private]: <Channel is Private Bool> // Defaults to false
         [is_trusted_funding]: <Peer Should Avoid Waiting For Confirmation Bool>

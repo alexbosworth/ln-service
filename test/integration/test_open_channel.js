@@ -5,12 +5,17 @@ const {test} = require('@alexbosworth/tap');
 const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
+const {getChannel} = require('./../../');
+const {getChannels} = require('./../../');
 const {openChannel} = require('./../../');
 
+const baseFee = '1337';
 const channelCapacityTokens = 1e6;
 const count = 100;
+const defaultBaseFee = '1000';
 const defaultFee = 1e3;
 const defaultVout = 0;
+const feeRate = 420;
 const giftTokens = 1000;
 const interval = 250;
 const size = 2;
@@ -21,7 +26,7 @@ const txIdHexLength = 32 * 2;
 test(`Open channel`, async ({end, equal}) => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [{generate, lnd}, target] = nodes;
+  const [{generate, id, lnd}, target] = nodes;
 
   const {address} = await createChainAddress({lnd});
 
@@ -32,8 +37,10 @@ test(`Open channel`, async ({end, equal}) => {
 
     return await openChannel({
       lnd,
+      base_fee_mtokens: baseFee,
       chain_fee_tokens_per_vbyte: defaultFee,
       cooperative_close_address: address,
+      fee_rate: feeRate,
       give_tokens: giftTokens,
       local_tokens: channelCapacityTokens,
       partner_public_key: target.id,
@@ -43,6 +50,30 @@ test(`Open channel`, async ({end, equal}) => {
 
   equal(channelOpen.transaction_id.length, txIdHexLength, 'Channel tx id');
   equal(channelOpen.transaction_vout, defaultVout, 'Channel tx output index');
+
+  await asyncRetry({interval, times}, async () => {
+    await generate({});
+
+    const {channels} = await getChannels({lnd});
+
+    const [channel] = channels;
+
+    if (!channel) {
+      throw new Error('ExpectedChannelOpened');
+    }
+
+    const {policies} = await getChannel({lnd, id: channel.id});
+
+    const policy = policies.find(n => n.public_key === id);
+
+    // LND 0.15.2 and below do not support setting fees on open
+    if (policy.base_fee_mtokens === defaultBaseFee) {
+      return;
+    }
+
+    equal(policy.base_fee_mtokens, baseFee, 'Base fee is set');
+    equal(policy.fee_rate, feeRate, 'Fee rate is set');
+  });
 
   await kill({});
 

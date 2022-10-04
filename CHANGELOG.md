@@ -1,5 +1,10 @@
 # Versions
 
+## 54.2.0
+
+- `openChannel`, `openChannels`: Add `base_fee_mtokens`, `fee_rate` to set
+    initial routing fee rate.
+
 ## 54.1.2
 
 - `subscribeToRpcRequests`: Fix support for LND 0.15.1

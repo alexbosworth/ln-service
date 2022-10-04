@@ -13,15 +13,19 @@ const {delay} = require('./../macros');
 const {fundPendingChannels} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
+const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getPeers} = require('./../../');
 const {openChannels} = require('./../../');
 const {sendToChainAddresses} = require('./../../');
 
+const baseFeeMtokens = '1234';
 const capacity = 1e6;
 const count = 10;
+const defaultBaseFee = '1000';
 const interval = 10;
+const feeRate = 56;
 const maturity = 100;
 const race = promises => Promise.race(promises);
 const size = 3;
@@ -61,7 +65,9 @@ test(`Open channels`, async ({end, equal}) => {
 
     const channels = [target, remote].map(({id}) => ({
       capacity,
+      base_fee_mtokens: baseFeeMtokens,
       cooperative_close_address: address,
+      fee_rate: feeRate,
       partner_public_key: id,
     }));
 
@@ -128,6 +134,18 @@ test(`Open channels`, async ({end, equal}) => {
       const [channel] = channels;
 
       equal(channel.cooperative_close_address, address, 'Channel close addr');
+
+      const {policies} = await getChannel({lnd, id: channel.id});
+
+      const policy = policies.find(n => !!n.cltv_delta);
+
+      // LND 0.15.2 and below do not support setting fees on open
+      if (policy.base_fee_mtokens === defaultBaseFee) {
+        return;
+      }
+
+      equal(policy.base_fee_mtokens, baseFeeMtokens, 'Base fee is set');
+      equal(policy.fee_rate, feeRate, 'Fee rate is set');
 
       return;
     });
