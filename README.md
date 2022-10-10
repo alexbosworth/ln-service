@@ -9,10 +9,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.15.0-beta to v0.15.1-beta
-- v0.14.0-beta to v0.14.3-beta
-- v0.13.0-beta to v0.13.4-beta
-- v0.12.0-beta to v0.12.1-beta
+- v0.15.2-beta
 
 For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
 
@@ -3571,8 +3568,8 @@ If give_tokens is set, it is a gift and it does not alter the capacity
 
 Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 
-`base_fee_mtokens` is not supported on LND 0.15.2 and below
-`fee_rate` is not supported on LND 0.15.2 and below
+`base_fee_mtokens` is not supported on LND 0.15.3 and below
+`fee_rate` is not supported on LND 0.15.3 and below
 
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
@@ -3624,8 +3621,8 @@ after the funding step.
 `--protocol.option-scid-alias` and `--protocol.zero-conf` set on both sides
 as well as a channel open request listener to accept the trusted funding.
 
-`base_fee_mtokens` is not supported on LND 0.15.2 and below
-`fee_rate` is not supported on LND 0.15.2 and below
+`base_fee_mtokens` is not supported on LND 0.15.3 and below
+`fee_rate` is not supported on LND 0.15.3 and below
 
     {
       channels: [{
@@ -6271,7 +6268,7 @@ Subscribe to outgoing payments
 
 Requires `offchain:read` permission
 
-Note: Method not supported on LND 0.15.2 and below
+Note: Method not supported on LND 0.15.3 and below
 
     {
       lnd: <Authenticated LND API Object>

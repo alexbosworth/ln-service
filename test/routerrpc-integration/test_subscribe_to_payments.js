@@ -43,7 +43,7 @@ test(`Subscribe to payments`, async ({end, rejects, strictSame}) => {
     sub.on('error', error => {
       const [,, {err}] = error;
 
-      // subscribeToPayments is not supported on LND 0.15.2 and below
+      // subscribeToPayments is not supported on LND 0.15.3 and below
       if (err.details === unsupported) {
         return isLegacy.push(error);
       }

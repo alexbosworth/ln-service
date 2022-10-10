@@ -66,7 +66,7 @@ test(`Open channel`, async ({end, equal}) => {
 
     const policy = policies.find(n => n.public_key === id);
 
-    // LND 0.15.2 and below do not support setting fees on open
+    // LND 0.15.3 and below do not support setting fees on open
     if (policy.base_fee_mtokens === defaultBaseFee) {
       return;
     }

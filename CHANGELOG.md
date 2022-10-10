@@ -1,5 +1,12 @@
 # Versions
 
+## 54.2.1
+
+- `getWalletInfo`: Add support for LND 0.15.2
+
+- Due to LND chain sync failure prior to LND 0.15.2, those versions are no
+    longer supported
+
 ## 54.2.0
 
 - `openChannel`, `openChannels`: Add `base_fee_mtokens`, `fee_rate` to set
