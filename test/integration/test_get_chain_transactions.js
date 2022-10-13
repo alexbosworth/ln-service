@@ -20,14 +20,14 @@ test(`Get chain transactions`, async ({end, equal, strictSame}) => {
   // Generate some funds for LND
   await generate({count});
 
-  await asyncRetry({interval: 10, times: 2000}, async () => {
+  await asyncRetry({interval: 10, times: 3000}, async () => {
     const wallet = await getWalletInfo({lnd});
 
     if (!wallet.is_synced_to_chain) {
       throw new Error('ExpectedWalletSyncedToChain');
     }
 
-    if (wallet.current_block_height !== count + 1) {
+    if (wallet.current_block_height < count + 1) {
       throw new Error('ExpectedFullySyncedToChain');
     }
   });

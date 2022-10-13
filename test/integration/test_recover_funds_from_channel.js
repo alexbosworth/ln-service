@@ -24,25 +24,29 @@ const times = 3000;
 
 // Using a channel backup should recover funds
 test(`Recover funds from channel`, async ({end, equal}) => {
-  const control = await spawnLightningDocker({
-    seed,
-    chain_p2p_port: await getPort({port: 8000, stopPort: 9000}),
-    chain_rpc_port: await getPort({port: 9001, stopPort: 10000}),
-    chain_zmq_block_port: await getPort({port: 10001, stopPort: 11000}),
-    chain_zmq_tx_port: await getPort({port: 11001, stopPort: 12000}),
-    generate_address: generateAddress,
-    lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
-    lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+  const control = await asyncRetry({interval, times}, async () => {
+    return await spawnLightningDocker({
+      seed,
+      chain_p2p_port: await getPort({port: 8000, stopPort: 9000}),
+      chain_rpc_port: await getPort({port: 9001, stopPort: 10000}),
+      chain_zmq_block_port: await getPort({port: 10001, stopPort: 11000}),
+      chain_zmq_tx_port: await getPort({port: 11001, stopPort: 12000}),
+      generate_address: generateAddress,
+      lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
+      lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+    });
   });
 
-  const target = await spawnLightningDocker({
-    chain_p2p_port: await getPort({port: 8000, stopPort: 9000}),
-    chain_rpc_port: await getPort({port: 9001, stopPort: 10000}),
-    chain_zmq_block_port: await getPort({port: 10001, stopPort: 11000}),
-    chain_zmq_tx_port: await getPort({port: 11001, stopPort: 12000}),
-    generate_address: generateAddress,
-    lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
-    lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+  const target = await asyncRetry({interval, times}, async () => {
+    return await spawnLightningDocker({
+      chain_p2p_port: await getPort({port: 8000, stopPort: 9000}),
+      chain_rpc_port: await getPort({port: 9001, stopPort: 10000}),
+      chain_zmq_block_port: await getPort({port: 10001, stopPort: 11000}),
+      chain_zmq_tx_port: await getPort({port: 11001, stopPort: 12000}),
+      generate_address: generateAddress,
+      lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
+      lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+    });
   });
 
   await control.add_chain_peer({socket: target.chain_socket});
@@ -102,15 +106,17 @@ test(`Recover funds from channel`, async ({end, equal}) => {
 
   await control.kill({});
 
-  const clone = await spawnLightningDocker({
-    seed,
-    chain_p2p_port: await getPort({port: 8000, stopPort: 9000}),
-    chain_rpc_port: await getPort({port: 9001, stopPort: 10000}),
-    chain_zmq_block_port: await getPort({port: 10001, stopPort: 11000}),
-    chain_zmq_tx_port: await getPort({port: 11001, stopPort: 12000}),
-    generate_address: generateAddress,
-    lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
-    lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+  const clone = await asyncRetry({interval, times}, async () => {
+    return await spawnLightningDocker({
+      seed,
+      chain_p2p_port: await getPort({port: 8000, stopPort: 9000}),
+      chain_rpc_port: await getPort({port: 9001, stopPort: 10000}),
+      chain_zmq_block_port: await getPort({port: 10001, stopPort: 11000}),
+      chain_zmq_tx_port: await getPort({port: 11001, stopPort: 12000}),
+      generate_address: generateAddress,
+      lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
+      lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+    });
   });
 
   await clone.add_chain_peer({socket: target.chain_socket});

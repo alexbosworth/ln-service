@@ -12,8 +12,10 @@ const {sendMessageToPeer} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 const {subscribeToRpcRequests} = require('./../../');
 
+const interval = 10;
 const message = '00';
 const subscribeInvoiceUri = '/invoicesrpc.Invoices/SubscribeSingleInvoice';
+const times = 2000;
 
 // Subscribing to RPC requests should listen for RPC requests
 test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
@@ -136,23 +138,31 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
       }
     });
 
-    try {
-      // Gift some tokens in a channel
-      await openChannel({
-        lnd,
-        give_tokens: 1e5,
-        local_tokens: 1e6,
-        partner_public_key: Buffer.alloc(33, 2).toString('hex'),
-      });
+    await asyncRetry({interval, times}, async () => {
+      try {
+        // Gift some tokens in a channel
+        await openChannel({
+          lnd,
+          give_tokens: 1e5,
+          local_tokens: 1e6,
+          partner_public_key: Buffer.alloc(33, 2).toString('hex'),
+        });
 
-      fail('ExpectedChannelRejected');
-    } catch (err) {
-      strictSame(
-        err,
-        [503, 'FailedToOpenChannel', {err: 'message'}],
-        'Channel open fails to execute'
-      );
-    }
+        fail('ExpectedChannelRejected');
+      } catch (err) {
+        const [code, message] = err;
+
+        if (message !== 'FailedToOpenChannel') {
+          throw err;
+        }
+
+        strictSame(
+          err,
+          [503, 'FailedToOpenChannel', {err: 'message'}],
+          'Channel open fails to execute'
+        );
+      }
+    });
 
     subscription.removeAllListeners();
   }
