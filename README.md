@@ -5463,7 +5463,10 @@ Subscribe to invoices
 Requires `invoices:read` permission
 
     {
+      [added_after]: <Invoice Added After Index Number>
+      [confirmed_after]: <Invoice Confirmed After Index Number>
       lnd: <Authenticated LND API Object>
+      [restart_delay_ms]: <Restart Subscription Delay Milliseconds Number>
     }
 
     @throws
