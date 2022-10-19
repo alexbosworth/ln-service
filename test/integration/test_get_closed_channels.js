@@ -86,7 +86,7 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   // LND 0.11.1 and below do not use anchors
   if (isAnchors) {
-    equal([53345, 2810].includes(spend), true, 'Final');
+    equal([53345, 28473, 2810].includes(spend), true, 'Final');
   } else {
     equal(spend, 9050, 'Final');
   }

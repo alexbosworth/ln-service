@@ -150,7 +150,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   if (isAnchors) {
     const final = closeEvent.final_local_balance;
 
-    equal([897190, 846655].includes(final), true, 'Close final local balance');
+    equal([897190, 846655, 863366].includes(final), true, 'Close final');
   } else {
     equal(closeEvent.final_local_balance, 890950, 'Close final local balance');
   }
