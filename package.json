@@ -11,7 +11,7 @@
     "cors": "2.8.5",
     "express": "4.18.2",
     "invoices": "2.2.0",
-    "lightning": "6.2.5",
+    "lightning": "6.2.6",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "8.10.0"
@@ -28,7 +28,7 @@
     "bn.js": "5.2.1",
     "bs58check": "2.1.2",
     "ecpair": "2.1.0",
-    "ln-docker-daemons": "3.1.3",
+    "ln-docker-daemons": "3.1.4",
     "p2tr": "1.3.2",
     "portfinder": "1.0.32",
     "psbt": "2.7.1",
@@ -56,6 +56,7 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
+    "integration-test-0.15.4": "DOCKER_LND_VERSION=v0.15.4-beta npm run test",
     "integration-test-0.15.3": "DOCKER_LND_VERSION=v0.15.3-beta npm run test",
     "integration-test-0.15.2": "DOCKER_LND_VERSION=v0.15.2-beta npm run test",
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
