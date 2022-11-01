@@ -1,5 +1,9 @@
 # Versions
 
+## 54.2.5
+
+- `getWalletInfo`: Add support for LND 0.15.4
+
 ## 54.2.4
 
 - `getWalletInfo`: Add support for LND 0.15.3
