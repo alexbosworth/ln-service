@@ -38,7 +38,7 @@ test(`Disconnect watchtower`, async ({end, equal, match}) => {
 
   const [disconnected] = (await getConnectedWatchtowers({lnd})).towers;
 
-  // LND 0.15.3 and below retain the tower
+  // LND 0.15.4 and below retain the tower
   if (!!disconnected) {
     equal(disconnected.is_active, false, 'Tower is inactive');
   }

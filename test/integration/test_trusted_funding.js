@@ -162,7 +162,9 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
 
     match(otherId, /16000000x0/, 'Got ephemeral id');
 
-    await closeChannel({lnd, id: confirmed.id});
+    await asyncRetry({interval, times}, async () => {
+      await closeChannel({lnd, id: confirmed.id});
+    });
 
     // Propose a private channel to the peer
     const openPrivate = await asyncRetry({interval, times}, async () => {

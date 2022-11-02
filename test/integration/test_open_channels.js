@@ -139,7 +139,7 @@ test(`Open channels`, async ({end, equal}) => {
 
       const policy = policies.find(n => !!n.cltv_delta);
 
-      // LND 0.15.3 and below do not support setting fees on open
+      // LND 0.15.4 and below do not support setting fees on open
       if (policy.base_fee_mtokens === defaultBaseFee) {
         return;
       }

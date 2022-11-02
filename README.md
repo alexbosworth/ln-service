@@ -10,7 +10,7 @@ through npm.
 Supported LND versions:
 
 - v0.15.2-beta to v0.15.4-beta
-- v0.14.4-beta
+- v0.14.4-beta to v0.14.5-beta
 
 For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
 
@@ -290,7 +290,7 @@ for `unlocker` methods.
 
 Add a new advertised p2p socket address
 
-Note: this method is not supported in LND versions 0.14.3 and below
+Note: this method is not supported in LND versions 0.14.5 and below
 
 Requires LND built with `peersrpc` build tag
 
@@ -391,7 +391,7 @@ Requires LND built with `signrpc`, `walletrpc` build tags
 
 Requires `address:read`, `signer:generate` permissions
 
-This method is not supported in LND 0.14.3 and below
+This method is not supported in LND 0.14.5 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -593,7 +593,7 @@ Create a new receive address.
 
 Requires `address:write` permission
 
-LND 0.14.3 and below do not support p2tr addresses
+LND 0.14.5 and below do not support p2tr addresses
 
     {
       [format]: <Receive Address Type String> // "np2wpkh" || "p2tr" || "p2wpkh"
@@ -1175,7 +1175,7 @@ Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
 
-This method is not supported in LND 0.14.3 and below
+This method is not supported in LND 0.14.5 and below
 
     {
       id: <Session Id Hex String>
@@ -3075,7 +3075,7 @@ Call this iteratively after failed route attempts to get new routes
 
 Requires `info:read` permission
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3479,7 +3479,7 @@ Determine if a payment destination is actually payable by probing it
 
 Requires `offchain:write` permission
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3569,8 +3569,8 @@ If give_tokens is set, it is a gift and it does not alter the capacity
 
 Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 
-`base_fee_mtokens` is not supported on LND 0.15.3 and below
-`fee_rate` is not supported on LND 0.15.3 and below
+`base_fee_mtokens` is not supported on LND 0.15.4 and below
+`fee_rate` is not supported on LND 0.15.4 and below
 
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
@@ -3622,8 +3622,8 @@ after the funding step.
 `--protocol.option-scid-alias` and `--protocol.zero-conf` set on both sides
 as well as a channel open request listener to accept the trusted funding.
 
-`base_fee_mtokens` is not supported on LND 0.15.3 and below
-`fee_rate` is not supported on LND 0.15.3 and below
+`base_fee_mtokens` is not supported on LND 0.15.4 and below
+`fee_rate` is not supported on LND 0.15.4 and below
 
     {
       channels: [{
@@ -3779,7 +3779,7 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [confidence]: <Preferred Route Confidence Number Out of One Million Number>
@@ -3869,7 +3869,7 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -3959,7 +3959,7 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [confidence]: <Preferred Route Confidence Number Out of One Million Number>
@@ -4164,7 +4164,7 @@ If `total_mtokens` are specified, a `payment` nonce is required.
 
 Requires `offchain:write` permission
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -4350,7 +4350,7 @@ await recoverFundsFromChannels({backup, lnd});
 
 Remove an existing advertised p2p socket address
 
-Note: this method is not supported in LND versions 0.14.3 and below
+Note: this method is not supported in LND versions 0.14.5 and below
 
 Requires LND built with `peersrpc` build tag
 
@@ -4867,8 +4867,8 @@ Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
 
-`root_hash` is not supported in LND 0.14.3 and below
-`spending` is not supported in LND 0.14.3 and below
+`root_hash` is not supported in LND 0.14.5 and below
+`spending` is not supported in LND 0.14.5 and below
 
     {
       inputs: [{
@@ -5042,7 +5042,7 @@ Requires LND built with `chainrpc` build tag
 
 Requires `onchain:read` permission
 
-Subscribing to P2TR outputs is not supported in LND 0.14.3 and below
+Subscribing to P2TR outputs is not supported in LND 0.14.5 and below
 
     {
       [bech32_address]: <Bech32 P2WPKH or P2WSH Address String>
@@ -5770,7 +5770,7 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -5936,7 +5936,7 @@ Requires `offchain:write` permission
 
 `max_path_mtokens` is not supported in LND 0.12.0 or below
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [confidence]: <Preferred Route Confidence Number Out of One Million Number>
@@ -6272,7 +6272,7 @@ Subscribe to outgoing payments
 
 Requires `offchain:read` permission
 
-Note: Method not supported on LND 0.15.3 and below
+Note: Method not supported on LND 0.15.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -6452,7 +6452,7 @@ Subscribe to a probe attempt
 
 Requires `offchain:write` permission
 
-Preferred `confidence` is not supported on LND 0.14.3 and below
+Preferred `confidence` is not supported on LND 0.14.5 and below
 
     {
       [cltv_delta]: <Final CLTV Delta Number>
@@ -6949,7 +6949,7 @@ await unlockWallet({lnd, password: 'walletSecretPassword'});
 
 Update the node alias as advertised in the graph
 
-Note: this method is not supported in LND versions 0.14.3 and below
+Note: this method is not supported in LND versions 0.14.5 and below
 
 Requires LND built with `peersrpc` build tag
 
@@ -7003,7 +7003,7 @@ await updateChainTransaction({id, lnd, description: 'First transaction'});
 
 Update the node color as advertised in the graph
 
-Note: this method is not supported in LND versions 0.14.3 and below
+Note: this method is not supported in LND versions 0.14.5 and below
 
 Requires LND built with `peersrpc` build tag
 
@@ -7062,7 +7062,7 @@ Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
 
-This method is not supported in LND 0.14.3 and below
+This method is not supported in LND 0.14.5 and below
 
     {
       hash: <Hash to Sign Hex String>

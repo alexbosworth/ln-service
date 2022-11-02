@@ -48,7 +48,7 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
       public_keys: [Buffer.alloc(33, 2).toString('hex')],
     });
   } catch (err) {
-    // On LND 0.14.3 and below, taproot signing is not supported
+    // On LND 0.14.5 and below, taproot signing is not supported
     if (err.slice().shift() === 501) {
       await kill({});
 
