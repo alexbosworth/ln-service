@@ -177,6 +177,7 @@ for `unlocker` methods.
 - [getRouteConfidence](#getrouteconfidence) - Get confidence in a route
 - [getRouteThroughHops](#getroutethroughhops) - Get a route through nodes
 - [getRouteToDestination](#getroutetodestination) - Get a route to a destination
+- [getSettlementStatus](#getsettlementstatus) - Get status of a received HTLC
 - [getSweepTransactions](#getsweeptransactions) - Get transactions sweeping to
     self
 - [getTowerServerInfo](#gettowerserverinfo) - Get information about tower server
@@ -3151,6 +3152,43 @@ const destination = 'destinationPublicKeyHexString';
 const tokens = 1000;
 const {route} = await getRouteToDestination({destination, lnd, tokens});
 await payViaRoutes({lnd, routes: [route]});
+```
+
+### getSettlementStatus
+
+Get the settlement status of a received HTLC
+
+Note: this method is not supported in LND versions 0.15.4 and below
+
+Requires `offchain:read` permissions
+
+    {
+      channel: <Standard Format Channel Id String>
+      lnd: <Authenticated LND API Object>
+      payment: <Payment Id Number>
+    }
+
+    @returns via cbk or Promise
+    {
+      is_onchain: <Payment Went to Chain Bool>
+      is_settled: <Payment Is Settled Into Non-HTLC Balance Bool>
+    }
+
+Example:
+
+```node
+const {getSettlementStatus} = require('ln-service');
+const {getChannels} = require('ln-service');
+
+const [channel] = (await getChannels({lnd})).channels;
+
+const settlement = await getSettlementStatus({
+  lnd,
+  channel: channel.id,
+  payment: 0,
+});
+
+const isSettledOffchain = settlement.is_settled && !settlement.is_onchain;
 ```
 
 ### getSweepTransactions
