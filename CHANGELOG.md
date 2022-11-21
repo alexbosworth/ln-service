@@ -1,5 +1,9 @@
 # Versions
 
+## 54.3.1
+
+- `createUnsignedRequest`: Fix support for empty description requests
+
 ## 54.3.0
 
 - `getSettlementStatus`: Add method to lookup received htlc settlement status
