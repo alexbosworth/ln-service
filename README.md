@@ -199,7 +199,6 @@ for `unlocker` methods.
 - [payViaRoutes](#payviaroutes) - Make a payment over specified routes
 - [prepareForChannelProposal](#prepareforchannelproposal) - setup for a channel
     proposal
-- [probe](#probe) - Find a payable route by attempting a fake payment
 - [probeForRoute](#probeforroute) - Actively probe to find a payable route
 - [proposeChannel](#proposechannel) - Offer a channel proposal to a peer
 - [recoverFundsFromChannel](#recoverfundsfromchannel) - Restore a channel
