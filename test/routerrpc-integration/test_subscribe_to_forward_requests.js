@@ -47,7 +47,7 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
 
     const sub = subscribeToForwardRequests({lnd: target.lnd});
 
-    sub.on('forward_request', forward => forward.reject());
+    sub.on('forward_request', async forward => await forward.reject());
 
     await rejects(
       payViaPaymentRequest({lnd, request: invoice.request}),
@@ -198,7 +198,7 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
       equal(forward.timeout, info.current_block_height + 83, 'Has timeout');
       equal(forward.tokens, invoice.tokens, 'Forward has invoiced tokens');
 
-      return forward.accept();
+      return await forward.accept();
     });
 
     await payViaPaymentRequest({lnd, request: invoice.request});
@@ -210,7 +210,7 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
     const {secret} = invoice;
     const sub = subscribeToForwardRequests({lnd: target.lnd});
 
-    sub.on('forward_request', async ({settle}) => settle({secret}));
+    sub.on('forward_request', async ({settle}) => await settle({secret}));
 
     const paid = await payViaPaymentRequest({lnd, request: invoice.request});
 

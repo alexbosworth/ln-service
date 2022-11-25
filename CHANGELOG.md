@@ -1,6 +1,6 @@
 # Versions
 
-## 54.3.1
+## 54.3.2
 
 - `createUnsignedRequest`: Fix support for empty description requests
 
