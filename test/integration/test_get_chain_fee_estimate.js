@@ -6,7 +6,7 @@ const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChainFeeEstimate} = require('./../../');
 
-const expectedFee = 8650;
+const expectedFee = 9250;
 const expectedFeeRate = 50;
 const format = 'np2wpkh';
 const size = 2;
@@ -39,7 +39,13 @@ test(`Get chain fee estimate`, async ({end, equal}) => {
     ],
   });
 
-  equal(estimate.fee, expectedFee, 'Total fee is estimated');
+  // LND 0.15.4 and below uses P2WPKH as change
+  if (estimate.fee === 8650) {
+    equal(estimate.fee, 8650, 'Total fee is estimated');
+  } else {
+    equal(estimate.fee, expectedFee, 'Total fee is estimated');
+  }
+
   equal(estimate.tokens_per_vbyte, expectedFeeRate, 'Fee per vbyte is given');
 
   await kill({});

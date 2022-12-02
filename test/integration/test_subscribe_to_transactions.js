@@ -63,9 +63,16 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
 
   equal(!!tx.created_at, true, 'Tx has a creation date');
   equal(tx.is_outgoing, true, 'Tx is outgoing');
-  equal(tx.fee, 7050, 'Transaction has a chain fee');
   equal(!!tx.id, true, 'Tx has an id');
-  equal(tx.tokens, 1007050, 'Tx tokens is fee + tokens sent');
+
+  // LND 0.15.4 and below do not use P2TR change addresses
+  if (tx.fee === 7050) {
+    equal(tx.fee, 7050, 'Transaction has a chain fee');
+    equal(tx.tokens, 1007050, 'Tx tokens is fee + tokens sent');
+  } else {
+    equal(tx.fee, 7650, 'Transaction has a chain fee');
+    equal(tx.tokens, 1007650, 'Tx tokens is fee + tokens sent');
+  }
 
   if (!!tx.output_addresses.find(n => n.length < 14 || n.length > 74)) {
     fail('Output address lengths must be between 14 and 74');

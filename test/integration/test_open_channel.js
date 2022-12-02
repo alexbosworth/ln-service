@@ -70,7 +70,7 @@ test(`Open channel`, async ({end, equal}) => {
       throw new Error('ExpectedKnownPolicyBaseFeeMtokens');
     }
 
-    // LND 0.15.4 and below do not support setting fees on open
+    // LND 0.15.5 and below do not support setting fees on open
     if (policy.base_fee_mtokens === defaultBaseFee) {
       return;
     }

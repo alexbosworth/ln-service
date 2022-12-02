@@ -1,5 +1,9 @@
 # Versions
 
+## 54.3.3
+
+- `getWalletInfo`: Add support for LND 0.15.5
+
 ## 54.3.2
 
 - `createUnsignedRequest`: Fix support for empty description requests

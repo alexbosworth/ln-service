@@ -62,7 +62,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
 
   const {utxos} = await getUtxos({lnd});
 
-  const [utxo] = utxos;
+  const [utxo] = utxos.filter(n => n.address_format === 'p2wpkh');
 
   await control.generate({count});
 
@@ -79,7 +79,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
   sub.once('confirmation', ({height, transaction, vin}) => {
     equal(!!height, true, 'Height of the confirmation is returned');
     equal(!!transaction, true, 'Raw transaction is returned');
-    equal(vin, 0, 'Transaction input index is returned');
+    equal(vin !== undefined, true, 'Transaction input index is returned');
 
     return gotAddressConf = true;
   });

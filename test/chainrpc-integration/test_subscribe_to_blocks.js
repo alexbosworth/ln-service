@@ -25,7 +25,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
 
   const [{generate, lnd}] = nodes;
 
-  await asyncRetry({interval, times}, async () => {
+  const gotHeight = await asyncRetry({interval, times}, async () => {
     const subBlocks = subscribeToBlocks({lnd});
 
     const [event] = await race([
@@ -36,7 +36,11 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
     if (!event.height) {
       throw new Error('ExpectedBlockEvent');
     }
+
+    return !!event.height;
   });
+
+  equal(gotHeight, true, 'Got the block height');
 
   try {
     // Wait for chainrpc to be active

@@ -19,7 +19,7 @@ test(`Get settlement status`, async ({end, equal, strictSame}) => {
 
   const [{generate, lnd}, target] = nodes;
 
-  // LND 0.15.4 and below do not support settlement status lookups
+  // LND 0.15.5 and below do not support settlement status lookups
   try {
     await getSettlementStatus({
       lnd: target.lnd,

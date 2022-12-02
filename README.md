@@ -9,7 +9,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.15.2-beta to v0.15.4-beta
+- v0.15.2-beta to v0.15.5-beta
 - v0.14.4-beta to v0.14.5-beta
 
 For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
@@ -3157,7 +3157,7 @@ await payViaRoutes({lnd, routes: [route]});
 
 Get the settlement status of a received HTLC
 
-Note: this method is not supported in LND versions 0.15.4 and below
+Note: this method is not supported in LND versions 0.15.5 and below
 
 Requires `offchain:read` permissions
 
@@ -3485,7 +3485,7 @@ const request = require('@alexbosworth/request');
 const websocket = require('ws');
 const {Writable} = require('stream');
 
-const log = output => console.log(output);
+const log = output => log(output);
 const path = '/lnd/';
 const port = 8050;
 
@@ -3606,8 +3606,8 @@ If give_tokens is set, it is a gift and it does not alter the capacity
 
 Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 
-`base_fee_mtokens` is not supported on LND 0.15.4 and below
-`fee_rate` is not supported on LND 0.15.4 and below
+`base_fee_mtokens` is not supported on LND 0.15.5 and below
+`fee_rate` is not supported on LND 0.15.5 and below
 
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
@@ -3659,8 +3659,8 @@ after the funding step.
 `--protocol.option-scid-alias` and `--protocol.zero-conf` set on both sides
 as well as a channel open request listener to accept the trusted funding.
 
-`base_fee_mtokens` is not supported on LND 0.15.4 and below
-`fee_rate` is not supported on LND 0.15.4 and below
+`base_fee_mtokens` is not supported on LND 0.15.5 and below
+`fee_rate` is not supported on LND 0.15.5 and below
 
     {
       channels: [{
@@ -6309,7 +6309,7 @@ Subscribe to outgoing payments
 
 Requires `offchain:read` permission
 
-Note: Method not supported on LND 0.15.4 and below
+Note: Method not supported on LND 0.15.5 and below
 
     {
       lnd: <Authenticated LND API Object>

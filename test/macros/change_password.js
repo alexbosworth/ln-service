@@ -33,7 +33,7 @@ const lightningTlsCertFileName = 'tls.cert';
 const lightningTlsKeyFileName = 'tls.key';
 const lightningWalletPassword = 'password';
 const lndWalletUnlockerService = 'WalletUnlocker';
-const localhost = 'localhost';
+const localhost = '127.0.0.1';
 const maxSpawnChainDaemonAttempts = 3;
 const readMacaroonFileName = 'readonly.macaroon';
 const retryCreateSeedCount = 500;
@@ -292,7 +292,7 @@ module.exports = ({network}, cbk) => {
       return cbk(null, {
         macaroon,
         cert: readFileSync(certPath).toString('base64'),
-        host: `${localhost}:${getPorts.rpc}`,
+        host: `localhost:${getPorts.rpc}`,
       });
     }],
 
@@ -396,7 +396,7 @@ module.exports = ({network}, cbk) => {
       try {
         return cbk(null, unauthenticatedLndGrpc({
           cert,
-          socket: `${localhost}:${getPorts.rpc}`,
+          socket: `localhost:${getPorts.rpc}`,
         }).lnd);
       } catch (err) {
         return cbk([503, 'FailedToLaunchLightningDaemon', err]);
