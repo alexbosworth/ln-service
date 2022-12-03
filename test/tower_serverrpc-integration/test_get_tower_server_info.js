@@ -1,16 +1,15 @@
+const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {getTowerServerInfo} = require('./../../');
-const {spawnLnd} = require('./../macros');
-const {waitForTermination} = require('./../macros');
 
-const pubKeyHexLength = Buffer.alloc(33).toString('hex').length;
+const conf = ['--watchtower.active'];
 
 // Getting the tower server info should return tower server info
 test(`Get tower server info`, async ({end, equal, match}) => {
-  const spawned = await spawnLnd({tower: true});
+  const {kill, nodes} = await spawnLightningCluster({lnd_configuration: conf});
 
-  const {lnd} = spawned;
+  const [{lnd}] = nodes;
 
   const {tower} = await getTowerServerInfo({lnd});
 
@@ -20,15 +19,13 @@ test(`Get tower server info`, async ({end, equal, match}) => {
 
   match(socket, /127.0.0.1\:\d\d\d\d/, 'Tower socket returned');
 
-  equal(tower.public_key.length, pubKeyHexLength, 'Public key returned');
+  equal(tower.public_key.length, 66, 'Public key returned');
 
   const [uri] = tower.uris;
 
   equal(uri, `${tower.public_key}@${socket}`, 'Got back socket');
 
-  spawned.kill();
-
-  await waitForTermination({lnd});
+  await kill({});
 
   return end();
 });

@@ -6,6 +6,7 @@ const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {sendToChainAddresses} = require('./../../');
 
+const interval = 1000;
 const regtestBech32AddressHrp = 'bcrt';
 const size = 2;
 const times = 10;
@@ -47,7 +48,7 @@ test(`Send to chain address`, async ({end, equal}) => {
   equal(sent.is_outgoing, true, 'Transaction is outgoing');
   equal(sent.tokens, tokens, 'Tokens amount matches tokens sent');
 
-  await asyncRetry({times}, async () => {
+  await asyncRetry({interval, times}, async () => {
     // Generate to confirm the tx
     await control.generate({});
 

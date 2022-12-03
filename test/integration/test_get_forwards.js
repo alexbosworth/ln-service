@@ -9,8 +9,10 @@ const {getForwards} = require('./../../');
 const {pay} = require('./../../');
 const {setupChannel} = require('./../macros');
 
+const interval = 100;
 const limit = 1;
 const size = 3;
+const times = 1000;
 const tokens = 100;
 
 // Getting forwarded payments should return all forwarded payments
@@ -32,7 +34,7 @@ test('Get forwards', async ({end, equal, strictSame}) => {
   await delay(2000);
 
   for (let i = 0, l = remote.lnd; i < 3; i++) {
-    await asyncRetry({}, async () => {
+    await asyncRetry({interval, times}, async () => {
       await delay(1000);
 
       await pay({

@@ -34,6 +34,7 @@ test(`Recover funds from channels`, async ({end, equal}) => {
       generate_address: generateAddress,
       lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
       lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+      lightning_tower_port: await getPort({port: 14001, stopPort: 15000}),
     });
   });
 
@@ -46,6 +47,7 @@ test(`Recover funds from channels`, async ({end, equal}) => {
       generate_address: generateAddress,
       lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
       lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+      lightning_tower_port: await getPort({port: 14001, stopPort: 15000}),
     });
   });
 
@@ -112,6 +114,7 @@ test(`Recover funds from channels`, async ({end, equal}) => {
       generate_address: generateAddress,
       lightning_p2p_port: await getPort({port: 12001, stopPort: 13000}),
       lightning_rpc_port: await getPort({port: 13001, stopPort: 14000}),
+      lightning_tower_port: await getPort({port: 14001, stopPort: 15000}),
     });
   });
 

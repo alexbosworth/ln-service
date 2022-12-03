@@ -85,13 +85,15 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
     });
 
     // Propose the channel to the peer
-    const {pending} = await openChannels({
-      lnd,
-      channels: [{
-        capacity,
-        is_trusted_funding: true,
-        partner_public_key: target.id,
-      }],
+    const {pending} = await asyncRetry({interval, times}, async () => {
+      return await openChannels({
+        lnd,
+        channels: [{
+          capacity,
+          is_trusted_funding: true,
+          partner_public_key: target.id,
+        }],
+      });
     });
 
     // Setup funding to the 2:2 output
