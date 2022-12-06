@@ -1,5 +1,10 @@
 # Versions
 
+## 54.4.0
+
+- `subscribeToRpcRequests`: `open_channel_request` add support for
+    `fee_rate`, `base_fee_mtokens`
+
 ## 54.3.3
 
 - `getWalletInfo`: Add support for LND 0.15.5

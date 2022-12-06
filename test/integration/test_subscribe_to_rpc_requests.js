@@ -143,6 +143,8 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
         // Gift some tokens in a channel
         await openChannel({
           lnd,
+          base_fee_mtokens: '1',
+          fee_rate: 1,
           give_tokens: 1e5,
           local_tokens: 1e6,
           partner_public_key: Buffer.alloc(33, 2).toString('hex'),
