@@ -1,6 +1,6 @@
 # Versions
 
-## 54.4.0
+## 54.4.1
 
 - `subscribeToRpcRequests`: `open_channel_request` add support for
     `fee_rate`, `base_fee_mtokens`
