@@ -1832,7 +1832,12 @@ Get failed payments made through channels.
 
 Requires `offchain:read` permission
 
+`created_after` is not supported on LND 0.15.5 and below
+`created_before` is not supported on LND 0.15.5 and below
+
     {
+      [created_after]: <Creation Date After or Equal to ISO 8601 Date String>
+      [created_before]: <Creation Date Before or Equal to ISO 8601 Date String>
       [limit]: <Page Result Limit Number>
       lnd: <Authenticated LND API Object>
       [token]: <Opaque Paging Token String>
@@ -2176,7 +2181,12 @@ Requires `invoices:read` permission
 
 Invoice `payment` is not supported on LND 0.11.1 and below
 
+`created_after` is not supported on LND 0.15.5 and below
+`created_before` is not supported on LND 0.15.5 and below
+
     {
+      [created_after]: <Creation Date After or Equal to ISO 8601 Date String>
+      [created_before]: <Creation Date Before or Equal to ISO 8601 Date String>
       [is_unconfirmed]: <Omit Canceled and Settled Invoices Bool>
       [limit]: <Page Result Limit Number>
       lnd: <Authenticated LND API Object>
@@ -2631,7 +2641,12 @@ Get payments made through channels.
 
 Requires `offchain:read` permission
 
+`created_after` is not supported on LND 0.15.5 and below
+`created_before` is not supported on LND 0.15.5 and below
+
     {
+      [created_after]: <Creation Date After or Equal to ISO 8601 Date String>
+      [created_before]: <Creation Date Before or Equal to ISO 8601 Date String>
       [limit]: <Page Result Limit Number>
       lnd: <Authenticated LND API Object>
       [token]: <Opaque Paging Token String>
@@ -2848,7 +2863,12 @@ Get pending payments made through channels.
 
 Requires `offchain:read` permission
 
+`created_after` is not supported on LND 0.15.5 and below
+`created_before` is not supported on LND 0.15.5 and below
+
     {
+      [created_after]: <Creation Date After or Equal to ISO 8601 Date String>
+      [created_before]: <Creation Date Before or Equal to ISO 8601 Date String>
       [limit]: <Page Result Limit Number>
       lnd: <Authenticated LND API Object>
       [token]: <Opaque Paging Token String>
