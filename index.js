@@ -33,6 +33,7 @@ const {getAccessIds} = require('lightning');
 const {getAutopilot} = require('lightning');
 const {getBackup} = require('lightning');
 const {getBackups} = require('lightning');
+const {getBlock} = require('lightning');
 const {getChainBalance} = require('lightning');
 const {getChainFeeEstimate} = require('lightning');
 const {getChainFeeRate} = require('lightning');
@@ -185,6 +186,7 @@ module.exports = {
   getAutopilot,
   getBackup,
   getBackups,
+  getBlock,
   getChainBalance,
   getChainFeeEstimate,
   getChainFeeRate,

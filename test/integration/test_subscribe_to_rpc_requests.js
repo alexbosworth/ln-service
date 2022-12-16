@@ -185,23 +185,29 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
       }
     });
 
-    try {
-      // Attempt a channel close with an address
-      await closeChannel({
-        lnd,
-        address: 'address',
-        transaction_id: Buffer.alloc(32).toString('hex'),
-        transaction_vout: 0,
-      });
+    await asyncRetry({interval, times}, async () => {
+      try {
+        // Attempt a channel close with an address
+        await closeChannel({
+          lnd,
+          address: 'address',
+          transaction_id: Buffer.alloc(32).toString('hex'),
+          transaction_vout: 0,
+        });
 
-      fail('ExpectedChannelCloseRejected');
-    } catch (err) {
-      const [code, message, raw] = err;
+        fail('ExpectedChannelCloseRejected');
+      } catch (err) {
+        const [code, message, raw] = err;
 
-      strictSame(code, 503, 'Close fails with server error');
-      strictSame(message, 'UnexpectedCloseChannelError', 'Close err message');
-      strictSame(raw.err.details, 'message', 'Custom message received');
-    }
+        if (raw.err.details !== 'message') {
+          throw err;
+        }
+
+        strictSame(code, 503, 'Close fails with server error');
+        strictSame(message, 'UnexpectedCloseChannelError', 'Close err message');
+        strictSame(raw.err.details, 'message', 'Custom message received');
+      }
+    });
 
     subscription.removeAllListeners();
   }

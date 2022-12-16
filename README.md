@@ -139,6 +139,7 @@ for `unlocker` methods.
 - [getAutopilot](#getautopilot) - Get autopilot status or node scores
 - [getBackup](#getbackup) - Get a backup of a channel
 - [getBackups](#getbackups) - Get a backup for all channels
+- [getBlock](#getblock) - Get the raw block data given a block id in the chain
 - [getChainBalance](#getchainbalance) - Get the confirmed chain balance
 - [getChainFeeEstimate](#getchainfeeestimate) - Get a chain fee estimate
 - [getChainFeeRate](#getchainfeerate) - Get the fee rate for a conf target
@@ -1406,6 +1407,38 @@ Example:
 ```node
 const {getBackups} = require('ln-service');
 const {backup} = await getBackups({lnd});
+```
+
+### getBlock
+
+Get a block in the chain
+
+This method requires LND built with `chainkit` build tag
+
+Requires `onchain:read` permission
+
+This method is not supported on LND 0.15.5 and below
+
+    {
+      id: <Block Hash Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      block: <Raw Block Bytes Hex String>
+    }
+
+Example:
+
+```node
+const {getBlock, getHeight} = require('ln-service');
+
+const chain = await getHeight({lnd});
+
+const {block} = await getBlock({lnd, id: chain.current_block_hash});
+
+const lastBlockSize = Buffer.from(block, 'hex').byteLength();
 ```
 
 ### getChainBalance

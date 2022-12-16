@@ -1,5 +1,9 @@
 # Versions
 
+## 54.6.0
+
+- `getBlock`: Add method to retrieve the raw bytes of a block in the chain
+
 ## 54.5.0
 
 - `getFailedPayments`, `getInvoices`, `getPayments`, `getPendingPayments`: add
