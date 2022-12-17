@@ -1420,7 +1420,8 @@ Requires `onchain:read` permission
 This method is not supported on LND 0.15.5 and below
 
     {
-      id: <Block Hash Hex String>
+      [height]: <Block Height Number>
+      [id]: <Block Hash Hex String>
       lnd: <Authenticated LND API Object>
     }
 

@@ -122,26 +122,30 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
 
   const parsed = parsePaymentRequest({request: controlInvoice.request});
 
-  const route1 = await getRouteToDestination({
-    cltv_delta: parsed.cltv_delta,
-    destination: parsed.destination,
-    features: parsed.features,
-    lnd: target.lnd,
-    outgoing_channel: channel1.id,
-    payment: parsed.payment,
-    tokens: ceil(parsed.tokens / channels.length),
-    total_mtokens: parsed.mtokens,
+  const route1 = await asyncRetry({interval, times}, async () => {
+    return await getRouteToDestination({
+      cltv_delta: parsed.cltv_delta,
+      destination: parsed.destination,
+      features: parsed.features,
+      lnd: target.lnd,
+      outgoing_channel: channel1.id,
+      payment: parsed.payment,
+      tokens: ceil(parsed.tokens / channels.length),
+      total_mtokens: parsed.mtokens,
+    });
   });
 
-  const route2 = await getRouteToDestination({
-    cltv_delta: parsed.cltv_delta,
-    destination: parsed.destination,
-    features: parsed.features,
-    lnd: target.lnd,
-    outgoing_channel: channel2.id,
-    payment: parsed.payment,
-    tokens: ceil(parsed.tokens / channels.length),
-    total_mtokens: parsed.mtokens,
+  const route2 = await asyncRetry({interval, times}, async () => {
+    return await getRouteToDestination({
+      cltv_delta: parsed.cltv_delta,
+      destination: parsed.destination,
+      features: parsed.features,
+      lnd: target.lnd,
+      outgoing_channel: channel2.id,
+      payment: parsed.payment,
+      tokens: ceil(parsed.tokens / channels.length),
+      total_mtokens: parsed.mtokens,
+    });
   });
 
   // Pay using routes. Multiple channels must be used to avoid tempChanFail
@@ -149,10 +153,12 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
     const routes = [route1.route, route2.route];
 
     const payRoutes = routes.map(route => {
-      return payViaRoutes({
-        id: parsed.id,
-        lnd: target.lnd,
-        routes: [route],
+      return asyncRetry({interval, times}, async () => {
+        return payViaRoutes({
+          id: parsed.id,
+          lnd: target.lnd,
+          routes: [route],
+        });
       });
     });
 

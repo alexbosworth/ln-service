@@ -1,5 +1,9 @@
 # Versions
 
+## 54.7.0
+
+- `getBlock`: add `height` to allow fetching a raw block at a specified height
+
 ## 54.6.0
 
 - `getBlock`: Add method to retrieve the raw bytes of a block in the chain
