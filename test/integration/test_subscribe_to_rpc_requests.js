@@ -179,6 +179,8 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
     subscription.on('close_channel_request', async intercepted => {
       // Stop all open channel requests that close out to an address
       if (!!intercepted.request.address) {
+        strictSame(intercepted.request.max_tokens_per_vbyte, 10, 'Max fee');
+
         await intercepted.reject({message: 'message'});
       } else {
         await intercepted.accept({});
@@ -191,6 +193,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
         await closeChannel({
           lnd,
           address: 'address',
+          max_tokens_per_vbyte: 10,
           transaction_id: Buffer.alloc(32).toString('hex'),
           transaction_vout: 0,
         });

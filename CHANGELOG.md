@@ -1,5 +1,9 @@
 # Versions
 
+## 54.8.0
+
+- `subscribeToRpcRequests`: add `max_tokens_per_vbyte` to RPC close requests
+
 ## 54.7.0
 
 - `getBlock`: add `height` to allow fetching a raw block at a specified height
