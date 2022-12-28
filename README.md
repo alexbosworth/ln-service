@@ -4285,7 +4285,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [payment]: <Payment Identifier Hex String>
       [probe_timeout_ms]: <Probe Timeout Milliseconds Number>
       [routes]: [[{
-        [base_fee_mtokens]: <Base Routing Fee In Millitokens Number>
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens Number String>
         [channel_capacity]: <Channel Capacity Tokens Number>
         [channel]: <Standard Format Channel Id String>
         [cltv_delta]: <CLTV Blocks Delta Number>
@@ -5526,13 +5526,6 @@ Requires `invoices:read` permission
       received: <Received Tokens Number>
       received_mtokens: <Received Millitokens String>
       request: <Bolt 11 Invoice String>
-      routes: [[{
-        base_fee_mtokens: <Base Routing Fee In Millitokens Number>
-        channel: <Standard Format Channel Id String>
-        cltv_delta: <CLTV Blocks Delta Number>
-        fee_rate: <Fee Rate In Millitokens Per Million Number>
-        public_key: <Public Key Hex String>
-      }]]
       secret: <Secret Preimage Hex String>
       tokens: <Tokens Number>
     }
