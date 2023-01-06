@@ -140,6 +140,7 @@ for `unlocker` methods.
 - [getBackup](#getbackup) - Get a backup of a channel
 - [getBackups](#getbackups) - Get a backup for all channels
 - [getBlock](#getblock) - Get the raw block data given a block id in the chain
+- [getChainAddresses](#getchainaddresses) - Get created chain addresses
 - [getChainBalance](#getchainbalance) - Get the confirmed chain balance
 - [getChainFeeEstimate](#getchainfeeestimate) - Get a chain fee estimate
 - [getChainFeeRate](#getchainfeerate) - Get the fee rate for a conf target
@@ -1440,6 +1441,34 @@ const chain = await getHeight({lnd});
 const {block} = await getBlock({lnd, id: chain.current_block_hash});
 
 const lastBlockSize = Buffer.from(block, 'hex').byteLength();
+```
+
+### getChainAddresses
+
+Get the wallet chain addresses
+
+Requires `onchain:read` permission
+
+This method is not supported on LND 0.15.5 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      addresses: [{
+        address: <Chain Address String>
+        is_change: <Is Internal Change Address Bool>
+        tokens: <Balance of Funds Controlled by Output Script Tokens Number>
+      }]
+    }
+
+```node
+const {getChainAddresses} = require('ln-service');
+
+// How many chain addresses have been created
+const numberOfChainAddresses = (await getChainAddresses({lnd})).addresses;
 ```
 
 ### getChainBalance

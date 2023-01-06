@@ -1,5 +1,9 @@
 # Versions
 
+## 54.9.0
+
+- `getChainAddresses`: Add method to get the list of chain addresses
+
 ## 54.8.0
 
 - `subscribeToRpcRequests`: add `max_tokens_per_vbyte` to RPC close requests

@@ -8,8 +8,8 @@ const {lockUtxo} = require('./../../');
 const count = 100;
 const expiry = () => new Date(Date.now() + (1000 * 60 * 5)).toISOString();
 
-// Locking a UTXO should result in the UTXO being unspendable
-test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
+// Getting locked UTXOs should result in a list of locked UTXOs
+test(`Get locked UTXOs`, async ({end, equal, rejects, strictSame}) => {
   const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   try {
