@@ -13,7 +13,7 @@ const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const size = 3;
-const mtokens = '1';
+const mtokens = '1000';
 const tokens = 1e6 / 2;
 
 // Getting forwarding confidence should return confidence score
