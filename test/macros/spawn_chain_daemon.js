@@ -60,7 +60,7 @@ module.exports = (args, cbk) => {
         return;
       });
 
-      res.daemon.on('close', code => removeDir(dir, () => {}));
+      res.daemon.on('close', async code => await removeDir(dir));
 
       process.setMaxListeners(20);
 

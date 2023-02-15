@@ -66,7 +66,17 @@ test(`Get sweep transactions`, async ({end, equal}) => {
     throw new Error('ExpectedClosedChannel');
   });
 
-  const {transactions} = await getSweepTransactions({lnd});
+  const transactions = await asyncRetry({interval, times}, async () => {
+    const {transactions} = await getSweepTransactions({lnd});
+
+    const [transaction] = transactions;
+
+    if (!transaction || !transaction.block_id) {
+      throw new Error('ExpectedTransactionBlockId');
+    }
+
+    return transactions;
+  });
 
   const [transaction] = transactions;
 

@@ -10,7 +10,7 @@ const {pay} = require('./../../');
 const fakeChannelId = '1x1x1';
 const interval = 100;
 const size = 2;
-const times = 1000;
+const times = 2000;
 const tokens = 100;
 
 // Get the settlement status of an HTLC
