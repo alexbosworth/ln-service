@@ -108,6 +108,7 @@ const {sendToChainOutputScripts} = require('lightning');
 const {setAutopilot} = require('lightning');
 const {settleHodlInvoice} = require('lightning');
 const {signBytes} = require('lightning');
+const {signChainAddressMessage} = require('lightning');
 const {signMessage} = require('lightning');
 const {signPsbt} = require('lightning');
 const {signTransaction} = require('lightning');
@@ -149,6 +150,7 @@ const {verifyAccess} = require('lightning');
 const {verifyBackup} = require('lightning');
 const {verifyBackups} = require('lightning');
 const {verifyBytesSignature} = require('lightning');
+const {verifyChainAddressMessage} = require('lightning');
 const {verifyMessage} = require('lightning');
 
 module.exports = {
@@ -262,6 +264,7 @@ module.exports = {
   setAutopilot,
   settleHodlInvoice,
   signBytes,
+  signChainAddressMessage,
   signMessage,
   signPsbt,
   signTransaction,
@@ -303,5 +306,6 @@ module.exports = {
   verifyBackup,
   verifyBackups,
   verifyBytesSignature,
+  verifyChainAddressMessage,
   verifyMessage,
 };

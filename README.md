@@ -220,6 +220,7 @@ for `unlocker` methods.
 - [setAutopilot](#setautopilot) - Turn autopilot on and set autopilot scores
 - [settleHodlInvoice](#settlehodlinvoice) - Accept a HODL HTLC invoice
 - [signBytes](#signbytes) -  Sign over arbitrary bytes with node keys
+- [signChainAddressMessage](#signchainaddressmessage) - Sign with chain address
 - [signMessage](#signmessage) - Sign a message with the node identity key
 - [signPsbt](#signpsbt) - Sign and finalize an unsigned PSBT using internal keys
 - [signTransaction](#signtransaction) - Sign an on-chain transaction
@@ -268,6 +269,7 @@ for `unlocker` methods.
 - [verifyBackup](#verifybackup) - Verify a channel backup
 - [verifyBackups](#verifybackups) - Verify a set of channel backups
 - [verifyBytesSignature](#verifybytessignature) - Verify a signature over bytes
+- [verifyChainAddressMessage](#verifychainaddressmessage) - Check chain message
 - [verifyMessage](#verifymessage) - Verify a message signed by a node identity
 
 ## Additional Libraries
@@ -4918,6 +4920,40 @@ const {signature} = await signBytes({
 });
 ```
 
+### signChainAddressMessage
+
+Sign a chain address message using ECDSA
+
+Note: this method is not supported in LND versions 0.15.5 and below
+
+Requires LND built with `walletrpc` tag
+
+`onchain:write` permission is required
+
+    {
+      address: <Chain Address String>
+      lnd: <Authenticated LND API Object>
+      message: <Message To Sign String>
+    }
+
+    @returns via cbk or Promise
+    {
+      signature: <Hex Encoded Signature String>
+    }
+
+```node
+const {createChainAddress} = require('ln-service');
+const {signChainAddressMessage} = require('ln-service');
+
+const {address} = await createChainAddress({lnd});
+
+const {signature} = await signChainAddressMessage({
+  address,
+  lnd,
+  message: 'hello world',
+});
+```
+
 ### signMessage
 
 Sign a message
@@ -7399,6 +7435,45 @@ const validity = await verifyBytesSignature({
   signature,
   public_key: (await getIdentity({lnd})).public_key,
 });
+```
+
+### verifyChainAddressMessage
+
+Verify a chain address message using ECDSA
+
+Note: this method is not supported in LND versions 0.15.5 and below
+
+Requires LND built with `walletrpc` tag
+
+`onchain:write` permission is required
+
+    {
+      address: <Chain Address String>
+      lnd: <Authenticated LND API Object>
+      message: <Message to Verify String>
+      signature: <Hex Encoded Signature String>
+    }
+
+    @returns via cbk or Promise
+    {
+      signed_by: <Public Key Hex String>
+    }
+
+```node
+const {createChainAddress} = require('ln-service');
+const {signChainAddressMessage} = require('ln-service');
+
+const {address} = await createChainAddress({lnd});
+
+const message = 'hello world';
+
+const {signature} = await signChainAddressMessage({address, lnd, message});
+
+try {
+  await verifyChainAddressMessage({address, lnd, message, signature});
+} catch (err) {
+  // Signature failed to vaildate
+}
 ```
 
 ### verifyMessage

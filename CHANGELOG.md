@@ -1,5 +1,10 @@
 # Versions
 
+## 54.10.0
+
+- `signChainAddressMessage`: Add method to sign a message given a chain address
+- `verifyChainAddressMessage`: Add method to verify a chain address message
+
 ## 54.9.2
 
 - `getChainAddresses`: Add method to get the list of chain addresses

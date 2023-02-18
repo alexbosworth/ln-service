@@ -164,6 +164,17 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
 
     match(otherId, /16000000x0/, 'Got ephemeral id');
 
+    // Make sure the channel is really active
+    await asyncRetry({interval, times}, async () => {
+      const {channels} = await getChannels({lnd});
+
+      const [channel] = channels;
+
+      if (!channel.time_online) {
+        throw new Error('ExpectedChannelOnline');
+      }
+    });
+
     await asyncRetry({interval, times}, async () => {
       await closeChannel({lnd, id: confirmed.id});
     });
