@@ -15,29 +15,38 @@ const tokens = 100;
 
 // Get the settlement status of an HTLC
 test(`Get settlement status`, async ({end, equal, strictSame}) => {
-  const {kill, nodes} = await spawnLightningCluster({size});
-
-  const [{generate, lnd}, target] = nodes;
-
   // LND 0.15.5 and below do not support settlement status lookups
-  try {
-    await getSettlementStatus({
-      lnd: target.lnd,
-      channel: fakeChannelId,
-      payment: Number(),
-    });
-  } catch (err) {
-    const [code, message] = err;
+  {
+    const {kill, nodes} = await spawnLightningCluster({size});
 
-    if (code !== 404) {
-      equal(code, 501, 'Method unsupported');
-      equal(message, 'LookupHtlcMethodUnsupported', 'Got unsupported message');
+    const [{generate, lnd}, target] = nodes;
 
-      await kill({});
+    try {
+      await getSettlementStatus({
+        lnd: target.lnd,
+        channel: fakeChannelId,
+        payment: Number(),
+      });
+    } catch (err) {
+      const [code, message] = err;
 
-      return end();
+      if (code !== 404) {
+        equal(code, 501, 'Method unsupported');
+        equal(message, 'LookupHtlcMethodUnsupported', 'Got unsupported message');
+
+        await kill({});
+
+        return end();
+      }
     }
   }
+
+  const {kill, nodes} = await spawnLightningCluster({
+    size,
+    lnd_configuration: ['--store-final-htlc-resolutions'],
+  });
+
+  const [{generate, lnd}, target] = nodes;
 
   try {
     const channel = await setupChannel({generate, lnd, to: target});

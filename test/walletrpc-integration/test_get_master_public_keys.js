@@ -59,8 +59,8 @@ test(`Get master public keys`, async ({end, equal, strictSame}) => {
     // Convert the key from base58 into its raw form
     const rawKey = bs58check.decode(masterIdentityKey.extended_public_key);
 
-    const chainCode = chainCodeFromMasterPublicKey(rawKey);
-    const publicKey = publicKeyFromMasterPublicKey(rawKey);
+    const chainCode = Buffer.from(chainCodeFromMasterPublicKey(rawKey));
+    const publicKey = Buffer.from(publicKeyFromMasterPublicKey(rawKey));
 
     // Make a bip32 object to derive from
     const masterKey = fromPublicKey(publicKey, chainCode);
