@@ -3244,6 +3244,8 @@ Get the settlement status of a received HTLC
 
 Note: this method is not supported in LND versions 0.15.5 and below
 
+Requires LND running with `--store-final-htlc-resolutions` flag
+
 Requires `offchain:read` permissions
 
     {

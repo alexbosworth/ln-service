@@ -32,7 +32,7 @@ test(`Get settlement status`, async ({end, equal, strictSame}) => {
 
       if (code !== 404) {
         equal(code, 501, 'Method unsupported');
-        equal(message, 'LookupHtlcMethodUnsupported', 'Got unsupported message');
+        equal(message, 'LookupHtlcResolutionMethodUnsupported', 'Unsupported');
 
         await kill({});
 
