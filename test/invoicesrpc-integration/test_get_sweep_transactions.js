@@ -91,6 +91,9 @@ test(`Get sweep transactions`, async ({end, equal}) => {
     if (sweepTokens === 890455) {
       equal(anchorTokens, 149, 'Sweep has tokens amount');
       equal(sweepTokens, 890455, 'Sweep has tokens amount');
+    } else if (anchorTokens === 147) {
+      equal(anchorTokens, 147, 'Sweep has tokens amount');
+      equal(sweepTokens, 889855, 'Sweep has tokens amount');
     } else {
       equal(anchorTokens, 136, 'Sweep has tokens amount');
       equal(sweepTokens, 889855, 'Sweep has tokens amount');

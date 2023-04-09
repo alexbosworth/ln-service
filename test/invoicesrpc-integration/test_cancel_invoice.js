@@ -10,6 +10,7 @@ const {cancelHodlInvoice} = require('./../../');
 const {createHodlInvoice} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
+const {getPayment} = require('./../../');
 const {pay} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 
@@ -45,6 +46,10 @@ test(`Cancel back a hodl invoice`, async ({end, equal}) => {
       equal(created.is_held, true, 'invoices shows HTLC locked in place');
       equal(invoice.is_confirmed, false, 'HTLC has not yet been settled');
       equal(invoice.is_held, true, 'HTLC is locked in place');
+
+      const payment = await getPayment({lnd, id: invoice.id});
+
+      equal(payment.is_pending, true, 'payment is pending');
 
       await cancelHodlInvoice({id, lnd: target.lnd});
     });

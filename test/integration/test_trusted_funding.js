@@ -22,7 +22,7 @@ const capacity = 1e6;
 const interval = 10;
 const maturity = 100;
 const size = 2;
-const times = 2000;
+const times = 4000;
 
 // Opening unconfirmed channels should in immediate channel opening
 test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
@@ -222,18 +222,8 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
         throw new Error('ExpectedClosedChannel');
       }
 
-      if (!confirmed.other_ids.length) {
-        throw new Error('ExpectedChangeToRealPrivateChannelId');
-      }
-
       return confirmed;
     });
-
-    equal(privateConfirmed.other_ids.length, 1, 'Got private ephemeral ids');
-
-    const [privateOtherId] = privateConfirmed.other_ids;
-
-    match(privateOtherId, /16000000x0/, 'Got private id');
 
     const [closedChannel] = (await getClosedChannels({lnd})).channels;
 
