@@ -1,5 +1,16 @@
 # Versions
 
+## 55.0.0
+
+- `openChannel`: Add `is_max_funding` to fund a channel maximally
+- `subscribeToRpcRequests`: Add support for returning `is_max_funding` in
+    `open_channel_request`
+
+### Breaking Changes
+
+- `subscribeToRpcRequests`: `open_channel_request`: `local_tokens` is now an
+    optional value
+
 ## 54.10.7
 
 - `signChainAddressMessage`: Add method to sign a message given a chain address

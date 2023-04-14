@@ -3697,12 +3697,15 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 `base_fee_mtokens` is not supported on LND 0.15.5 and below
 `fee_rate` is not supported on LND 0.15.5 and below
 
+`is_max_funding` is not supported on LND 0.16.0 and below
+
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
       [cooperative_close_address]: <Restrict Cooperative Close To Address String>
       [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
+      [is_max_funding]: <Use Maximal Chain Funds For Local Funding Bool>
       [is_private]: <Channel is Private Bool> // Defaults to false
       lnd: <Authenticated LND API Object>
       local_tokens: <Total Channel Capacity Tokens Number>
@@ -6826,7 +6829,9 @@ This method is not supported in LND 0.13.4 and below
         [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
         [give_tokens]: <Tokens to Gift To Partner Number>
         [is_private]: <Channel is Private Bool>
-        local_tokens: <Local Tokens Number>
+        [is_max_funding]: <Use Maximal Chain Funds For Local Funding Bool>
+        [is_private]: <Channel is Private Bool>
+        [local_tokens]: <Local Tokens Number>
         [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
         [partner_csv_delay]: <Peer Output CSV Delay Number>
