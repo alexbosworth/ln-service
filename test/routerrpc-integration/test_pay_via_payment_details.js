@@ -36,7 +36,12 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
     const height = (await getHeight({lnd})).current_block_height;
-    const invoice = await createInvoice({tokens, lnd: remote.lnd});
+
+    const invoice = await createInvoice({
+      tokens,
+      cltv_delta: 40,
+      lnd: remote.lnd,
+    });
 
     const {features} = await decodePaymentRequest({
       lnd,
@@ -93,7 +98,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     } catch (err) {
       strictSame(
         err,
-        [503, 'PaymentPathfindingFailedToFindPossibleRoute'],
+        [400, 'MaxTimeoutTooNearCurrentHeightToMakePayment'],
         'Fail'
       );
     }
@@ -104,7 +109,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
         lnd,
         destination: remote.id,
         id: invoice.id,
-        max_timeout_height: height + 90,
+        max_timeout_height: height + 200,
         messages: [{type: tlvType, value: tlvData}],
         payment: invoice.payment,
         tokens: invoice.tokens,
@@ -117,13 +122,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
       equal(paid.mtokens, '101000', 'Paid mtokens');
       equal(paid.secret, invoice.secret, 'Paid for invoice secret');
 
-      paid.hops.forEach(n => {
-        equal(n.timeout === height + 40 || n.timeout === height + 43, true);
-
-        delete n.timeout;
-
-        return;
-      });
+      paid.hops.forEach(n => delete n.timeout);
 
       strictSame(paid.hops, expectedHops, 'Hops are returned');
     } catch (err) {

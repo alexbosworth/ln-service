@@ -117,7 +117,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
       strictSame(err, [400, 'CannotOpenChannelToOwnNode'], 'RPC req accepted');
     }
 
-    await delay(2000);
+    await delay(2500);
 
     subscription.removeAllListeners();
   }

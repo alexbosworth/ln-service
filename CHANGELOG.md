@@ -1,5 +1,11 @@
 # Versions
 
+## 56.0.0
+
+### Breaking Changes
+
+- Minimum version of node.js is moved up from 14 to 16
+
 ## 55.0.0
 
 - `openChannel`: Add `is_max_funding` to fund a channel maximally

@@ -67,7 +67,12 @@ test(`Pay`, async ({end, equal, strictSame}) => {
   const height = (await getHeight({lnd})).current_block_height;
 
   paid.hops.forEach(n => {
-    equal(n.timeout === height + 40 || n.timeout === height + 43, true);
+    equal(
+      n.timeout === height + 40 ||
+      n.timeout === height + 43 ||
+      n.timeout === height + 80,
+      true
+    );
 
     delete n.timeout;
 

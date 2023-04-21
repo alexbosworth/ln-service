@@ -100,6 +100,7 @@ test(`Pay via routes`, async ({end, equal, strictSame}) => {
 
   const {route} = await getRouteToDestination({
     lnd,
+    cltv_delta: decodedRequest.cltv_delta,
     destination: decodedRequest.destination,
     payment: invoice.payment,
     routes: decodedRequest.routes,

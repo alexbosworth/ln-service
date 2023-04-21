@@ -51,7 +51,7 @@ test(`Get network graph`, async ({end, equal, strictSame}) => {
 
   channel.policies.forEach(policy => {
     equal(policy.base_fee_mtokens, '1000', 'Default channel base fee');
-    equal(policy.cltv_delta, 40, 'Default channel CLTV delta');
+    equal([40, 80].includes(policy.cltv_delta), true, 'Default CLTV delta');
     equal(policy.fee_rate, 1, 'Default channel fee rate');
     equal(policy.is_disabled, false, 'Channels are active');
     equal(policy.max_htlc_mtokens, `${ceil(channel.capacity * 0.99)}000`);

@@ -77,6 +77,7 @@ test(`Pay private invoice`, async ({end, equal, strictSame}) => {
     const route = await asyncRetry({interval: 10, times: 1000}, async () => {
       const {route} = await getRouteToDestination({
         lnd,
+        cltv_delta: decodedRequest.cltv_delta,
         destination: decodedRequest.destination,
         payment: invoice.payment,
         routes: decodedRequest.routes,

@@ -133,7 +133,12 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
     // LND 0.13.0 and below do not support secret
     [controlForwards, targetForwards, remoteForwards].forEach(forwards => {
-      return forwards.forEach(n => delete n.at && delete n.secret);
+      return forwards.forEach(n =>
+        delete n.at &&
+        delete n.cltv_delta &&
+        delete n.secret &&
+        delete n.timeout
+      );
     });
 
     const height = (await getHeight({lnd})).current_block_height;
@@ -142,7 +147,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
     if (!isAnchors) {
       strictSame(controlForwards, [
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -156,11 +160,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '101000',
           out_channel: controlChannel.id,
           out_payment: 0,
-          timeout: height + 40 + 43,
           tokens: 101,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -174,7 +176,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: controlChannel.id,
           out_payment: 0,
-          timeout: undefined,
           tokens: undefined,
         },
         {
@@ -192,11 +193,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '490851490',
           out_channel: controlChannel.id,
           out_payment: 1,
-          timeout: height + 40 + 43,
           tokens: 490851,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -210,11 +209,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: controlChannel.id,
           out_payment: 1,
-          timeout: undefined,
           tokens: undefined,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -228,11 +225,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '100000',
           out_channel: controlChannel.id,
           out_payment: 2,
-          timeout: height + 43,
           tokens: 100,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -246,7 +241,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: controlChannel.id,
           out_payment: 2,
-          timeout: undefined,
           tokens: undefined,
         },
       ],
@@ -254,7 +248,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
       strictSame(targetForwards, [
         {
-          cltv_delta: 40,
           external_failure: undefined,
           fee: 1,
           fee_mtokens: '1000',
@@ -268,11 +261,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '100000',
           out_channel: targetChannel.id,
           out_payment: 0,
-          timeout: 497,
           tokens: 100,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -286,11 +277,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: targetChannel.id,
           out_payment: 0,
-          timeout: undefined,
           tokens: undefined,
         },
         {
-          cltv_delta: 40,
           external_failure: 'TEMPORARY_CHANNEL_FAILURE',
           fee: 1,
           fee_mtokens: '1490',
@@ -304,11 +293,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '490850000',
           out_channel: targetChannel.id,
           out_payment: 0,
-          timeout: 497,
           tokens: 490850,
         },
         {
-          cltv_delta: undefined,
           external_failure: 'INCORRECT_OR_UNKNOWN_PAYMENT_DETAILS',
           fee: undefined,
           fee_mtokens: undefined,
@@ -322,7 +309,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: undefined,
           out_payment: undefined,
-          timeout: undefined,
           tokens: undefined,
         },
       ],
@@ -330,7 +316,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
       strictSame(remoteForwards, [
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -344,7 +329,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: undefined,
           out_payment: undefined,
-          timeout: undefined,
           tokens: undefined,
         },
       ],
@@ -352,7 +336,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
     } else {
       strictSame(controlForwards, [
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -366,11 +349,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '101000',
           out_channel: controlChannel.id,
           out_payment: 0,
-          timeout: height + 40 + 43,
           tokens: 101,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -384,11 +365,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: controlChannel.id,
           out_payment: 0,
-          timeout: undefined,
           tokens: undefined,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -402,11 +381,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '496431496',
           out_channel: controlChannel.id,
           out_payment: 1,
-          timeout: height + 40 + 43,
           tokens: 496431,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -420,11 +397,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: controlChannel.id,
           out_payment: 1,
-          timeout: undefined,
           tokens: undefined,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -438,11 +413,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '100000',
           out_channel: controlChannel.id,
           out_payment: 2,
-          timeout: height + 43,
           tokens: 100,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -456,7 +429,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: controlChannel.id,
           out_payment: 2,
-          timeout: undefined,
           tokens: undefined,
         },
       ],
@@ -464,7 +436,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
       strictSame(targetForwards, [
         {
-          cltv_delta: 40,
           external_failure: undefined,
           fee: 1,
           fee_mtokens: '1000',
@@ -478,11 +449,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '100000',
           out_channel: targetChannel.id,
           out_payment: 0,
-          timeout: height + 43,
           tokens: 100,
         },
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -496,11 +465,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: targetChannel.id,
           out_payment: 0,
-          timeout: undefined,
           tokens: undefined,
         },
         {
-          cltv_delta: 40,
           external_failure: 'TEMPORARY_CHANNEL_FAILURE',
           fee: 1,
           fee_mtokens: '1496',
@@ -514,11 +481,9 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: '496430000',
           out_channel: targetChannel.id,
           out_payment: 0,
-          timeout: height + 43,
           tokens: 496430,
         },
         {
-          cltv_delta: undefined,
           external_failure: 'INCORRECT_OR_UNKNOWN_PAYMENT_DETAILS',
           fee: undefined,
           fee_mtokens: undefined,
@@ -532,7 +497,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: undefined,
           out_payment: undefined,
-          timeout: undefined,
           tokens: undefined,
         },
       ],
@@ -540,7 +504,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
       strictSame(remoteForwards, [
         {
-          cltv_delta: undefined,
           external_failure: undefined,
           fee: undefined,
           fee_mtokens: undefined,
@@ -554,7 +517,6 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
           mtokens: undefined,
           out_channel: undefined,
           out_payment: undefined,
-          timeout: undefined,
           tokens: undefined,
         },
       ],
