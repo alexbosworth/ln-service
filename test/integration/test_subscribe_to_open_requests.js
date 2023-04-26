@@ -90,6 +90,7 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
     ok(request.min_chain_output >= dustLimit, 'Dust limit tokens returned');
     equal(request.min_htlc_mtokens, '1', 'Got min htlc amount');
     equal(request.partner_public_key, target.id, 'Got pubkey');
+    equal(request.type, 'anchor', 'Channel type is returned');
 
     request.accept({
       cooperative_close_address: address,

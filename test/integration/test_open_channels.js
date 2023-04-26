@@ -24,7 +24,7 @@ const baseFeeMtokens = '1234';
 const capacity = 1e6;
 const count = 10;
 const defaultBaseFee = '1000';
-const interval = 10;
+const interval = 20;
 const feeRate = 56;
 const maturity = 100;
 const race = promises => Promise.race(promises);
