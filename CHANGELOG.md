@@ -1,5 +1,11 @@
 # Versions
 
+## 56.2.0
+
+- `getChannels`: Add support for `type` to show channel type
+- `getWalletInfo`: Add support for LND 0.16.2
+- `subscribeToChannels`: Add support for `channel_opened` `type` to show type
+
 ## 56.1.0
 
 - `getWalletInfo`: Add support for LND 0.16.1

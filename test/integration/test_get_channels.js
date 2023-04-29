@@ -28,8 +28,6 @@ test(`Get channels`, async ({end, equal, ok}) => {
   const {features} = await getWalletInfo({lnd});
   const [targetChan] = (await getChannels({lnd: target.lnd})).channels;
 
-  const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
-
   equal(targetChan.is_partner_initiated, true, 'Self-init channel');
 
   if (!!channel.local_given) {
@@ -55,24 +53,16 @@ test(`Get channels`, async ({end, equal, ok}) => {
     equal(channel.remote_min_htlc_mtokens, '1', 'Remote min HTLC mtokens');
   }
 
-  // LND 0.11.1 and below do not support anchor channels
-  if (isAnchors) {
-    equal(channel.local_balance, 896530, 'Local balance');
-    equal(channel.commit_transaction_fee, 2810, 'Commit fee');
-    equal(channel.commit_transaction_weight, 1116, 'Commit weight');
-  } else {
-    equal(channel.local_balance, 890950, 'Local balance');
-    equal(channel.commit_transaction_fee, 9050, 'Commit fee');
-    equal(channel.commit_transaction_weight, 724, 'Commit weight');
-  }
-
   equal(channel.capacity, 1000000, 'Channel capacity');
+  equal(channel.commit_transaction_fee, 2810, 'Commit fee');
+  equal(channel.commit_transaction_weight, 1116, 'Commit weight');
   equal(channel.id, chan.id, 'Channel id returned');
   equal(channel.is_active, true, 'Channel active');
   equal(channel.is_closing, false, 'Channel not closing');
   equal(channel.is_opening, false, 'Channel not opening');
   equal(channel.is_partner_initiated, false, 'Partner initiated channel');
   equal(channel.is_private, false, 'Channel not private');
+  equal(channel.local_balance, 896530, 'Local balance');
   equal(channel.local_reserve, 10000, 'Local reserve');
   equal(channel.partner_public_key, target.id, 'Pubkey');
   equal(channel.pending_payments.length, 0, 'No pending payments');
@@ -82,6 +72,7 @@ test(`Get channels`, async ({end, equal, ok}) => {
   equal(channel.sent, 0, 'Channel sent');
   equal(channel.transaction_id, chan.transaction_id, 'Chan funding tx id');
   equal(channel.transaction_vout, 0, 'Channel transactin vout');
+  equal(channel.type, 'anchor', 'Channel type is returned');
   equal(channel.unsettled_balance, 0, 'Channel unsettled balance');
 
   await kill({});

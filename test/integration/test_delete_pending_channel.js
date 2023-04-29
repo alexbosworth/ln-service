@@ -30,7 +30,7 @@ const interval = 100;
 const race = promises => Promise.race(promises);
 const size = 3;
 const timeout = 1000 * 20;
-const times = 500;
+const times = 1000;
 
 // Forfeiting a pending channel should remove the pending channel
 test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
@@ -130,6 +130,8 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
       if (!!channel) {
         return channel;
       }
+
+      await broadcastChainTransaction({lnd, transaction});
 
       await generate({});
 

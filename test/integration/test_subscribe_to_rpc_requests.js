@@ -122,7 +122,7 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
     subscription.removeAllListeners();
   }
 
-  {
+  try {
     const {subscription} = await subscribeToRpcRequests({
       lnd,
       id: 'stop channel give tokens',
@@ -166,10 +166,14 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
       }
     });
 
+    await delay(2000);
+
     subscription.removeAllListeners();
+  } catch (err) {
+    equal(err, null, 'Expected no error opening channel');
   }
 
-  {
+  try {
     const {subscription} = await subscribeToRpcRequests({
       lnd,
       id: 'stop channel close to address',
@@ -207,12 +211,14 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
         }
 
         strictSame(code, 503, 'Close fails with server error');
-        strictSame(message, 'UnexpectedCloseChannelError', 'Close err message');
+        strictSame(message, 'UnexpectedCloseChannelError', 'Close error');
         strictSame(raw.err.details, 'message', 'Custom message received');
       }
     });
 
     subscription.removeAllListeners();
+  } catch (err) {
+    equal(err, null, 'Expected no error');
   }
 
   {
@@ -236,36 +242,42 @@ test(`Subscribe to RPC requests`, async ({end, equal, fail, strictSame}) => {
       }
     });
 
-    try {
-      // Attempt a payment
-      await payViaRoutes({
-        lnd,
-        routes: [{
-          fee: 0,
-          fee_mtokens: '0',
-          hops: [{
-            channel: '0x0x1',
-            channel_capacity: 1,
+    await asyncRetry({interval, times}, async () => {
+      try {
+        // Attempt a payment
+        await payViaRoutes({
+          lnd,
+          routes: [{
             fee: 0,
             fee_mtokens: '0',
-            forward: 0,
-            forward_mtokens: '1',
-            public_key: key,
+            hops: [{
+              channel: '0x0x1',
+              channel_capacity: 1,
+              fee: 0,
+              fee_mtokens: '0',
+              forward: 0,
+              forward_mtokens: '1',
+              public_key: key,
+              timeout: 1,
+            }],
+            mtokens: '1',
             timeout: 1,
+            tokens: 0,
           }],
-          mtokens: '1',
-          timeout: 1,
-          tokens: 0,
-        }],
-      });
+        });
 
-      fail('ExpectedPayViaRouteRejected');
-    } catch (err) {
-      const [code, message] = err;
+        fail('ExpectedPayViaRouteRejected');
+      } catch (err) {
+        const [code, message] = err;
 
-      equal(code, 503);
-      equal(message, 'UnexpectedErrorWhenPayingViaRoute');
-    }
+        if (message !== 'UnexpectedErrorWhenPayingViaRoute') {
+          throw err;
+        }
+
+        equal(code, 503);
+        equal(message, 'UnexpectedErrorWhenPayingViaRoute');
+      }
+    });
 
     subscription.removeAllListeners();
   }

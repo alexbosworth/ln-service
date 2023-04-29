@@ -121,6 +121,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
   equal(openEvent.sent, 0, 'No tokens sent yet');
   equal(openEvent.transaction_id, channelOpen.transaction_id, 'Funding tx id');
   equal(openEvent.transaction_vout, channelOpen.transaction_vout, 'Fund vout');
+  equal(openEvent.type, 'anchor', 'Got channel type');
   equal(openEvent.unsettled_balance, 0, 'No unsettled balance');
 
   // Wait for the channel close to confirm

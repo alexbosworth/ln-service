@@ -205,13 +205,13 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
       funding: signedPrivate.psbt,
     });
 
-    // Generate the channel into a block
-    await broadcastChainTransaction({
-      lnd,
-      transaction: signedPrivate.transaction,
-    });
-
     const privateConfirmed = await asyncRetry({interval, times}, async () => {
+      // Generate the channel into a block
+      await broadcastChainTransaction({
+        lnd,
+        transaction: signedPrivate.transaction,
+      });
+
       await generate({});
 
       const [confirmed] = (await getChannels({lnd})).channels;

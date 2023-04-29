@@ -9,7 +9,7 @@ through npm.
 
 Supported LND versions:
 
-- v0.16.0-beta to v0.16.1-beta
+- v0.16.0-beta to v0.16.2-beta
 - v0.15.2-beta to v0.15.5-beta
 - v0.14.4-beta to v0.14.5-beta
 
@@ -1745,6 +1745,7 @@ Requires `offchain:read` permission
         [time_online]: <Monitoring Uptime Channel Up Milliseconds Number>
         transaction_id: <Blockchain Transaction Id String>
         transaction_vout: <Blockchain Transaction Vout Number>
+        [type]: <Channel Commitment Transaction Type String>
         unsettled_balance: <Unsettled Balance Tokens Number>
       }]
     }
@@ -5332,6 +5333,7 @@ Requires `offchain:read` permission
       sent: <Sent Tokens Number>
       transaction_id: <Blockchain Transaction Id String>
       transaction_vout: <Blockchain Transaction Vout Number>
+      [type]: <Channel Commitment Transaction Type String>
       unsettled_balance: <Unsettled Balance Tokens Number>
     }
 
