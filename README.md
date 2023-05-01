@@ -5809,6 +5809,7 @@ Requires `offchain:read` permission
 
     @event 'failed'
     {
+      id: <Payment Hash Hex String>
       is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
@@ -5993,6 +5994,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
 
     @event 'failed'
     {
+      id: <Payment Hash Hex String>
       is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
@@ -6147,6 +6149,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
 
     @event 'failed'
     {
+      id: <Payment Hash Hex String>
       is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
@@ -6480,6 +6483,7 @@ Note: Method not supported on LND 0.15.5 and below
 
     @event 'failed'
     {
+      id: <Payment Hash Hex String>
       is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>

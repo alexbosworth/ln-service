@@ -112,6 +112,7 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
         gotFailed,
         {
           failed: {
+            id: payment.id,
             is_insufficient_balance: false,
             is_invalid_payment: false,
             is_pathfinding_timeout: false,
