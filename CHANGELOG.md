@@ -1,6 +1,6 @@
 # Versions
 
-## 56.3.0
+## 56.3.1
 
 - `subscribeToPastPayment`, `subscribeToPayViaDetails`,
     `subscribeToPayViaRequest`, `subscribeToPayments`: Add `id` for `failed`
