@@ -18,6 +18,7 @@
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
+    "@alexbosworth/blockchain": "1.2.0",
     "@alexbosworth/tap": "15.0.12",
     "@alexbosworth/node-fetch": "2.6.2",
     "async": "3.2.4",

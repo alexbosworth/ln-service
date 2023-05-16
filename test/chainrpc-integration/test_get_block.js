@@ -1,14 +1,9 @@
-const asyncRetry = require('async/retry');
-const {Block} = require('bitcoinjs-lib');
+const {idForBlock} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
 const {getBlock} = require('./../../');
 const {getHeight} = require('./../../');
-
-const confirmationCount = 6;
-const {fromHex} = Block;
-const times = 100;
 
 // Get height should return height
 test(`Get height`, async ({end, equal, fail}) => {
@@ -25,7 +20,7 @@ test(`Get height`, async ({end, equal, fail}) => {
   try {
     const {block} = await getBlock({lnd, id: blockchain.current_block_hash});
 
-    equal(fromHex(block).getId(), hash, 'Got block');
+    equal(idForBlock({block}).id, hash, 'Got block');
   } catch (err) {
     const [code, message] = err;
 
@@ -40,8 +35,7 @@ test(`Get height`, async ({end, equal, fail}) => {
   // Try getting a block by the height
   try {
     const {block} = await getBlock({height, lnd});
-
-    equal(fromHex(block).getId(), hash, 'Got block for height');
+    equal(idForBlock({block}).id, hash, 'Got block for height');
   } catch (err) {
     equal(err, null, 'Expected no error');
   }
@@ -50,7 +44,7 @@ test(`Get height`, async ({end, equal, fail}) => {
   try {
     const {block} = await getBlock({lnd});
 
-    equal(fromHex(block).getId(), hash, 'Got chain tip block');
+    equal(idForBlock({block}).id, hash, 'Got chain tip block');
   } catch (err) {
     equal(err, null, 'Expected no error');
   }
