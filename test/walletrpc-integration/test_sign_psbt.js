@@ -1,5 +1,4 @@
 const asyncRetry = require('async/retry');
-const {address} = require('bitcoinjs-lib');
 const {decodePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
@@ -19,7 +18,6 @@ const confirmationCount = 6;
 const count = 100;
 const description = 'description';
 const format = 'p2wpkh';
-const {fromBech32} = address;
 const interval = 10;
 const regtestBech32AddressHrp = 'bcrt';
 const size = 2;

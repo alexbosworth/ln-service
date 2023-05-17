@@ -1,8 +1,8 @@
 const asyncRetry = require('async/retry');
+const {componentsOfTransaction} = require('@alexbosworth/blockchain');
 const {script} = require('bitcoinjs-lib');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
-const {Transaction} = require('bitcoinjs-lib');
 
 const {getChainTransactions} = require('./../../');
 const {sendToChainOutputScripts} = require('./../../');
@@ -12,7 +12,6 @@ const asHex = buffer => buffer.toString('hex');
 const {compile} = script;
 const confirmationCount = 6;
 const count = 100;
-const {fromHex} = Transaction;
 const interval = 10;
 const OP_RETURN = 0x6a;
 const size = 2;
@@ -33,9 +32,8 @@ test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
 
   const sent = await sendToChainOutputScripts({lnd, send_to: sendTo});
 
-  const outs = fromHex(sent.transaction).outs
-    .filter(n => n.value === tokens)
-    .map(({script, value}) => ({script: asHex(script), tokens: value}));
+  const outs = componentsOfTransaction({transaction: sent.transaction}).outputs
+    .filter(n => n.tokens === tokens);
 
   // The OP_RETURN is present in the output
   strictSame(outs, sendTo, 'Got expected outputs');
