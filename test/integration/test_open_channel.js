@@ -15,6 +15,7 @@ const count = 100;
 const defaultBaseFee = '1000';
 const defaultFee = 1e3;
 const defaultVout = 0;
+const description = 'description';
 const feeRate = 420;
 const giftTokens = 1000;
 const interval = 250;
@@ -36,6 +37,7 @@ test(`Open channel`, async ({end, equal}) => {
     await addPeer({lnd, public_key: target.id, socket: target.socket});
 
     return await openChannel({
+      description,
       lnd,
       base_fee_mtokens: baseFee,
       chain_fee_tokens_per_vbyte: defaultFee,
@@ -60,6 +62,10 @@ test(`Open channel`, async ({end, equal}) => {
 
     if (!channel) {
       throw new Error('ExpectedChannelOpened');
+    }
+
+    if (!!channel.description) {
+      equal(channel.description, description, 'Description set');
     }
 
     const {policies} = await getChannel({lnd, id: channel.id});

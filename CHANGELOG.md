@@ -1,5 +1,13 @@
 # Versions
 
+## 56.4.0
+
+- `getChannels`: Add `description` to show the channel description
+- `openChannel`, `openChannels`, `proposeChannel`: Add `description` to set
+    the channel description
+- `subscribeToChannels`: Add `description` to `channel_opened`
+- `subscribeToRpcRequests`: Add `description` to `open_channel_request`
+
 ## 56.3.1
 
 - `subscribeToPastPayment`, `subscribeToPayViaDetails`,

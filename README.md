@@ -1684,6 +1684,8 @@ Requires `offchain:read` permission
 
 `is_trusted_funding` is not supported on LND 0.15.0 and below
 
+`description` is not supported on LND 0.16.3 and below
+
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
       [is_offline]: <Limit Results To Only Offline Channels Bool> // false
@@ -1701,6 +1703,7 @@ Requires `offchain:read` permission
         commit_transaction_weight: <Commit Transaction Weight Number>
         [cooperative_close_address]: <Coop Close Restricted to Address String>
         [cooperative_close_delay_height]: <Prevent Coop Close Until Height Number>
+        [description]: <Channel Description String>
         id: <Standard Format Channel Id String>
         is_active: <Channel Active Bool>
         is_closing: <Channel Is Closing Bool>
@@ -3698,12 +3701,15 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 `base_fee_mtokens` is not supported on LND 0.15.5 and below
 `fee_rate` is not supported on LND 0.15.5 and below
 
-`is_max_funding` is not supported on LND 0.16.0 and below
+`is_max_funding` is not supported on LND 0.16.3 and below
+
+`description` is not supported on LND 0.16.3 and below
 
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
       [cooperative_close_address]: <Restrict Cooperative Close To Address String>
+      [description]: <Immutable Channel Description String>
       [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
       [is_max_funding]: <Use Maximal Chain Funds For Local Funding Bool>
@@ -3754,11 +3760,14 @@ as well as a channel open request listener to accept the trusted funding.
 `base_fee_mtokens` is not supported on LND 0.15.5 and below
 `fee_rate` is not supported on LND 0.15.5 and below
 
+`description` is not supported on LND 0.16.3 and below
+
     {
       channels: [{
         [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
         capacity: <Channel Capacity Tokens Number>
         [cooperative_close_address]: <Restrict Coop Close To Address String>
+        [description]: <Immutable Channel Description String>
         [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
         [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
         [is_private]: <Channel is Private Bool> // Defaults to false
@@ -4384,10 +4393,13 @@ Requires `address:read`, `offchain:write`, `onchain:write` permissions
 
 Requires LND compiled with `walletrpc` build tag
 
+`description` is not supported on LND 0.16.3 and below
+
     {
       capacity: <Channel Capacity Tokens Number>
       [cooperative_close_address]: <Restrict Cooperative Close To Address String>
       [cooperative_close_delay]: <Cooperative Close Relative Delay Number>
+      [description]: <Immutable Channel Description String>
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
       id: <Pending Channel Id Hex String>
       [is_private]: <Channel is Private Bool> // Defaults to false
@@ -5251,6 +5263,8 @@ Requires `offchain:read` permission
 
 `is_trusted_funding`, `other_ids` are not supported on LND 0.15.0 and below
 
+`description` is not supported on LND 0.16.3 and below
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -5308,6 +5322,7 @@ Requires `offchain:read` permission
       commit_transaction_weight: <Commit Transaction Weight Number>
       [cooperative_close_address]: <Coop Close Restricted to Address String>
       [cooperative_close_delay_height]: <Prevent Coop Close Until Height Number>
+      [description]: <Channel Description String>
       id: <Standard Format Channel Id String>
       is_active: <Channel Active Bool>
       is_closing: <Channel Is Closing Bool>
@@ -6790,6 +6805,8 @@ LND must be running with "RPC middleware" enabled: `rpcmiddleware.enable=1`
 
 This method is not supported in LND 0.13.4 and below
 
+`description` is not supported on LND 0.16.3 and below
+
     {
       [id]: <RPC Middleware Interception Name String>
       [is_intercepting_close_channel_requests]: <Intercept Channel Closes Bool>
@@ -6833,6 +6850,7 @@ This method is not supported in LND 0.13.4 and below
         [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
         [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
         [cooperative_close_address]: <Prefer Cooperative Close To Address String>
+        [description]: <Immutable Channel Description String>
         [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
         [give_tokens]: <Tokens to Gift To Partner Number>
         [is_private]: <Channel is Private Bool>

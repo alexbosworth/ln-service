@@ -12,6 +12,7 @@ const {subscribeToChannels} = require('./../../');
 
 const channelCapacityTokens = 1e6;
 const defaultFee = 1e3;
+const description = 'description';
 const giveTokens = 1e5;
 const interval = 100;
 const size = 2;
@@ -56,6 +57,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
 
     // Create a channel from the control to the target node
     return await openChannel({
+      description,
       lnd,
       socket,
       chain_fee_tokens_per_vbyte: defaultFee,
@@ -103,6 +105,11 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
     equal(openEvent.commit_transaction_fee, 9050, 'Channel commit tx fee');
     equal(openEvent.commit_transaction_weight, 724, 'Commit tx weight');
     equal(openEvent.local_balance, 890950, 'Channel local balance returned');
+  }
+
+  // LND 0.16.3 and below do not support channel descriptions
+  if (!!openEvent.description) {
+    equal(openEvent.description, description, 'Got channel open description');
   }
 
   equal(openEvent.capacity, channelCapacityTokens, 'Channel open capacity');
