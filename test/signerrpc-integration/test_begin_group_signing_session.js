@@ -5,7 +5,7 @@ const {createPsbt} = require('psbt');
 const {hashForTree} = require('p2tr');
 const {leafHash} = require('p2tr');
 const {networks} = require('bitcoinjs-lib');
-const {script} = require('bitcoinjs-lib');
+const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
@@ -21,7 +21,7 @@ const {getUtxos} = require('./../../');
 const {signPsbt} = require('./../../');
 const {updateGroupSigningSession} = require('./../../');
 
-const {compile} = script;
+const compile = elements => scriptElementsAsScript({elements}).script;
 const count = 100;
 const defaultInternalKey = '0350929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0';
 const {from} = Buffer;
@@ -189,7 +189,7 @@ test(`Begin group signing session`, async ({end, equal}) => {
 
     const witnessScript = compile([xOnlyUnused, OP_CHECKSIG]);
 
-    const branches = [{script: witnessScript.toString('hex')}];
+    const branches = [{script: witnessScript}];
 
     const {hash} = hashForTree({branches});
 
@@ -329,7 +329,7 @@ test(`Begin group signing session`, async ({end, equal}) => {
 
     const witnessScript = compile([scriptKey, OP_CHECKSIG]);
 
-    const branches = [{script: witnessScript.toString('hex')}];
+    const branches = [{script: witnessScript}];
 
     const {hash} = hashForTree({branches});
 
@@ -376,7 +376,7 @@ test(`Begin group signing session`, async ({end, equal}) => {
         [hexAsBuffer(output.script)],
         [tokens],
         Transaction.SIGHASH_DEFAULT,
-        hexAsBuffer(leafHash({script: witnessScript.toString('hex')}).hash),
+        hexAsBuffer(leafHash({script: witnessScript}).hash),
       );
     });
 
@@ -404,7 +404,7 @@ test(`Begin group signing session`, async ({end, equal}) => {
 
     const {block} = controlBlock({
       external_key: output.external_key,
-      leaf_script: witnessScript.toString('hex'),
+      leaf_script: witnessScript,
       script_branches: branches,
     });
 
@@ -412,7 +412,7 @@ test(`Begin group signing session`, async ({end, equal}) => {
     tx.ins.forEach((input, i) => {
       return tx.setWitness(i, [
         hexAsBuffer(signature),
-        witnessScript,
+        hexAsBuffer(witnessScript),
         hexAsBuffer(block),
       ]);
     });

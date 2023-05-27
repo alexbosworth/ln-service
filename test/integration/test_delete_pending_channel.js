@@ -2,6 +2,7 @@ const {once} = require('events');
 
 const asyncEach = require('async/each');
 const asyncRetry = require('async/retry');
+const asyncTimeout = require('async/timeout');
 const {extractTransaction} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
@@ -63,11 +64,13 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
     const channels = [{capacity, partner_public_key: target.id}];
 
     // Propose a channel to target
-    const proposeToTarget = await asyncRetry({interval, times}, async () => {
-      return await race([
-        delay(timeout),
-        openChannels({channels, lnd, is_avoiding_broadcast: true}),
-      ]);
+    const proposeToTarget = await asyncRetry({interval, times}, cbk => {
+      return asyncTimeout(openChannels, 1000 * 10)({
+        channels,
+        lnd,
+        is_avoiding_broadcast: true,
+      },
+      cbk);
     });
 
     // Setup funding for the target
@@ -93,14 +96,13 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
     });
 
     // Propose a channel to remote
-    const proposeToRemote = await asyncRetry({interval, times}, async () => {
-      return await race([
-        delay(timeout),
-        openChannels({lnd,
-          channels: [{capacity, partner_public_key: remote.id}],
-          is_avoiding_broadcast: true,
-        }),
-      ]);
+    const proposeToRemote = await asyncRetry({interval, times}, cbk => {
+      return asyncTimeout(openChannels, 1000 * 10)({
+        lnd,
+        channels: [{capacity, partner_public_key: remote.id}],
+        is_avoiding_broadcast: true,
+      },
+      cbk);
     });
 
     // Setup funding for the remote, using the same inputs

@@ -5,6 +5,7 @@ const {createPsbt} = require('psbt');
 const {hashForTree} = require('p2tr');
 const {networks} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
+const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
@@ -20,7 +21,7 @@ const {getUtxos} = require('./../../');
 const {signPsbt} = require('./../../');
 const {signTransaction} = require('./../../');
 
-const {compile} = script;
+const compile = elements => scriptElementsAsScript({elements}).script;
 const count = 100;
 const defaultInternalKey = '0350929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0';
 const {fromHex} = Transaction;
@@ -93,7 +94,7 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
 
     const witnessScript = compile([publicKey.slice(1), OP_CHECKSIG]);
 
-    const branches = [{script: witnessScript.toString('hex')}];
+    const branches = [{script: witnessScript}];
 
     const {hash} = hashForTree({branches});
 
@@ -144,7 +145,7 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
         root_hash: hash,
         sighash: Transaction.SIGHASH_DEFAULT,
         vin: 0,
-        witness_script: witnessScript.toString('hex'),
+        witness_script: witnessScript,
       }],
       transaction: tx.toHex(),
     });
@@ -153,7 +154,7 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
 
     const {block} = controlBlock({
       external_key: output.external_key,
-      leaf_script: witnessScript.toString('hex'),
+      leaf_script: witnessScript,
       script_branches: branches,
     });
 
@@ -161,7 +162,7 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
     tx.ins.forEach((input, i) => {
       return tx.setWitness(i, [
         signature,
-        witnessScript,
+        hexAsBuffer(witnessScript),
         hexAsBuffer(block),
       ]);
     });
@@ -193,7 +194,7 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
 
     const witnessScript = compile([unusedKey.publicKey.slice(1), OP_CHECKSIG]);
 
-    const branches = [{script: witnessScript.toString('hex')}];
+    const branches = [{script: witnessScript}];
 
     const {hash} = hashForTree({branches});
 

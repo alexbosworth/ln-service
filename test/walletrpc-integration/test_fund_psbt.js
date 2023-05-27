@@ -8,7 +8,7 @@ const {leafHash} = require('p2tr');
 const {networks} = require('bitcoinjs-lib');
 const {pointAdd} = require('tiny-secp256k1');
 const {privateAdd} = require('tiny-secp256k1');
-const {script} = require('bitcoinjs-lib');
+const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {signHash} = require('p2tr');
 const {signSchnorr} = require('tiny-secp256k1');
 const {spawnLightningCluster} = require('ln-docker-daemons');
@@ -27,7 +27,7 @@ const {sendToChainAddress} = require('./../../');
 const {signPsbt} = require('./../../');
 
 const chainAddressRowType = 'chain_address';
-const {compile} = script;
+const compile = elements => scriptElementsAsScript({elements}).script;
 const confirmationCount = 6;
 const count = 100;
 const defaultInternalKey = '0350929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0';
@@ -135,7 +135,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
     const witnessScript = compile([unusedKey.publicKey.slice(1), OP_CHECKSIG]);
 
-    const branches = [{script: witnessScript.toString('hex')}];
+    const branches = [{script: witnessScript}];
 
     const {hash} = hashForTree({branches});
 
@@ -231,7 +231,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
     const witnessScript = compile([keyPair.publicKey.slice(1), OP_CHECKSIG]);
 
-    const branches = [{script: witnessScript.toString('hex')}];
+    const branches = [{script: witnessScript}];
 
     const {hash} = hashForTree({branches});
 
@@ -278,7 +278,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
         [hexAsBuffer(output.script)],
         [tokens],
         Transaction.SIGHASH_DEFAULT,
-        hexAsBuffer(leafHash({script: witnessScript.toString('hex')}).hash),
+        hexAsBuffer(leafHash({script: witnessScript}).hash),
       );
     });
 
@@ -286,7 +286,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
     const {block} = controlBlock({
       external_key: output.external_key,
-      leaf_script: witnessScript.toString('hex'),
+      leaf_script: witnessScript,
       script_branches: branches,
     });
 
@@ -294,7 +294,7 @@ test(`Fund PSBT`, async ({end, equal}) => {
     tx.ins.forEach((input, i) => {
       return tx.setWitness(i, [
         signature,
-        witnessScript,
+        hexAsBuffer(witnessScript),
         hexAsBuffer(block),
       ]);
     });

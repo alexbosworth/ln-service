@@ -1,9 +1,9 @@
 const asyncRetry = require('async/retry');
+const {componentsOfTransaction} = require('@alexbosworth/blockchain');
 const {decodePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
-const {Transaction} = require('bitcoinjs-lib');
 
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -70,7 +70,7 @@ test(`Sign PSBT`, async ({end, equal}) => {
 
   const finalized = await signPsbt({lnd: control.lnd, psbt: funded.psbt});
 
-  const tx = Transaction.fromHex(finalized.transaction);
+  const tx = componentsOfTransaction({transaction: finalized.transaction});
 
   const decoded = decodePsbt({ecp, psbt: finalized.psbt});
 

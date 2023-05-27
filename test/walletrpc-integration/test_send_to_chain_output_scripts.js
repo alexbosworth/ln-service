@@ -1,6 +1,6 @@
 const asyncRetry = require('async/retry');
 const {componentsOfTransaction} = require('@alexbosworth/blockchain');
-const {script} = require('bitcoinjs-lib');
+const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 
@@ -9,7 +9,6 @@ const {sendToChainOutputScripts} = require('./../../');
 
 const asBuf = hex => Buffer.from(hex, 'hex');
 const asHex = buffer => buffer.toString('hex');
-const {compile} = script;
 const confirmationCount = 6;
 const count = 100;
 const interval = 10;
@@ -26,9 +25,11 @@ test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
 
   await generate({count});
 
-  const script = [].concat(OP_RETURN).concat(asBuf(target.id));
+  const elements = [].concat(OP_RETURN).concat(asBuf(target.id));
 
-  const sendTo = [{tokens, script: asHex(compile(script))}];
+  const {script} = scriptElementsAsScript({elements});
+
+  const sendTo = [{script, tokens}];
 
   const sent = await sendToChainOutputScripts({lnd, send_to: sendTo});
 

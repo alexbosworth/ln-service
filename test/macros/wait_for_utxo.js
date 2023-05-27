@@ -1,5 +1,4 @@
 const asyncRetry = require('async/retry');
-const {Transaction} = require('bitcoinjs-lib');
 
 const {getUtxos} = require('./../../');
 
@@ -10,9 +9,8 @@ const times = 10;
 
   {
     [confirmations]: <Confirmations Count Number>
-    [id]: <Transaction Id Hex String>
+    id: <Transaction Id Hex String>
     lnd: <Authenticated LND gRPC API Object>
-    [transaction]: <Raw Transaction Hex String>
   }
 
   @returns via cbk
@@ -26,16 +24,14 @@ const times = 10;
     transaction_vout: <Transaction Output Index Number>
   }
 */
-module.exports = ({confirmations, id, lnd, transaction}, cbk) => {
+module.exports = ({confirmations, id, lnd}, cbk) => {
   if (!lnd || !lnd.default) {
     return cbk([400, 'ExpectedAuthenticatedLndToWaitForUtxo']);
   }
 
-  if (!transaction && !id) {
+  if (!id) {
     return cbk([400, 'ExpectedTransactionOrIdToWaitForUtxo']);
   }
-
-  const txId = id || Transaction.fromHex(transaction).getId();
 
   return asyncRetry({interval, times}, cbk => {
     return getUtxos({lnd}, (err, res) => {
@@ -43,7 +39,7 @@ module.exports = ({confirmations, id, lnd, transaction}, cbk) => {
         return cbk(err);
       }
 
-      const utxo = res.utxos.find(n => n.transaction_id === txId);
+      const utxo = res.utxos.find(n => n.transaction_id === id);
 
       if (!utxo) {
         return cbk([503, 'ExpectedToFindUtxoButUtxoNotFound']);
