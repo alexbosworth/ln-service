@@ -1,5 +1,4 @@
 const asyncRetry = require('async/retry');
-const {address} = require('bitcoinjs-lib');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {test} = require('@alexbosworth/tap');
 

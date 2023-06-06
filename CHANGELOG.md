@@ -1,5 +1,9 @@
 # Versions
 
+## 56.5.0
+
+- `getWalletInfo`: Add support for LND 0.16.3
+
 ## 56.4.0
 
 - `getChannels`: Add `description` to show the channel description
