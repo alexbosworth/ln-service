@@ -1,5 +1,9 @@
 # Versions
 
+## 56.5.1
+
+- `getPendingChannels`: Fix returning closing transaction id for waiting close
+
 ## 56.5.0
 
 - `getWalletInfo`: Add support for LND 0.16.3

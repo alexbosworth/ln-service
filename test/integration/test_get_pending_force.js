@@ -69,7 +69,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   }
 
   equal(pendingOpen.capacity, 1000000, 'Got channel opening capacity');
-  equal(pendingOpen.close_transaction_id, undefined, 'Not closing');
   equal(pendingOpen.is_active, false, 'Not active yet');
   equal(pendingOpen.is_closing, false, 'Not closing yet');
   equal(pendingOpen.is_opening, true, 'Channel is opening');
@@ -113,7 +112,6 @@ test(`Get pending channels`, async ({end, equal}) => {
   }
 
   equal(waitClose.capacity, 1000000, 'Got channel closing capacity');
-  equal(waitClose.close_transaction_id, undefined, 'Waiting for close tx');
   equal(waitClose.is_active, false, 'Not active yet');
   equal(waitClose.is_closing, true, 'Channel is closing');
   equal(waitClose.is_opening, false, 'Not opening channel');

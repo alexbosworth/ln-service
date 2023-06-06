@@ -53,7 +53,6 @@ test(`Get pending channels`, async ({end, equal}) => {
     }
 
     equal(channel.capacity, 1000000, 'Got channel capacity');
-    equal(channel.close_transaction_id, undefined, 'No close tx id');
     equal(channel.is_active, false, 'Ended');
     equal(channel.is_closing, true, 'Closing');
     equal(channel.is_opening, false, 'Not Opening');
