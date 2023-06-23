@@ -27,6 +27,7 @@ const {unlockUtxo} = require('./../../');
 
 const capacity = 1e6;
 const count = 100;
+const description = 'description';
 const interval = 100;
 const race = promises => Promise.race(promises);
 const size = 3;
@@ -61,11 +62,16 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
       return await addPeer({lnd, public_key: node.id, socket: node.socket});
     });
 
-    const channels = [{capacity, partner_public_key: target.id}];
+    const channels = [{
+      capacity,
+      description,
+      is_private: true,
+      partner_public_key: target.id,
+    }];
 
     // Propose a channel to target
-    const proposeToTarget = await asyncRetry({interval, times}, cbk => {
-      return asyncTimeout(openChannels, 1000 * 10)({
+    const proposeToTarget = await asyncRetry({interval: 1000, times}, cbk => {
+      return asyncTimeout(openChannels, 1000 * 3)({
         channels,
         lnd,
         is_avoiding_broadcast: true,
@@ -96,10 +102,15 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
     });
 
     // Propose a channel to remote
-    const proposeToRemote = await asyncRetry({interval, times}, cbk => {
-      return asyncTimeout(openChannels, 1000 * 10)({
+    const proposeToRemote = await asyncRetry({interval: 1000, times}, cbk => {
+      return asyncTimeout(openChannels, 1000 * 3)({
         lnd,
-        channels: [{capacity, partner_public_key: remote.id}],
+        channels: [{
+          capacity,
+          description,
+          is_private: true,
+          partner_public_key: remote.id,
+        }],
         is_avoiding_broadcast: true,
       },
       cbk);
@@ -122,13 +133,18 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
       funding: signRemote.psbt,
     });
 
+    await delay(1000);
+
     const {transaction} = extractTransaction({ecp, psbt: signRemote.psbt});
 
     await broadcastChainTransaction({lnd, transaction});
 
-    const channel = await asyncRetry({interval, times}, async () => {
+    await generate({});
+
+    const channel = await asyncRetry({interval: 1000, times}, async () => {
       const [channel] = (await getChannels({lnd})).channels;
 
+      // Exit early when the channel is created
       if (!!channel) {
         return channel;
       }
@@ -141,6 +157,12 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
     });
 
     const [pending] = (await getPendingChannels({lnd})).pending_channels;
+
+    // Description is not supported in LND 0.16.4 or before
+    if (!!pending.description) {
+      strictSame(pending.description, description, 'Got expected description');
+      strictSame(pending.is_private, true, 'Got pending private status');
+    }
 
     const stuckTx = extractTransaction({ecp, psbt: signTarget.psbt});
 

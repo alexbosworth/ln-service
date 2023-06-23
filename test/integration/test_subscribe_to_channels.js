@@ -107,7 +107,7 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
     equal(openEvent.local_balance, 890950, 'Channel local balance returned');
   }
 
-  // LND 0.16.3 and below do not support channel descriptions
+  // LND 0.16.4 and below do not support channel descriptions
   if (!!openEvent.description) {
     equal(openEvent.description, description, 'Got channel open description');
   }

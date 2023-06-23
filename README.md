@@ -1684,7 +1684,7 @@ Requires `offchain:read` permission
 
 `is_trusted_funding` is not supported on LND 0.15.0 and below
 
-`description` is not supported on LND 0.16.3 and below
+`description` is not supported on LND 0.16.4 and below
 
     {
       [is_active]: <Limit Results To Only Active Channels Bool> // false
@@ -2881,6 +2881,10 @@ channel may be opening, closing, or active.
 
 Requires `offchain:read` permission
 
+`is_private` is not supported in LND 0.14.5 or before
+
+`description` is not supported in LND 0.16.4 or before
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -2890,10 +2894,12 @@ Requires `offchain:read` permission
       pending_channels: [{
         capacity: <Channel Capacity Tokens Number>
         [close_transaction_id]: <Channel Closing Transaction Id String>
+        [description]: <Channel Description String>
         is_active: <Channel Is Active Bool>
         is_closing: <Channel Is Closing Bool>
         is_opening: <Channel Is Opening Bool>
         [is_partner_initiated]: <Channel Partner Initiated Channel Bool>
+        [is_private]: <Channel Is Private Bool>
         is_timelocked: <Channel Local Funds Constrained by Timelock Script Bool>
         local_balance: <Channel Local Tokens Balance Number>
         local_reserve: <Channel Local Reserved Tokens Number>
@@ -3702,9 +3708,9 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 `base_fee_mtokens` is not supported on LND 0.15.5 and below
 `fee_rate` is not supported on LND 0.15.5 and below
 
-`is_max_funding` is not supported on LND 0.16.3 and below
+`is_max_funding` is not supported on LND 0.16.4 and below
 
-`description` is not supported on LND 0.16.3 and below
+`description` is not supported on LND 0.16.4 and below
 
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
@@ -3761,7 +3767,7 @@ as well as a channel open request listener to accept the trusted funding.
 `base_fee_mtokens` is not supported on LND 0.15.5 and below
 `fee_rate` is not supported on LND 0.15.5 and below
 
-`description` is not supported on LND 0.16.3 and below
+`description` is not supported on LND 0.16.4 and below
 
     {
       channels: [{
@@ -4394,7 +4400,7 @@ Requires `address:read`, `offchain:write`, `onchain:write` permissions
 
 Requires LND compiled with `walletrpc` build tag
 
-`description` is not supported on LND 0.16.3 and below
+`description` is not supported on LND 0.16.4 and below
 
     {
       capacity: <Channel Capacity Tokens Number>
@@ -5264,7 +5270,7 @@ Requires `offchain:read` permission
 
 `is_trusted_funding`, `other_ids` are not supported on LND 0.15.0 and below
 
-`description` is not supported on LND 0.16.3 and below
+`description` is not supported on LND 0.16.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -6806,7 +6812,7 @@ LND must be running with "RPC middleware" enabled: `rpcmiddleware.enable=1`
 
 This method is not supported in LND 0.13.4 and below
 
-`description` is not supported on LND 0.16.3 and below
+`description` is not supported on LND 0.16.4 and below
 
     {
       [id]: <RPC Middleware Interception Name String>

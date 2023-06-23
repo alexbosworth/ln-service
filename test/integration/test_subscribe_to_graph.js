@@ -121,7 +121,6 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
         return;
       });
 
-
       const gotControl = nodeUpdated.find(n => n.public_key === control.id);
 
       const expectedControl = {
