@@ -1,5 +1,9 @@
 # Versions
 
+## 56.7.1
+
+- `isDestinationPayable`: Correct behavior for passing variations of amounts
+
 ## 56.7.0
 
 - `getPendingChannels`: Add `description` to return pending channel description
