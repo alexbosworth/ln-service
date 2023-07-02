@@ -1,12 +1,12 @@
-const asyncRetry = require('async/retry');
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getChainBalance} = require('./../../');
 
+const count = 100;
 const emptyChainBalance = 0;
-const interval = 1;
-const times = 150;
 const tokens = 5000000000;
 
 // Getting chain balance should result in a chain balance
@@ -19,18 +19,18 @@ test(`Get the chain balance`, async ({end, equal}) => {
   {
     const result = await getChainBalance({lnd});
 
-    equal(result.chain_balance, emptyChainBalance, 'Valid chain balance');
+    strictEqual(result.chain_balance, emptyChainBalance, 'Got chain balance');
   }
 
   // Generate some funds for LND
-  await generate({count: 100});
+  await generate({count});
 
   // Check that the balance is updated
   const postDeposit = await getChainBalance({lnd});
 
-  equal(postDeposit.chain_balance >= tokens, true, 'Got funds');
+  strictEqual(postDeposit.chain_balance >= tokens, true, 'Got funds');
 
   await kill({});
 
-  return end();
+  return;
 });

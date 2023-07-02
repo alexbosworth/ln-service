@@ -1,5 +1,7 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
@@ -21,7 +23,7 @@ const tests = [
 ];
 
 tests.forEach(({description, expected}) => {
-  return test(description, async ({end, equal}) => {
+  return test(description, async () => {
     const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
     try {
@@ -34,24 +36,25 @@ tests.forEach(({description, expected}) => {
       });
 
       const decoded = await decodePaymentRequest({lnd, request});
+      const identity = (await getIdentity({lnd})).public_key;
 
-      equal(decoded.chain_addresses, expected.chain_addresses, 'Chain addr');
-      equal(decoded.cltv_delta, expected.cltv_delta, 'Decode cltv delta');
-      equal(!!decoded.created_at, true, 'Created at date');
-      equal(decoded.description, expected.description, 'Decode description');
-      equal(decoded.description_hash, expected.description_hash, 'Desc hash');
-      equal(decoded.destination, (await getIdentity({lnd})).public_key, 'Pk');
-      equal(!!decoded.expires_at, true, 'Expiration date decoded');
-      equal(decoded.id, expected.id, 'Decoded payment hash');
-      equal(decoded.mtokens, expected.mtokens, 'Decode millitokens');
-      equal(decoded.safe_tokens, expected.safe_tokens, 'Decode safe amount');
-      equal(decoded.tokens, expected.tokens, 'Decode tokens amount');
+      strictEqual(decoded.chain_addresses, expected.chain_addresses, 'Addr');
+      strictEqual(decoded.cltv_delta, expected.cltv_delta, 'Decode cltv');
+      strictEqual(!!decoded.created_at, true, 'Created at date');
+      strictEqual(decoded.description, expected.description, 'Decode desc');
+      strictEqual(decoded.description_hash, expected.description_hash, 'Hash');
+      strictEqual(decoded.destination, identity, 'Got public key');
+      strictEqual(!!decoded.expires_at, true, 'Expiration date decoded');
+      strictEqual(decoded.id, expected.id, 'Decoded payment hash');
+      strictEqual(decoded.mtokens, expected.mtokens, 'Decode millitokens');
+      strictEqual(decoded.safe_tokens, expected.safe_tokens, 'Safe amount');
+      strictEqual(decoded.tokens, expected.tokens, 'Decode tokens amount');
     } catch (err) {
-      equal(err, null, 'Expected no error');
+      strictEqual(err, null, 'Expected no error');
     }
 
     await kill({});
 
-    return end();
+    return;
   });
 });

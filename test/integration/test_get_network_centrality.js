@@ -1,18 +1,20 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {getNetworkCentrality} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const interval = 100;
 const size = 3;
 const times = 800;
 
 // Getting the network centrality should return the centrality scores
-test(`Get network centrality`, async ({end, equal, strictSame}) => {
+test(`Get network centrality`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target, remote] = nodes;
@@ -49,20 +51,20 @@ test(`Get network centrality`, async ({end, equal, strictSame}) => {
         throw new Error('WrongBetweennessScore');
       }
 
-      equal(controlScore.betweenness, 0, 'No centrality on control');
-      equal(controlScore.betweenness_normalized, 0, 'No control centrality');
-      equal(remoteScore.betweenness, 0, 'No centrality on remote');
-      equal(remoteScore.betweenness_normalized, 0, 'No centrality on remote');
-      equal(targetScore.betweenness, 1e6, 'Centrality around target');
-      equal(targetScore.betweenness_normalized, 1e6, 'Centrality at target');
+      strictEqual(controlScore.betweenness, 0, 'No centrality on control');
+      strictEqual(controlScore.betweenness_normalized, 0, 'No centrality');
+      strictEqual(remoteScore.betweenness, 0, 'No centrality on remote');
+      strictEqual(remoteScore.betweenness_normalized, 0, 'No centrality');
+      strictEqual(targetScore.betweenness, 1e6, 'Centrality around target');
+      strictEqual(targetScore.betweenness_normalized, 1e6, 'Centrality');
 
       return;
     });
   } catch (err) {
-    equal(err, null, 'Expected no error');
-  } finally {
-    await kill({});
+    strictEqual(err, null, 'Expected no error');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

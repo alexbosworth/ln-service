@@ -1,5 +1,10 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {rejects} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
@@ -7,7 +12,6 @@ const {createInvoice} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const size = 3;
@@ -17,7 +21,7 @@ const tlvValue = '0102';
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
-test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
+test(`Pay via payment request`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -105,7 +109,7 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
         },
       ];
 
-      strictSame(paid.hops, expectedHops, 'Hops are returned');
+      deepEqual(paid.hops, expectedHops, 'Hops are returned');
 
       const {payments} = await getInvoice({id: paid.id, lnd: remote.lnd});
 
@@ -124,9 +128,9 @@ test(`Pay via payment request`, async ({end, equal, rejects, strictSame}) => {
     }
   } catch (err) {
     equal(err, 'Expected no errors');
-  } finally {
-    await kill({});
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

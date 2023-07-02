@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {getChainBalance} = require('./../../');
@@ -18,7 +20,7 @@ const size = 2;
 const times = 50;
 
 // Subscribing to channel backups should trigger backup notifications
-test(`Subscribe to backups`, async ({end, equal}) => {
+test(`Subscribe to backups`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -75,7 +77,7 @@ test(`Subscribe to backups`, async ({end, equal}) => {
     }],
   });
 
-  equal(multiVerification.is_valid, true, 'Multiple backups are valid');
+  strictEqual(multiVerification.is_valid, true, 'Multiple backups are valid');
 
   const singleVerification = await verifyBackup({
     lnd,
@@ -84,9 +86,9 @@ test(`Subscribe to backups`, async ({end, equal}) => {
     transaction_vout: channelOpen.transaction_vout,
   });
 
-  equal(singleVerification.is_valid, true, 'Single backup is valid');
+  strictEqual(singleVerification.is_valid, true, 'Single backup is valid');
 
   await kill({});
 
-  return end();
+  return;
 });

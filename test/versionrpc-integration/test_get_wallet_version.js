@@ -1,10 +1,14 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getWalletVersion} = require('./../../');
 
+const {isArray} = Array;
+
 // Getting the wallet version should return the wallet version
-test(`Get wallet version`, async ({end, equal, type}) => {
+test(`Get wallet version`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{lnd}] = nodes;
@@ -12,15 +16,15 @@ test(`Get wallet version`, async ({end, equal, type}) => {
   try {
     const version = await getWalletVersion({lnd});
 
-    type(version.build_tags, Array, 'Got array of build tags');
-    type(version.commit_hash, 'string', 'Got commit hash string');
-    type(version.is_autopilotrpc_enabled, 'boolean', 'Got autopilotrpc');
-    type(version.is_chainrpc_enabled, 'boolean', 'Got chainrpc');
-    type(version.is_invoicesrpc_enabled, 'boolean', 'Got invoicesrpc');
-    type(version.is_signrpc_enabled, 'boolean', 'Got signrpc');
-    type(version.is_walletrpc_enabled, 'boolean', 'Got walletrpc');
-    type(version.is_watchtowerrpc_enabled, 'boolean', 'Got watchtowerrpc');
-    type(version.is_wtclientrpc_enabled, 'boolean', 'Got wtclientrpc');
+    equal(isArray(version.build_tags), true, 'Got array of build tags');
+    equal(typeof version.commit_hash, 'string', 'Got commit hash string');
+    equal(typeof version.is_autopilotrpc_enabled, 'boolean', 'Autopilotrpc');
+    equal(typeof version.is_chainrpc_enabled, 'boolean', 'Got chainrpc');
+    equal(typeof version.is_invoicesrpc_enabled, 'boolean', 'Got invoicesrpc');
+    equal(typeof version.is_signrpc_enabled, 'boolean', 'Got signrpc');
+    equal(typeof version.is_walletrpc_enabled, 'boolean', 'Got walletrpc');
+    equal(typeof version.is_watchtowerrpc_enabled, 'boolean', 'Watchtowerrpc');
+    equal(typeof version.is_wtclientrpc_enabled, 'boolean', 'Got wtclientrpc');
   } catch (err) {
     const [code, message] = err;
 
@@ -30,5 +34,5 @@ test(`Get wallet version`, async ({end, equal, type}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

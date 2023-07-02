@@ -1,35 +1,26 @@
-const {randomBytes} = require('crypto');
+const {deepStrictEqual} = require('node:assert').strict;
+const {randomBytes} = require('node:crypto');
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
-const {getChannel} = require('./../../');
 const {getHeight} = require('./../../');
-const {getNetworkGraph} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
-const defaultFee = 1e3;
-const defaultVout = 0;
 const interval = 10;
 const mtokPadding = '000';
-const reserveRatio = 0.99;
 const size = 3;
 const times = 1000;
 const tokens = 100;
-const txIdHexLength = 32 * 2;
 
 // Paying an invoice should settle the invoice
 test(`Pay`, async ({end, equal, strictSame}) => {
@@ -55,19 +46,19 @@ test(`Pay`, async ({end, equal, strictSame}) => {
     return await pay({lnd, request: invoice.request});
   });
 
-  equal(paid.fee, 1, 'Fee paid for hop');
-  equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
-  equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
-  equal(paid.is_confirmed, true, 'Invoice is paid');
-  equal(paid.is_outgoing, true, 'Payments are outgoing');
-  equal(paid.mtokens, '101000', 'Paid mtokens');
-  equal(paid.secret, invoice.secret, 'Paid for invoice secret');
-  equal(paid.tokens, invoice.tokens + 1, 'Paid correct number of tokens');
+  strictEqual(paid.fee, 1, 'Fee paid for hop');
+  strictEqual(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
+  strictEqual(paid.id, invoice.id, 'Payment hash is equal on both sides');
+  strictEqual(paid.is_confirmed, true, 'Invoice is paid');
+  strictEqual(paid.is_outgoing, true, 'Payments are outgoing');
+  strictEqual(paid.mtokens, '101000', 'Paid mtokens');
+  strictEqual(paid.secret, invoice.secret, 'Paid for invoice secret');
+  strictEqual(paid.tokens, invoice.tokens + 1, 'Paid correct number of tok');
 
   const height = (await getHeight({lnd})).current_block_height;
 
   paid.hops.forEach(n => {
-    equal(
+    strictEqual(
       n.timeout === height + 40 ||
       n.timeout === height + 43 ||
       n.timeout === height + 80,
@@ -100,7 +91,7 @@ test(`Pay`, async ({end, equal, strictSame}) => {
     },
   ];
 
-  strictSame(paid.hops, expectedHops, 'Hops are returned');
+  deepStrictEqual(paid.hops, expectedHops, 'Hops are returned');
 
   const invoice2 = await createInvoice({lnd: remote.lnd, tokens: 100});
 
@@ -136,8 +127,8 @@ test(`Pay`, async ({end, equal, strictSame}) => {
   } catch (err) {
     const [code, message] = err;
 
-    equal(code, 404, 'Unknown payment hashes mean user error');
-    equal(message, 'UnknownPaymentHash', 'Specifically an unknown hash error');
+    strictEqual(code, 404, 'Unknown payment hashes mean user error');
+    strictEqual(message, 'UnknownPaymentHash', 'Specifically unknown error');
   }
 
   // Test paying regularly to a destination
@@ -152,5 +143,5 @@ test(`Pay`, async ({end, equal, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

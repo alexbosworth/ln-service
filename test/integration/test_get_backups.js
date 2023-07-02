@@ -1,14 +1,16 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getBackups} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const size = 2;
 
 // Getting a set of channel backups should return channel backups
-test(`Get channel backup`, async ({end, equal}) => {
+test(`Get channel backup`, async () => {
   await asyncRetry({}, async () => {
     const {kill, nodes} = await spawnLightningCluster({size});
 
@@ -18,19 +20,19 @@ test(`Get channel backup`, async ({end, equal}) => {
 
     const {backup, channels} = await getBackups({lnd});
 
-    equal(!!backup, true, 'Multi-backup blob is returned');
-    equal(channels.length, [channel].length, 'Individualized channel backup');
+    strictEqual(!!backup, true, 'Multi-backup blob is returned');
+    strictEqual(channels.length, [channel].length, 'Individualized backup');
 
     const [chanBackup] = channels;
 
-    equal(!!chanBackup.backup.length, true, 'Channel backup has its own blob');
-    equal(chanBackup.transaction_id, channel.transaction_id, 'Chan tx id');
-    equal(chanBackup.transaction_vout, channel.transaction_vout, 'Chan vout');
+    strictEqual(!!chanBackup.backup.length, true, 'Channel backup has blob');
+    strictEqual(chanBackup.transaction_id, channel.transaction_id, 'Chan id');
+    strictEqual(chanBackup.transaction_vout, channel.transaction_vout, 'Vout');
 
     await kill({});
 
     return;
   });
 
-  return end();
+  return;
 });

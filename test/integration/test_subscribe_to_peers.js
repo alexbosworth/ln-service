@@ -1,8 +1,9 @@
-const {once} = require('events');
+const {equal} = require('node:assert').strict;
+const {once} = require('node:events');
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
@@ -15,7 +16,7 @@ const size = 2;
 const times = 1000;
 
 // Subscribing to peer events should trigger reception of peer status changes
-test(`Subscribe to peers`, async ({end, equal}) => {
+test(`Subscribe to peers`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -51,9 +52,9 @@ test(`Subscribe to peers`, async ({end, equal}) => {
     equal(connected.public_key, target.id, 'Got connected');
   } catch (err) {
     equal(err, null, 'Expected no error');
-  } finally {
-    await kill({});
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

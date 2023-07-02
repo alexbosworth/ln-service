@@ -1,12 +1,14 @@
+const {deepEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getPathfindingSettings} = require('./../../');
 const {updatePathfindingSettings} = require('./../../');
 
 // Updating pathfinding settings should update the pathfinding configuration
-test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
+test(`Get pathfinding settings`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{generate, lnd}] = nodes;
@@ -18,7 +20,7 @@ test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
     if (err.slice().shift() === 501) {
       await kill({});
 
-      return end();
+      return;
     }
   }
 
@@ -41,7 +43,7 @@ test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
       penalty_half_life_ms: 460000,
     };
 
-    strictSame(config, expected, 'Got expected pathfinding config');
+    deepEqual(config, expected, 'Got expected pathfinding config');
   }
 
   // Update only a single value
@@ -60,10 +62,10 @@ test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
       penalty_half_life_ms: 460000,
     };
 
-    strictSame(config, expected, 'Update can change singular values');
+    deepEqual(config, expected, 'Update can change singular values');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

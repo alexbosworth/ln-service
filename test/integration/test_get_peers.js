@@ -1,16 +1,18 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {getPeers} = require('./../../');
 
 const interval = 10
 const size = 2;
-const times = 1000;
+const times = 2000;
 
 // Getting peers should return the list of peers
-test('Get peers', async ({end, equal}) => {
+test('Get peers', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{lnd}, target] = nodes;
@@ -32,23 +34,23 @@ test('Get peers', async ({end, equal}) => {
         throw new Error('ExpectedSyncPeer');
       }
 
-      equal(peer.bytes_received !== undefined, true, 'Bytes received');
-      equal(peer.bytes_sent !== undefined, true, 'Bytes sent');
-      equal(peer.is_inbound, false, 'Is inbound peer');
-      equal(peer.is_sync_peer, true, 'Is sync peer');
-      equal(peer.ping_time, 0, 'Ping time');
-      equal(peer.public_key, target.id, 'Public key');
-      equal(!!peer.socket, true, 'Socket');
-      equal(peer.tokens_received, 0, 'Tokens received');
-      equal(peer.tokens_sent, 0, 'Tokens sent');
+      strictEqual(peer.bytes_received !== undefined, true, 'Bytes received');
+      strictEqual(peer.bytes_sent !== undefined, true, 'Bytes sent');
+      strictEqual(peer.is_inbound, false, 'Is inbound peer');
+      strictEqual(peer.is_sync_peer, true, 'Is sync peer');
+      strictEqual(peer.ping_time, 0, 'Ping time');
+      strictEqual(peer.public_key, target.id, 'Public key');
+      strictEqual(!!peer.socket, true, 'Socket');
+      strictEqual(peer.tokens_received, 0, 'Tokens received');
+      strictEqual(peer.tokens_sent, 0, 'Tokens sent');
 
       return;
     });
   } catch (err) {
-    equal(err, null, 'Expected no error');
+    strictEqual(err, null, 'Expected no error');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

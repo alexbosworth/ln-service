@@ -1,3 +1,6 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {controlBlock} = require('p2tr');
@@ -7,7 +10,6 @@ const {leafHash} = require('p2tr');
 const {networks} = require('bitcoinjs-lib');
 const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const {Transaction} = require('bitcoinjs-lib');
 const {v1OutputScript} = require('p2tr');
 
@@ -29,14 +31,15 @@ const {fromHex} = Transaction;
 const hexAsBuffer = hex => Buffer.from(hex, 'hex');
 const interval = 100;
 const OP_CHECKSIG = 172;
+const size = 2;
 const smallTokens = 2e5;
 const times = 20;
 const {toOutputScript} = address;
 const tokens = 1e6;
 
 // Starting a group signing session should result in a new MuSig2 session
-test(`Begin group signing session`, async ({end, equal}) => {
-  const {kill, nodes} = await spawnLightningCluster({size: 2});
+test(`Begin group signing session`, async () => {
+  const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
 
@@ -53,7 +56,7 @@ test(`Begin group signing session`, async ({end, equal}) => {
     if (err.slice().shift() === 501) {
       await kill({});
 
-      return end();
+      return;
     }
 
     throw err;
@@ -436,5 +439,5 @@ test(`Begin group signing session`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

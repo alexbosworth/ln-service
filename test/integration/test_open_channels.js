@@ -1,15 +1,16 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncMap = require('async/map');
 const asyncRetry = require('async/retry');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 const {transactionAsPsbt} = require('psbt');
 
 const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
 const {fundPendingChannels} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
@@ -33,7 +34,7 @@ const timeout = 250 * 10;
 const times = 2000;
 
 // Opening channels should open up channels
-test(`Open channels`, async ({end, equal}) => {
+test(`Open channels`, async () => {
   const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
 
   const {kill, nodes} = await spawnLightningCluster({size});
@@ -133,7 +134,7 @@ test(`Open channels`, async ({end, equal}) => {
 
       const [channel] = channels;
 
-      equal(channel.cooperative_close_address, address, 'Channel close addr');
+      strictEqual(channel.cooperative_close_address, address, 'Channel close');
 
       const {policies} = await getChannel({lnd, id: channel.id});
 
@@ -144,16 +145,16 @@ test(`Open channels`, async ({end, equal}) => {
         return;
       }
 
-      equal(policy.base_fee_mtokens, baseFeeMtokens, 'Base fee is set');
-      equal(policy.fee_rate, feeRate, 'Fee rate is set');
+      strictEqual(policy.base_fee_mtokens, baseFeeMtokens, 'Base fee is set');
+      strictEqual(policy.fee_rate, feeRate, 'Fee rate is set');
 
       return;
     });
   } catch (err) {
-    equal(err, null, 'No error is reported');
-  } finally {
-    return await kill({});
+    strictEqual(err, null, 'No error is reported');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

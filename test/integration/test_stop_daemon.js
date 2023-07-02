@@ -1,5 +1,8 @@
+const {fail} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getWalletInfo} = require('./../../');
 const {stopDaemon} = require('./../../');
@@ -17,11 +20,11 @@ test(`Stop daemon`, async ({end, equal, fail}) => {
   } catch (err) {
     const [code, message] = err;
 
-    equal(code, 503, 'Error code indicates daemon offline');
-    equal(message, 'FailedToConnectToDaemon', 'Error msg indicates offline');
+    strictEqual(code, 503, 'Error code indicates daemon offline');
+    strictEqual(message, 'FailedToConnectToDaemon', 'Error indicates offline');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

@@ -1,19 +1,20 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
-const {getChainBalance} = require('./../../');
 const {getFailedPayments} = require('./../../');
 const {getPayment} = require('./../../');
 const {getPayments} = require('./../../');
 const {pay} = require('./../../');
 const {sendToChainAddress} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
@@ -23,7 +24,7 @@ const times = 1000;
 const tokens = 1e6 / 2;
 
 // Getting failed payments should return failed payments
-test('Get failed payments', async ({end, equal, strictSame}) => {
+test('Get failed payments', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -52,7 +53,7 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
       lnd: target.lnd,
       generate: target.generate,
       generator: target,
-      give: Math.round(channelCapacityTokens / 2),
+      give_tokens: Math.round(channelCapacityTokens / 2),
       to: remote,
     });
 
@@ -90,25 +91,25 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
 
       const [payment] = payments.filter(n => n.mtokens === bigInvoice.mtokens);
 
-      equal(payment.destination, remote.id, 'Payment to');
-      equal(payment.confirmed_at, undefined, 'No confirmation date');
-      equal(!!payment.created_at, true, 'Got payment created date');
-      equal(payment.fee, undefined, 'No fee when not paid');
-      equal(payment.fee_mtokens, undefined, 'No fee mtokens when not paid');
-      equal(!!payment.id, true, 'Got a payment id');
-      equal(!!payment.index, true, 'Got payment index');
-      equal(payment.is_confirmed, false, 'Failed payment is not confirmed');
-      equal(payment.is_outgoing, true, 'Failed payment is outgoing');
-      equal(payment.mtokens, bigInvoice.mtokens, 'Payment has mtokens');
-      equal(payment.request, bigInvoice.request, 'Probe has a request');
-      equal(payment.secret, undefined, 'Failed has no secret');
-      equal(payment.safe_fee, undefined, 'Failed has no fee');
-      equal(payment.safe_tokens, bigInvoice.tokens, 'Failed has safe tokens');
-      equal(payment.tokens, bigInvoice.tokens, 'Failed has tokens');
+      strictEqual(payment.destination, remote.id, 'Payment to');
+      strictEqual(payment.confirmed_at, undefined, 'No confirmation date');
+      strictEqual(!!payment.created_at, true, 'Got payment created date');
+      strictEqual(payment.fee, undefined, 'No fee when not paid');
+      strictEqual(payment.fee_mtokens, undefined, 'No fee mtokens not paid');
+      strictEqual(!!payment.id, true, 'Got a payment id');
+      strictEqual(!!payment.index, true, 'Got payment index');
+      strictEqual(payment.is_confirmed, false, 'Failed payment not confirmed');
+      strictEqual(payment.is_outgoing, true, 'Failed payment is outgoing');
+      strictEqual(payment.mtokens, bigInvoice.mtokens, 'Payment has mtokens');
+      strictEqual(payment.request, bigInvoice.request, 'Probe has a request');
+      strictEqual(payment.secret, undefined, 'Failed has no secret');
+      strictEqual(payment.safe_fee, undefined, 'Failed has no fee');
+      strictEqual(payment.safe_tokens, bigInvoice.tokens, 'Safe tokens');
+      strictEqual(payment.tokens, bigInvoice.tokens, 'Failed has tokens');
 
       const gotFailed = await getPayment({lnd, id: payment.id});
 
-      strictSame(
+      deepStrictEqual(
         gotFailed,
         {
           failed: {
@@ -133,28 +134,28 @@ test('Get failed payments', async ({end, equal, strictSame}) => {
 
       const [payment] = payments;
 
-      equal(payment.destination, remote.id, 'Paid to');
-      equal(!!payment.confirmed_at, true, 'Got confirmation date');
-      equal(!!payment.created_at, true, 'Got payment start date');
-      equal(payment.fee, 1, 'Got fee paid');
-      equal(payment.fee_mtokens, '1500', 'Got fee mtokens paid');
-      strictSame(payment.hops, [target.id], 'Got hops');
-      equal(!!payment.id, true, 'Got a payment id');
-      equal(!!payment.index, true, 'Got payment index');
-      equal(payment.is_confirmed, true, 'Failed payment is not confirmed');
-      equal(payment.is_outgoing, true, 'Failed payment is outgoing');
-      equal(payment.mtokens, invoice.mtokens, 'Payment has mtokens');
-      equal(payment.request, invoice.request, 'Payment has a request');
-      equal(!!payment.secret, true, 'Failed has no secret');
-      equal(payment.safe_fee, 2, 'Failed has no fee');
-      equal(payment.safe_tokens, invoice.tokens, 'Failed has safe tokens');
-      equal(payment.tokens, invoice.tokens, 'Failed has tokens');
+      deepStrictEqual(payment.destination, remote.id, 'Paid to');
+      deepStrictEqual(!!payment.confirmed_at, true, 'Got confirmation date');
+      deepStrictEqual(!!payment.created_at, true, 'Got payment start date');
+      deepStrictEqual(payment.fee, 1, 'Got fee paid');
+      deepStrictEqual(payment.fee_mtokens, '1500', 'Got fee mtokens paid');
+      deepStrictEqual(payment.hops, [target.id], 'Got hops');
+      deepStrictEqual(!!payment.id, true, 'Got a payment id');
+      deepStrictEqual(!!payment.index, true, 'Got payment index');
+      deepStrictEqual(payment.is_confirmed, true, 'Failed not confirmed');
+      deepStrictEqual(payment.is_outgoing, true, 'Failed payment is outgoing');
+      deepStrictEqual(payment.mtokens, invoice.mtokens, 'Payment has mtokens');
+      deepStrictEqual(payment.request, invoice.request, 'Payment has request');
+      deepStrictEqual(!!payment.secret, true, 'Failed has no secret');
+      deepStrictEqual(payment.safe_fee, 2, 'Failed has no fee');
+      deepStrictEqual(payment.safe_tokens, invoice.tokens, 'Safe tokens');
+      deepStrictEqual(payment.tokens, invoice.tokens, 'Failed has tokens');
     }
   } catch (err) {
-    strictSame(err, null, 'Expected no error');
-  } finally {
-    await kill({});
+    strictEqual(err, null, 'Expected no error');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

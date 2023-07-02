@@ -1,12 +1,13 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {delay} = require('./../macros');
 const {getIdentity} = require('./../../');
 const {getNode} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {updateRoutingFees} = require('./../../');
 
 const baseFee = 1337;
@@ -15,6 +16,7 @@ const cltvDelta = 42;
 const confirmationCount = 20;
 const defaultFee = 1e3;
 const defaultAliasLength = '00000000000000000000'.length;
+const delay = n => new Promise(resolve => setTimeout(resolve, n));
 const feeRate = 21;
 const interval = 10;
 const mtokPerTok = BigInt(1e3);
@@ -22,7 +24,7 @@ const size = 3;
 const times = 1000;
 
 // Getting a node should return the public graph node info
-test(`Get node`, async ({end, equal, strictSame}) => {
+test(`Get node`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, id, lnd}, target, remote] = nodes;
@@ -65,7 +67,7 @@ test(`Get node`, async ({end, equal, strictSame}) => {
         public_key: id,
       });
 
-      equal(channels.length, [].length, 'Channels are omitted')
+      strictEqual(channels.length, [].length, 'Channels are omitted');
     }
 
     if (!!node.channels.length) {
@@ -73,27 +75,31 @@ test(`Get node`, async ({end, equal, strictSame}) => {
 
       const policy = policies.find(n => n.public_key === id);
 
-      equal(BigInt(policy.base_fee_mtokens), BigInt(baseFee)*mtokPerTok, 'bf');
-      equal(policy.cltv_delta, cltvDelta, 'Got expected cltv delta');
-      equal(policy.fee_rate, feeRate, 'Got expected fee rate');
-      equal(policy.is_disabled, false, 'Channel is not disabled');
-      equal(policy.max_htlc_mtokens, '990000000', 'Max HTLC mtokens returned');
-      equal(policy.min_htlc_mtokens, '1000', 'Min HTLC mtokens returned');
+      strictEqual(
+        BigInt(policy.base_fee_mtokens),
+        BigInt(baseFee) * mtokPerTok,
+        'bf'
+      );
+      strictEqual(policy.cltv_delta, cltvDelta, 'Got expected cltv delta');
+      strictEqual(policy.fee_rate, feeRate, 'Got expected fee rate');
+      strictEqual(policy.is_disabled, false, 'Channel is not disabled');
+      strictEqual(policy.max_htlc_mtokens, '990000000', 'Max HTLC returned');
+      strictEqual(policy.min_htlc_mtokens, '1000', 'Min HTLC returned');
     }
 
     const [socket] = node.sockets;
 
-    equal(node.alias, id.slice(0, defaultAliasLength), 'Alias');
-    equal(node.color, '#3399ff', 'Color');
-    equal(node.sockets.length, 1, 'Socket');
-    equal(!!socket.socket, true, 'Ip, port');
-    equal(socket.type, 'tcp', 'Socket type');
-    equal(node.updated_at.length, 24, 'Update date');
+    strictEqual(node.alias, id.slice(0, defaultAliasLength), 'Alias');
+    strictEqual(node.color, '#3399ff', 'Color');
+    strictEqual(node.sockets.length, 1, 'Socket');
+    strictEqual(!!socket.socket, true, 'Ip, port');
+    strictEqual(socket.type, 'tcp', 'Socket type');
+    strictEqual(node.updated_at.length, 24, 'Update date');
   } catch (err) {
-    strictSame(err, null, 'Expected no error');
-  } finally {
-    await kill({});
+    strictEqual(err, null, 'Expected no error');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

@@ -1,6 +1,9 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {sendMessageToPeer} = require('./../../');
@@ -11,7 +14,7 @@ const size = 3;
 const times = 1000;
 
 // Messages should be received from peers
-test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
+test(`Subscribe to peer messages`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{lnd}, target, remote] = nodes;
@@ -44,7 +47,7 @@ test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
       if (code === 501) {
         await kill({});
 
-        return end();
+        return;
       }
     }
 
@@ -102,7 +105,7 @@ test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
 
     const [message] = messages;
 
-    strictSame(
+    deepEqual(
       message,
       {
         message: Buffer.from('message to remote').toString('hex'),
@@ -117,5 +120,5 @@ test(`Subscribe to peer messages`, async ({end, equal, strictSame}) => {
     await kill({});
   }
 
-  return end();
+  return;
 });

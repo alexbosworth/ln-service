@@ -1,7 +1,9 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {getSettlementStatus} = require('./../../');
@@ -14,19 +16,21 @@ const times = 2000;
 const tokens = 100;
 
 // Get the settlement status of an HTLC
-test(`Get settlement status`, async ({end, equal, strictSame}) => {
+test(`Get settlement status`, async () => {
   // LND 0.15.5 and below do not support settlement status lookups
   {
-    const {kill, nodes} = await spawnLightningCluster({size});
+    const {kill, nodes} = await spawnLightningCluster({});
 
-    const [{generate, lnd}, target] = nodes;
+    const [{lnd}] = nodes;
 
     try {
       await getSettlementStatus({
-        lnd: target.lnd,
+        lnd,
         channel: fakeChannelId,
         payment: Number(),
       });
+
+      await kill({});
     } catch (err) {
       const [code, message] = err;
 
@@ -36,7 +40,7 @@ test(`Get settlement status`, async ({end, equal, strictSame}) => {
 
         await kill({});
 
-        return end();
+        return;
       }
     }
   }
@@ -63,12 +67,12 @@ test(`Get settlement status`, async ({end, equal, strictSame}) => {
       });
     });
 
-    strictSame(settlement, {is_onchain: false, is_settled: true}, 'Status');
+    deepStrictEqual(settlement, {is_onchain: false, is_settled: true}, 'Stat');
   } catch (err) {
-    equal(err, null, 'Expected no error');
+    deepStrictEqual(err, null, 'Expected no error');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

@@ -1,14 +1,16 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const {rejects} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {grantAccess} = require('./../../');
 
 const format = 'np2wpkh';
 
 // Granting access should result in access granted
-test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
+test(`Get access credentials`, async () => {
   const [{lnd, kill, rpc}] = (await spawnLightningCluster({})).nodes;
 
   await grantAccess({lnd, is_ok_to_create_chain_addresses: true});
@@ -21,7 +23,7 @@ test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
 
   const permissions = ['address:write', 'address:read'];
 
-  strictSame(makeChainAddresses.permissions, permissions, 'Got permissions');
+  deepStrictEqual(makeChainAddresses.permissions, permissions, 'Permissions');
 
   const canPay = rpc({
     macaroon: (await grantAccess({lnd, is_ok_to_pay: true})).macaroon,
@@ -43,30 +45,25 @@ test(`Get access credentials`, async ({end, equal, rejects, strictSame}) => {
 
   const {address} = await createChainAddress({format, lnd: makeAddress.lnd});
 
-  equal(!!address, true, 'Can make address with proper credential');
+  deepStrictEqual(!!address, true, 'Can make address with proper credential');
 
-  const {version} = await getWalletVersion({lnd});
+  const createChainAddressCredential = await grantAccess({
+    lnd,
+    methods: ['createChainAddress'],
+  });
 
-  // Granting URI access is not supported in LND 0.11.0
-  if (version !== 'v0.11.0-beta') {
-    const createChainAddressCredential = await grantAccess({
-      lnd,
-      methods: ['createChainAddress'],
-    });
+  const authenticatedToCreateAddress = rpc({
+    macaroon: createChainAddressCredential.macaroon,
+  });
 
-    const authenticatedToCreateAddress = rpc({
-      macaroon: createChainAddressCredential.macaroon,
-    });
+  const created = await createChainAddress({
+    format,
+    lnd: authenticatedToCreateAddress.lnd,
+  });
 
-    const created = await createChainAddress({
-      format,
-      lnd: authenticatedToCreateAddress.lnd,
-    });
-
-    equal(!!created, true, 'Can make address with URI credential');
-  }
+  deepStrictEqual(!!created, true, 'Can make address with URI credential');
 
   await kill({});
 
-  return end();
+  return;
 });

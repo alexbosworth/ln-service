@@ -1,18 +1,16 @@
-const {once} = require('events');
+const {deepStrictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncEach = require('async/each');
 const asyncRetry = require('async/retry');
 const asyncTimeout = require('async/timeout');
 const {extractTransaction} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 
 const {addPeer} = require('./../../');
 const {broadcastChainTransaction} = require('./../../');
 const {cancelPendingChannel} = require('./../../');
-const {createCluster} = require('./../macros');
-const {delay} = require('./../macros');
 const {deletePendingChannel} = require('./../../');
 const {fundPendingChannels} = require('./../../');
 const {fundPsbt} = require('./../../');
@@ -27,6 +25,7 @@ const {unlockUtxo} = require('./../../');
 
 const capacity = 1e6;
 const count = 100;
+const delay = n => new Promise(resolve => setTimeout(resolve, n));
 const description = 'description';
 const interval = 100;
 const race = promises => Promise.race(promises);
@@ -35,28 +34,15 @@ const timeout = 1000 * 20;
 const times = 2000;
 
 // Forfeiting a pending channel should remove the pending channel
-test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
+test(`Forfeit pending channel`, async () => {
   const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
 
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [control, target, remote] = nodes;
-
-  const {generate, lnd} = control;
+  const [{generate, lnd}, target, remote] = nodes;
 
   try {
-    const {keys} = await getMasterPublicKeys({lnd});
-  } catch (err) {
-    // LND 0.13.3 and below should not be tested
-    strictSame(err, [501, 'GetMasterPublicKeysMethodNotSupported'], 'Got err');
-
-    await kill({});
-
-    return end();
-  }
-
-  try {
-    await control.generate({count});
+    await generate({count});
 
     await asyncEach([target, remote], async node => {
       return await addPeer({lnd, public_key: node.id, socket: node.socket});
@@ -174,7 +160,7 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
     } catch (err) {
       const [code] = err;
 
-      equal(code, 503, 'Pending channel cannot be canceled');
+      deepStrictEqual(code, 503, 'Pending channel cannot be canceled');
     }
 
     try {
@@ -187,15 +173,15 @@ test(`Forfeit pending channel`, async ({end, equal, strictSame}) => {
 
       const [notPending] = (await getPendingChannels({lnd})).pending_channels;
 
-      equal(notPending, undefined, 'Conflicting pending channel deleted');
+      deepStrictEqual(notPending, undefined, 'Conflicting pending deleted');
     } catch (err) {
-      strictSame(err, [501, 'DeletePendingChannelMethodNotSupported']);
+      deepStrictEqual(err, [501, 'DeletePendingChannelMethodNotSupported']);
     }
   } catch (err) {
-    equal(err, null, 'No error is expected');
-  } finally {
-    await kill({});
+    deepStrictEqual(err, null, 'No error is expected');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

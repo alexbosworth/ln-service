@@ -1,6 +1,10 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -13,7 +17,6 @@ const {getWalletVersion} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {sendToChainAddress} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
@@ -26,7 +29,7 @@ const times = 1000;
 const tokens = 1e6 / 2;
 
 // Probing for a route should return a route
-test('Probe for route', async ({end, equal, strictSame}) => {
+test('Probe for route', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -48,7 +51,7 @@ test('Probe for route', async ({end, equal, strictSame}) => {
       capacity: channelCapacityTokens,
       lnd: target.lnd,
       generate: target.generate,
-      give: Math.round(channelCapacityTokens / 2),
+      give_tokens: Math.round(channelCapacityTokens / 2),
       to: remote,
     });
 
@@ -78,7 +81,7 @@ test('Probe for route', async ({end, equal, strictSame}) => {
     if (!version || parseInt(minor) > 13) {
       const {payments} = await getFailedPayments({lnd});
 
-      strictSame(payments, [], 'Probes do not leave a failed state behind');
+      deepEqual(payments, [], 'Probes do not leave a failed state behind');
     }
 
     // Create a new channel to increase total edge liquidity
@@ -108,7 +111,7 @@ test('Probe for route', async ({end, equal, strictSame}) => {
 
       equal(route.fee, 1, 'Found route fee');
       equal(route.fee_mtokens, '1500', 'Found route fee mtokens');
-      strictSame(route.hops.length, 2, 'Found route hops returned');
+      deepEqual(route.hops.length, 2, 'Found route hops returned');
       equal(route.mtokens, '500001500', 'Found route mtokens');
       equal(route.timeout >= 400, true, 'Found route timeout');
       equal(route.tokens, 500001, 'Found route tokens');
@@ -129,5 +132,5 @@ test('Probe for route', async ({end, equal, strictSame}) => {
     await kill({});
   }
 
-  return end();
+  return;
 });

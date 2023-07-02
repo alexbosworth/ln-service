@@ -1,14 +1,17 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
+const {spawnLightningCluster} = require('ln-docker-daemons');
+
 const {connectWatchtower} = require('./../../');
 const {getConnectedWatchtowers} = require('./../../');
 const {getTowerServerInfo} = require('./../../');
-const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const conf = ['--watchtower.active', '--wtclient.active'];
 const size = 2;
 
 // Getting connected watchtowers should return watchtowers
-test(`Get connected watchtowers`, async ({end, equal, fail, match}) => {
+test(`Get connected watchtowers`, async () => {
   const {kill, nodes} = await spawnLightningCluster({
     size,
     lnd_configuration: conf
@@ -45,5 +48,5 @@ test(`Get connected watchtowers`, async ({end, equal, fail, match}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

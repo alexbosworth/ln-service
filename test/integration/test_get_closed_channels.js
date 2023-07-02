@@ -1,28 +1,18 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {closeChannel} = require('./../../');
-const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createHodlInvoice} = require('./../../');
-const {delay} = require('./../macros');
-const {payViaPaymentRequest} = require('./../../');
-const {getChainTransactions} = require('./../../');
 const {getClosedChannels} = require('./../../');
-const {getLockedUtxos} = require('./../../');
-const {getPendingChannels} = require('./../../');
-const {getSweepTransactions} = require('./../../');
-const {getUtxos} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {sendToChainAddress} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
 
-const all = promise => Promise.all(promise);
-const confirmationCount = 6;
 const defaultFee = 1e3;
 const interval = 125;
 const maxChanTokens = Math.pow(2, 24) - 1;
@@ -30,21 +20,12 @@ const size = 2;
 const times = 1000;
 
 // Getting closed channels should return closed channels
-test(`Get closed channels`, async ({end, equal}) => {
+test(`Get closed channels`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
 
   const {generate, lnd} = control;
-
-  try {
-    await getLockedUtxos({lnd});
-  } catch (err) {
-    // Skip test on LND 0.12 due to sweep timing
-    await kill({});
-
-    return end();
-  }
 
   const channelOpen = await setupChannel({
     generate,
@@ -80,39 +61,39 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   const [channel] = channels;
 
-  equal(channels.length, [channelOpen].length, 'Channel close listed');
+  strictEqual(channels.length, [channelOpen].length, 'Channel close listed');
 
   const spend = maxChanTokens - channel.final_local_balance;
 
   // LND 0.11.1 and below do not use anchors
   if (isAnchors) {
-    equal([53345, 28473, 2810].includes(spend), true, 'Final');
+    strictEqual([53345, 28473, 2810].includes(spend), true, 'Final');
   } else {
-    equal(spend, 9050, 'Final');
+    strictEqual(spend, 9050, 'Final');
   }
 
-  equal(channel.capacity, maxChanTokens, 'Channel capacity reflected');
-  equal(!!channel.close_confirm_height, true, 'Channel close height');
-  equal(channel.close_transaction_id, closing.transaction_id, 'Close tx id');
-  equal(channel.final_time_locked_balance, 0, 'Final locked balance');
-  equal(!!channel.id, true, 'Channel id');
-  equal(channel.is_breach_close, false, 'Not breach close');
-  equal(channel.is_cooperative_close, true, 'Is cooperative close');
-  equal(channel.is_funding_cancel, false, 'Not funding cancel');
-  equal(channel.is_local_force_close, false, 'Not local force close');
-  equal(channel.is_partner_closed, false, 'Partner did not close the chan');
-  equal(channel.is_partner_initiated, false, 'Partner did not open channel');
-  equal(channel.is_remote_force_close, false, 'Not remote force close');
-  equal(channel.partner_public_key, target.id, 'Pubkey');
-  equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
-  equal(channel.transaction_vout, channelOpen.transaction_vout, 'Chan vout');
+  strictEqual(channel.capacity, maxChanTokens, 'Channel capacity reflected');
+  strictEqual(!!channel.close_confirm_height, true, 'Channel close height');
+  strictEqual(channel.close_transaction_id, closing.transaction_id, 'Close');
+  strictEqual(channel.final_time_locked_balance, 0, 'Final locked balance');
+  strictEqual(!!channel.id, true, 'Channel id');
+  strictEqual(channel.is_breach_close, false, 'Not breach close');
+  strictEqual(channel.is_cooperative_close, true, 'Is cooperative close');
+  strictEqual(channel.is_funding_cancel, false, 'Not funding cancel');
+  strictEqual(channel.is_local_force_close, false, 'Not local force close');
+  strictEqual(channel.is_partner_closed, false, 'Partner did not close');
+  strictEqual(channel.is_partner_initiated, false, 'Partner did not open');
+  strictEqual(channel.is_remote_force_close, false, 'Not remote force close');
+  strictEqual(channel.partner_public_key, target.id, 'Pubkey');
+  strictEqual(channel.transaction_id, channelOpen.transaction_id, 'Channel');
+  strictEqual(channel.transaction_vout, channelOpen.transaction_vout, 'Vout');
 
   // Setup a force close to show force close channel output
   const toForceClose = await setupChannel({
     generate,
     lnd,
     capacity: 7e5,
-    give: 3e5,
+    give_tokens: 3e5,
     partner_csv_delay: 20,
     to: target,
   });
@@ -187,47 +168,47 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   const forced = deadChans.find(n => !!n.is_remote_force_close);
 
-  equal(forced.capacity, 7e5, 'Got force close capacity');
-  equal(!!forced.close_balance_spent_by, true, 'Got a spend id');
-  equal(forced.close_balance_vout !== undefined, true, 'Got a spend vout');
-  equal(!!forced.close_confirm_height !== undefined, true, 'Confirm height');
-  equal(forced.close_payments.length, 2, '2 pending payments');
-  equal(!!forced.close_transaction_id, true, 'Got closed tx id');
-  equal(!!forced.final_local_balance, true, 'Got final balance');
-  equal(forced.final_time_locked_balance, 0, 'Got timelock balance');
-  equal(forced.id, toForceClose.id, 'Got closed channel id');
-  equal(forced.is_breach_close, false, 'Not a breach');
-  equal(forced.is_cooperative_close, false, 'Not a coop close');
-  equal(forced.is_funding_cancel, false, 'Not a cancel');
-  equal(forced.is_local_force_close, false, 'Not a local force close');
-  equal(forced.is_partner_closed, true, 'The remote closed');
-  equal(forced.is_partner_initiated, false, 'Local initiated');
-  equal(forced.is_remote_force_close, true, 'Remote force closed');
-  equal(forced.partner_public_key, target.id, 'Got remote public key');
-  equal(forced.transaction_id, toForceClose.transaction_id, 'Got txid');
-  equal(forced.transaction_vout, toForceClose.transaction_vout, 'Got vout');
+  strictEqual(forced.capacity, 7e5, 'Got force close capacity');
+  strictEqual(!!forced.close_balance_spent_by, true, 'Got a spend id');
+  strictEqual(forced.close_balance_vout !== undefined, true, 'Got a vout');
+  strictEqual(!!forced.close_confirm_height !== undefined, true, 'Height');
+  strictEqual(forced.close_payments.length, 2, '2 pending payments');
+  strictEqual(!!forced.close_transaction_id, true, 'Got closed tx id');
+  strictEqual(!!forced.final_local_balance, true, 'Got final balance');
+  strictEqual(forced.final_time_locked_balance, 0, 'Got timelock balance');
+  strictEqual(forced.id, toForceClose.id, 'Got closed channel id');
+  strictEqual(forced.is_breach_close, false, 'Not a breach');
+  strictEqual(forced.is_cooperative_close, false, 'Not a coop close');
+  strictEqual(forced.is_funding_cancel, false, 'Not a cancel');
+  strictEqual(forced.is_local_force_close, false, 'Not a local force close');
+  strictEqual(forced.is_partner_closed, true, 'The remote closed');
+  strictEqual(forced.is_partner_initiated, false, 'Local initiated');
+  strictEqual(forced.is_remote_force_close, true, 'Remote force closed');
+  strictEqual(forced.partner_public_key, target.id, 'Got remote public key');
+  strictEqual(forced.transaction_id, toForceClose.transaction_id, 'Got txid');
+  strictEqual(forced.transaction_vout, toForceClose.transaction_vout, 'Vout');
 
   const cancelHtlc = forced.close_payments.find(n => !n.is_paid);
 
-  equal(cancelHtlc.is_outgoing, false, 'HTLC is incoming');
-  equal(cancelHtlc.is_paid, false, 'HTLC is not settled');
-  equal(cancelHtlc.is_pending, false, 'HTLC cannot be settled');
-  equal(cancelHtlc.is_refunded, false, 'HTLC has not been refunded');
-  equal(cancelHtlc.spent_by, undefined, 'HTLC has no sweep tx');
-  equal(cancelHtlc.tokens, 1e5, 'HTLC has invoice value');
-  equal(!!cancelHtlc.transaction_id, true, 'HTLC has tx id');
-  equal(cancelHtlc.transaction_vout !== undefined, true, 'HTLC has tx vout');
+  strictEqual(cancelHtlc.is_outgoing, false, 'HTLC is incoming');
+  strictEqual(cancelHtlc.is_paid, false, 'HTLC is not settled');
+  strictEqual(cancelHtlc.is_pending, false, 'HTLC cannot be settled');
+  strictEqual(cancelHtlc.is_refunded, false, 'HTLC has not been refunded');
+  strictEqual(cancelHtlc.spent_by, undefined, 'HTLC has no sweep tx');
+  strictEqual(cancelHtlc.tokens, 1e5, 'HTLC has invoice value');
+  strictEqual(!!cancelHtlc.transaction_id, true, 'HTLC has tx id');
+  strictEqual(cancelHtlc.transaction_vout !== undefined, true, 'HTLC vout');
 
   const settleHtlc = forced.close_payments.find(n => !!n.is_paid);
 
-  equal(settleHtlc.is_outgoing, false, 'Settle is incoming');
-  equal(settleHtlc.is_paid, true, 'Settle is paid');
-  equal(settleHtlc.is_pending, false, 'Already settled');
-  equal(settleHtlc.is_refunded, false, 'No refund available');
-  equal(!!settleHtlc.spent_by, true, 'Swept with preimage tx');
-  equal(settleHtlc.tokens, 1e5, 'Settled with invoice value');
-  equal(!!settleHtlc.transaction_id, true, 'Output tx id');
-  equal(settleHtlc.transaction_vout !== undefined, true, 'Output tx vout');
+  strictEqual(settleHtlc.is_outgoing, false, 'Settle is incoming');
+  strictEqual(settleHtlc.is_paid, true, 'Settle is paid');
+  strictEqual(settleHtlc.is_pending, false, 'Already settled');
+  strictEqual(settleHtlc.is_refunded, false, 'No refund available');
+  strictEqual(!!settleHtlc.spent_by, true, 'Swept with preimage tx');
+  strictEqual(settleHtlc.tokens, 1e5, 'Settled with invoice value');
+  strictEqual(!!settleHtlc.transaction_id, true, 'Output tx id');
+  strictEqual(settleHtlc.transaction_vout !== undefined, true, 'Output vout');
 
   const alsoDead = await asyncRetry({interval: 20, times: 7000}, async () => {
     const {channels} = await getClosedChannels({lnd: target.lnd});
@@ -243,49 +224,49 @@ test(`Get closed channels`, async ({end, equal}) => {
 
   const forceClosed = alsoDead.find(n => !!n.is_local_force_close);
 
-  equal(forceClosed.capacity, 7e5, 'Target capacity reflected');
-  equal(!!forceClosed.close_balance_spent_by, true, 'Target spent by');
-  equal(forceClosed.close_balance_vout !== undefined, true, 'Has balance out');
-  equal(!!forceClosed.close_confirm_height, true, 'Has confirm height');
-  equal(!!forceClosed.close_payments.length, true, 'Has close payments');
-  equal(!!forceClosed.close_transaction_id, true, 'Has close id');
-  equal(forceClosed.final_local_balance, 1e5, 'Has local balance');
-  equal(forceClosed.final_time_locked_balance, 3e5, 'Has timelock balance');
-  equal(forceClosed.id, toForceClose.id, 'Has channel id');
-  equal(forceClosed.is_breach_close, false, 'Not breach close');
-  equal(forceClosed.is_cooperative_close, false, 'Not coop close');
-  equal(forceClosed.is_funding_cancel, false, 'Not funding cancel');
-  equal(forceClosed.is_local_force_close, true, 'Locally forced closed');
-  equal(forceClosed.is_partner_closed, false, 'Not remote closed');
-  equal(forceClosed.is_partner_initiated, true, 'Remote created channel');
-  equal(forceClosed.is_remote_force_close, false, 'Remote not force closed');
-  equal(forceClosed.partner_public_key, control.id, 'Got peer key');
-  equal(forceClosed.transaction_id, toForceClose.transaction_id, 'Got tx id');
-  equal(forceClosed.transaction_vout, toForceClose.transaction_vout, 'Vout');
+  strictEqual(forceClosed.capacity, 7e5, 'Target capacity reflected');
+  strictEqual(!!forceClosed.close_balance_spent_by, true, 'Target spent by');
+  strictEqual(forceClosed.close_balance_vout !== undefined, true, 'Balance');
+  strictEqual(!!forceClosed.close_confirm_height, true, 'Has confirm height');
+  strictEqual(!!forceClosed.close_payments.length, true, 'Has close payments');
+  strictEqual(!!forceClosed.close_transaction_id, true, 'Has close id');
+  strictEqual(forceClosed.final_local_balance, 1e5, 'Has local balance');
+  strictEqual(forceClosed.final_time_locked_balance, 3e5, 'Timelock balance');
+  strictEqual(forceClosed.id, toForceClose.id, 'Has channel id');
+  strictEqual(forceClosed.is_breach_close, false, 'Not breach close');
+  strictEqual(forceClosed.is_cooperative_close, false, 'Not coop close');
+  strictEqual(forceClosed.is_funding_cancel, false, 'Not funding cancel');
+  strictEqual(forceClosed.is_local_force_close, true, 'Locally forced closed');
+  strictEqual(forceClosed.is_partner_closed, false, 'Not remote closed');
+  strictEqual(forceClosed.is_partner_initiated, true, 'Remote create channel');
+  strictEqual(forceClosed.is_remote_force_close, false, 'Remote not force');
+  strictEqual(forceClosed.partner_public_key, control.id, 'Got peer key');
+  strictEqual(forceClosed.transaction_id, toForceClose.transaction_id, 'Tx');
+  strictEqual(forceClosed.transaction_vout, toForceClose.transaction_vout);
 
   const forcePay = forceClosed.close_payments.find(n => !!n.is_paid);
 
-  equal(forcePay.is_outgoing, true, 'Payment was outgoing');
-  equal(forcePay.is_paid, true, 'Payment was sent');
-  equal(forcePay.is_pending, false, 'Payment is settled');
-  equal(forcePay.is_refunded, false, 'Payment completed successfully');
-  equal(!!forcePay.spent_by, true, 'Payment was swept with preimage');
-  equal(forcePay.tokens, 1e5, 'Payment tokens amount');
-  equal(!!forcePay.transaction_id, true, 'Got payment transaction id');
-  equal(forcePay.transaction_vout !== undefined, true, 'Got payment vout');
+  strictEqual(forcePay.is_outgoing, true, 'Payment was outgoing');
+  strictEqual(forcePay.is_paid, true, 'Payment was sent');
+  strictEqual(forcePay.is_pending, false, 'Payment is settled');
+  strictEqual(forcePay.is_refunded, false, 'Payment completed successfully');
+  strictEqual(!!forcePay.spent_by, true, 'Payment was swept with preimage');
+  strictEqual(forcePay.tokens, 1e5, 'Payment tokens amount');
+  strictEqual(!!forcePay.transaction_id, true, 'Got payment transaction id');
+  strictEqual(forcePay.transaction_vout !== undefined, true, 'Got vout');
 
   const refundedHtlc = forceClosed.close_payments.find(n => !!n.is_refunded);
 
-  equal(refundedHtlc.is_outgoing, true, 'Payment was outgoing');
-  equal(refundedHtlc.is_paid, false, 'Payment was not paid');
-  equal(refundedHtlc.is_pending, false, 'Payment is resolved back');
-  equal(refundedHtlc.is_refunded, true, 'Payment refunded successfully');
-  equal(!!refundedHtlc.spent_by, true, 'Payment was swept with preimage');
-  equal(refundedHtlc.tokens, 1e5, 'Payment refund tokens amount');
-  equal(!!refundedHtlc.transaction_id, true, 'Got refund transaction id');
-  equal(refundedHtlc.transaction_vout !== undefined, true, 'Got refund vout');
+  strictEqual(refundedHtlc.is_outgoing, true, 'Payment was outgoing');
+  strictEqual(refundedHtlc.is_paid, false, 'Payment was not paid');
+  strictEqual(refundedHtlc.is_pending, false, 'Payment is resolved back');
+  strictEqual(refundedHtlc.is_refunded, true, 'Payment refunded successfully');
+  strictEqual(!!refundedHtlc.spent_by, true, 'Payment was swept');
+  strictEqual(refundedHtlc.tokens, 1e5, 'Payment refund tokens amount');
+  strictEqual(!!refundedHtlc.transaction_id, true, 'Got refund tx id');
+  strictEqual(refundedHtlc.transaction_vout !== undefined, true, 'Got vout');
 
   await kill({});
 
-  return end();
+  return;
 });

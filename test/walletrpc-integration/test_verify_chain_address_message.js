@@ -1,5 +1,7 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {signChainAddressMessage} = require('./../../');
@@ -8,7 +10,7 @@ const {verifyChainAddressMessage} = require('./../../');
 const message = 'message';
 
 // Verifying a chain address message signature should result in verification
-test(`Verify chain address message`, async ({end, equal}) => {
+test(`Verify chain address message`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [control] = nodes;
@@ -35,7 +37,7 @@ test(`Verify chain address message`, async ({end, equal}) => {
 
     await kill({});
 
-    return end();
+    return;
   }
 
   try {
@@ -54,5 +56,5 @@ test(`Verify chain address message`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

@@ -1,16 +1,17 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getBackup} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {verifyBackup} = require('./../../');
 
-const giftTokens = 1e5;
 const size = 2;
 
 // Verifying a channel backup should show the backup is valid
-test(`Test verify backup`, async ({end, equal}) => {
+test(`Test verify backup`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -20,7 +21,6 @@ test(`Test verify backup`, async ({end, equal}) => {
   const channelOpen = await setupChannel({
     lnd: target.lnd,
     generate: target.generate,
-    give: giftTokens,
     to: control,
   });
 
@@ -49,5 +49,5 @@ test(`Test verify backup`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

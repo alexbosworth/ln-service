@@ -1,14 +1,15 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {closeChannel} = require('./../../');
-const {createCluster} = require('./../macros');
-const {setupChannel} = require('./../macros');
 
 const size = 2;
 
 // Closing a channel should close the channel
-test(`Close channel`, async ({end, equal}) => {
+test(`Close channel`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -28,10 +29,10 @@ test(`Close channel`, async ({end, equal}) => {
       transaction_vout: channelOpen.transaction_vout,
     });
 
-    equal(channelClose.transaction_id.length, 64, 'Force close id returned');
-    equal(channelClose.transaction_vout, 0, 'Force close vout returned');
+    strictEqual(channelClose.transaction_id.length, 64, 'Got force close id');
+    strictEqual(channelClose.transaction_vout, 0, 'Force close vout returned');
   } catch (err) {
-    equal(err, null, 'Expected no error force closing');
+    strictEqual(err, null, 'Expected no error force closing');
   }
 
   // Coop close channel using the channel id
@@ -47,13 +48,13 @@ test(`Close channel`, async ({end, equal}) => {
       lnd: control.lnd,
     });
 
-    equal(channelClose.transaction_id.length, 64, 'Coop close id is returned');
-    equal(channelClose.transaction_vout, 0, 'Coop close tx vout returned');
+    strictEqual(channelClose.transaction_id.length, 64, 'Got coop close id');
+    strictEqual(channelClose.transaction_vout, 0, 'Got coop close tx vout');
   } catch (err) {
-    equal(err, null, 'Expected no error coop closing');
+    strictEqual(err, null, 'Expected no error coop closing');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

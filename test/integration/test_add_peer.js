@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
@@ -12,7 +14,7 @@ const times = 4000;
 const timeout = 100;
 
 // Adding peers should result in a connected peer
-test(`Add a peer`, async ({end, equal}) => {
+test(`Add a peer`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{lnd}, target] = nodes;
@@ -20,7 +22,11 @@ test(`Add a peer`, async ({end, equal}) => {
   try {
     const connectedKeys = (await getPeers({lnd})).peers.map(n => n.public_key);
 
-    equal(connectedKeys.find(n => n === target.id), undefined, 'No peer');
+    strictEqual(
+      connectedKeys.find(n => n === target.id),
+      undefined,
+      'No peer'
+    );
 
     await asyncRetry({interval, times}, async () => {
       await addPeer({
@@ -40,13 +46,13 @@ test(`Add a peer`, async ({end, equal}) => {
         throw new Error('ExpectedConnectionToTarget');
       }
 
-      equal(connected.public_key, target.id, 'Connected to remote node');
+      strictEqual(connected.public_key, target.id, 'Connected to remote node');
     });
   } catch (err) {
-    equal(err, null, 'Expected no error');
+    strictEqual(err, null, 'Expected no error');
   } finally {
     await kill({});
   }
 
-  return end();
+  return;
 });

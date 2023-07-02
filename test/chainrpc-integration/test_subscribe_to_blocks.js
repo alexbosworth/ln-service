@@ -1,9 +1,10 @@
-const EventEmitter = require('events');
-const {once} = require('events');
+const EventEmitter = require('node:events');
+const {once} = require('node:events');
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {delay} = require('./../macros');
@@ -19,7 +20,7 @@ const race = promises => Promise.race(promises);
 const times = 4000;
 
 // Subscribers to blocks should receive block notifications
-test(`Subscribe to blocks`, async ({end, equal, fail}) => {
+test(`Subscribe to blocks`, async () => {
   const blocks = [];
   const {kill, nodes} = await spawnLightningCluster({});
 
@@ -40,7 +41,7 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
     return !!event.height;
   });
 
-  equal(gotHeight, true, 'Got the block height');
+  strictEqual(gotHeight, true, 'Got the block height');
 
   try {
     // Wait for chainrpc to be active
@@ -73,15 +74,15 @@ test(`Subscribe to blocks`, async ({end, equal, fail}) => {
     });
 
     blocks.forEach(({height, id}) => {
-      equal(!!height, true, 'Got expected block height');
-      equal(id.length, 64, 'Got expected block hash length');
+      strictEqual(!!height, true, 'Got expected block height');
+      strictEqual(id.length, 64, 'Got expected block hash length');
       return;
     });
   } catch (err) {
-    equal(err, null, 'Expected no error');
+    strictEqual(err, null, 'Expected no error');
   } finally {
     await kill({});
 
-    return end();
+    return;
   }
 });

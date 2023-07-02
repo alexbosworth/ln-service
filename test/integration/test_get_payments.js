@@ -1,18 +1,20 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncTimesSeries = require('async/timesSeries');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {getPayments} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const start = new Date().toISOString();
 const size = 2;
 const tokens = 100;
 
 // Getting payments should return the list of payments
-test('Get payments', async ({end, equal}) => {
+test('Get payments', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -25,20 +27,20 @@ test('Get payments', async ({end, equal}) => {
 
   const [payment] = (await getPayments({lnd})).payments;
 
-  equal(payment.destination, target.id, 'Destination');
-  equal(payment.confirmed_at > start, true, 'Got confirmed date');
-  equal(payment.created_at.length, 24, 'Created at time');
-  equal(payment.fee, 0, 'Fee paid');
-  equal(payment.hops.length, [].length, 'Hops');
-  equal(payment.id, invoice.id, 'Id');
-  equal(payment.is_confirmed, true, 'Confirmed');
-  equal(payment.is_outgoing, true, 'Outgoing');
-  equal(payment.mtokens, (BigInt(tokens) * BigInt(1e3)).toString(), 'Mtoks');
-  equal(payment.secret, invoice.secret, 'Payment secret');
-  equal(payment.tokens, tokens, 'Paid tokens');
+  strictEqual(payment.destination, target.id, 'Destination');
+  strictEqual(payment.confirmed_at > start, true, 'Got confirmed date');
+  strictEqual(payment.created_at.length, 24, 'Created at time');
+  strictEqual(payment.fee, 0, 'Fee paid');
+  strictEqual(payment.hops.length, [].length, 'Hops');
+  strictEqual(payment.id, invoice.id, 'Id');
+  strictEqual(payment.is_confirmed, true, 'Confirmed');
+  strictEqual(payment.is_outgoing, true, 'Outgoing');
+  strictEqual(payment.mtokens, (BigInt(tokens) * BigInt(1e3)).toString(), 'M');
+  strictEqual(payment.secret, invoice.secret, 'Payment secret');
+  strictEqual(payment.tokens, tokens, 'Paid tokens');
 
   if (!!payment.request) {
-    equal(payment.request, invoice.request, 'Returns original pay request');
+    strictEqual(payment.request, invoice.request, 'Returns original request');
   }
 
   await asyncTimesSeries(4, async () => {
@@ -55,13 +57,13 @@ test('Get payments', async ({end, equal}) => {
 
   const [firstOfPage2] = page2.payments;
 
-  equal(firstOfPage2.index, 3, 'Got payment index');
+  strictEqual(firstOfPage2.index, 3, 'Got payment index');
 
   const page3 = await getPayments({lnd, token: page2.next});
 
-  equal(!!page3.next, false, 'There is no page 4');
+  strictEqual(!!page3.next, false, 'There is no page 4');
 
   await kill({});
 
-  return end();
+  return;
 });

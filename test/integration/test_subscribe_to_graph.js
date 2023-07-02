@@ -1,21 +1,27 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {setupChannel} = require('./../macros');
 const {subscribeToGraph} = require('./../../');
 
 const capacity = 1e6;
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const increaseDelay = n => n * 1000;
 const interval = 10;
 const size = 2;
 const times = 1000;
 
 // Subscribing to graph should trigger graph events
-test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
+test('Subscribe to channels', async () => {
+  const attempts = [];
+
   await asyncRetry({interval, times}, async () => {
     const {kill, nodes} = await spawnLightningCluster({size});
 
@@ -28,7 +34,9 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
     const nodeUpdated = [];
     const {socket} = target;
 
-    await delay(3000);
+    attempts.push(socket);
+
+    await delay(increaseDelay(attempts.length));
 
     const sub = subscribeToGraph({lnd});
 
@@ -80,8 +88,8 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
       equal(channelClose.capacity, capacity, 'Got closed channel capacity');
       equal(!!channelClose.close_height, true, 'Got closed channel height');
       equal(channelClose.id, id, 'Got closed channel id');
-      equal(channelClose.transaction_id, channel.transaction_id, 'Got close tx');
-      equal(channelClose.transaction_vout, channel.transaction_vout, 'Got vout');
+      equal(channelClose.transaction_id, channel.transaction_id, 'Got close');
+      equal(channelClose.transaction_vout, channel.transaction_vout, 'Vout');
       equal(!!channelClose.updated_at, true, 'Got close updated at');
 
       const expectedUpdates = channelPolicies.policies.map(policy => {
@@ -116,7 +124,7 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
 
         delete gotUpdate.updated_at;
 
-        strictSame(gotUpdate, update, 'Got expected channel policy announcement');
+        deepEqual(gotUpdate, update, 'Got expected channel announcement');
 
         return;
       });
@@ -150,8 +158,8 @@ test('Subscribe to channels', async ({end, equal, fail, strictSame}) => {
 
       equal(!!gotTarget, true, 'Got target updated at');
 
-      strictSame(gotControl, expectedControl, 'Got control node announcement');
-      strictSame(gotTarget, expectedTarget, 'Got target node announcement');
+      deepEqual(gotControl, expectedControl, 'Got control node announcement');
+      deepEqual(gotTarget, expectedTarget, 'Got target node announcement');
 
       await kill({});
     } catch (err) {

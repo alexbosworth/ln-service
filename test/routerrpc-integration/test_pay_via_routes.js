@@ -1,14 +1,14 @@
-const {randomBytes} = require('crypto');
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
@@ -17,10 +17,7 @@ const {getRouteToDestination} = require('./../../');
 const {openChannel} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {routeFromChannels} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToForwardRequests} = require('./../../');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
@@ -41,7 +38,7 @@ const tokens = 100;
 const txIdHexLength = 32 * 2;
 
 // Paying via routes should successfully pay via routes
-test(`Pay via routes`, async ({end, equal, strictSame}) => {
+test(`Pay via routes`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -55,7 +52,7 @@ test(`Pay via routes`, async ({end, equal, strictSame}) => {
 
   const targetToRemoteChan = await setupChannel({
     generate: target.generate,
-    hidden: true,
+    is_private: true,
     lnd: target.lnd,
     to: remote,
   });
@@ -191,7 +188,7 @@ test(`Pay via routes`, async ({end, equal, strictSame}) => {
 
   const payment = await payViaRoutes({id, lnd, routes: [route]});
 
-  strictSame(forwardMessages, [intermediateRecord], 'Got intermediate record');
+  deepEqual(forwardMessages, [intermediateRecord], 'Got intermediate record');
 
   equal(payment.confirmed_at > start, true, 'Paid has confirm date');
 
@@ -213,5 +210,5 @@ test(`Pay via routes`, async ({end, equal, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

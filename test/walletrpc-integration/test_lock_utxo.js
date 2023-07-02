@@ -1,5 +1,9 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {rejects} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getUtxos} = require('./../../');
@@ -11,7 +15,7 @@ const size = 2;
 const tokens = 1e6;
 
 // Locking a UTXO should result in the UTXO being unspendable
-test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
+test(`Lock UTXO`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -40,7 +44,7 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
         transaction_vout: utxo.transaction_vout,
       });
     } catch (err) {
-      strictSame(err, null, 'Relocking the same UTXO should work');
+      deepEqual(err, null, 'Relocking the same UTXO should work');
     }
 
     await rejects(
@@ -63,7 +67,7 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
       'UTXO must exist'
     );
   } catch (err) {
-    strictSame(
+    deepEqual(
       err,
       [501, 'BackingLndDoesNotSupportLockingUtxos'],
       'Got unsupported error'
@@ -72,5 +76,5 @@ test(`Lock UTXO`, async ({end, equal, rejects, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

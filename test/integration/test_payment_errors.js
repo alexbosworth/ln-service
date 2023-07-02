@@ -1,27 +1,26 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
-const {decodeChanId} = require('bolt07');
 const {hopsFromChannels} = require('bolt07');
 const {routeFromHops} = require('bolt07');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
-const {getIdentity} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
 
-const interval = retryCount => 50 * Math.pow(2, retryCount);
+const interval = 10;
 const mtok = '000';
 const size = 2;
-const times = 15;
+const times = 1000;
 const tokens = 1e3;
 
 // Encountering errors in payment should return valid error codes
-test('Payment errors', async ({end, equal}) => {
+test('Payment errors', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -89,13 +88,13 @@ test('Payment errors', async ({end, equal}) => {
     if (Array.isArray(err)) {
       const [, code, context] = err;
 
-      equal(code, 'FeeInsufficient', 'Pay fails due to low fee');
+      strictEqual(code, 'FeeInsufficient', 'Pay fails due to low fee');
     } else {
-      equal(err, null, 'Expected array type error');
+      strictEqual(err, null, 'Expected array type error');
     }
   }
 
   await kill({});
 
-  return end();
+  return;
 });

@@ -1,11 +1,13 @@
-const {test} = require('@alexbosworth/tap');
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const {Transaction} = require('bitcoinjs-lib');
 
 const {signTransaction} = require('./../../');
 
 // Signing a transaction should result in signatures for the transaction
-test(`Sign transaction`, async ({end, equal}) => {
+test(`Sign transaction`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{lnd}] = nodes;
@@ -28,5 +30,5 @@ test(`Sign transaction`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

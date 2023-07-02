@@ -1,9 +1,10 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
-const {createCluster} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
 const {sendToChainAddress} = require('./../../');
@@ -20,7 +21,7 @@ const tokens = 1e6;
 const txIdHexByteLength = 64;
 
 // Sending to chain addresses should result in on-chain sent funds
-test(`Send to chain address`, async ({end, equal}) => {
+test(`Send to chain address`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   try {
@@ -42,10 +43,10 @@ test(`Send to chain address`, async ({end, equal}) => {
       lnd: control.lnd,
     });
 
-    equal(sent.id.length, txIdHexByteLength, 'Transaction id is returned');
-    equal(sent.is_confirmed, false, 'Transaction is not yet confirmed');
-    equal(sent.is_outgoing, true, 'Transaction is outgoing');
-    equal(sent.tokens, tokens, 'Tokens amount matches tokens sent');
+    strictEqual(sent.id.length, txIdHexByteLength, 'Transaction id');
+    strictEqual(sent.is_confirmed, false, 'Transaction is not yet confirmed');
+    strictEqual(sent.is_outgoing, true, 'Transaction is outgoing');
+    strictEqual(sent.tokens, tokens, 'Tokens amount matches tokens sent');
 
     // Wait for generation to be over
     await asyncRetry({interval, times}, async () => {
@@ -67,7 +68,7 @@ test(`Send to chain address`, async ({end, equal}) => {
 
     const adjustment = endBalance.chain_balance - startBalance.chain_balance;
 
-    equal(adjustment, tokens, 'Transaction balance is shifted');
+    strictEqual(adjustment, tokens, 'Transaction balance is shifted');
 
     try {
       await asyncRetry({interval, times}, async () => {
@@ -86,7 +87,7 @@ test(`Send to chain address`, async ({end, equal}) => {
 
       const controlFunds = await getChainBalance({lnd: control.lnd});
 
-      equal(controlFunds.chain_balance, 0, 'All funds sent on-chain');
+      strictEqual(controlFunds.chain_balance, 0, 'All funds sent on-chain');
     } catch (err) {
       if (err[2].message !== '2 UNKNOWN: transaction output is dust') {
         throw err;
@@ -97,12 +98,12 @@ test(`Send to chain address`, async ({end, equal}) => {
 
     const sentTransaction = transactions.find(n => n.id === sent.id);
 
-    equal(sentTransaction.description, description, 'Got expected label');
+    strictEqual(sentTransaction.description, description, 'Got label');
   } catch (err) {
-    equal(err, null, 'ExpectedNoErrorSendingToChainAddress');
+    strictEqual(err, null, 'ExpectedNoErrorSendingToChainAddress');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

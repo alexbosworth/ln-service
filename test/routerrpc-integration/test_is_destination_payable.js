@@ -1,6 +1,9 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {isDestinationPayable} = require('./../../');
 
@@ -8,7 +11,7 @@ const size = 2;
 const tokens = 1e6 / 2;
 
 // Determining if a route is payable should indicate if a route can be found
-test('Is destination payable', async ({end, equal, strictSame}) => {
+test('Is destination payable', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -18,7 +21,7 @@ test('Is destination payable', async ({end, equal, strictSame}) => {
 
     const canPay = await isDestinationPayable({lnd, destination: target.id});
 
-    strictSame(canPay, {is_payable: true}, 'Can pay with default amount');
+    deepEqual(canPay, {is_payable: true}, 'Can pay with default amount');
 
     const canPayTokens = await isDestinationPayable({
       lnd,
@@ -26,7 +29,7 @@ test('Is destination payable', async ({end, equal, strictSame}) => {
       destination: target.id,
     });
 
-    strictSame(canPayTokens, {is_payable: true}, 'Can pay with tokens amount');
+    deepEqual(canPayTokens, {is_payable: true}, 'Can pay with tokens amount');
 
     const canPayMtokens = await isDestinationPayable({
       lnd,
@@ -34,12 +37,12 @@ test('Is destination payable', async ({end, equal, strictSame}) => {
       destination: target.id,
     });
 
-    strictSame(canPayMtokens, {is_payable: true}, 'Can pay with mtokens sum');
+    deepEqual(canPayMtokens, {is_payable: true}, 'Can pay with mtokens sum');
   } catch (err) {
     equal(err, null, 'Expected no error');
-  } finally {
-    await kill({});
   }
+  
+  await kill({});
 
-  return end();
+  return;
 });

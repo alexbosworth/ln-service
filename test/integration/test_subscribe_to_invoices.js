@@ -1,13 +1,15 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {hopsFromChannels} = require('bolt07');
 const {routeFromHops} = require('bolt07');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {getChannel} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');
 
 const channelCapacityTokens = 1e6;
@@ -24,7 +26,7 @@ const times = 3000;
 const tokens = 1e4;
 
 // Subscribing to invoices should trigger invoice events
-test('Subscribe to invoices', async ({end, equal, fail}) => {
+test('Subscribe to invoices', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -40,7 +42,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     const controlToTargetChannel = await setupChannel({
       generate,
       lnd,
-      give: 1e5,
+      give_tokens: 1e5,
       to: target,
     });
 
@@ -48,7 +50,7 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     const targetToControlChannel = await setupChannel({
       lnd: target.lnd,
       generate: target.generate,
-      give: 1e5,
+      give_tokens: 1e5,
       to: control,
     });
 
@@ -137,9 +139,9 @@ test('Subscribe to invoices', async ({end, equal, fail}) => {
     }
   } catch (err) {
     equal(err, null, 'Expected no error');
-  } finally {
-    await kill({});
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

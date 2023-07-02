@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -24,7 +26,7 @@ const times = 1000;
 const txIdHexLength = 32 * 2;
 
 // Opening a channel should open a channel
-test(`Open channel`, async ({end, equal}) => {
+test(`Open channel`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, id, lnd}, target] = nodes;
@@ -50,8 +52,8 @@ test(`Open channel`, async ({end, equal}) => {
     });
   });
 
-  equal(channelOpen.transaction_id.length, txIdHexLength, 'Channel tx id');
-  equal(channelOpen.transaction_vout, defaultVout, 'Channel tx output index');
+  strictEqual(channelOpen.transaction_id.length, txIdHexLength, 'Channel id');
+  strictEqual(channelOpen.transaction_vout, defaultVout, 'Channel tx output');
 
   await asyncRetry({interval, times}, async () => {
     await generate({});
@@ -65,7 +67,7 @@ test(`Open channel`, async ({end, equal}) => {
     }
 
     if (!!channel.description) {
-      equal(channel.description, description, 'Description set');
+      strictEqual(channel.description, description, 'Description set');
     }
 
     const {policies} = await getChannel({lnd, id: channel.id});
@@ -81,11 +83,11 @@ test(`Open channel`, async ({end, equal}) => {
       return;
     }
 
-    equal(policy.base_fee_mtokens, baseFee, 'Base fee is set');
-    equal(policy.fee_rate, feeRate, 'Fee rate is set');
+    strictEqual(policy.base_fee_mtokens, baseFee, 'Base fee is set');
+    strictEqual(policy.fee_rate, feeRate, 'Fee rate is set');
   });
 
   await kill({});
 
-  return end();
+  return;
 });

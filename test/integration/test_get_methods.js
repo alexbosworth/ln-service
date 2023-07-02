@@ -1,33 +1,30 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getMethods} = require('./../../');
 
+const {isArray} = Array;
+
 // Getting LND methods should result in LND methods returned
-test(`Get LND methods`, async ({end, equal, type}) => {
+test(`Get LND methods`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{lnd}] = nodes;
 
-  try {
-    const {methods} = await getMethods({lnd});
+  const {methods} = await getMethods({lnd});
 
-    const [method] = methods;
+  const [method] = methods;
 
-    type(method.endpoint, 'string', 'Has endpoint path');
-    type(method.permissions, Array, 'Has array of permissions');
+  strictEqual(typeof method.endpoint, 'string', 'Has endpoint path');
+  strictEqual(isArray(method.permissions), true, 'Has array of permissions');
 
-    const [permission] = method.permissions;
+  const [permission] = method.permissions;
 
-    type(permission, 'string', 'Has permission');
-  } catch (err) {
-    const [code, message] = err;
-
-    equal(code, 501, 'Method not supported yet');
-    equal(message, 'ListPermissionsMethodNotSupported', 'Not supported msg');
-  }
+  strictEqual(typeof permission, 'string', 'Has permission');
 
   await kill({});
 
-  return end();
+  return;
 });

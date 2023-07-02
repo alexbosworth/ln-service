@@ -1,13 +1,16 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
+const {deleteForwardingReputations} = require('./../../');
 const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
@@ -24,7 +27,7 @@ const tlvOnionBit = 14;
 const tokens = 1e6 / 2;
 
 // Getting forwarding reputations should return reputations
-test('Get forwarding reputations', async ({end, equal}) => {
+test('Get forwarding reputations', async () => {
   const cluster = await spawnLightningCluster({size});
 
   const [{generate, id, lnd}, target, remote] = cluster.nodes;
@@ -42,7 +45,7 @@ test('Get forwarding reputations', async ({end, equal}) => {
 
     const targetToRemoteChan = await setupChannel({
       generate: target.generate,
-      give: Math.round(channelCapacityTokens / 2),
+      give_tokens: Math.round(channelCapacityTokens / 2),
       lnd: target.lnd,
       to: remote,
     });
@@ -68,6 +71,8 @@ test('Get forwarding reputations', async ({end, equal}) => {
     });
 
     await asyncRetry({interval, times}, async () => {
+      await deleteForwardingReputations({lnd});
+
       await generate({});
 
       await addPeer({
@@ -115,9 +120,9 @@ test('Get forwarding reputations', async ({end, equal}) => {
     });
   } catch (err) {
     equal(err, null, 'Expected no error');
-  } finally {
-    await cluster.kill({});
   }
 
-  return end();
+  await cluster.kill({});
+
+  return;
 });

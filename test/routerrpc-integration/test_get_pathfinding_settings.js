@@ -1,11 +1,13 @@
+const {deepEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getPathfindingSettings} = require('./../../');
 
 // Getting pathfinding settings should return pathfinding configuration
-test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
+test(`Get pathfinding settings`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{lnd}] = nodes;
@@ -17,7 +19,7 @@ test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
     if (err.slice().shift() === 501) {
       await kill({});
 
-      return end();
+      return;
     }
   }
 
@@ -30,9 +32,9 @@ test(`Get pathfinding settings`, async ({end, equal, fail, strictSame}) => {
     penalty_half_life_ms: 3600000,
   };
 
-  strictSame(config, expected, 'Got expected pathfinding config');
+  deepEqual(config, expected, 'Got expected pathfinding config');
 
   await kill({});
 
-  return end();
+  return;
 });

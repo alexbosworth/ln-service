@@ -1,10 +1,12 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getChainFeeRate} = require('./../../');
 
 // Getting the chain fee rate should return the fee rate estimate
-test(`Get chain fee rate`, async ({end, equal}) => {
+test(`Get chain fee rate`, async () => {
   const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   const feeRate = await getChainFeeRate({lnd});
@@ -13,5 +15,5 @@ test(`Get chain fee rate`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

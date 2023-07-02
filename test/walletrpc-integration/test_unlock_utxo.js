@@ -1,5 +1,9 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {rejects} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getUtxos} = require('./../../');
@@ -12,7 +16,7 @@ const size = 2;
 const tokens = 1e6;
 
 // Unlocking a UTXO should result in the UTXO becoming spendable
-test(`Unlock UTXO`, async ({end, equal, rejects, strictSame}) => {
+test(`Unlock UTXO`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -55,7 +59,7 @@ test(`Unlock UTXO`, async ({end, equal, rejects, strictSame}) => {
     // Now the send should go without error
     await sendToChainAddress({address, tokens, lnd: control.lnd});
   } catch (err) {
-    strictSame(
+    deepEqual(
       err,
       [501, 'BackingLndDoesNotSupportLockingUtxos'],
       'Got unsupported error'
@@ -64,5 +68,5 @@ test(`Unlock UTXO`, async ({end, equal, rejects, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

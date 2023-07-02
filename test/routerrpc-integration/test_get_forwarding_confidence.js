@@ -1,5 +1,8 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createInvoice} = require('./../../');
@@ -8,7 +11,6 @@ const {getForwardingConfidence} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
@@ -17,7 +19,7 @@ const mtokens = '1000';
 const tokens = 1e6 / 2;
 
 // Getting forwarding confidence should return confidence score
-test('Get forwarding confidence', async ({end, equal}) => {
+test('Get forwarding confidence', async () => {
   const cluster = await spawnLightningCluster({size});
 
   const [{generate, id, lnd}, target, remote] = cluster.nodes;
@@ -35,7 +37,7 @@ test('Get forwarding confidence', async ({end, equal}) => {
   await setupChannel({
     capacity: channelCapacityTokens,
     generate: target.generate,
-    give: Math.round(channelCapacityTokens / 2),
+    give_tokens: Math.round(channelCapacityTokens / 2),
     lnd: target.lnd,
     to: remote,
   });
@@ -84,5 +86,5 @@ test('Get forwarding confidence', async ({end, equal}) => {
 
   await cluster.kill({});
 
-  return end();
+  return;
 });

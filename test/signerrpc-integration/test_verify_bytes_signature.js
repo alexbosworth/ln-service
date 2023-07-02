@@ -1,9 +1,10 @@
-const {createHash} = require('crypto');
+const {createHash} = require('node:crypto');
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
 
 const {decode} = require('bip66');
 const {ecdsaRecover} = require('secp256k1');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {signBytes} = require('./../../');
 const {verifyBytesSignature} = require('./../../');
@@ -13,7 +14,7 @@ const recoveryFlags = [0, 1, 2, 3];
 const sha256 = n => createHash('sha256').update(Buffer.from(n, 'hex'));
 
 // Verifying signature over bytes should result in validity
-test(`Verify bytes signature`, async ({end, equal}) => {
+test(`Verify bytes signature`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{id, lnd}] = nodes;
@@ -98,5 +99,5 @@ test(`Verify bytes signature`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

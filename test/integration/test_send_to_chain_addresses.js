@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
@@ -14,7 +16,7 @@ const tokens = 1e6;
 const txIdHexByteLength = 64;
 
 // Sending to chain addresses should result in on-chain sent funds
-test(`Send to chain address`, async ({end, equal}) => {
+test(`Send to chain address`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -43,10 +45,10 @@ test(`Send to chain address`, async ({end, equal}) => {
     ],
   });
 
-  equal(sent.id.length, txIdHexByteLength, 'Transaction id is returned');
-  equal(sent.is_confirmed, false, 'Transaction is not yet confirmed');
-  equal(sent.is_outgoing, true, 'Transaction is outgoing');
-  equal(sent.tokens, tokens, 'Tokens amount matches tokens sent');
+  strictEqual(sent.id.length, txIdHexByteLength, 'Transaction id is returned');
+  strictEqual(sent.is_confirmed, false, 'Transaction is not yet confirmed');
+  strictEqual(sent.is_outgoing, true, 'Transaction is outgoing');
+  strictEqual(sent.tokens, tokens, 'Tokens amount matches tokens sent');
 
   await asyncRetry({interval, times}, async () => {
     // Generate to confirm the tx
@@ -60,10 +62,10 @@ test(`Send to chain address`, async ({end, equal}) => {
       throw new Error('WaitingForAdjustment');
     }
 
-    equal(adjustment, tokens, 'Transaction balance is shifted');
+    strictEqual(adjustment, tokens, 'Transaction balance is shifted');
   })
 
   await kill({});
 
-  return end();
+  return;
 });

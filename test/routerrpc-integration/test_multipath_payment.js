@@ -1,6 +1,10 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {getChannelBalance} = require('./../../');
@@ -10,7 +14,6 @@ const {getRouteToDestination} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const all = promise => Promise.all(promise);
@@ -23,7 +26,7 @@ const size = 2;
 const times = 2000;
 
 // Paying using multiple paths should execute the payment across paths
-test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
+test(`Pay with multiple paths`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -94,7 +97,7 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
         throw err;
       }
 
-      strictSame(
+      deepEqual(
         err,
         [503, 'PaymentPathfindingFailedToFindPossibleRoute'],
         'No path'
@@ -171,5 +174,5 @@ test(`Pay with multiple paths`, async ({end, equal, rejects, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

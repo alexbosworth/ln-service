@@ -1,9 +1,11 @@
+const {equal} = require('node:assert').strict;
+const {fail} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getHeight} = require('./../../');
 const {sendToChainAddress} = require('./../../');
@@ -16,7 +18,7 @@ const times = 200;
 const tokens = 1e6;
 
 // Subscribing to chain transactions should result in tx events
-test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
+test(`Subscribe to chain transactions`, async () => {
   const transactions = [];
 
   const {kill, nodes} = await spawnLightningCluster({size});
@@ -84,5 +86,5 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

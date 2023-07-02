@@ -1,5 +1,7 @@
+const {deepEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {grantAccess} = require('./../../');
 const {verifyAccess} = require('./../../');
@@ -8,7 +10,7 @@ const invalidPermissions = ['address:write'];
 const permissions = ['address:read'];
 
 // Verifying access should result in access verified
-test(`Verify access`, async ({end, equal, rejects, strictSame}) => {
+test(`Verify access`, async () => {
   const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   const {macaroon} = await grantAccess({lnd, permissions});
@@ -17,7 +19,7 @@ test(`Verify access`, async ({end, equal, rejects, strictSame}) => {
   try {
     const validity = await verifyAccess({lnd, macaroon, permissions});
 
-    strictSame(validity, {is_valid: true}, 'Macaroon is valid');
+    deepEqual(validity, {is_valid: true}, 'Macaroon is valid');
 
     const invalid = await verifyAccess({
       lnd,
@@ -25,12 +27,12 @@ test(`Verify access`, async ({end, equal, rejects, strictSame}) => {
       permissions: invalidPermissions,
     });
 
-    strictSame(invalid, {is_valid: false}, 'Message is not valid');
+    deepEqual(invalid, {is_valid: false}, 'Message is not valid');
   } catch (err) {
-    strictSame(err, [501, 'VerifyAccessMethodNotSupported'], 'Got error')
+    deepEqual(err, [501, 'VerifyAccessMethodNotSupported'], 'Got error')
   }
 
   await kill({});
 
-  return end();
+  return;
 });

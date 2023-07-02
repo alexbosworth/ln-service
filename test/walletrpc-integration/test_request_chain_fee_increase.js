@@ -1,5 +1,9 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {fail} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -12,7 +16,7 @@ const count = 100;
 const tokens = 1e8;
 
 // Test requesting a chain fee increase
-test(`Request chain fee increase`, async ({end, equal, fail, strictSame}) => {
+test(`Request chain fee increase`, async () => {
   const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   try {
@@ -39,7 +43,7 @@ test(`Request chain fee increase`, async ({end, equal, fail, strictSame}) => {
       });
       fail('Expected chain fee increase rejected');
     } catch (err) {
-      strictSame(err, [404, 'SpecifiedOutpointNotFoundInWalletUtxos'], '404');
+      deepEqual(err, [404, 'SpecifiedOutpointNotFoundInWalletUtxos'], '404');
     }
 
     await requestChainFeeIncrease({
@@ -53,5 +57,5 @@ test(`Request chain fee increase`, async ({end, equal, fail, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

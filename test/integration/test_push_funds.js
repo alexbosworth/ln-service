@@ -1,19 +1,17 @@
-const asyncRetry = require('async/retry');
-const {decodeChanId} = require('bolt07');
-const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
-const {createCluster} = require('./../macros');
+const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
+const {spawnLightningCluster} = require('ln-docker-daemons');
+
 const {createInvoice} = require('./../../');
 const {getChannel} = require('./../../');
 const {getChannelBalance} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
-const {getPendingChannels} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {pay} = require('./../../');
 const {routeFromChannels} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
 const {floor} = Math;
@@ -25,7 +23,7 @@ const times = 100;
 const tokens = 1e3;
 
 // Pushing funds via a fee bump should result in the destination getting funds
-test('Push funds', async ({end, equal}) => {
+test('Push funds', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -35,7 +33,7 @@ test('Push funds', async ({end, equal}) => {
   await setupChannel({
     lnd,
     generate: control.generate,
-    give: floor(channelCapacityTokens * reserveRatio),
+    give_tokens: floor(channelCapacityTokens * reserveRatio),
     to: target,
   });
 
@@ -75,10 +73,10 @@ test('Push funds', async ({end, equal}) => {
       throw new Error('ExpectedBalanceToBeAdjustedAsExpected');
     }
 
-    equal(initialBalance - finalBalance, tokens, 'Funds pushed to peer');
+    strictEqual(initialBalance - finalBalance, tokens, 'Funds pushed to peer');
   });
 
   await kill({});
 
-  return end();
+  return;
 });

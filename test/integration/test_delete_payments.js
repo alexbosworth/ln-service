@@ -1,24 +1,24 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
 const {deletePayments} = require('./../../');
 const {getPayments} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const size = 2;
 const times = 1000;
 const tokens = 100;
 
 // Deleting payments should delete all payments
-test('Delete payments', async ({afterEach, fail, end, equal}) => {
+test('Delete payments', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [control, target] = nodes;
-
-  const {generate, lnd} = control;
+  const [{generate, lnd}, target] = nodes;
 
   await setupChannel({generate, lnd, to: target});
 
@@ -34,9 +34,9 @@ test('Delete payments', async ({afterEach, fail, end, equal}) => {
 
   const wipedLength = (await getPayments({lnd})).payments.length;
 
-  equal(priorLength - wipedLength, [paid].length, 'Payment history deleted');
+  strictEqual(priorLength - wipedLength, [paid].length, 'History deleted');
 
   await kill({});
 
-  return end();
+  return;
 });

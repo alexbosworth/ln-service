@@ -1,10 +1,12 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {getRouteConfidence} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
@@ -12,7 +14,7 @@ const size = 3;
 const tokens = 1e6 / 2;
 
 // Getting route confidence should return confidence in a route
-test('Get route confidence', async ({end, equal}) => {
+test('Get route confidence', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -57,5 +59,5 @@ test('Get route confidence', async ({end, equal}) => {
     await kill({});
   }
 
-  return end();
+  return;
 });

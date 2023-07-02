@@ -1,10 +1,11 @@
-const {createHash} = require('crypto');
-const {randomBytes} = require('crypto');
+const {createHash} = require('node:crypto');
+const {equal} = require('node:assert').strict;
+const {randomBytes} = require('node:crypto');
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {cancelHodlInvoice} = require('./../../');
 const {createHodlInvoice} = require('./../../');
@@ -19,7 +20,7 @@ const times = 1000;
 const tokens = 100;
 
 // Create a hodl invoice, but cancel it
-test(`Cancel back a hodl invoice`, async ({end, equal}) => {
+test(`Cancel back a hodl invoice`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -72,5 +73,5 @@ test(`Cancel back a hodl invoice`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

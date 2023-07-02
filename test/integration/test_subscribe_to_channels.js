@@ -1,6 +1,8 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
@@ -19,7 +21,7 @@ const size = 2;
 const times = 200;
 
 // Subscribing to channels should trigger channel events
-test('Subscribe to channels', async ({end, equal, fail}) => {
+test('Subscribe to channels', async () => {
   const activeChanged = [];
   const channelAdding = [];
   const channelClosed = [];
@@ -35,8 +37,6 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
 
   const {features} = await getWalletInfo({lnd});
   const sub = subscribeToChannels({lnd});
-
-  const isAnchors = !!features.find(n => n.bit === 23);
 
   sub.on('channel_active_changed', update => activeChanged.push(update));
   sub.on('channel_closed', update => channelClosed.push(update));
@@ -96,16 +96,9 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
     equal(openEvent.remote_given, giveTokens, 'Push tokens are reflected');
   }
 
-  // LND 0.11.1 and before do not use anchors
-  if (isAnchors) {
-    equal(openEvent.commit_transaction_fee, 2810, 'Channel commit tx fee');
-    equal(openEvent.commit_transaction_weight, 1116, 'Commit tx weight');
-    equal(openEvent.local_balance, 896530, 'Channel local balance returned');
-  } else {
-    equal(openEvent.commit_transaction_fee, 9050, 'Channel commit tx fee');
-    equal(openEvent.commit_transaction_weight, 724, 'Commit tx weight');
-    equal(openEvent.local_balance, 890950, 'Channel local balance returned');
-  }
+  equal(openEvent.commit_transaction_fee, 2810, 'Channel commit tx fee');
+  equal(openEvent.commit_transaction_weight, 1116, 'Commit tx weight');
+  equal(openEvent.local_balance, 896530, 'Channel local balance returned');
 
   // LND 0.16.4 and below do not support channel descriptions
   if (!!openEvent.description) {
@@ -155,13 +148,9 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
 
   const closeEvent = channelClosed.pop();
 
-  if (isAnchors) {
-    const final = closeEvent.final_local_balance;
+  const final = closeEvent.final_local_balance;
 
-    equal([897190, 846655, 863366].includes(final), true, 'Close final');
-  } else {
-    equal(closeEvent.final_local_balance, 890950, 'Close final local balance');
-  }
+  equal([897190, 846655, 863366].includes(final), true, 'Close final');
 
   equal(closeEvent.capacity, channelCapacityTokens, 'Channel close capacity');
   equal(!!closeEvent.close_confirm_height, true, 'Close confirm height');
@@ -193,5 +182,5 @@ test('Subscribe to channels', async ({end, equal, fail}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

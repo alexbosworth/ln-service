@@ -1,10 +1,10 @@
-const {createHash} = require('crypto');
-const {randomBytes} = require('crypto');
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncAuto = require('async/auto');
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {closeChannel} = require('./../../');
 const {createHodlInvoice} = require('./../../');
@@ -17,7 +17,6 @@ const {getSweepTransactions} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
 
 const anchorsFeatureBit = 23;
@@ -32,7 +31,7 @@ const times = 10000;
 const tokens = 100;
 
 // Force close a channel and get the resulting sweep transaction
-test(`Get sweep transactions`, async ({end, equal}) => {
+test(`Get sweep transactions`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -43,8 +42,8 @@ test(`Get sweep transactions`, async ({end, equal}) => {
 
   const channel = await setupChannel({
     generate,
-    give,
     lnd,
+    give_tokens: give,
     partner_csv_delay: blockDelay,
     to: target,
   });
@@ -122,5 +121,5 @@ test(`Get sweep transactions`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

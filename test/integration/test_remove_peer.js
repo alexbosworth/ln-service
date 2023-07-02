@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {getPeers} = require('./../../');
@@ -11,7 +13,7 @@ const size = 2;
 const times = 2000;
 
 // Removing peers should result in a removed peer
-test(`Remove a peer`, async ({end, equal}) => {
+test(`Remove a peer`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{id, lnd}, target] = nodes;
@@ -25,7 +27,7 @@ test(`Remove a peer`, async ({end, equal}) => {
 
     const [targetPeer] = peers;
 
-    equal(targetPeer.public_key, target.id, 'Peer is added');
+    strictEqual(targetPeer.public_key, target.id, 'Peer is added');
 
     await removePeer({lnd, public_key: targetPeer.public_key});
 
@@ -36,13 +38,13 @@ test(`Remove a peer`, async ({end, equal}) => {
         throw new Error('ExpectedPeerRemoved');
       }
 
-      equal(postRemovalPeers.peers.length, [].length, 'Peer is removed');
+      strictEqual(postRemovalPeers.peers.length, [].length, 'Peer is removed');
     });
   } catch (err) {
-    equal(err, null, 'Expected no error');
+    strictEqual(err, null, 'Expected no error');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

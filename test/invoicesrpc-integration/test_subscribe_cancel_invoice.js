@@ -1,22 +1,23 @@
-const {createHash} = require('crypto');
-const {randomBytes} = require('crypto');
+const {createHash} = require('node:crypto');
+const {equal} = require('node:assert').strict;
+const {randomBytes} = require('node:crypto');
+const test = require('node:test');
 
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {cancelHodlInvoice} = require('./../../');
 const {createHodlInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToInvoice} = require('./../../');
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const size = 2;
 const tokens = 100;
 
 // Subscribe to canceled invoice should return invoice canceled event
-test(`Subscribe to canceled invoice`, async ({end, equal}) => {
+test(`Subscribe to canceled invoice`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -119,5 +120,5 @@ test(`Subscribe to canceled invoice`, async ({end, equal}) => {
 
   await delay(5000);
 
-  return end();
+  return;
 });

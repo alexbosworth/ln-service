@@ -1,8 +1,9 @@
-const {randomBytes} = require('crypto');
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
@@ -14,38 +15,24 @@ const {openChannel} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
 const {pay} = require('./../../');
 const {removePeer} = require('./../../');
-const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 6;
-const count = 100;
-const defaultFee = 1e3;
-const defaultVout = 0;
 const interval = 10;
-const mtokPadding = '000';
-const reserveRatio = 0.99;
 const size = 3;
 const times = 1000;
 const tokens = 100;
-const txIdHexLength = 32 * 2;
 
 // Paying a private invoice should settle the invoice
-test(`Pay private invoice`, async ({end, equal, strictSame}) => {
+test(`Pay private invoice`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   try {
     const [{generate, lnd}, target, remote] = nodes;
 
-    await generate({count: 400});
-
     const channel = await setupChannel({generate, lnd, to: target});
 
     const remoteChannel = await setupChannel({
-      capacity: channelCapacityTokens,
       generate: target.generate,
-      hidden: true,
+      is_private: true,
       lnd: target.lnd,
       to: remote,
     });
@@ -74,7 +61,7 @@ test(`Pay private invoice`, async ({end, equal, strictSame}) => {
 
     const decodedRequest = await decodePaymentRequest({lnd, request});
 
-    const route = await asyncRetry({interval: 10, times: 1000}, async () => {
+    const route = await asyncRetry({interval, times}, async () => {
       const {route} = await getRouteToDestination({
         lnd,
         cltv_delta: decodedRequest.cltv_delta,
@@ -96,13 +83,13 @@ test(`Pay private invoice`, async ({end, equal, strictSame}) => {
 
     const paidInvoice = await getInvoice({id, lnd: remote.lnd});
 
-    equal(paidInvoice.secret, invoice.secret, 'Paying invoice got secret');
-    equal(paidInvoice.is_confirmed, true, 'Private invoice is paid');
+    strictEqual(paidInvoice.secret, invoice.secret, 'Paying got secret');
+    strictEqual(paidInvoice.is_confirmed, true, 'Private invoice is paid');
   } catch (err) {
-    equal(err, null, 'Expected no error paying invoice');
+    strictEqual(err, null, 'Expected no error paying invoice');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

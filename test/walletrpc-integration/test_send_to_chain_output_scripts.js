@@ -1,8 +1,11 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {componentsOfTransaction} = require('@alexbosworth/blockchain');
 const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getChainTransactions} = require('./../../');
 const {sendToChainOutputScripts} = require('./../../');
@@ -18,7 +21,7 @@ const times = 1000;
 const tokens = 1e6;
 
 // Sending to chain output scripts should result in on-chain sent funds
-test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
+test(`Send to chain output scripts`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -37,7 +40,7 @@ test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
     .filter(n => n.tokens === tokens);
 
   // The OP_RETURN is present in the output
-  strictSame(outs, sendTo, 'Got expected outputs');
+  deepEqual(outs, sendTo, 'Got expected outputs');
 
   // Generate to confirm the tx
   await generate({count: confirmationCount});
@@ -62,5 +65,5 @@ test(`Send to chain output scripts`, async ({end, equal, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

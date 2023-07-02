@@ -1,6 +1,9 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createInvoice} = require('./../../');
@@ -9,7 +12,6 @@ const {getForwardingReputations} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const flatten = arr => [].concat(...arr);
@@ -20,7 +22,7 @@ const tlvOnionBit = 14;
 const tokens = 1e6 / 2;
 
 // Deleting forwarding reputations should eliminate forwarding reputations
-test('Delete forwarding reputations', async ({end, equal}) => {
+test('Delete forwarding reputations', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -89,9 +91,9 @@ test('Delete forwarding reputations', async ({end, equal}) => {
     }
   } catch (err) {
     equal(err, null, 'Expected no error');
-  } finally {
-    await kill({});
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

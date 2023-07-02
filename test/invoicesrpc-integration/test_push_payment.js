@@ -1,15 +1,16 @@
-const {createHash} = require('crypto');
-const {randomBytes} = require('crypto');
+const {createHash} = require('node:crypto');
+const {equal} = require('node:assert').strict;
+const {randomBytes} = require('node:crypto');
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToInvoices} = require('./../../');
 
 const interval = 10
@@ -20,7 +21,7 @@ const times = 1000;
 const tokens = 100;
 
 // Pay a push payment
-test(`Pay push payment`, async ({end, equal, rejects}) => {
+test(`Pay push payment`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   try {
@@ -87,5 +88,5 @@ test(`Pay push payment`, async ({end, equal, rejects}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

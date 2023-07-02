@@ -1,14 +1,16 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {disableChannel} = require('./../../');
 const {getChannel} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const size = 2;
 
 // Disabling a channel should mark it as disabled
-test(`Disable channel`, async ({end, equal}) => {
+test(`Disable channel`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, id, lnd}, target] = nodes;
@@ -35,5 +37,5 @@ test(`Disable channel`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

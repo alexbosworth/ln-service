@@ -1,14 +1,17 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getForwards} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
 
+const delay = n => new Promise(resolve => setTimeout(resolve, n));
 const interval = 100;
 const limit = 1;
 const size = 3;
@@ -16,7 +19,7 @@ const times = 1000;
 const tokens = 100;
 
 // Getting forwarded payments should return all forwarded payments
-test('Get forwards', async ({end, equal, strictSame}) => {
+test('Get forwards', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -46,37 +49,37 @@ test('Get forwards', async ({end, equal, strictSame}) => {
 
   const page1 = await getForwards({limit, lnd: target.lnd});
 
-  equal(!!page1.next, true, 'Page 1 leads to page 2');
+  strictEqual(!!page1.next, true, 'Page 1 leads to page 2');
 
   {
     const [forward] = page1.forwards;
 
-    equal(!!forward.created_at, true, 'Forward created at');
-    equal(forward.fee, 1, 'Forward fee charged');
-    equal(forward.fee_mtokens, '1000', 'Forward fee charged');
-    equal(!!forward.incoming_channel, true, 'Forward incoming channel');
-    equal(forward.tokens, 100, 'Forwarded tokens count');
-    equal(!!forward.outgoing_channel, true, 'Forward outgoing channel');
+    strictEqual(!!forward.created_at, true, 'Forward created at');
+    strictEqual(forward.fee, 1, 'Forward fee charged');
+    strictEqual(forward.fee_mtokens, '1000', 'Forward fee charged');
+    strictEqual(!!forward.incoming_channel, true, 'Forward incoming channel');
+    strictEqual(forward.tokens, 100, 'Forwarded tokens count');
+    strictEqual(!!forward.outgoing_channel, true, 'Forward outgoing channel');
   }
 
   const page2 = await getForwards({lnd: target.lnd, token: page1.next});
 
-  equal(!!page2.next, true, 'Page 2 leads to page 3');
+  strictEqual(!!page2.next, true, 'Page 2 leads to page 3');
 
   {
     const [forward] = page2.forwards;
 
-    equal(forward.tokens, 101, 'Second forward tokens count');
+    strictEqual(forward.tokens, 101, 'Second forward tokens count');
   }
 
   const page3 = await getForwards({lnd: target.lnd, token: page2.next});
 
-  equal(!!page3.next, true, 'Page 3 leads to page 4');
+  strictEqual(!!page3.next, true, 'Page 3 leads to page 4');
 
   {
     const [forward] = page3.forwards;
 
-    equal(forward.tokens, 102, 'Third forward tokens count');
+    strictEqual(forward.tokens, 102, 'Third forward tokens count');
 
     // Check "before" based paging
     const prev0 = await getForwards({
@@ -87,17 +90,17 @@ test('Get forwards', async ({end, equal, strictSame}) => {
 
     const [firstForward] = prev0.forwards;
 
-    equal(firstForward.tokens, 100, 'Previous row #1');
+    strictEqual(firstForward.tokens, 100, 'Previous row #1');
 
     const prev1 = await getForwards({lnd: target.lnd, token: prev0.next});
 
     const [secondForward] = prev1.forwards;
 
-    equal(secondForward.tokens, 101, 'Previous row #2');
+    strictEqual(secondForward.tokens, 101, 'Previous row #2');
 
     const prev2 = await getForwards({lnd: target.lnd, token: prev1.next});
 
-    equal(prev2.next, undefined, 'Ended paging of previous rows');
+    strictEqual(prev2.next, undefined, 'Ended paging of previous rows');
 
     // Check "after" based paging
     const after0 = await getForwards({
@@ -107,23 +110,23 @@ test('Get forwards', async ({end, equal, strictSame}) => {
       lnd: target.lnd,
     });
 
-    strictSame(after0.forwards, prev0.forwards, 'After is inclusive of start');
+    deepStrictEqual(after0.forwards, prev0.forwards, 'After is inclusive');
 
     const after1 = await getForwards({lnd: target.lnd, token: after0.next});
 
-    strictSame(after1.forwards, prev1.forwards, 'Iterating before, after');
+    deepStrictEqual(after1.forwards, prev1.forwards, 'Iterating before');
 
     const after2 = await getForwards({lnd: target.lnd, token: after1.next});
 
-    equal(after2.next, undefined, 'Before is non-inclusive');
+    strictEqual(after2.next, undefined, 'Before is non-inclusive');
   }
 
   const page4 = await getForwards({lnd: target.lnd, token: page3.next});
 
-  equal(page4.forwards.length, [].length, 'Page 4 has no results');
-  equal(page4.next, undefined, 'Page 4 leads to nowhere');
+  strictEqual(page4.forwards.length, [].length, 'Page 4 has no results');
+  strictEqual(page4.next, undefined, 'Page 4 leads to nowhere');
 
   await kill({});
 
-  return end();
+  return;
 });

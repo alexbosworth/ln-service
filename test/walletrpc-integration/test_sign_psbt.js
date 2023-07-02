@@ -1,8 +1,10 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {componentsOfTransaction} = require('@alexbosworth/blockchain');
 const {decodePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 
 const {broadcastChainTransaction} = require('./../../');
@@ -26,7 +28,7 @@ const tokens = 1e6;
 const txIdHexByteLength = 64;
 
 // Signing a PSBT should result in a finalized PSBT
-test(`Sign PSBT`, async ({end, equal}) => {
+test(`Sign PSBT`, async () => {
   const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
 
   const {kill, nodes} = await spawnLightningCluster({size});
@@ -65,7 +67,7 @@ test(`Sign PSBT`, async ({end, equal}) => {
   if (!funded) {
     await kill({});
 
-    return end();
+    return;
   }
 
   const finalized = await signPsbt({lnd: control.lnd, psbt: funded.psbt});
@@ -102,5 +104,5 @@ test(`Sign PSBT`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

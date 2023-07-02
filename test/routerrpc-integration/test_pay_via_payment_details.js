@@ -1,15 +1,17 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
 const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const size = 3;
@@ -18,8 +20,8 @@ const tlvData = '0000';
 const tlvType = '65537';
 const tokens = 100;
 
-// Paying an invoice should settle the invoice
-test(`Pay`, async ({end, equal, rejects, strictSame}) => {
+// Paying an invoice via payment details should settle the invoice
+test(`Pay via payment details`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -80,7 +82,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
         tokens: invoice.tokens,
       });
     } catch (err) {
-      strictSame(err, [503, 'PaymentRejectedByDestination']);
+      deepEqual(err, [503, 'PaymentRejectedByDestination']);
     }
 
     try {
@@ -96,7 +98,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
 
       equal(tooSoonCltv, null, 'Should not be able to pay a too soon CLTV');
     } catch (err) {
-      strictSame(
+      deepEqual(
         err,
         [400, 'MaxTimeoutTooNearCurrentHeightToMakePayment'],
         'Fail'
@@ -124,7 +126,7 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
 
       paid.hops.forEach(n => delete n.timeout);
 
-      strictSame(paid.hops, expectedHops, 'Hops are returned');
+      deepEqual(paid.hops, expectedHops, 'Hops are returned');
     } catch (err) {
       equal(err, null, 'No error is thrown when payment is attempted');
     }
@@ -166,5 +168,5 @@ test(`Pay`, async ({end, equal, rejects, strictSame}) => {
     await kill({});
   }
 
-  return end();
+  return;
 });

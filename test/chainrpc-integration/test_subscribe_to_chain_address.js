@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
@@ -23,7 +25,7 @@ const times = 1500;
 const tokens = 1e8;
 
 // Subscribing to chain transaction confirmations should trigger events
-test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
+test(`Subscribe to chain transactions`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{chain, generate, lnd}] = nodes;
@@ -77,9 +79,9 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
         throw new Error('ExpectedSubscribeToChainAddressSeesConf');
       }
 
-      equal(firstConf.block.length, 64, 'Confirmation block hash returned');
-      equal(firstConf.height >= 102, true, 'Got confirmation block height');
-      equal(firstConf.transaction, transaction, 'Confirmation raw tx');
+      strictEqual(firstConf.block.length, 64, 'Confirmation hash returned');
+      strictEqual(firstConf.height >= 102, true, 'Got confirmation height');
+      strictEqual(firstConf.transaction, transaction, 'Confirmation raw tx');
 
       return;
     });
@@ -105,9 +107,9 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
         throw new Error('ExpectedSubscribeToChainAddressSeesConfirmation');
       }
 
-      equal(secondConf.block.length, 64, 'Confirmation block hash returned');
-      equal(secondConf.height >= 102, true, 'Confirmation block height');
-      equal(secondConf.transaction, transaction, '2nd conf raw tx returned');
+      strictEqual(secondConf.block.length, 64, 'Confirmation hash returned');
+      strictEqual(secondConf.height >= 102, true, 'Confirmation block height');
+      strictEqual(secondConf.transaction, transaction, '2nd conf tx returned');
 
       return;
     });
@@ -117,5 +119,5 @@ test(`Subscribe to chain transactions`, async ({end, equal, fail}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

@@ -1,6 +1,8 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {address} = require('bitcoinjs-lib');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 
@@ -11,7 +13,7 @@ const prefixForV1 = 'bcrt1p';
 const regtestBech32AddressHrp = 'bcrt';
 
 // Creating addresses should result in addresses
-test(`Create address results in address creation`, async ({end, equal}) => {
+test(`Create address results in address creation`, async () => {
   const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   const createNewChainAddresses = formats
@@ -48,5 +50,5 @@ test(`Create address results in address creation`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

@@ -1,6 +1,8 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -15,7 +17,7 @@ const times = 2000;
 const tokens = 1e8;
 
 // Test sending a chain transaction to Bitcoin network peers
-test(`Broadcast chain transaction`, async ({end, equal}) => {
+test(`Broadcast chain transaction`, async () => {
   const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   try {
@@ -56,5 +58,5 @@ test(`Broadcast chain transaction`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

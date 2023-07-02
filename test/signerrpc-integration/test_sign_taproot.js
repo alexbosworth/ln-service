@@ -1,3 +1,6 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {controlBlock} = require('p2tr');
@@ -7,7 +10,6 @@ const {networks} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
 const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
 const {v1OutputScript} = require('p2tr');
@@ -34,7 +36,7 @@ const {toOutputScript} = address;
 const tokens = 1e6;
 
 // Signing a taproot transaction should result in a valid signature
-test(`Sign a taproot transaction`, async ({end, equal}) => {
+test(`Sign a taproot transaction`, async () => {
   const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
   const {kill, nodes} = await spawnLightningCluster({});
 
@@ -53,7 +55,7 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
     if (err.slice().shift() === 501) {
       await kill({});
 
-      return end();
+      return;
     }
 
     throw err;
@@ -356,5 +358,5 @@ test(`Sign a taproot transaction`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

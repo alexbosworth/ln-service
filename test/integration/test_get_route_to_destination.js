@@ -1,18 +1,18 @@
-const asyncRetry = require('async/retry');
-const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
+const {deepStrictEqual} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
-const {addPeer} = require('./../../');
+const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
+const {spawnLightningCluster} = require('ln-docker-daemons');
+
 const {cancelHodlInvoice} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
-const {delay} = require('./../macros');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const all = promise => Promise.all(promise);
 const interval = 10;
@@ -23,7 +23,7 @@ const times = 3000;
 const tokens = 1000;
 
 // Getting a route to a destination should return a route to the destination
-test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
+test(`Get a route to a destination`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target, remote] = nodes;
@@ -38,8 +38,8 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
 
   await setupChannel({
     generate: target.generate,
-    give: 1e5,
-    hidden: true,
+    give_tokens: 1e5,
+    is_private: true,
     lnd: target.lnd,
     to: remote,
   });
@@ -82,7 +82,7 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
       routes: [route],
     });
 
-    equal(invoice.secret, paid.secret, 'Paid multi-hop private route');
+    strictEqual(invoice.secret, paid.secret, 'Paid multi-hop private route');
   });
 
   const inv = await createInvoice({tokens, lnd: target.lnd});
@@ -126,8 +126,8 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
       }),
     ]);
 
-    equal(controlPay.secret, inv.secret, 'Control paid for secret');
-    equal(remotePay.secret, inv.secret, 'Remote paid for secret');
+    strictEqual(controlPay.secret, inv.secret, 'Control paid for secret');
+    strictEqual(remotePay.secret, inv.secret, 'Remote paid for secret');
 
     const {payments} = await getInvoice({
       id: invDetails.id,
@@ -139,13 +139,13 @@ test(`Get a route to a destination`, async ({end, equal, strictSame}) => {
     const [message1] = payment1.messages;
     const [message2] = payment2.messages;
 
-    strictSame(message1, message, 'Target received message');
-    strictSame(message2, message, 'Target received both messages');
+    deepStrictEqual(message1, message, 'Target received message');
+    deepStrictEqual(message2, message, 'Target received both messages');
   } catch (err) {
-    equal(err, null, 'Unexpected error paying invoice');
+    strictEqual(err, null, 'Unexpected error paying invoice');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

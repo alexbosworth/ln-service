@@ -1,8 +1,9 @@
-const {once} = require('events');
+const {once} = require('node:events');
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
@@ -22,7 +23,7 @@ const times = 1000;
 const tokens = 1e6;
 
 // Subscribing to chain spend should push events on spend confirmations
-test(`Subscribe to chain spend`, async ({end, equal}) => {
+test(`Subscribe to chain spend`, async () => {
   let gotAddressConf = false;
 
   const {kill, nodes} = await spawnLightningCluster({size});
@@ -77,9 +78,9 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
   sub.on('error', err => {});
 
   sub.once('confirmation', ({height, transaction, vin}) => {
-    equal(!!height, true, 'Height of the confirmation is returned');
-    equal(!!transaction, true, 'Raw transaction is returned');
-    equal(vin !== undefined, true, 'Transaction input index is returned');
+    strictEqual(!!height, true, 'Height of the confirmation is returned');
+    strictEqual(!!transaction, true, 'Raw transaction is returned');
+    strictEqual(vin !== undefined, true, 'Transaction input index returned');
 
     return gotAddressConf = true;
   });
@@ -109,7 +110,7 @@ test(`Subscribe to chain spend`, async ({end, equal}) => {
 
   await kill({});
 
-  equal(gotAddressConf, true, 'Subscribe to address sees confirmation');
+  strictEqual(gotAddressConf, true, 'Subscribe to address sees confirmation');
 
-  return end();
+  return;
 });

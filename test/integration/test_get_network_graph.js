@@ -1,10 +1,12 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getNetworkGraph} = require('./../../');
 const {getNode} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const {ceil} = Math;
 const interval = 250;
@@ -12,7 +14,7 @@ const size = 3;
 const times = 50;
 
 // Getting the network graph should return the public nodes and connections
-test(`Get network graph`, async ({end, equal, strictSame}) => {
+test(`Get network graph`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
@@ -40,35 +42,46 @@ test(`Get network graph`, async ({end, equal, strictSame}) => {
   if (!!nodeDetails && !!nodeDetails.channels.length) {
     const [chan] = nodeDetails.channels;
 
-    strictSame(chan, channel, 'Graph channel matches node details channel');
+    deepStrictEqual(chan, channel, 'Graph channel matches node details');
   }
 
-  equal(node.alias, control.id.slice(0, 20), 'Node alias is own');
-  equal(node.color, '#3399ff', 'Node color is default');
-  equal(node.public_key, control.id, 'Node pubkey is own');
-  equal(node.sockets.length, 1, 'Socket');
-  equal(new Date() - new Date(node.updated_at) < 1e5, true, 'Recent update');
+  deepStrictEqual(node.alias, control.id.slice(0, 20), 'Node alias is own');
+  deepStrictEqual(node.color, '#3399ff', 'Node color is default');
+  deepStrictEqual(node.public_key, control.id, 'Node pubkey is own');
+  deepStrictEqual(node.sockets.length, 1, 'Socket');
+  deepStrictEqual(new Date() - new Date(node.updated_at) < 1e5, true, 'At');
 
   channel.policies.forEach(policy => {
-    equal(policy.base_fee_mtokens, '1000', 'Default channel base fee');
-    equal([40, 80].includes(policy.cltv_delta), true, 'Default CLTV delta');
-    equal(policy.fee_rate, 1, 'Default channel fee rate');
-    equal(policy.is_disabled, false, 'Channels are active');
-    equal(policy.max_htlc_mtokens, `${ceil(channel.capacity * 0.99)}000`);
-    equal(!!policy.min_htlc_mtokens, true, 'Default min htlc value');
-    equal(!!policy.public_key, true, 'Policy has public key');
-    equal(new Date() - new Date(policy.updated_at) < 1e5, true, 'Updated at');
+    deepStrictEqual(policy.base_fee_mtokens, '1000', 'Default channel base');
+    deepStrictEqual([40, 80].includes(policy.cltv_delta), true, 'Cltv delta');
+    deepStrictEqual(policy.fee_rate, 1, 'Default channel fee rate');
+    deepStrictEqual(policy.is_disabled, false, 'Channels are active');
+    deepStrictEqual(
+      policy.max_htlc_mtokens,
+      `${ceil(channel.capacity * 0.99)}000`
+    );
+    deepStrictEqual(!!policy.min_htlc_mtokens, true, 'Default min htlc value');
+    deepStrictEqual(!!policy.public_key, true, 'Policy has public key');
+    deepStrictEqual(new Date()-new Date(policy.updated_at) < 1e5, true, 'At');
 
     return;
   });
 
-  equal(channel.capacity, expectedChannel.capacity, 'Channel capacity');
-  equal(channel.id, expectedChannel.id, 'Channel id');
-  equal(channel.transaction_id, expectedChannel.transaction_id, 'Chan tx id');
-  equal(channel.transaction_vout, expectedChannel.transaction_vout, 'Tx Vout');
-  equal(new Date() - new Date(channel.updated_at) < 1e5, true, 'Updated at');
+  deepStrictEqual(channel.capacity, expectedChannel.capacity, 'Capacity');
+  deepStrictEqual(channel.id, expectedChannel.id, 'Channel id');
+  deepStrictEqual(channel.transaction_id, expectedChannel.transaction_id, 'T');
+  deepStrictEqual(
+    channel.transaction_vout,
+    expectedChannel.transaction_vout,
+    'Tx Vout'
+  );
+  deepStrictEqual(
+    new Date() - new Date(channel.updated_at) < 1e5,
+    true,
+    'Updated at'
+  );
 
   await kill({});
 
-  return end();
+  return;
 });

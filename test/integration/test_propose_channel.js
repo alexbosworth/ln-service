@@ -1,3 +1,7 @@
+const {ok} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {createPsbt} = require('psbt');
 const {combinePsbts} = require('psbt');
@@ -7,9 +11,7 @@ const {finalizePsbt} = require('psbt');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
-const signPsbtWithKey = require('psbt').signPsbt;
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
@@ -23,13 +25,11 @@ const {getChannels} = require('./../../');
 const {getPendingChannels} = require('./../../');
 const {getPublicKey} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {prepareForChannelProposal} = require('./../../');
 const {proposeChannel} = require('./../../');
 const {signPsbt} = require('./../../');
 const {signTransaction} = require('./../../');
 
-const anchorFeatureBit = 23;
 const capacity = 1e6;
 const {ceil} = Math;
 const cooperativeCloseDelay = 2016;
@@ -49,7 +49,7 @@ const temporaryFamily = 805;
 const times = 300;
 
 // Proposing a cooperative delay channel should open a cooperative delay chan
-test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
+test(`Propose a channel with a coop delay`, async () => {
   const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
 
   const {kill, nodes} = await spawnLightningCluster({size});
@@ -59,20 +59,6 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
   const {lnd, generate} = control;
 
   try {
-    const {version} = await getWalletVersion({lnd});
-
-    switch (version) {
-    case '0.11.0-beta':
-    case '0.11.1-beta':
-      // Exit early when funding PSBTs is not supported
-      await kill({});
-
-      return end();
-
-    default:
-      break;
-    }
-
     // Generate some funds for LND
     await asyncRetry({times}, async () => {
       await addPeer({lnd, public_key: target.id, socket: target.socket});
@@ -98,8 +84,6 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     });
 
     const {features} = await getWalletInfo({lnd});
-
-    const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
 
     // Derive a temporary key for control to pay into
     const controlDerivedKey = await getPublicKey({
@@ -358,35 +342,28 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
 
     const [incoming] = pendingTarget.pending_channels;
 
-    // LND 0.11.1 and before do not use anchor channels
-    if (isAnchors) {
-      equal(incoming.remote_balance, 496530, 'Remote balance amount');
-      equal(incoming.transaction_fee, 2810, 'Commit tx fee');
-      equal(incoming.transaction_weight, 1116, 'Funding tx weight');
-    } else {
-      equal(incoming.remote_balance, giveTokens - 9050, 'Remote balance');
-      equal(incoming.transaction_fee, 9050, 'Commit tx fee');
-      equal(incoming.transaction_weight, 724, 'Funding tx weight');
-    }
+    strictEqual(incoming.remote_balance, 496530, 'Remote balance amount');
+    strictEqual(incoming.transaction_fee, 2810, 'Commit tx fee');
+    strictEqual(incoming.transaction_weight, 1116, 'Funding tx weight');
 
-    equal(incoming.capacity, 1000000, 'Incoming capacity is defined');
-    equal(incoming.close_transaction_id, undefined, 'Not a closing tx');
-    equal(incoming.is_active, false, 'Not active yet');
-    equal(incoming.is_closing, false, 'Channel is not closing');
-    equal(incoming.is_opening, true, 'Channel is opening');
-    equal(incoming.is_partner_initiated, true, 'Peer initiated the channel');
-    equal(incoming.local_balance, giveTokens, 'The incoming channel is split');
-    equal(incoming.local_reserve, capacity * reserveRatio, 'Reserve ratio');
-    equal(incoming.partner_public_key, control.id, 'Peer key');
-    equal(incoming.pending_balance, undefined, 'No tokens pending');
-    equal(incoming.pending_payments, undefined, 'No HTLCs active');
-    equal(incoming.received, 0, 'Nothing received');
-    equal(incoming.recovered_tokens, undefined, 'No recovery');
-    equal(incoming.remote_reserve, capacity * reserveRatio, 'Got reserve');
-    equal(incoming.sent, 0, 'Nothing sent');
-    equal(incoming.timelock_expiration, undefined, 'No timelock');
-    equal(incoming.transaction_id, fundingTxId, 'Funding tx id is correct');
-    equal(incoming.transaction_vout, fundingTxVout, 'Funding vout is correct');
+    strictEqual(incoming.capacity, 1000000, 'Incoming capacity is defined');
+    strictEqual(incoming.close_transaction_id, undefined, 'Not a closing tx');
+    strictEqual(incoming.is_active, false, 'Not active yet');
+    strictEqual(incoming.is_closing, false, 'Channel is not closing');
+    strictEqual(incoming.is_opening, true, 'Channel is opening');
+    strictEqual(incoming.is_partner_initiated, true, 'Peer initiated channel');
+    strictEqual(incoming.local_balance, giveTokens, 'The incoming is split');
+    strictEqual(incoming.local_reserve, capacity * reserveRatio, 'Reserve');
+    strictEqual(incoming.partner_public_key, control.id, 'Peer key');
+    strictEqual(incoming.pending_balance, undefined, 'No tokens pending');
+    strictEqual(incoming.pending_payments, undefined, 'No HTLCs active');
+    strictEqual(incoming.received, 0, 'Nothing received');
+    strictEqual(incoming.recovered_tokens, undefined, 'No recovery');
+    strictEqual(incoming.remote_reserve, capacity * reserveRatio, 'Reserve');
+    strictEqual(incoming.sent, 0, 'Nothing sent');
+    strictEqual(incoming.timelock_expiration, undefined, 'No timelock');
+    strictEqual(incoming.transaction_id, fundingTxId, 'Funding tx id correct');
+    strictEqual(incoming.transaction_vout, fundingTxVout, 'Funding vout');
 
     // Setup the combined signed PSBTs that fund the channel
     const combinedTempPsbt = combinePsbts({
@@ -406,7 +383,7 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
     // Calculate the size of the tx
     const txSize = fromHex(finalTempTx.transaction).virtualSize();
 
-    equal(txSize <= fundingFee, true, 'Transaction size is not too large');
+    strictEqual(txSize <= fundingFee, true, 'Transaction size is not large');
 
     // Broadcast the transaction to fund the control side
     await broadcastChainTransaction({
@@ -445,68 +422,56 @@ test(`Propose a channel with a coop delay`, async ({end, equal, ok}) => {
 
     const closeAddr = coopCloseAddress.address;
 
-    // LND 0.11.1 and before do not use anchor channels
-    if (isAnchors) {
-      equal(controlChannel.commit_transaction_fee, 2810, 'Regular tx fee');
-      equal(controlChannel.commit_transaction_weight, 1116, 'Regular tx size');
-    } else {
-      equal(controlChannel.commit_transaction_fee, 9050, 'Regular tx fee');
-      equal(controlChannel.commit_transaction_weight, 724, 'Regular tx size');
-    }
+    strictEqual(controlChannel.commit_transaction_fee, 2810, 'Regular tx fee');
+    strictEqual(controlChannel.commit_transaction_weight, 1116, 'Regular tx');
 
-    equal(controlChannel.capacity, capacity, 'Channel with capacity created');
-    equal(controlChannel.cooperative_close_address, closeAddr, 'Got addr');
-    equal(!!controlChannel.cooperative_close_delay_height, true, 'Thaw');
-    equal(!!controlChannel.id, true, 'Got channel id');
-    equal(controlChannel.is_active, true, 'Channel is active and ready');
-    equal(controlChannel.is_closing, false, 'Channel is not closing');
-    equal(controlChannel.is_opening, false, 'Channel is already opened');
-    equal(controlChannel.is_partner_initiated, false, 'Control opened');
-    equal(controlChannel.is_private, true, 'Channel is private');
-    equal(controlChannel.local_balance, incoming.remote_balance, 'Control');
-    equal(controlChannel.local_csv, 144, 'Channel CSV');
+    strictEqual(controlChannel.capacity, capacity, 'Channel with capacity');
+    strictEqual(controlChannel.cooperative_close_address, closeAddr, 'Addr');
+    strictEqual(!!controlChannel.cooperative_close_delay_height, true, 'Thaw');
+    strictEqual(!!controlChannel.id, true, 'Got channel id');
+    strictEqual(controlChannel.is_active, true, 'Channel is active and ready');
+    strictEqual(controlChannel.is_closing, false, 'Channel is not closing');
+    strictEqual(controlChannel.is_opening, false, 'Channel is already opened');
+    strictEqual(controlChannel.is_partner_initiated, false, 'Control opened');
+    strictEqual(controlChannel.is_private, true, 'Channel is private');
+    strictEqual(controlChannel.local_balance, incoming.remote_balance, 'Toks');
+    strictEqual(controlChannel.local_csv, 144, 'Channel CSV');
     ok(controlChannel.local_dust >= 354, 'Channel dust');
-    equal(controlChannel.local_given, giveTokens, 'Channel tokens given over');
-    equal(controlChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
-    equal(controlChannel.partner_public_key, target.id, 'R-key');
-    equal(controlChannel.transaction_id, fundingTxId, 'Funding tx id');
-    equal(controlChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
+    strictEqual(controlChannel.local_given, giveTokens, 'Gave Channel tokens');
+    strictEqual(controlChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
+    strictEqual(controlChannel.partner_public_key, target.id, 'R-key');
+    strictEqual(controlChannel.transaction_id, fundingTxId, 'Funding tx id');
+    strictEqual(controlChannel.transaction_vout, fundingTxVout, 'Tx vout');
 
     const targetChannels = await getChannels({lnd: target.lnd});
 
     const [targetChannel] = targetChannels.channels;
 
-    // LND 0.11.1 and before do not use anchor channels
-    if (isAnchors) {
-      equal(targetChannel.commit_transaction_fee, 2810, 'Regular tx fee');
-      equal(targetChannel.commit_transaction_weight, 1116, 'Regular tx size');
-    } else {
-      equal(targetChannel.commit_transaction_fee, 9050, 'Regular tx fee');
-      equal(targetChannel.commit_transaction_weight, 724, 'Regular tx size');
-    }
+    strictEqual(targetChannel.commit_transaction_fee, 2810, 'Regular tx fee');
+    strictEqual(targetChannel.commit_transaction_weight, 1116, 'Regular size');
 
-    equal(targetChannel.capacity, capacity, 'Channel with capacity created');
-    equal(targetChannel.cooperative_close_address, undefined, 'No close addr');
-    equal(!!targetChannel.cooperative_close_delay_height, true, 'Thaw height');
-    equal(!!targetChannel.id, true, 'Got channel id');
-    equal(targetChannel.is_active, true, 'Channel is active and ready');
-    equal(targetChannel.is_closing, false, 'Channel is not closing');
-    equal(targetChannel.is_opening, false, 'Channel is already opened');
-    equal(targetChannel.is_partner_initiated, true, 'Control opened');
-    equal(targetChannel.is_private, true, 'Channel is private');
-    equal(targetChannel.local_balance, giveTokens, 'Target tokens');
-    equal(targetChannel.local_csv, 144, 'Channel CSV');
+    strictEqual(targetChannel.capacity, capacity, 'Channel with capacity');
+    strictEqual(targetChannel.cooperative_close_address, undefined, 'No addr');
+    strictEqual(!!targetChannel.cooperative_close_delay_height, true, 'Thaw');
+    strictEqual(!!targetChannel.id, true, 'Got channel id');
+    strictEqual(targetChannel.is_active, true, 'Channel is active and ready');
+    strictEqual(targetChannel.is_closing, false, 'Channel is not closing');
+    strictEqual(targetChannel.is_opening, false, 'Channel is already opened');
+    strictEqual(targetChannel.is_partner_initiated, true, 'Control opened');
+    strictEqual(targetChannel.is_private, true, 'Channel is private');
+    strictEqual(targetChannel.local_balance, giveTokens, 'Target tokens');
+    strictEqual(targetChannel.local_csv, 144, 'Channel CSV');
     ok(targetChannel.local_dust >= 354, 'Channel dust');
-    equal(targetChannel.local_given, 0, 'No tokens given');
-    equal(targetChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
-    equal(targetChannel.partner_public_key, control.id, 'R-key');
-    equal(targetChannel.transaction_id, fundingTxId, 'Funding tx id');
-    equal(targetChannel.transaction_vout, fundingTxVout, 'Funding tx vout');
+    strictEqual(targetChannel.local_given, 0, 'No tokens given');
+    strictEqual(targetChannel.local_max_htlcs, 483, 'Channel HTLCs max set');
+    strictEqual(targetChannel.partner_public_key, control.id, 'R-key');
+    strictEqual(targetChannel.transaction_id, fundingTxId, 'Funding tx id');
+    strictEqual(targetChannel.transaction_vout, fundingTxVout, 'Tx vout');
   } catch (err) {
-    equal(err, null, 'Expected no error');
-  } finally {
-    await kill({});
+    strictEqual(err, null, 'Expected no error');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

@@ -1,6 +1,10 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {match} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {broadcastChainTransaction} = require('./../../');
@@ -25,7 +29,7 @@ const size = 2;
 const times = 4000;
 
 // Opening unconfirmed channels should in immediate channel opening
-test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
+test(`Open unconfirmed channels`, async () => {
   // Unconfirmed channels are not supported on LND 0.15.0 and below
   {
     const {kill, nodes} = await spawnLightningCluster({});
@@ -34,12 +38,14 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
 
     try {
       await getEphemeralChannelIds({lnd});
+
+      await kill({});
     } catch (err) {
-      strictSame(err, [501, 'ListAliasesMethodNotSupported']);
+      deepEqual(err, [501, 'ListAliasesMethodNotSupported']);
 
       await kill({});
 
-      return end();
+      return;
     }
   }
 
@@ -127,14 +133,14 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
     });
 
     // Make sure the channel reflects that it is trusted funding
-    strictSame(channel.other_ids, [], 'Got no ephemeral ids');
+    deepEqual(channel.other_ids, [], 'Got no ephemeral ids');
     match(channel.id, /16000000x0/, 'Channel id is faked');
     equal(channel.is_trusted_funding, true, 'Channel funding is trusted');
 
     // Make sure the open channel event reflected that it was trusted funding
     const [event] = opened;
 
-    strictSame(event.other_ids, [], 'Got no event ephemeral ids');
+    deepEqual(event.other_ids, [], 'Got no event ephemeral ids');
     match(event.id, /16000000x0/, 'Channel event id is faked');
     equal(event.is_trusted_funding, true, 'Channel event funding is trusted');
 
@@ -228,12 +234,12 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
     const [closedChannel] = (await getClosedChannels({lnd})).channels;
 
     equal(closedChannel.id, confirmed.id, 'Closed channel shows confirmed id');
-    strictSame(closedChannel.other_ids, confirmed.other_ids, 'Saved temp id');
+    deepEqual(closedChannel.other_ids, confirmed.other_ids, 'Saved temp id');
 
     const [closeEvent] = closings;
 
     equal(closeEvent.id, confirmed.id, 'Closed event shows confirmed id');
-    strictSame(closeEvent.other_ids, confirmed.other_ids, 'Got temporary id');
+    deepEqual(closeEvent.other_ids, confirmed.other_ids, 'Got temporary id');
 
     const ephemeralIds = await getEphemeralChannelIds({lnd});
 
@@ -245,9 +251,9 @@ test(`Open unconfirmed channels`, async ({end, equal, match, strictSame}) => {
     match(secondChannel.reference_id, /16000000x0/, 'Got second channel id');
   } catch (err) {
     equal(err, null, 'No error is reported');
-  } finally {
-    return await kill({});
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

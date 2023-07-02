@@ -1,6 +1,10 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const {ok} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getWalletInfo} = require('./../../');
 
@@ -12,7 +16,7 @@ const times = 1000;
 const walletInfoType = 'wallet';
 
 // Getting the wallet info should return info about the wallet
-test(`Get wallet info`, async ({end, equal, ok, strictSame}) => {
+test(`Get wallet info`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{generate, lnd}] = nodes;
@@ -30,22 +34,22 @@ test(`Get wallet info`, async ({end, equal, ok, strictSame}) => {
       throw new Error('ExpectedBlockHeightAtInitHeight');
     });
 
-    equal(result.active_channels_count, 0, 'Expected channels count');
-    equal(!!result.alias, true, 'Expected alias');
-    strictSame(result.chains, [regtestChainId], 'Got chains');
-    equal(!!result.current_block_hash, true, 'Expected best block hash');
+    strictEqual(result.active_channels_count, 0, 'Expected channels count');
+    strictEqual(!!result.alias, true, 'Expected alias');
+    deepStrictEqual(result.chains, [regtestChainId], 'Got chains');
+    strictEqual(!!result.current_block_hash, true, 'Expected best block hash');
     ok(result.current_block_height >= initHeight, 'Expected block height');
-    equal(!!result.latest_block_at, true, 'Last block time');
-    equal(result.peers_count, 0, 'Expected wallet peers count');
-    equal(result.pending_channels_count, 0, 'Expected pending channels count');
-    equal(result.public_key.length, pubKeyHexLength, 'Expected public key');
-    strictSame(result.uris.length, 1, 'Expected node URI');
-    equal(!!result.version, true, 'Expected version');
+    strictEqual(!!result.latest_block_at, true, 'Last block time');
+    strictEqual(result.peers_count, 0, 'Expected wallet peers count');
+    strictEqual(result.pending_channels_count, 0, 'Expected pending channels');
+    strictEqual(result.public_key.length, pubKeyHexLength, 'Expected key');
+    deepStrictEqual(result.uris.length, 1, 'Expected node URI');
+    strictEqual(!!result.version, true, 'Expected version');
   } catch (err) {
-    equal(err, null, 'Expected no error');
-  } finally {
-    await kill({});
+    strictEqual(err, null, 'Expected no error');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

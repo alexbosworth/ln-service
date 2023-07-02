@@ -1,7 +1,11 @@
-const {once} = require('events');
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {once} = require('node:events');
+const {rejects} = require('node:assert').strict;
+const test = require('node:test');
 
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createCluster} = require('./../macros');
@@ -13,14 +17,13 @@ const {getPayment} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const size = 3;
 const tokens = 100;
 
 // Subscribing to forward requests should intercept forwards
-test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
+test(`Subscribe to requests`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -81,7 +84,7 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
 
     delete failed.channel;
 
-    strictSame(
+    deepEqual(
       failed,
       {
         index: 1,
@@ -144,7 +147,7 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
 
       const [path] = pending.paths;
 
-      strictSame(
+      deepEqual(
         path,
         {
           fee: 1,
@@ -223,5 +226,5 @@ test(`Subscribe to requests`, async ({end, equal, rejects, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

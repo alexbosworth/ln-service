@@ -1,6 +1,9 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {sendMessageToPeer} = require('./../../');
@@ -11,7 +14,7 @@ const size = 2;
 const times = 2000;
 
 // Sending a message to a peer should result in the message received
-test(`Send peer message`, async ({end, equal, strictSame}) => {
+test(`Send peer message`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{id, lnd}, target] = nodes;
@@ -29,7 +32,7 @@ test(`Send peer message`, async ({end, equal, strictSame}) => {
     if (code === 501) {
       await kill({});
 
-      return end();
+      return;
     }
   }
 
@@ -61,11 +64,13 @@ test(`Send peer message`, async ({end, equal, strictSame}) => {
       if (!messages.length) {
         throw new Error('ExpectedMessage');
       }
+
+      return;
     });
 
     const [message] = messages;
 
-    strictSame(
+    deepStrictEqual(
       message,
       {
         message: Buffer.from('message').toString('hex'),
@@ -75,10 +80,10 @@ test(`Send peer message`, async ({end, equal, strictSame}) => {
       'Message successfully sent to peer'
     );
   } catch (err) {
-    equal(err, null, 'Expected no error');
+    strictEqual(err, null, 'Expected no error');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

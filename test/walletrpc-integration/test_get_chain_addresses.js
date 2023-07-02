@@ -1,5 +1,7 @@
+const {deepEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getChainAddresses} = require('./../../');
@@ -8,14 +10,14 @@ const count = 100;
 const expiry = () => new Date(Date.now() + (1000 * 60 * 5)).toISOString();
 
 // Getting chain addresses should return a list of addresses
-test(`Get chain addresses`, async ({end, equal, rejects, strictSame}) => {
+test(`Get chain addresses`, async () => {
   const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   try {
     await getChainAddresses({lnd});
   } catch (err) {
     // LND 0.12.1 does not support getting locked UTXOs
-    strictSame(
+    deepEqual(
       err,
       [501, 'BackingLndDoesNotSupportGettingChainAddresses'],
       'Got unsupported error'
@@ -23,7 +25,7 @@ test(`Get chain addresses`, async ({end, equal, rejects, strictSame}) => {
 
     await kill({});
 
-    return end();
+    return;
   }
 
   try {
@@ -47,12 +49,12 @@ test(`Get chain addresses`, async ({end, equal, rejects, strictSame}) => {
 
     const {addresses} = await getChainAddresses({lnd});
 
-    strictSame(addresses, expected, 'Got created chain addresses');
+    deepEqual(addresses, expected, 'Got created chain addresses');
   } catch (err) {
-    strictSame(err, null, 'Expected no error');
+    deepEqual(err, null, 'Expected no error');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

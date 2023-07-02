@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
@@ -11,7 +13,7 @@ const times = 300;
 const tokens = 1e8;
 
 // Getting utxos should list out the utxos
-test(`Get utxos`, async ({end, equal, fail, strictSame}) => {
+test(`Get utxos`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{generate, lnd}] = nodes;
@@ -29,19 +31,19 @@ test(`Get utxos`, async ({end, equal, fail, strictSame}) => {
 
   const {utxos} = await getUtxos({lnd});
 
-  equal(!!utxos.length, true, 'Unspent output returned');
+  strictEqual(!!utxos.length, true, 'Unspent output returned');
 
   const [utxo] = utxos;
 
-  equal(!!utxo.address, true, 'UTXO address returned');
-  equal(utxo.address_format, format, 'UTXO address format returned');
-  equal(utxo.confirmation_count, 100, 'Confirmation count returned');
-  equal(!!utxo.output_script, true, 'Output script returned');
-  equal(!!utxo.tokens, true, 'UTXO amount returned');
-  equal(!!utxo.transaction_id, true, 'UTXO transaction id returned');
-  equal(utxo.transaction_vout !== undefined, true, 'UTXO vout returned');
+  strictEqual(!!utxo.address, true, 'UTXO address returned');
+  strictEqual(utxo.address_format, format, 'UTXO address format returned');
+  strictEqual(utxo.confirmation_count, 100, 'Confirmation count returned');
+  strictEqual(!!utxo.output_script, true, 'Output script returned');
+  strictEqual(!!utxo.tokens, true, 'UTXO amount returned');
+  strictEqual(!!utxo.transaction_id, true, 'UTXO transaction id returned');
+  strictEqual(utxo.transaction_vout !== undefined, true, 'UTXO vout returned');
 
   await kill({});
 
-  return end();
+  return;
 });

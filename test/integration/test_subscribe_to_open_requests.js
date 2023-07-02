@@ -1,6 +1,10 @@
+const {equal} = require('node:assert').strict;
+const {fail} = require('node:assert').strict;
+const {ok} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createChainAddress} = require('./../../');
@@ -21,7 +25,7 @@ const size = 2;
 const times = 2000;
 
 // Subscribing to open requests should trigger channel open notifications
-test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
+test(`Subscribe to open requests`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target, remote] = nodes;
@@ -150,17 +154,14 @@ test(`Subscribe to open requests`, async ({end, equal, fail, ok}) => {
     return channel;
   });
 
-  // LND 0.11.1 and below do not support accepting with a custom address
-  if (!!channel.cooperative_close_address) {
-    equal(channel.cooperative_close_address, address, 'Got custom address');
-    equal(channel.remote_csv, 999, 'Got custom CSV delay');
-    equal(channel.remote_reserve, 1000, 'Got custom remote reserve');
-    equal(channel.remote_max_htlcs, 20, 'Got custom remote max htlcs');
-    equal(channel.remote_max_pending_mtokens, '200000', 'Got custom max tok');
-    equal(channel.remote_min_htlc_mtokens, '2000', 'Got custom min htlcsize');
-  }
+  equal(channel.cooperative_close_address, address, 'Got custom address');
+  equal(channel.remote_csv, 999, 'Got custom CSV delay');
+  equal(channel.remote_reserve, 1000, 'Got custom remote reserve');
+  equal(channel.remote_max_htlcs, 20, 'Got custom remote max htlcs');
+  equal(channel.remote_max_pending_mtokens, '200000', 'Got custom max tok');
+  equal(channel.remote_min_htlc_mtokens, '2000', 'Got custom min htlcsize');
 
   await kill({});
 
-  return end();
+  return;
 });

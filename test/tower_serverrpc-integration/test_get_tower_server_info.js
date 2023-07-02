@@ -1,12 +1,15 @@
+const {equal} = require('node:assert').strict;
+const {match} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getTowerServerInfo} = require('./../../');
 
 const conf = ['--watchtower.active'];
 
 // Getting the tower server info should return tower server info
-test(`Get tower server info`, async ({end, equal, match}) => {
+test(`Get tower server info`, async () => {
   const {kill, nodes} = await spawnLightningCluster({lnd_configuration: conf});
 
   const [{lnd}] = nodes;
@@ -27,5 +30,5 @@ test(`Get tower server info`, async ({end, equal, match}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

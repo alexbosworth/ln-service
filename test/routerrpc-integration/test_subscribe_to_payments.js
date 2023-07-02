@@ -1,10 +1,11 @@
+const {deepEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getPayment} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwards} = require('./../../');
@@ -16,7 +17,7 @@ const size = 2;
 const tokens = 100;
 
 // Subscribing to payments should notify on a payment
-test(`Subscribe to payments`, async ({end, rejects, strictSame}) => {
+test(`Subscribe to payments`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;
@@ -48,7 +49,7 @@ test(`Subscribe to payments`, async ({end, rejects, strictSame}) => {
         return isLegacy.push(error);
       }
 
-      return strictSame(error, null, 'Expected no error');
+      return deepEqual(error, null, 'Expected no error');
     });
 
     await payViaPaymentRequest({lnd, request: invoice.request});
@@ -69,7 +70,7 @@ test(`Subscribe to payments`, async ({end, rejects, strictSame}) => {
 
       await kill({});
 
-      return end();
+      return;
     }
 
     const [got] = payments;
@@ -78,24 +79,24 @@ test(`Subscribe to payments`, async ({end, rejects, strictSame}) => {
 
     [sub, sub2].forEach(n => n.removeAllListeners());
 
-    strictSame(got, payment, 'Payment subscription notifies of payment');
+    deepEqual(got, payment, 'Payment subscription notifies of payment');
 
     const [pending] = isPaying;
 
-    strictSame(pending.created_at, payment.created_at, 'Got date');
-    strictSame(pending.destination, payment.destination, 'Got destination');
-    strictSame(pending.id, payment.id, 'Got id');
-    strictSame(pending.mtokens, payment.mtokens, 'Got mtokens');
-    strictSame(pending.paths.length, payment.paths.length, 'Got path');
-    strictSame(pending.request, payment.request, 'Got request');
-    strictSame(pending.safe_tokens, payment.safe_tokens, 'Got safe tokens');
-    strictSame(pending.timeout, payment.timeout, 'Got timeout');
-    strictSame(pending.tokens, payment.tokens, 'Got tokens');
+    deepEqual(pending.created_at, payment.created_at, 'Got date');
+    deepEqual(pending.destination, payment.destination, 'Got destination');
+    deepEqual(pending.id, payment.id, 'Got id');
+    deepEqual(pending.mtokens, payment.mtokens, 'Got mtokens');
+    deepEqual(pending.paths.length, payment.paths.length, 'Got path');
+    deepEqual(pending.request, payment.request, 'Got request');
+    deepEqual(pending.safe_tokens, payment.safe_tokens, 'Got safe tokens');
+    deepEqual(pending.timeout, payment.timeout, 'Got timeout');
+    deepEqual(pending.tokens, payment.tokens, 'Got tokens');
   } catch (err) {
-    strictSame(err, null, 'Expected no error');
+    deepEqual(err, null, 'Expected no error');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

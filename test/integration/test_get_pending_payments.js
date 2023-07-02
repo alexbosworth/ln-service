@@ -1,10 +1,10 @@
-const {once} = require('events');
+const {deepStrictEqual} = require('node:assert').strict;
+const test = require('node:test');
 
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
 const {getHeight} = require('./../../');
@@ -14,14 +14,13 @@ const {getPendingPayments} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const size = 3;
 const tokens = 100;
 
 // Getting pending payments should list out payments in flight
-test(`Get pending payments`, async ({end, equal, rejects, strictSame}) => {
+test(`Get pending payments`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -53,27 +52,27 @@ test(`Get pending payments`, async ({end, equal, rejects, strictSame}) => {
 
       const {next, payments} = await getPendingPayments({lnd});
 
-      strictSame(next, undefined, 'No more pages');
-      strictSame(payments.length, 1, 'A single pending payment');
+      deepStrictEqual(next, undefined, 'No more pages');
+      deepStrictEqual(payments.length, 1, 'A single pending payment');
 
       const [payment] = payments;
 
-      strictSame(payment.destination, remote.id, 'Paying to remote');
-      strictSame(payment.index, 1, 'First payment');
-      strictSame(payment.request, invoice.request, 'Paying invoice request');
-      strictSame(payment.confirmed_at, undefined, 'Not a confirmed payment');
-      strictSame(!!payment.created_at, true, 'Has created date');
-      strictSame(payment.fee, undefined, 'No fee yet');
-      strictSame(payment.fee_mtokens, undefined, 'No fee mtokens');
-      strictSame(payment.hops.length, 1, 'Going through hops');
-      strictSame(payment.id, invoice.id, 'Paying to the same hash');
-      strictSame(payment.is_confirmed, false, 'Payment is pending');
-      strictSame(payment.is_outgoing, true, 'Outgoing payment type');
-      strictSame(payment.mtokens, invoice.mtokens, 'Paying invoiced mtokens');
-      strictSame(payment.safe_fee, undefined, 'No fee paid yet');
-      strictSame(payment.safe_tokens, invoice.tokens, 'Paying safe tokens');
-      strictSame(payment.secret, undefined, 'Preimage not yet known');
-      strictSame(payment.tokens, invoice.tokens, 'Paying invoiced tokens');
+      deepStrictEqual(payment.destination, remote.id, 'Paying to remote');
+      deepStrictEqual(payment.index, 1, 'First payment');
+      deepStrictEqual(payment.request, invoice.request, 'Paying request');
+      deepStrictEqual(payment.confirmed_at, undefined, 'Not a payment');
+      deepStrictEqual(!!payment.created_at, true, 'Has created date');
+      deepStrictEqual(payment.fee, undefined, 'No fee yet');
+      deepStrictEqual(payment.fee_mtokens, undefined, 'No fee mtokens');
+      deepStrictEqual(payment.hops.length, 1, 'Going through hops');
+      deepStrictEqual(payment.id, invoice.id, 'Paying to the same hash');
+      deepStrictEqual(payment.is_confirmed, false, 'Payment is pending');
+      deepStrictEqual(payment.is_outgoing, true, 'Outgoing payment type');
+      deepStrictEqual(payment.mtokens, invoice.mtokens, 'Paying invoiced');
+      deepStrictEqual(payment.safe_fee, undefined, 'No fee paid yet');
+      deepStrictEqual(payment.safe_tokens, invoice.tokens, 'Paying tokens');
+      deepStrictEqual(payment.secret, undefined, 'Preimage not yet known');
+      deepStrictEqual(payment.tokens, invoice.tokens, 'Paying invoiced');
 
       return forward.accept();
     });
@@ -83,5 +82,5 @@ test(`Get pending payments`, async ({end, equal, rejects, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

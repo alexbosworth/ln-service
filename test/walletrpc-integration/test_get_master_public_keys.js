@@ -1,8 +1,11 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const bip32 = require('bip32');
 const bs58check = require('bs58check');
 const ecc = require('tiny-secp256k1')
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getMasterPublicKeys} = require('./../../');
@@ -16,7 +19,7 @@ const p2wpkhPath = `m/84'/0'/0'`;
 const publicKeyFromMasterPublicKey = n => n.slice(45, 78);
 
 // Getting master public keys should return a list of master public keys
-test(`Get master public keys`, async ({end, equal, strictSame}) => {
+test(`Get master public keys`, async () => {
   const [{id, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   const {fromPublicKey} = await BIP32Factory(ecc);
@@ -31,14 +34,14 @@ test(`Get master public keys`, async ({end, equal, strictSame}) => {
     if (!key) {
       await kill({});
 
-      return end();
+      return;
     }
   } catch (err) {
-    strictSame(err, [501, 'GetMasterPublicKeysMethodNotSupported'], 'Got err');
+    deepEqual(err, [501, 'GetMasterPublicKeysMethodNotSupported'], 'Got err');
 
     await kill({});
 
-    return end();
+    return;
   }
 
   try {
@@ -75,5 +78,5 @@ test(`Get master public keys`, async ({end, equal, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

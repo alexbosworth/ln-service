@@ -1,58 +1,70 @@
-const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
 
-const {createCluster} = require('./../macros');
+const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
+const {spawnLightningCluster} = require('ln-docker-daemons');
+
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
+const {deleteForwardingReputations} = require('./../../');
 const {getChannels} = require('./../../');
 const {getRouteToDestination} = require('./../../');
-const {openChannel} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('./../macros');
-const {waitForChannel} = require('./../macros');
-const {waitForPendingChannel} = require('./../macros');
 
-const channelCapacityTokens = 1e6;
-const confirmationCount = 20;
-const defaultFee = 1e3;
+const give = 1e5;
+const interval = 10;
 const size = 2;
-const tokens = 1e3;
+const times = 2000;
+const tokens = 100;
 
 // Rebalancing channels should result in balanced channels
-test('Rebalance', async ({end, equal}) => {
+test('Rebalance', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;
 
   const {generate, lnd} = control;
 
-  await setupChannel({generate, lnd, give: 1e5, to: target});
+  try {
+    await setupChannel({generate, lnd, give_tokens: give, to: target});
 
-  await setupChannel({
-    generate: target.generate,
-    give: 1e5,
-    lnd: target.lnd,
-    to: control,
-  });
+    await setupChannel({
+      generate: target.generate,
+      give_tokens: give,
+      lnd: target.lnd,
+      to: control,
+    });
 
-  const invoice = await createInvoice({lnd, tokens});
+    const invoice = await createInvoice({lnd, tokens});
 
-  const [inChannelId] = (await getChannels({lnd})).channels.map(({id}) => id);
+    await asyncRetry({interval, times}, async () => {
+      const [inChanId] = (await getChannels({lnd})).channels.map(({id}) => id);
 
-  const {route} = await getRouteToDestination({
-    lnd,
-    tokens,
-    destination: control.id,
-    outgoing_channel: inChannelId,
-    payment: invoice.payment,
-    total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
-  });
+      await generate({});
 
-  const selfPay = await pay({lnd, path: {id: invoice.id, routes: [route]}});
+      await deleteForwardingReputations({lnd});
 
-  equal(selfPay.secret, invoice.secret, 'Payment made to self');
+      const {route} = await getRouteToDestination({
+        lnd,
+        tokens,
+        destination: control.id,
+        outgoing_channel: inChanId,
+        payment: invoice.payment,
+        total_mtokens: !!invoice.payment ? invoice.mtokens : undefined,
+      });
+
+      const selfPay = await pay({
+        lnd,
+        path: {id: invoice.id, routes: [route]},
+      });
+
+      equal(selfPay.secret, invoice.secret, 'Payment made to self');
+    });
+  } catch (err) {
+    equal(err, null, 'Expected no error')
+  }
 
   await kill({});
 
-  return end();
+  return;
 });

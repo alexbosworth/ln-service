@@ -1,5 +1,10 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {rejects} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
@@ -10,7 +15,6 @@ const {getInvoices} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {pay} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const anchorFeatureBit = 23;
 const cltvDelta = 144;
@@ -19,7 +23,7 @@ const sweepBlockCount = 40;
 const tokens = 100;
 
 // Create a hodl invoice
-test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
+test(`Pay a hodl invoice`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target, remote] = nodes;
@@ -91,7 +95,7 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
     // LND 0.11.1 and below do not support extended channel balance details
     if (!isAnchors) {
       if (!!controlChannelBalance.channel_balance_mtokens) {
-        strictSame(controlChannelBalance, {
+        deepEqual(controlChannelBalance, {
           channel_balance: 990950,
           channel_balance_mtokens: '990950000',
           inbound: 990850,
@@ -105,7 +109,7 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
       }
     }
 
-    strictSame(invoice, held, 'Invoice is held');
+    deepEqual(invoice, held, 'Invoice is held');
 
     const {secret} = await pay({lnd, request, timeout, tokens});
 
@@ -118,7 +122,7 @@ test(`Pay a hodl invoice`, async ({end, equal, rejects, strictSame}) => {
     return setTimeout(async () => {
       await kill({});
 
-      return end();
+      return;
     },
     1000);
   },

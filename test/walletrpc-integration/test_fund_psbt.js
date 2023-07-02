@@ -1,3 +1,6 @@
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {address} = require('bitcoinjs-lib');
 const {controlBlock} = require('p2tr');
@@ -12,7 +15,6 @@ const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {signHash} = require('p2tr');
 const {signSchnorr} = require('tiny-secp256k1');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
 const {v1OutputScript} = require('p2tr');
@@ -47,7 +49,7 @@ const tokens = 1e6;
 const txIdHexByteLength = 64;
 
 // Funding a transaction should result in a funded PSBT
-test(`Fund PSBT`, async ({end, equal}) => {
+test(`Fund PSBT`, async () => {
   const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
   const {kill, nodes} = await spawnLightningCluster({});
 
@@ -77,13 +79,6 @@ test(`Fund PSBT`, async ({end, equal}) => {
       throw err;
     }
   });
-
-  // On LND 0.11.1 and below, funding a PSBT is not supported
-  if (!funded) {
-    await kill({});
-
-    return end();
-  }
 
   const [input] = funded.inputs;
 
@@ -402,5 +397,5 @@ test(`Fund PSBT`, async ({end, equal}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

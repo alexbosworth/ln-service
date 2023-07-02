@@ -1,15 +1,17 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getFeeRates} = require('./../../');
-const {setupChannel} = require('./../macros');
 
 const defaultBaseFee = 1;
 const defaultFeeRate = 1;
 const size = 2;
 
 // Getting fee rates should return the fee rates of nodes in the channel graph
-test(`Get fee rates`, async ({end, equal}) => {
+test(`Get fee rates`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, to] = nodes;
@@ -18,21 +20,21 @@ test(`Get fee rates`, async ({end, equal}) => {
 
   const {channels} = await getFeeRates({lnd});
 
-  equal(channels.length, [channelOpen].length, 'Channel was opened');
+  strictEqual(channels.length, [channelOpen].length, 'Channel was opened');
 
   const [channel] = channels || [{}];
 
   if (!!channel.id) {
-    equal(channel.id, channelOpen.id, 'Channel id is represented');
+    strictEqual(channel.id, channelOpen.id, 'Channel id is represented');
   }
 
-  equal(channel.base_fee, defaultFeeRate, 'Channel base fee');
-  equal(channel.base_fee_mtokens, (defaultFeeRate * 1000)+'', 'Base fee mtok');
-  equal(channel.fee_rate, defaultBaseFee, 'Channel fee rate');
-  equal(channel.transaction_id, channelOpen.transaction_id, 'Channel tx id');
-  equal(channel.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
+  strictEqual(channel.base_fee, defaultFeeRate, 'Channel base fee');
+  strictEqual(channel.base_fee_mtokens, (defaultFeeRate * 1000)+'', 'Base');
+  strictEqual(channel.fee_rate, defaultBaseFee, 'Channel fee rate');
+  strictEqual(channel.transaction_id, channelOpen.transaction_id, 'Tx id');
+  strictEqual(channel.transaction_vout, channelOpen.transaction_vout, 'Vout');
 
   await kill({});
 
-  return end();
+  return;
 });

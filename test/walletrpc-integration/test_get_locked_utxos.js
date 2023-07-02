@@ -1,5 +1,8 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getLockedUtxos} = require('./../../');
 const {getUtxos} = require('./../../');
@@ -9,23 +12,8 @@ const count = 100;
 const expiry = () => new Date(Date.now() + (1000 * 60 * 5)).toISOString();
 
 // Getting locked UTXOs should result in a list of locked UTXOs
-test(`Get locked UTXOs`, async ({end, equal, rejects, strictSame}) => {
+test(`Get locked UTXOs`, async () => {
   const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
-
-  try {
-    await getLockedUtxos({lnd});
-  } catch (err) {
-    // LND 0.12.1 does not support getting locked UTXOs
-    strictSame(
-      err,
-      [501, 'BackingLndDoesNotSupportGettingLockedUtxos'],
-      'Got unsupported error'
-    );
-
-    await kill({});
-
-    return end();
-  }
 
   await generate({count});
 
@@ -57,7 +45,7 @@ test(`Get locked UTXOs`, async ({end, equal, rejects, strictSame}) => {
       transaction_vout: utxo.transaction_vout,
     };
 
-    strictSame(got, expected, 'Got expected UTXO lock');
+    deepEqual(got, expected, 'Got expected UTXO lock');
 
     // LND 0.15.0 and below do not support locked UTXO output script
     if (!!locked.output_script) {
@@ -66,7 +54,7 @@ test(`Get locked UTXOs`, async ({end, equal, rejects, strictSame}) => {
     }
 
   } catch (err) {
-    strictSame(
+    deepEqual(
       err,
       [501, 'BackingLndDoesNotSupportLockingUtxos'],
       'Got unsupported error'
@@ -75,5 +63,5 @@ test(`Get locked UTXOs`, async ({end, equal, rejects, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

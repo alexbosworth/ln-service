@@ -1,18 +1,21 @@
+const {rejects} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
 const {grantAccess} = require('./../../');
 const {restrictMacaroon} = require('./../../');
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const format = 'p2wpkh';
 const ip = '127.0.0.1';
 const methods = ['createChainAddress'];
 const wrongIp = '203.0.113.0';
 
 // Restricting the macaroon credentials should result in access limitation
-test(`Restricted macaroons restrict access`, async ({end, equal, rejects}) => {
+test(`Restricted macaroons restrict access`, async () => {
   const [{lnd, kill, rpc}] = (await spawnLightningCluster({})).nodes;
 
   try {
@@ -84,10 +87,10 @@ test(`Restricted macaroons restrict access`, async ({end, equal, rejects}) => {
       );
     }
   } catch (err) {
-    equal(err, null, 'Expected no error restricting macaroon');
+    strictEqual(err, null, 'Expected no error restricting macaroon');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

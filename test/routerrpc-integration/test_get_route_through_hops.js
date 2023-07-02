@@ -1,8 +1,10 @@
-const {randomBytes} = require('crypto');
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
 
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {createInvoice} = require('./../../');
@@ -13,7 +15,6 @@ const {getRouteThroughHops} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {waitForRoute} = require('./../macros');
 
 const confirmationCount = 6;
@@ -27,7 +28,7 @@ const tlvOnionBit = 14;
 const tokens = 100;
 
 // Getting a route through hops should result in a route through specified hops
-test(`Get route through hops`, async ({end, equal, strictSame}) => {
+test(`Get route through hops`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -115,7 +116,7 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
   route.payment = decodedRequest.payment;
   route.total_mtokens = decodedRequest.mtokens;
 
-  strictSame(res.route, route, 'Constructed route to destination');
+  deepEqual(res.route, route, 'Constructed route to destination');
 
   const {payments} = got;
 
@@ -123,9 +124,9 @@ test(`Get route through hops`, async ({end, equal, strictSame}) => {
 
   equal(payment.total_mtokens, invoice.mtokens, 'Got MPP total mtokens');
 
-  strictSame(payment.messages, route.messages, 'Remote got TLV messages');
+  deepEqual(payment.messages, route.messages, 'Remote got TLV messages');
 
   await kill({});
 
-  return end();
+  return;
 });

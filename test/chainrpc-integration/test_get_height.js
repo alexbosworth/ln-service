@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {getHeight} = require('./../../');
 
@@ -8,7 +10,7 @@ const confirmationCount = 6;
 const times = 100;
 
 // Get height should return height
-test(`Get height`, async ({end, equal, fail}) => {
+test(`Get height`, async () => {
   const {nodes} = await spawnLightningCluster({});
 
   const [{chain, generate, kill, lnd}] = nodes;
@@ -24,12 +26,16 @@ test(`Get height`, async ({end, equal, fail}) => {
       throw new Error('ExpectedHeightIncreaseReflected');
     }
 
-    equal(endHeight - startHeight >= confirmationCount, true, 'Got height');
+    strictEqual(
+      endHeight - startHeight >= confirmationCount,
+      true,
+      'Got height'
+    );
 
     return;
   });
 
   await kill({});
 
-  return end();
+  return;
 });

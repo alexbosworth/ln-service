@@ -1,8 +1,10 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {getPortPromise: getPort} = require('portfinder');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningDocker} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {authenticatedLndGrpc} = require('./../../');
@@ -23,7 +25,7 @@ const seed = 'about rabbit ozone hope jaguar quit scare twenty punch crisp consi
 const times = 3000;
 
 // Using a channel backup should recover funds
-test(`Recover funds from channel`, async ({end, equal}) => {
+test(`Recover funds from channel`, async () => {
   const control = await asyncRetry({interval, times}, async () => {
     return await spawnLightningDocker({
       seed,
@@ -187,19 +189,19 @@ test(`Recover funds from channel`, async ({end, equal}) => {
 
     const [chan] = (await getPendingChannels({lnd})).pending_channels;
 
-    equal(!!chan.close_transaction_id, true, 'Close transaction id found');
-    equal(chan.is_active, false, 'Chan no longer active');
-    equal(chan.is_closing, true, 'Channel is closing');
-    equal(chan.is_opening, false, 'Channel closing');
-    equal(chan.local_balance, giftTokens, 'Funds are being restored');
-    equal(chan.partner_public_key, targetId, 'Peer key');
-    equal(chan.transaction_id, channelOpen.transaction_id, 'Chan tx id');
-    equal(chan.transaction_vout, channelOpen.transaction_vout, 'Chan tx vout');
+    strictEqual(!!chan.close_transaction_id, true, 'Close transaction id');
+    strictEqual(chan.is_active, false, 'Chan no longer active');
+    strictEqual(chan.is_closing, true, 'Channel is closing');
+    strictEqual(chan.is_opening, false, 'Channel closing');
+    strictEqual(chan.local_balance, giftTokens, 'Funds are being restored');
+    strictEqual(chan.partner_public_key, targetId, 'Peer key');
+    strictEqual(chan.transaction_id, channelOpen.transaction_id, 'Tx id');
+    strictEqual(chan.transaction_vout, channelOpen.transaction_vout, 'Vout');
   }
 
   await clone.kill({});
 
   await target.kill({});
 
-  return end();
+  return;
 });

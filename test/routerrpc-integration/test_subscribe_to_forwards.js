@@ -1,6 +1,11 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const {rejects} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {addPeer} = require('./../../');
 const {cancelHodlInvoice} = require('./../../');
@@ -12,7 +17,6 @@ const {getHeight} = require('./../../');
 const {getLockedUtxos} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToForwards} = require('./../../');
 
 const anchorsFeatureBit = 23;
@@ -22,7 +26,7 @@ const times = 1000;
 const tokens = 100;
 
 // Subscribing to forwards should show forwarding events
-test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
+test('Subscribe to forwards', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
@@ -33,7 +37,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
     // Skip test on LND 0.12 due to timeout timing
     await kill({});
 
-    return end();
+    return;
   }
 
   try {
@@ -46,7 +50,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
     const targetChannel = await setupChannel({
       generate: target.generate,
-      give: 5e5,
+      give_tokens: 5e5,
       lnd: target.lnd,
       to: remote,
     });
@@ -118,7 +122,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
     if (!!err && err.details === 'unknown service routerrpc.Router') {
       await kill({});
 
-      return end();
+      return;
     }
 
     await asyncRetry({interval: 1000, times: 30}, async () => {
@@ -145,7 +149,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
 
     // LND 0.11.1 and before do not use anchor channels
     if (!isAnchors) {
-      strictSame(controlForwards, [
+      deepEqual(controlForwards, [
         {
           external_failure: undefined,
           fee: undefined,
@@ -246,7 +250,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
       ],
       'Got control forward events');
 
-      strictSame(targetForwards, [
+      deepEqual(targetForwards, [
         {
           external_failure: undefined,
           fee: 1,
@@ -314,7 +318,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
       ],
       'Got target forward events');
 
-      strictSame(remoteForwards, [
+      deepEqual(remoteForwards, [
         {
           external_failure: undefined,
           fee: undefined,
@@ -334,7 +338,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
       ],
       'Got remote forward events');
     } else {
-      strictSame(controlForwards, [
+      deepEqual(controlForwards, [
         {
           external_failure: undefined,
           fee: undefined,
@@ -434,7 +438,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
       ],
       'Got control forward events');
 
-      strictSame(targetForwards, [
+      deepEqual(targetForwards, [
         {
           external_failure: undefined,
           fee: 1,
@@ -502,7 +506,7 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
       ],
       'Got target forward events');
 
-      strictSame(remoteForwards, [
+      deepEqual(remoteForwards, [
         {
           external_failure: undefined,
           fee: undefined,
@@ -523,14 +527,14 @@ test('Subscribe to forwards', async ({end, equal, rejects, strictSame}) => {
       'Got remote forward events');
     }
 
-    strictSame(controlErrors, [], 'No control errors');
-    strictSame(targetErrors, [], 'No target errors');
-    strictSame(remoteErrors, [], 'No remote errors');
+    deepEqual(controlErrors, [], 'No control errors');
+    deepEqual(targetErrors, [], 'No target errors');
+    deepEqual(remoteErrors, [], 'No remote errors');
   } catch (err) {
-    strictSame(err, null, 'Expected no error');
-  } finally {
-    await kill({});
+    deepEqual(err, null, 'Expected no error');
   }
 
-  return end();
+  await kill({});
+
+  return;
 });

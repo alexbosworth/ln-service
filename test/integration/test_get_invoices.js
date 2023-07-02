@@ -1,6 +1,9 @@
+const {deepStrictEqual} = require('node:assert').strict;
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncEach = require('async/each');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
@@ -9,7 +12,7 @@ const {getInvoices} = require('./../../');
 const limit = 1;
 
 // createInvoice should result in a created invoice
-test(`Create an invoice`, async ({end, equal, strictSame}) => {
+test(`Create an invoice`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   try {
@@ -25,15 +28,15 @@ test(`Create an invoice`, async ({end, equal, strictSame}) => {
 
     const firstPage = await getInvoices({limit, lnd});
 
-    equal(!!firstPage.next, true, 'First page has a next token');
+    strictEqual(!!firstPage.next, true, 'First page has a next token');
 
     const secondPage = await getInvoices({lnd, token: firstPage.next});
 
-    equal(!!secondPage.next, true, 'Second page has a next token');
+    strictEqual(!!secondPage.next, true, 'Second page has a next token');
 
     const thirdPage = await getInvoices({lnd, token: secondPage.next});
 
-    equal(!!thirdPage.next, false, 'Third page has no next token');
+    strictEqual(!!thirdPage.next, false, 'Third page has no next token');
 
     const receivedInvoices = []
       .concat(firstPage.invoices)
@@ -43,28 +46,28 @@ test(`Create an invoice`, async ({end, equal, strictSame}) => {
     receivedInvoices.forEach((invoice, i) => {
       const expected = invoices[i];
 
-      equal(invoice.chain_address, expected.chain_address, 'Chain address');
-      equal(invoice.confirmed_at, expected.confirmed_at, 'Confirmed at');
-      equal(invoice.id, expected.id, 'Invoice id');
-      equal(invoice.request, expected.request, 'Payment request');
-      equal(invoice.secret, expected.secret, 'Payment secret');
-      equal(invoice.tokens, expected.tokens, 'Tokens');
+      strictEqual(invoice.chain_address, expected.chain_address, 'Address');
+      strictEqual(invoice.confirmed_at, expected.confirmed_at, 'Confirmed at');
+      strictEqual(invoice.id, expected.id, 'Invoice id');
+      strictEqual(invoice.request, expected.request, 'Payment request');
+      strictEqual(invoice.secret, expected.secret, 'Payment secret');
+      strictEqual(invoice.tokens, expected.tokens, 'Tokens');
     });
 
     const reversed = invoices.slice().reverse();
 
-    await asyncEach(reversed.filter((n, i) => !!i), async (invoice) => {
+    await asyncEach(reversed.filter((n, i) => !!i), async invoice => {
       return await cancelHodlInvoice({lnd, id: invoice.id});
     });
 
     const unconfirmed = await getInvoices({limit, lnd, is_unconfirmed: true});
 
-    strictSame(unconfirmed, thirdPage, 'Pending invoices are ignored');
+    deepStrictEqual(unconfirmed, thirdPage, 'Pending invoices are ignored');
   } catch (err) {
-    equal(err, null, 'No error is expected');
+    strictEqual(err, null, 'No error is expected');
   }
 
   await kill({});
 
-  return end();
+  return;
 });

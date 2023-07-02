@@ -1,3 +1,7 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncEach = require('async/each');
 const asyncMap = require('async/map');
 const asyncRetry = require('async/retry');
@@ -7,7 +11,6 @@ const {decodePsbt} = require('psbt');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
@@ -30,7 +33,7 @@ const times = 1000;
 const tokens = 1e6;
 
 // Partially signing a PSBT should result in a partially signed PSBT
-test(`Partially sign PSBT`, async ({end, equal, strictSame}) => {
+test(`Partially sign PSBT`, async () => {
   const ecp = (await import('ecpair')).ECPairFactory(tinysecp);
 
   const {kill, nodes} = await spawnLightningCluster({size});
@@ -212,10 +215,10 @@ test(`Partially sign PSBT`, async ({end, equal, strictSame}) => {
       });
     });
   } catch (err) {
-    strictSame(err, [501, 'PartiallySignPsbtMethodNotSupported'], 'NoSupport');
+    deepEqual(err, [501, 'PartiallySignPsbtMethodNotSupported'], 'No Support');
   } finally {
     await kill({});
   }
 
-  return end();
+  return;
 });

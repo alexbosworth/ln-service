@@ -1,5 +1,8 @@
+const {deepEqual} = require('node:assert').strict;
+const {equal} = require('node:assert').strict;
+const test = require('node:test');
+
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {diffieHellmanComputeSecret} = require('./../../');
 
@@ -7,7 +10,7 @@ const all = promise => Promise.all(promise);
 const size = 2;
 
 // Computing a shared secret should return the shared secret
-test('Diffie Hellman compute secret', async ({end, equal, strictSame}) => {
+test('Diffie Hellman compute secret', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, id, lnd}, target, remote] = nodes;
@@ -21,7 +24,7 @@ test('Diffie Hellman compute secret', async ({end, equal, strictSame}) => {
     equal(control.secret.length, 64, 'Got key back');
     equal(control.secret, secret, 'Key exchange is done');
   } catch (err) {
-    strictSame(
+    deepEqual(
       err,
       [400, 'ExpectedLndWithSupportForDeriveSharedKey'],
       'Got err'
@@ -30,5 +33,5 @@ test('Diffie Hellman compute secret', async ({end, equal, strictSame}) => {
 
   await kill({});
 
-  return end();
+  return;
 });

@@ -1,6 +1,8 @@
+const {strictEqual} = require('node:assert').strict;
+const test = require('node:test');
+
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {test} = require('@alexbosworth/tap');
 
 const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
@@ -14,7 +16,7 @@ const times = 200;
 const tokens = 1e6;
 
 // Getting a chain fee estimate should return an estimate of the chain fee
-test(`Get chain fee estimate`, async ({end, equal}) => {
+test(`Get chain fee estimate`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, {lnd}] = nodes;
@@ -41,14 +43,14 @@ test(`Get chain fee estimate`, async ({end, equal}) => {
 
   // LND 0.15.4 and below uses P2WPKH as change
   if (estimate.fee === 8650) {
-    equal(estimate.fee, 8650, 'Total fee is estimated');
+    strictEqual(estimate.fee, 8650, 'Total fee is estimated');
   } else {
-    equal(estimate.fee, expectedFee, 'Total fee is estimated');
+    strictEqual(estimate.fee, expectedFee, 'Total fee is estimated');
   }
 
-  equal(estimate.tokens_per_vbyte, expectedFeeRate, 'Fee per vbyte is given');
+  strictEqual(estimate.tokens_per_vbyte, expectedFeeRate, 'Got fee per vbyte');
 
   await kill({});
 
-  return end();
+  return;
 });
