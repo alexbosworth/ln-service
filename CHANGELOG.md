@@ -1,6 +1,6 @@
 # Versions
 
-## 56.8.0
+## 56.8.1
 
 - `getPendingChannels`: Add `blocks_until_expiry` for opening funding expiry
 
