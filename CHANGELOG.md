@@ -1,5 +1,9 @@
 # Versions
 
+## 56.8.2
+
+- `subscribeToForwards`: Cancel subscription when there are no event listeners
+
 ## 56.8.1
 
 - `getPendingChannels`: Add `blocks_until_expiry` for opening funding expiry
