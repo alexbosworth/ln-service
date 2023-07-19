@@ -3724,6 +3724,7 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
       [is_max_funding]: <Use Maximal Chain Funds For Local Funding Bool>
       [is_private]: <Channel is Private Bool> // Defaults to false
+      [is_trusted_funding]: <Accept Funding as Trusted Bool>
       lnd: <Authenticated LND API Object>
       local_tokens: <Total Channel Capacity Tokens Number>
       [min_confirmations]: <Spend UTXOs With Minimum Confirmations Number>
