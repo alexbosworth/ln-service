@@ -641,6 +641,13 @@ Requires `address:write`, `invoices:write` permission
       [is_including_private_channels]: <Invoice Includes Private Channels Bool>
       lnd: <Authenticated LND API Object>
       [mtokens]: <Millitokens String>
+      [routes]: [[{
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+        [channel]: <Standard Format Channel Id String>
+        [cltv_delta]: <CLTV Blocks Delta Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+        public_key: <Forward Edge Public Key Hex String>
+      }]]
       [tokens]: <Tokens Number>
     }
 
@@ -707,6 +714,13 @@ Requires `address:write`, `invoices:write` permission
       lnd: <Authenticated LND API Object>
       [secret]: <Payment Preimage Hex String>
       [mtokens]: <Millitokens String>
+      [routes]: [[{
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
+        [channel]: <Standard Format Channel Id String>
+        [cltv_delta]: <CLTV Blocks Delta Number>
+        [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+        public_key: <Forward Edge Public Key Hex String>
+      }]]
       [tokens]: <Tokens Number>
     }
 

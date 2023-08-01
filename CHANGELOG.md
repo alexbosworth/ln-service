@@ -1,5 +1,9 @@
 # Versions
 
+## 56.10.0
+
+- `createInvoice`, `createHodlInvoice`: Add `routes` to customize the hop hints
+
 ## 56.9.0
 
 - `openChannel`: Add `is_trusted_funding` to support skipping confirmation wait
