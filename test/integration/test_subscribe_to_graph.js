@@ -1,5 +1,6 @@
 const {deepEqual} = require('node:assert').strict;
 const {equal} = require('node:assert').strict;
+const {exit} = require('node:process');
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
@@ -19,8 +20,10 @@ const size = 2;
 const times = 1000;
 
 // Subscribing to graph should trigger graph events
-test('Subscribe to channels', async () => {
+test('Subscribe to channels', async t => {
   const attempts = [];
+
+  t.after(() => exit());
 
   await asyncRetry({interval, times}, async () => {
     const {kill, nodes} = await spawnLightningCluster({size});

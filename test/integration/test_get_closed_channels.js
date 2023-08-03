@@ -1,3 +1,4 @@
+const {exit} = require('node:process');
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
@@ -20,8 +21,10 @@ const size = 2;
 const times = 1000;
 
 // Getting closed channels should return closed channels
-test(`Get closed channels`, async () => {
+test(`Get closed channels`, async t => {
   const {kill, nodes} = await spawnLightningCluster({size});
+
+  t.after(() => exit());
 
   const [control, target] = nodes;
 

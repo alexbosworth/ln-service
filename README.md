@@ -3729,6 +3729,8 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 
 `description` is not supported on LND 0.16.4 and below
 
+`inputs` is not supported on LND 0.16.4 and below
+
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
@@ -3736,6 +3738,10 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
       [description]: <Immutable Channel Description String>
       [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
       [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
+      [inputs]: [{
+        transaction_id: <Fund With Unspent Transaction Id Hex String>
+        transaction_vout: <Fund With Unspent Transaction Output Index Number>
+      }]
       [is_max_funding]: <Use Maximal Chain Funds For Local Funding Bool>
       [is_private]: <Channel is Private Bool> // Defaults to false
       [is_trusted_funding]: <Accept Funding as Trusted Bool>

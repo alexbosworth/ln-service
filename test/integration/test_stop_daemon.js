@@ -1,3 +1,4 @@
+const {exit} = require('node:process');
 const {fail} = require('node:assert').strict;
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
@@ -8,8 +9,10 @@ const {getWalletInfo} = require('./../../');
 const {stopDaemon} = require('./../../');
 
 // Stopping the daemon should gracefully shut down the daemon
-test(`Stop daemon`, async ({end, equal, fail}) => {
+test(`Stop daemon`, async t => {
   const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
+
+  t.after(() => exit());
 
   await stopDaemon({lnd});
 

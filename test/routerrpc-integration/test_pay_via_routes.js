@@ -48,7 +48,15 @@ test(`Pay via routes`, async () => {
   const remoteLnd = remote.lnd;
   const targetPubKey = target.id;
 
+  await addPeer({lnd, public_key: target.id, socket: target.socket});
+
   const channel = await setupChannel({generate, lnd, to: target});
+
+  await addPeer({
+    lnd: target.lnd,
+    public_key: remote.id,
+    socket: remote.socket,
+  });
 
   const targetToRemoteChan = await setupChannel({
     generate: target.generate,

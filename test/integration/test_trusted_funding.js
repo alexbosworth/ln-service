@@ -1,5 +1,6 @@
 const {deepEqual} = require('node:assert').strict;
 const {equal} = require('node:assert').strict;
+const {exit} = require('node:process');
 const {match} = require('node:assert').strict;
 const test = require('node:test');
 
@@ -29,7 +30,9 @@ const size = 2;
 const times = 4000;
 
 // Opening unconfirmed channels should in immediate channel opening
-test(`Open unconfirmed channels`, async () => {
+test(`Open unconfirmed channels`, async t => {
+  t.after(() => exit());
+
   // Unconfirmed channels are not supported on LND 0.15.0 and below
   {
     const {kill, nodes} = await spawnLightningCluster({});

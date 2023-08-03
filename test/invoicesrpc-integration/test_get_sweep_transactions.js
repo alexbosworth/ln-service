@@ -1,4 +1,5 @@
 const {equal} = require('node:assert').strict;
+const {exit} = require('node:process');
 const test = require('node:test');
 
 const asyncAuto = require('async/auto');
@@ -17,9 +18,7 @@ const {getSweepTransactions} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
-const {subscribeToInvoice} = require('./../../');
 
-const anchorsFeatureBit = 23;
 const blockDelay = 50;
 const channelCapacityTokens = 1e6;
 const confirmationCount = 6;
@@ -31,14 +30,12 @@ const times = 10000;
 const tokens = 100;
 
 // Force close a channel and get the resulting sweep transaction
-test(`Get sweep transactions`, async () => {
+test(`Get sweep transactions`, async t => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
+  t.after(() => exit());
+
   const [{generate, lnd}, target] = nodes;
-
-  const {features} = await getWalletInfo({lnd});
-
-  const isAnchors = !!features.find(n => n.bit === anchorsFeatureBit);
 
   const channel = await setupChannel({
     generate,
@@ -79,28 +76,21 @@ test(`Get sweep transactions`, async () => {
 
   const [transaction] = transactions;
 
-  // LND 0.12.0 uses anchor channels
-  if (isAnchors) {
-    const [anchorTokens, sweepTokens] = transactions
-      .map(n => n.tokens).sort();
+  const [anchorTokens, sweepTokens] = transactions
+    .map(n => n.tokens).sort();
 
-    equal(transactions.length, 2, 'Got closed channel sweep');
+  equal(transactions.length, 2, 'Got closed channel sweep');
 
-    // LND 0.15.0 and before have different sweep tokens
-    if (sweepTokens === 890455) {
-      equal(anchorTokens, 149, 'Sweep has tokens amount');
-      equal(sweepTokens, 890455, 'Sweep has tokens amount');
-    } else if (anchorTokens === 147) {
-      equal(anchorTokens, 147, 'Sweep has tokens amount');
-      equal(sweepTokens, 889855, 'Sweep has tokens amount');
-    } else {
-      equal(anchorTokens, 136, 'Sweep has tokens amount');
-      equal(sweepTokens, 889855, 'Sweep has tokens amount');
-    }
+  // LND 0.15.0 and before have different sweep tokens
+  if (sweepTokens === 890455) {
+    equal(anchorTokens, 149, 'Sweep has tokens amount');
+    equal(sweepTokens, 890455, 'Sweep has tokens amount');
+  } else if (anchorTokens === 147) {
+    equal(anchorTokens, 147, 'Sweep has tokens amount');
+    equal(sweepTokens, 889855, 'Sweep has tokens amount');
   } else {
-    equal(transactions.length, [channel].length, 'Got closed channel sweep');
-    equal(transaction.spends.length, 1, 'Sweep has spends');
-    equal(transaction.tokens, 884875, 'Sweep has tokens amount');
+    equal(anchorTokens, 136, 'Sweep has tokens amount');
+    equal(sweepTokens, 889855, 'Sweep has tokens amount');
   }
 
   equal(transaction.block_id.length, 64, 'Sweep confirmed');
