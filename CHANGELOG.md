@@ -1,6 +1,6 @@
 # Versions
 
-## 56.11.0
+## 56.11.1
 
 - `openChannel`: Add `inputs` to select inputs for channel open funding
 

@@ -11,14 +11,14 @@
     "cors": "2.8.5",
     "express": "4.18.2",
     "invoices": "3.0.0",
-    "lightning": "9.11.1",
+    "lightning": "9.11.2",
     "macaroon": "3.0.4",
     "morgan": "1.10.0",
     "ws": "8.13.0"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
-    "@alexbosworth/blockchain": "1.5.0",
+    "@alexbosworth/blockchain": "1.7.0",
     "@alexbosworth/node-fetch": "2.6.2",
     "async": "3.2.4",
     "asyncjs-util": "1.2.12",
@@ -69,5 +69,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "56.11.0"
+  "version": "56.11.1"
 }
