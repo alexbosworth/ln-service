@@ -5121,7 +5121,7 @@ const {stopDaemon} = require('ln-service');
 await stopDaemon({lnd});
 ```
 
-### Subscritions
+### Subscriptions
 
 1. Besides the events listed in this documentation, all `EventEmitters`
    returned by any of the `subscribeTo...` methods also offer an `error`
