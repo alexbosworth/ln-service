@@ -5121,6 +5121,39 @@ const {stopDaemon} = require('ln-service');
 await stopDaemon({lnd});
 ```
 
+### Subscritions
+
+1. Besides the events listed in this documentation, all `EventEmitters`
+   returned by any of the `subscribeTo...` methods also offer an `error`
+   event. This event is triggered e.g. when LND is shut down. So, in order to
+   detect and correctly handle such a situation, robust client code should
+   generally also add a listener for the `error` event. For example, a
+   function that will wait for and return the next forward but throw an
+   exception when LND is either not reachable or shuts down while waiting for
+   the forward would look something like this:
+
+   ``` node
+   const getNextForward = async (lnd) => {
+       const emitter = subscribeToForwards({ lnd });
+
+       try {
+           return await new Promise((resolve, reject) => {
+               emitter.on("forward", resolve);
+               // Without the following line, the function will never throw
+               // when the connection is lost after calling subscribeToForwards
+               emitter.on("error", reject);
+           });
+       } finally {
+           emitter.removeAllListeners();
+       }
+   };
+   ```
+
+2. After the last listener has been removed from an `EventEmitter` object, the
+   subscription is released and subsequent attempts to add a listener will
+   result in an error. Call `subscribeTo...` again and add new listeners to the
+   new `EventEmitter` object.
+
 ### subscribeToBackups
 
 Subscribe to backup snapshot updates
