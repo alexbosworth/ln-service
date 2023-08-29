@@ -3764,6 +3764,9 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 
 `inputs` is not supported on LND 0.16.4 and below
 
+`is_simplified_taproot` is not supported on LND 0.16.4 and below and requires
+`--protocol.simple-taproot-chans` set on both sides.
+
     {
       [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
       [chain_fee_tokens_per_vbyte]: <Chain Fee Tokens Per VByte Number>
@@ -3777,6 +3780,7 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
       }]
       [is_max_funding]: <Use Maximal Chain Funds For Local Funding Bool>
       [is_private]: <Channel is Private Bool> // Defaults to false
+      [is_simplified_taproot]: <Channel is Simplified Taproot Type Bool>
       [is_trusted_funding]: <Accept Funding as Trusted Bool>
       lnd: <Authenticated LND API Object>
       local_tokens: <Total Channel Capacity Tokens Number>
