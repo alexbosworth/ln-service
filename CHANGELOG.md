@@ -1,5 +1,9 @@
 # Versions
 
+## 56.13.0
+
+- `openChannels`: Add `is_simplified_taproot` to make a simplified taproot chan
+
 ## 56.12.0
 
 - `openChannel`: Add `is_simplified_taproot` to make a simplified taproot chan

@@ -3830,6 +3830,9 @@ as well as a channel open request listener to accept the trusted funding.
 
 `description` is not supported on LND 0.16.4 and below
 
+`is_simplified_taproot` is not supported on LND 0.16.4 and below and requires
+`--protocol.simple-taproot-chans` set on both sides.
+
     {
       channels: [{
         [base_fee_mtokens]: <Routing Base Fee Millitokens Charged String>
@@ -3839,6 +3842,7 @@ as well as a channel open request listener to accept the trusted funding.
         [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
         [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
         [is_private]: <Channel is Private Bool> // Defaults to false
+        [is_simplified_taproot]: <Channel is Simplified Taproot Type Bool>
         [is_trusted_funding]: <Peer Should Avoid Waiting For Confirmation Bool>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
         [partner_csv_delay]: <Peer Output CSV Delay Number>
