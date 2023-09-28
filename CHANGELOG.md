@@ -1,5 +1,9 @@
 # Versions
 
+## 56.14.0
+
+- `openChannel`: Add `is_allowing_minimal_reserve` to allow no reserve on peer
+
 ## 56.13.0
 
 - `openChannels`: Add `is_simplified_taproot` to make a simplified taproot chan

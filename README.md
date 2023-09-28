@@ -3758,6 +3758,8 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
 `base_fee_mtokens` is not supported on LND 0.15.5 and below
 `fee_rate` is not supported on LND 0.15.5 and below
 
+`is_allowing_minimal_reserve` is not supported on LND 0.15.0 and below
+
 `is_max_funding` is not supported on LND 0.16.4 and below
 
 `description` is not supported on LND 0.16.4 and below
@@ -3778,6 +3780,7 @@ Requires `offchain:write`, `onchain:write`, `peers:write` permissions
         transaction_id: <Fund With Unspent Transaction Id Hex String>
         transaction_vout: <Fund With Unspent Transaction Output Index Number>
       }]
+      [is_allowing_minimal_reserve]: <Allow Peer to Have Minimal Reserve Bool>
       [is_max_funding]: <Use Maximal Chain Funds For Local Funding Bool>
       [is_private]: <Channel is Private Bool> // Defaults to false
       [is_simplified_taproot]: <Channel is Simplified Taproot Type Bool>
