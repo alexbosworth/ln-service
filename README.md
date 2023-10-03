@@ -9,6 +9,7 @@ through npm.
 
 Supported LND versions:
 
+- v0.17.0-beta
 - v0.16.0-beta to v0.16.4-beta
 - v0.15.2-beta to v0.15.5-beta
 - v0.14.4-beta to v0.14.5-beta
@@ -3604,59 +3605,6 @@ const createInvoices = authenticatedLndGrpc({cert, macaroon, socket});
 
 // Payment requests can be made with this special limited LND connection
 const {request} = await createInvoice({lnd: createInvoices.lnd, tokens: 1});
-```
-
-### grpcProxyServer
-
-Get a gRPC proxy server
-
-    {
-      [bind]: <Bind to Address String>
-      [cert]: <LND Cert Base64 String>
-      log: <Log Function>
-      path: <Router Path String>
-      port: <Listen Port Number>
-      socket: <LND Socket String>
-      stream: <Log Write Stream Object>
-    }
-
-    @returns
-    {
-      app: <Express Application Object>
-      server: <Web Server Object>
-      wss: <WebSocket Server Object>
-    }
-
-```node
-const {getWalletInfo} = require('ln-service');
-const {lndGateway} = require('lightning');
-const request = require('@alexbosworth/request');
-const websocket = require('ws');
-const {Writable} = require('stream');
-
-const log = output => log(output);
-const path = '/lnd/';
-const port = 8050;
-
-const {app, server, wss} = grpcProxyServer({
-  log,
-  path,
-  port,
-  cert: base64Encoded64TlsCertFileString,
-  socket: 'localhost:10009',
-  stream: new Writable({write: (chunk, encoding, cbk) => cbk()}),
-});
-
-// Create an authenticated LND for the gRPC REST gateway
-const {lnd} = lndGateway({
-  request,
-  websocket,
-  macaroon: base64EncodedMacaroonFileString,
-  url: `http://localhost:${port}${path}`,
-});
-
-// Make a request to a gRPC method through the REST proxy
-const nodeInfo = await getWalletInfo({lnd});
 ```
 
 ### isDestinationPayable

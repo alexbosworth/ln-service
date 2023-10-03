@@ -1,5 +1,14 @@
 # Versions
 
+## 57.0.0
+
+- Add support for LND 0.17.0
+
+### Breaking Changes
+
+- End support for node.js 16, require 18 or higher
+- Remove method `grpcProxyServer`
+
 ## 56.14.0
 
 - `openChannel`: Add `is_allowing_minimal_reserve` to allow no reserve on peer
