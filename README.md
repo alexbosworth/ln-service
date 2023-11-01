@@ -175,6 +175,7 @@ for `unlocker` methods.
 - [getBackup](#getbackup) - Get a backup of a channel
 - [getBackups](#getbackups) - Get a backup for all channels
 - [getBlock](#getblock) - Get the raw block data given a block id in the chain
+- [getBlockHeader](#getblockheader) - Get the raw block header for a block
 - [getChainAddresses](#getchainaddresses) - Get created chain addresses
 - [getChainBalance](#getchainbalance) - Get the confirmed chain balance
 - [getChainFeeEstimate](#getchainfeeestimate) - Get a chain fee estimate
@@ -1465,7 +1466,7 @@ const {backup} = await getBackups({lnd});
 
 Get a block in the chain
 
-This method requires LND built with `chainkit` build tag
+This method requires LND built with `chainrpc` build tag
 
 Requires `onchain:read` permission
 
@@ -1492,6 +1493,39 @@ const chain = await getHeight({lnd});
 const {block} = await getBlock({lnd, id: chain.current_block_hash});
 
 const lastBlockSize = Buffer.from(block, 'hex').byteLength();
+```
+
+### getBlockHeader
+
+Get a block header in the best chain
+
+This method requires LND built with `chainrpc` build tag
+
+Requires `onchain:read` permission
+
+This method is not supported on LND 0.17.0 and below
+
+    {
+      [height]: <Block Height Number>
+      [id]: <Block Hash Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      header: <Raw Block Header Bytes Hex String>
+    }
+
+Example:
+
+```node
+const {getBlockHeader, getHeight} = require('ln-service');
+
+const chain = await getHeight({lnd});
+
+const {header} = await getBlockHeader({lnd, id: chain.current_block_hash});
+
+const lastBlockHeader = Buffer.from(header, 'hex');
 ```
 
 ### getChainAddresses
