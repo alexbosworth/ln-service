@@ -37,6 +37,16 @@ test(`Get sweep transactions`, async t => {
 
   const [{generate, lnd}, target] = nodes;
 
+  await asyncRetry({interval, times}, async () => {
+    const wallet = await getWalletInfo({lnd});
+
+    await generate({});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('NotSyncedToChain');
+    }
+  });
+
   const channel = await setupChannel({
     generate,
     lnd,

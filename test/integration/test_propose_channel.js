@@ -61,6 +61,8 @@ test(`Propose a channel with a coop delay`, async () => {
   try {
     // Generate some funds for LND
     await asyncRetry({times}, async () => {
+      await generate({});
+
       await addPeer({lnd, public_key: target.id, socket: target.socket});
 
       await generate({});

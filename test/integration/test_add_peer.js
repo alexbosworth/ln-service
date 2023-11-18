@@ -17,7 +17,7 @@ const timeout = 100;
 test(`Add a peer`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [{lnd}, target] = nodes;
+  const [{generate, lnd}, target] = nodes;
 
   try {
     const connectedKeys = (await getPeers({lnd})).peers.map(n => n.public_key);
@@ -29,6 +29,8 @@ test(`Add a peer`, async () => {
     );
 
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({
         lnd,
         timeout,

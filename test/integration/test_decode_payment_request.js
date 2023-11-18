@@ -1,11 +1,16 @@
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createInvoice} = require('./../../');
 const {decodePaymentRequest} = require('./../../');
 const {getIdentity} = require('./../../');
+const {getWalletInfo} = require('./../../');
+
+const interval = 50;
+const times = 4000;
 
 const tests = [
   {
@@ -24,7 +29,17 @@ const tests = [
 
 tests.forEach(({description, expected}) => {
   return test(description, async () => {
-    const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
+    const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
+
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('NotSyncedToChain');
+      }
+    });
 
     try {
       const {request} = await createInvoice({

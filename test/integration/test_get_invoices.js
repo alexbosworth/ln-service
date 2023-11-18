@@ -3,20 +3,35 @@ const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncEach = require('async/each');
+const asyncRetry = require('async/retry');
+const {getWalletInfo} = require('./../../');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {cancelHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 
+const interval = 1000;
 const limit = 1;
+const times = 1000;
 
-// createInvoice should result in a created invoice
-test(`Create an invoice`, async () => {
+// Get invoices should result in a list of created invoices
+test(`Get invoices`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   try {
     const [{generate, lnd}] = nodes;
+
+    // Make sure that target is synced to the chain otherwise invoice can halt
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('WaitingForSyncToChain');
+      }
+    });
 
     const invoices = [
       await createInvoice({lnd, description: '3'}),

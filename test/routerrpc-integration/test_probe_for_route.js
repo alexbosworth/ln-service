@@ -13,6 +13,7 @@ const {delay} = require('./../macros');
 const {deleteForwardingReputations} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getFailedPayments} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {getWalletVersion} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
@@ -24,6 +25,7 @@ const channelCapacityTokens = 1e6;
 const confirmationCount = 20;
 const count = 100;
 const defaultFee = 1e3;
+const interval = 50;
 const size = 3;
 const times = 1000;
 const tokens = 1e6 / 2;
@@ -37,6 +39,16 @@ test('Probe for route', async () => {
   try {
     // Send coins to remote so that it can accept a channel
     await remote.generate({count});
+
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd: remote.lnd});
+
+      await remote.generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('NotSyncedToChain');
+      }
+    });
 
     await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 

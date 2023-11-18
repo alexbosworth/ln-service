@@ -3,6 +3,7 @@ const {equal} = require('node:assert').strict;
 const {rejects} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
@@ -11,11 +12,14 @@ const {createInvoice} = require('./../../');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getPayment} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {waitForRoute} = require('./../macros');
 
+const interval = 50;
 const size = 3;
 const start = new Date().toISOString();
+const times = 5000;
 const tokens = 100;
 
 // Paying an invoice should settle the invoice
@@ -23,6 +27,16 @@ test(`Get payment`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
+
+  await asyncRetry({interval, times}, async () => {
+    const wallet = await getWalletInfo({lnd: remote.lnd});
+
+    await remote.generate({});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('NotSyncedToChain');
+    }
+  });
 
   const invoice = await createInvoice({tokens, lnd: remote.lnd});
 

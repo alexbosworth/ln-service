@@ -25,6 +25,8 @@ const size = 3;
 const times = 1000;
 const tokens = 100;
 
+const asyncTimesSeries = require('async/timesSeries');
+
 // Subscribing to forwards should show forwarding events
 test('Subscribe to forwards', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
@@ -39,6 +41,16 @@ test('Subscribe to forwards', async () => {
 
     return;
   }
+
+  await asyncRetry({interval, times}, async () => {
+    const wallet = await getWalletInfo({lnd});
+
+    await generate({});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('NotSyncedToChain');
+    }
+  });
 
   try {
     const {features} = await getWalletInfo({lnd});

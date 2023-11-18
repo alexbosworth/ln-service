@@ -11,6 +11,7 @@ const {decodePaymentRequest} = require('./../../');
 const {getChannel} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getRouteToDestination} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
 const {pay} = require('./../../');
@@ -28,6 +29,16 @@ test(`Pay private invoice`, async () => {
   try {
     const [{generate, lnd}, target, remote] = nodes;
 
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('NotSyncedToChain');
+      }
+    });
+
     const channel = await setupChannel({generate, lnd, to: target});
 
     const remoteChannel = await setupChannel({
@@ -38,6 +49,8 @@ test(`Pay private invoice`, async () => {
     });
 
     const invoice = await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       const invoice = await createInvoice({
         tokens,
         is_including_private_channels: true,
@@ -62,6 +75,8 @@ test(`Pay private invoice`, async () => {
     const decodedRequest = await decodePaymentRequest({lnd, request});
 
     const route = await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       const {route} = await getRouteToDestination({
         lnd,
         cltv_delta: decodedRequest.cltv_delta,

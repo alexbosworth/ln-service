@@ -7,14 +7,17 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createInvoice} = require('./../../');
 const {getPayment} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwards} = require('./../../');
 const {subscribeToPayments} = require('./../../');
 const {waitForRoute} = require('./../macros');
 
-const unsupported = 'unknown method TrackPayments for service routerrpc.Router';
+const interval = 1000;
 const size = 2;
+const times = 1000;
 const tokens = 100;
+const unsupported = 'unknown method TrackPayments for service routerrpc.Router';
 
 // Subscribing to payments should notify on a payment
 test(`Subscribe to payments`, async () => {
@@ -27,6 +30,17 @@ test(`Subscribe to payments`, async () => {
     const isLegacy = [];
     const isPaying = [];
     const payments = [];
+
+    // Make sure that target is synced to the chain otherwise invoice can halt
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd: target.lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('WaitingForSyncToChain');
+      }
+    });
 
     const invoice = await createInvoice({tokens, lnd: target.lnd});
 

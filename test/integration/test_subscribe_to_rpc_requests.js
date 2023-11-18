@@ -52,7 +52,7 @@ test(`Subscribe to RPC requests`, async () => {
 
     kills.push(kill);
 
-    const [{lnd, id: key}] = nodes;
+    const [{generate, lnd, id: key}] = nodes;
 
     const rpcRequestsSub = (await subscribeToRpcRequests({lnd})).subscription;
 
@@ -63,6 +63,17 @@ test(`Subscribe to RPC requests`, async () => {
     rpcRequestsSub.on('error', error => intercepted.push({error}));
     rpcRequestsSub.on('request', request => intercepted.push({request}));
     rpcRequestsSub.on('response', response => intercepted.push({response}));
+
+    // Make sure that target is synced to the chain otherwise invoice can halt
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('WaitingForSyncToChain');
+      }
+    });
 
     const {id} = await createInvoice({lnd});
 

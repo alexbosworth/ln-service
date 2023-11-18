@@ -14,9 +14,11 @@ const {createInvoice} = require('./../../');
 const {fundPendingChannels} = require('./../../');
 const {fundPsbt} = require('./../../');
 const {getChannels} = require('./../../');
+const {getChannel} = require('./../../');
 const {getClosedChannels} = require('./../../');
 const {getEphemeralChannelIds} = require('./../../');
 const {getPendingChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {openChannels} = require('./../../');
 const {pay} = require('./../../');
 const {signPsbt} = require('./../../');
@@ -30,9 +32,7 @@ const size = 2;
 const times = 4000;
 
 // Opening unconfirmed channels should in immediate channel opening
-test(`Open unconfirmed channels`, async t => {
-  t.after(() => exit());
-
+test(`Open unconfirmed channels`, async () => {
   // Unconfirmed channels are not supported on LND 0.15.0 and below
   {
     const {kill, nodes} = await spawnLightningCluster({});
@@ -67,6 +67,16 @@ test(`Open unconfirmed channels`, async t => {
     // Make some funds to use
     await generate({count: maturity});
 
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('NotSyncedToChain');
+      }
+    });
+
     // Connect to the peer
     await addPeer({lnd, public_key: target.id, socket: target.socket});
 
@@ -78,9 +88,13 @@ test(`Open unconfirmed channels`, async t => {
       });
     });
 
+    // Wait for channel open requests to be able to accept the proposal
     const acceptSub = subscribeToOpenRequests({lnd: target.lnd});
+
+    // Listen for channel events
     const channelsSub = subscribeToChannels({lnd});
 
+    // Channel closing and opening events should be emitted
     const closings = [];
     const opened = [];
 
@@ -118,11 +132,10 @@ test(`Open unconfirmed channels`, async t => {
       funding: psbt,
     });
 
-    const invoice = await createInvoice({
-      lnd: target.lnd,
-      tokens: 100,
-    });
+    // Make an invoice to pay over the channel
+    const invoice = await createInvoice({lnd: target.lnd, tokens: 100});
 
+    // Wait for the trusted channel
     const channel = await asyncRetry({interval, times}, async () => {
       const {channels} = await getChannels({lnd, is_active: true});
 
@@ -148,11 +161,14 @@ test(`Open unconfirmed channels`, async t => {
     equal(event.is_trusted_funding, true, 'Channel event funding is trusted');
 
     // Make sure the channel can be used immediately
-    await pay({lnd, request: invoice.request});
+    await asyncRetry({interval, times}, async () => {
+      return await pay({lnd, request: invoice.request});
+    });
 
     // Generate the channel into a block
     await broadcastChainTransaction({lnd, transaction});
 
+    // Make sure that the channel id gets a confirmed id
     const confirmed = await asyncRetry({interval, times}, async () => {
       await generate({});
 
@@ -165,7 +181,7 @@ test(`Open unconfirmed channels`, async t => {
       return confirmed;
     });
 
-    equal(confirmed.id, '102x1x0', 'Channel id is real now');
+    match(confirmed.id, /1[\d][\d]x1x0/, 'Channel id is real now');
     equal(confirmed.is_trusted_funding, true, 'Channel funding was trusted');
     equal(confirmed.other_ids.length, 1, 'Got ephemeral id');
 
@@ -184,6 +200,7 @@ test(`Open unconfirmed channels`, async t => {
       }
     });
 
+    // Remove the channel
     await asyncRetry({interval, times}, async () => {
       await closeChannel({lnd, id: confirmed.id});
     });
@@ -214,6 +231,7 @@ test(`Open unconfirmed channels`, async t => {
       funding: signedPrivate.psbt,
     });
 
+    // Confirm the private channel
     const privateConfirmed = await asyncRetry({interval, times}, async () => {
       // Generate the channel into a block
       await broadcastChainTransaction({
@@ -252,11 +270,13 @@ test(`Open unconfirmed channels`, async t => {
 
     match(firstChannel.reference_id, /16000000x0/, 'Got first channel id');
     match(secondChannel.reference_id, /16000000x0/, 'Got second channel id');
-  } catch (err) {
-    equal(err, null, 'No error is reported');
-  }
 
-  await kill({});
+    await kill({});
+  } catch (err) {
+    await kill({});
+
+    throw err;
+  }
 
   return;
 });

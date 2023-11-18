@@ -16,10 +16,12 @@ const times = 2000;
 test(`Remove a peer`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [{id, lnd}, target] = nodes;
+  const [{generate, id, lnd}, target] = nodes;
 
   try {
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({lnd, public_key: target.id, socket: target.socket});
     });
 

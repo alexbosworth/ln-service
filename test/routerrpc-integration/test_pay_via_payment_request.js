@@ -3,6 +3,7 @@ const {equal} = require('node:assert').strict;
 const {rejects} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
@@ -14,8 +15,10 @@ const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {waitForRoute} = require('./../macros');
 
+const interval = 50;
 const size = 3;
 const start = new Date().toISOString();
+const times = 3000;
 const tlvType = '67890';
 const tlvValue = '0102';
 const tokens = 100;
@@ -28,6 +31,16 @@ test(`Pay via payment request`, async () => {
 
   try {
     await generate({count: 100});
+
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd: remote.lnd});
+
+      await remote.generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('NotSyncedToChain');
+      }
+    });
 
     const channel = await setupChannel({generate, lnd, to: target});
 

@@ -17,7 +17,7 @@ const times = 2000;
 test(`Send peer message`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [{id, lnd}, target] = nodes;
+  const [{generate, id, lnd}, target] = nodes;
 
   try {
     await sendMessageToPeer({
@@ -38,6 +38,8 @@ test(`Send peer message`, async () => {
 
   try {
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({
         lnd,
         public_key: target.id,

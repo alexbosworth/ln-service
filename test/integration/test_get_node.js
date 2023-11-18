@@ -30,12 +30,20 @@ test(`Get node`, async () => {
   const [{generate, id, lnd}, target, remote] = nodes;
 
   try {
-    const controlToTarget = await setupChannel({generate, lnd, to: target});
+    const controlToTarget = await asyncRetry({interval, times}, async () => {
+      await generate({});
 
-    const targetToRemote = await setupChannel({
-      generate: target.generate,
-      lnd: target.lnd,
-      to: remote,
+      return await setupChannel({generate, lnd, to: target});
+    });
+
+    const targetToRemote = await asyncRetry({interval, times}, async () => {
+      await target.generate({});
+
+      return await setupChannel({
+        generate: target.generate,
+        lnd: target.lnd,
+        to: remote,
+      });
     });
 
     await updateRoutingFees({
@@ -48,6 +56,8 @@ test(`Get node`, async () => {
     });
 
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({
         lnd,
         public_key: remote.id,
@@ -95,11 +105,13 @@ test(`Get node`, async () => {
     strictEqual(!!socket.socket, true, 'Ip, port');
     strictEqual(socket.type, 'tcp', 'Socket type');
     strictEqual(node.updated_at.length, 24, 'Update date');
+
+    await kill({});
   } catch (err) {
+    await kill({});
+
     strictEqual(err, null, 'Expected no error');
   }
-
-  await kill({});
 
   return;
 });

@@ -19,6 +19,7 @@ const {getChannels} = require('./../../');
 const {getLockedUtxos} = require('./../../');
 const {getMasterPublicKeys} = require('./../../');
 const {getPendingChannels} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {openChannels} = require('./../../');
 const {signPsbt} = require('./../../');
 const {unlockUtxo} = require('./../../');
@@ -39,9 +40,17 @@ test(`Forfeit pending channel`, async t => {
 
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  t.after(async () => await kill({}));
-
   const [{generate, lnd}, target, remote] = nodes;
+
+  await asyncRetry({interval, times}, async () => {
+    const wallet = await getWalletInfo({lnd});
+
+    await generate({});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('NotSyncedToChain');
+    }
+  });
 
   await generate({count});
 
@@ -63,7 +72,15 @@ test(`Forfeit pending channel`, async t => {
       lnd,
       is_avoiding_broadcast: true,
     },
-    cbk);
+    async (err, res) => {
+      await generate({});
+
+      await asyncEach([target, remote], async node => {
+        return await addPeer({lnd, public_key: node.id, socket: node.socket});
+      });
+
+      return cbk(err, res)
+    });
   });
 
   // Setup funding for the target
@@ -120,7 +137,7 @@ test(`Forfeit pending channel`, async t => {
     funding: signRemote.psbt,
   });
 
-  await delay(1000);
+  await delay(2000);
 
   const {transaction} = extractTransaction({ecp, psbt: signRemote.psbt});
 
@@ -178,6 +195,8 @@ test(`Forfeit pending channel`, async t => {
   } catch (err) {
     deepEqual(err, [501, 'DeletePendingChannelMethodNotSupported']);
   }
+
+  await kill({});
 
   return;
 });

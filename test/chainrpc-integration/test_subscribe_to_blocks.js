@@ -11,6 +11,7 @@ const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getHeight} = require('./../../');
 const {getChainBalance} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {subscribeToBlocks} = require('./../../');
 const {waitForTermination} = require('./../macros');
 
@@ -25,6 +26,17 @@ test(`Subscribe to blocks`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{generate, lnd}] = nodes;
+
+  // Try to make sure that the chain notifier RPC is ready
+  await asyncRetry({interval, times}, async () => {
+    const wallet = await getWalletInfo({lnd});
+
+    await generate({});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('NotSyncedToChain');
+    }
+  });
 
   const gotHeight = await asyncRetry({interval, times}, async () => {
     const subBlocks = subscribeToBlocks({lnd});

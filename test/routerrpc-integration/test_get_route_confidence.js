@@ -1,16 +1,20 @@
 const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
 const {getRouteConfidence} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {waitForRoute} = require('./../macros');
 
 const channelCapacityTokens = 1e6;
+const interval = 50;
 const size = 3;
+const times = 5000;
 const tokens = 1e6 / 2;
 
 // Getting route confidence should return confidence in a route
@@ -18,6 +22,16 @@ test('Get route confidence', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;
+
+  await asyncRetry({interval, times}, async () => {
+    const wallet = await getWalletInfo({lnd});
+
+    await generate({});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('NotSyncedToChain');
+    }
+  });
 
   try {
     // Create a channel from the control to the target node

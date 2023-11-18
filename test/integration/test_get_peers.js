@@ -15,10 +15,12 @@ const times = 2000;
 test('Get peers', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [{lnd}, target] = nodes;
+  const [{generate, lnd}, target] = nodes;
 
   try {
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({
         lnd,
         public_key: target.id,

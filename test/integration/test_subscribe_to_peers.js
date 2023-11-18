@@ -27,6 +27,8 @@ test(`Subscribe to peers`, async () => {
     sub.on('error', () => {});
 
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({lnd, public_key: target.id, socket: target.socket});
     });
 

@@ -17,10 +17,12 @@ const times = 1000;
 test(`Subscribe to peer messages`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [{lnd}, target, remote] = nodes;
+  const [{generate, lnd}, target, remote] = nodes;
 
   try {
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({
         lnd,
         public_key: target.id,
@@ -28,10 +30,14 @@ test(`Subscribe to peer messages`, async () => {
       });
     });
 
-    await addPeer({
-      lnd: target.lnd,
-      public_key: remote.id,
-      socket: remote.socket,
+    await asyncRetry({interval, times}, async () => {
+      await target.generate({});
+
+      await addPeer({
+        lnd: target.lnd,
+        public_key: remote.id,
+        socket: remote.socket,
+      });
     });
 
     try {
