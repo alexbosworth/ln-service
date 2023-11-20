@@ -1,5 +1,9 @@
 # Versions
 
+## 57.1.2
+
+- Add support for LND 0.17.2
+
 ## 57.1.1
 
 - Add support for LND 0.17.1

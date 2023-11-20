@@ -1,14 +1,18 @@
 const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {connectWatchtower} = require('./../../');
 const {getConnectedWatchtowers} = require('./../../');
 const {getTowerServerInfo} = require('./../../');
+const {getWalletInfo} = require('./../../');
 
 const conf = ['--watchtower.active', '--wtclient.active'];
+const interval = 50;
 const size = 2;
+const times = 3000;
 
 // Getting connected watchtowers should return watchtowers
 test(`Get connected watchtowers`, async () => {
@@ -17,7 +21,17 @@ test(`Get connected watchtowers`, async () => {
     lnd_configuration: conf
   });
 
-  const [{lnd}, target] = nodes;
+  const [{generate, lnd}, target] = nodes;
+
+  await asyncRetry({interval, times}, async () => {
+    const wallet = await getWalletInfo({lnd});
+
+    await generate({});
+
+    if (!wallet.is_synced_to_chain) {
+      throw new Error('NotSyncedToChain');
+    }
+  });
 
   try {
     const {tower} = await getTowerServerInfo({lnd: target.lnd});

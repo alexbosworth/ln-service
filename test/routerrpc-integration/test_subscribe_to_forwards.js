@@ -68,6 +68,8 @@ test('Subscribe to forwards', async () => {
     });
 
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await addPeer({
         lnd,
         public_key: remote.id,
@@ -111,7 +113,6 @@ test('Subscribe to forwards', async () => {
       lnd: remote.lnd,
       tokens: channel.remote_balance,
     });
-
 
     await rejects(
       payViaPaymentRequest({lnd, request: tooMuchInvoice.request}),
