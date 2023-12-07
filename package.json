@@ -52,6 +52,8 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
+    "integration-test-0.17.3": "DOCKER_LND_VERSION=v0.17.3-beta npm run test",
+    "integration-test-0.17.2": "DOCKER_LND_VERSION=v0.17.2-beta npm run test",
     "integration-test-0.17.1": "DOCKER_LND_VERSION=v0.17.1-beta npm run test",
     "integration-test-0.17.0": "DOCKER_LND_VERSION=v0.17.0-beta npm run test",
     "integration-test-0.16.4": "DOCKER_LND_VERSION=v0.16.4-beta npm run test",
