@@ -16,6 +16,7 @@ const {createSignedRequest} = require('invoices');
 const {createUnsignedRequest} = require('invoices');
 const {createWallet} = require('lightning');
 const {decodePaymentRequest} = require('lightning');
+const {deleteChainTransaction} = require('lightning');
 const {deleteForwardingReputations} = require('lightning');
 const {deleteFailedPayAttempts} = require('lightning');
 const {deleteFailedPayments} = require('lightning');
@@ -39,6 +40,7 @@ const {getChainAddresses} = require('lightning');
 const {getChainBalance} = require('lightning');
 const {getChainFeeEstimate} = require('lightning');
 const {getChainFeeRate} = require('lightning');
+const {getChainTransaction} = require('lightning');
 const {getChainTransactions} = require('lightning');
 const {getChannel} = require('lightning');
 const {getChannelBalance} = require('lightning');
@@ -173,6 +175,7 @@ module.exports = {
   createUnsignedRequest,
   createWallet,
   decodePaymentRequest,
+  deleteChainTransaction,
   deleteFailedPayAttempts,
   deleteFailedPayments,
   deleteForwardingReputations,
@@ -196,6 +199,7 @@ module.exports = {
   getChainBalance,
   getChainFeeEstimate,
   getChainFeeRate,
+  getChainTransaction,
   getChainTransactions,
   getChannel,
   getChannelBalance,

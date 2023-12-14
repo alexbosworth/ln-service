@@ -1,5 +1,10 @@
 # Versions
 
+## 57.2.0
+
+- `deleteChainTransaction`: Add method to delete a chain transaction
+- `getChainTransaction`: Add method to get a chain transaction
+
 ## 57.1.3
 
 - Add support for LND 0.17.3

@@ -153,6 +153,7 @@ for `unlocker` methods.
 - [createUnsignedRequest](#createunsignedrequest) - create an unsigned invoice
 - [createWallet](#createwallet) - Make a new wallet
 - [decodePaymentRequest](#decodepaymentrequest) - Decode a Lightning invoice
+- [deleteChainTransaction](#deletechaintransaction) - Remove chain transaction
 - [deleteFailedPayAttempts](#deletefailedpayattempts) - Remove records of 
     failed pay attempts
 - [deleteFailedPayments](#deletefailedpayments) - Remove records of payments 
@@ -180,6 +181,7 @@ for `unlocker` methods.
 - [getChainBalance](#getchainbalance) - Get the confirmed chain balance
 - [getChainFeeEstimate](#getchainfeeestimate) - Get a chain fee estimate
 - [getChainFeeRate](#getchainfeerate) - Get the fee rate for a conf target
+- [getChainTransaction](#getchaintransaction) - Get single wallet transaction
 - [getChainTransactions](#getchaintransactions) - Get all chain transactions
 - [getChannel](#getchannel) - Get graph information about a channel
 - [getChannelBalance](#getchannelbalance) - Get the balance of channel funds
@@ -966,6 +968,30 @@ const request = 'bolt11EncodedPaymentRequestString';
 const details = await decodePaymentRequest({lnd, request});
 ```
 
+### deleteChainTransaction
+
+Remove a chain transaction.
+
+Requires `onchain:write` permission
+
+This method is not supported on LND 0.17.3 and below
+
+    {
+      id: <Transaction Id Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {deleteChainTransaction} = require('ln-service');
+
+// Eliminate past broadcast chain transaction
+await deleteChainTransaction({id, lnd});
+```
+
 ### deleteFailedPayAttempts
 
 Delete failed payment attempt records
@@ -1632,6 +1658,47 @@ Example:
 ```node
 const {getChainFeeRate} = require('ln-service');
 const fee = (await getChainFeeRate({lnd, confirmation_target: 6})).tokens_per_vbyte;
+```
+
+### getChainTransaction
+
+Get a chain transaction.
+
+Requires `onchain:read` permission
+
+This method is not supported on LND 0.17.3 and below
+
+    {
+      id: <Transaction Id Hex String>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      [block_id]: <Block Hash String>
+      [confirmation_count]: <Confirmation Count Number>
+      [confirmation_height]: <Confirmation Block Height Number>
+      created_at: <Created ISO 8601 Date String>
+      [description]: <Transaction Label String>
+      [fee]: <Fees Paid Tokens Number>
+      id: <Transaction Id String>
+      inputs: [{
+        is_local: <Spent Outpoint is Local Bool>
+        transaction_id: <Transaction Id Hex String>
+        transaction_vout: <Transaction Output Index Number>
+      }]
+      is_confirmed: <Is Confirmed Bool>
+      is_outgoing: <Transaction Outbound Bool>
+      output_addresses: [<Address String>]
+      tokens: <Tokens Including Fee Number>
+      [transaction]: <Raw Transaction Hex String>
+    }
+
+Example:
+
+```node
+const {getChainTransaction} = require('ln-service');
+const txIsConfirmed = (await getChainTransaction({id, lnd})).is_confirmed;
 ```
 
 ### getChainTransactions
