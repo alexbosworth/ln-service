@@ -2341,6 +2341,7 @@ Requires `invoices:read` permission
       [chain_address]: <Fallback Chain Address String>
       cltv_delta: <CLTV Delta Number>
       [confirmed_at]: <Settled at ISO 8601 Date String>
+      [confirmed_index]: <Confirmed Index Number>
       created_at: <ISO 8601 Date String>
       description: <Description String>
       [description_hash]: <Description Hash Hex String>
