@@ -1,5 +1,9 @@
 # Versions
 
+## 57.4.0
+
+- `getConnectedWatchtowers`: Add `is_taproot` to get P2TR channels
+
 ## 57.3.0
 
 - `getConfiguration`: Add method to return configuration information
