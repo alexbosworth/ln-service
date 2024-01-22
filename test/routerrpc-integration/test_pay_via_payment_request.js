@@ -42,7 +42,9 @@ test(`Pay via payment request`, async () => {
       }
     });
 
-    const channel = await setupChannel({generate, lnd, to: target});
+    const channel = await asyncRetry({interval, times}, async () => {
+      return await setupChannel({generate, lnd, to: target});
+    });
 
     // Make sure that an error is returned when there is no route
     try {

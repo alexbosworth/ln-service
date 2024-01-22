@@ -2,12 +2,15 @@ const {deepEqual} = require('node:assert').strict;
 const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {isDestinationPayable} = require('./../../');
 
+const interval = 100;
 const size = 2;
+const times = 1000;
 const tokens = 1e6 / 2;
 
 // Determining if a route is payable should indicate if a route can be found
@@ -17,7 +20,9 @@ test('Is destination payable', async () => {
   const [{generate, lnd}, target] = nodes;
 
   try {
-    await setupChannel({generate, lnd, to: target});
+    await asyncRetry({interval, times}, async () => {
+      await setupChannel({generate, lnd, to: target});
+    });
 
     const canPay = await isDestinationPayable({lnd, destination: target.id});
 

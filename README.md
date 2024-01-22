@@ -187,6 +187,7 @@ for `unlocker` methods.
 - [getChannelBalance](#getchannelbalance) - Get the balance of channel funds
 - [getChannels](#getchannels) - Get all open channels
 - [getClosedChannels](#getclosedchannels) - Get previously open channels
+- [getConfiguration](#getconfiguration) - Get configuration information
 - [getConnectedWatchtowers](#getconnectedwatchtowers) - Get connected towers
 - [getEphemeralChannelIds](#getephemeralchannelids) - Get other channel ids
 - [getFailedPayments](#getfailedpayments) - Get payments that were failed back
@@ -1970,6 +1971,36 @@ Example:
 ```node
 const {getClosedChannels} = require('ln-service');
 const breachCount = await getClosedChannels({lnd, is_breach_close: true});
+```
+
+### getConfiguration
+
+Get the current configuration file settings and the output log
+
+Requires `info:read`, `offchain:read`, `onchain:read`, `peers:read`
+permissions
+
+This method is not supported on LND 0.17.3 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      log: [<Log Line String>]
+      options: [{
+        type: <Option Type String>
+        value: <Option Value String>
+      }]
+    }
+
+Example:
+
+```node
+const {getConfiguration} = require('ln-service');
+const {log, options} = await getConfiguration({});
+const minimumChannelSize = options.find(n => n.type === 'minchansize').value;
 ```
 
 ### getConnectedWatchtowers

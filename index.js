@@ -46,6 +46,7 @@ const {getChannel} = require('lightning');
 const {getChannelBalance} = require('lightning');
 const {getChannels} = require('lightning');
 const {getClosedChannels} = require('lightning');
+const {getConfiguration} = require('lightning');
 const {getConnectedWatchtowers} = require('lightning');
 const {getEphemeralChannelIds} = require('lightning');
 const {getFailedPayments} = require('lightning');
@@ -205,6 +206,7 @@ module.exports = {
   getChannelBalance,
   getChannels,
   getClosedChannels,
+  getConfiguration,
   getConnectedWatchtowers,
   getEphemeralChannelIds,
   getFailedPayments,

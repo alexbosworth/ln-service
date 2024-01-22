@@ -1,5 +1,9 @@
 # Versions
 
+## 57.3.0
+
+- `getConfiguration`: Add method to return configuration information
+
 ## 57.2.0
 
 - `deleteChainTransaction`: Add method to delete a chain transaction
