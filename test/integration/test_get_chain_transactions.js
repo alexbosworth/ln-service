@@ -36,7 +36,7 @@ test(`Get chain transactions`, async () => {
   });
 
   // Wait for generation to be over
-  await asyncRetry({times}, async () => {
+  const transactions = await asyncRetry({times}, async () => {
     const {transactions} = await getChainTransactions({lnd});
 
     const [tx] = transactions;
@@ -45,10 +45,8 @@ test(`Get chain transactions`, async () => {
       throw new Error('ExpectedTransactionConfirmed');
     }
 
-    return;
+    return transactions;
   });
-
-  const {transactions} = await getChainTransactions({lnd});
 
   equal(transactions.length > 1, true, 'Transaction found');
 

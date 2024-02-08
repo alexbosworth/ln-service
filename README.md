@@ -975,7 +975,7 @@ Remove a chain transaction.
 
 Requires `onchain:write` permission
 
-This method is not supported on LND 0.17.3 and below
+This method is not supported on LND 0.17.4 and below
 
     {
       id: <Transaction Id Hex String>
@@ -1667,7 +1667,7 @@ Get a chain transaction.
 
 Requires `onchain:read` permission
 
-This method is not supported on LND 0.17.3 and below
+This method is not supported on LND 0.17.4 and below
 
     {
       id: <Transaction Id Hex String>
@@ -1980,7 +1980,7 @@ Get the current configuration file settings and the output log
 Requires `info:read`, `offchain:read`, `onchain:read`, `peers:read`
 permissions
 
-This method is not supported on LND 0.17.3 and below
+This method is not supported on LND 0.17.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -2015,7 +2015,7 @@ Includes previously connected watchtowers
 
 `is_anchor` flag is not supported on LND 0.11.1 and below
 
-`is_taproot` flag is not supported on LND 0.17.3 and below
+`is_taproot` flag is not supported on LND 0.17.4 and below
 
     {
       [is_anchor]: <Get Anchor Type Tower Info Bool>
@@ -3487,7 +3487,10 @@ Requires `onchain:read` permission
 
 Requires LND built with `walletrpc` build tag
 
+`after` is not supported in LND 0.17.3 or below
+
     {
+      [after]: <Confirmed After Block Height Number>
       lnd: <Authenticated LND API Object>
     }
 

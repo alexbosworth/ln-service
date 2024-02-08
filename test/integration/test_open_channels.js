@@ -150,11 +150,13 @@ test(`Open channels`, async () => {
 
       return;
     });
+
+    await kill({});
   } catch (err) {
+    await kill({});
+
     strictEqual(err, null, 'No error is reported');
   }
-
-  await kill({});
 
   return;
 });
