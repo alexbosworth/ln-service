@@ -135,6 +135,7 @@ for `unlocker` methods.
 
 ## All Methods
 
+- [addAdvertisedFeature](#addadvertisedfeature) - Advertise a supported feature
 - [addExternalSocket](#addexternalsocket) - Advertise a new p2p host:ip address
 - [addPeer](#addpeer) - Connect to a peer
 - [authenticatedLndGrpc](#authenticatedlndgrpc) - LND API Object
@@ -328,6 +329,32 @@ for `unlocker` methods.
 - [ln-sync](https://www.npmjs.com/package/ln-sync) - metadata helper methods
 - [probing](https://npmjs.com/package/probing) - payment probing utilities
 - [psbt](https://www.npmjs.com/package/psbt) - BIP 174 PSBT utilities
+
+### addAdvertisedFeature
+
+Add an advertised feature to the graph node announcement
+
+Note: this method is not supported in LND versions 0.14.5 and below
+
+Requires LND built with `peersrpc` build tag
+
+Requires `peers:write` permissions
+
+    {
+      feature: <BOLT 09 Feature Bit Number>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {addAdvertisedFeature} = require('ln-service');
+
+// Add a new supported feature to the graph node announcement
+await addAdvertisedFeature({lnd, feature: 12345});
+```
 
 ### addExternalSocket
 

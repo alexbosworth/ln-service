@@ -1,3 +1,4 @@
+const {addAdvertisedFeature} = require('lightning');
 const {addExternalSocket} = require('lightning');
 const {addPeer} = require('lightning');
 const {authenticatedLndGrpc} = require('lightning');
@@ -158,6 +159,7 @@ const {verifyChainAddressMessage} = require('lightning');
 const {verifyMessage} = require('lightning');
 
 module.exports = {
+  addAdvertisedFeature,
   addExternalSocket,
   addPeer,
   authenticatedLndGrpc,

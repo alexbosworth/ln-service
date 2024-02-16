@@ -1,5 +1,9 @@
 # Versions
 
+## 57.6.0
+
+- `addAdvertisedFeature`: Add method to advertise a feature bit support
+
 ## 57.5.0
 
 - `getSweepTransactions`: Add `after` to scope sweep result set
