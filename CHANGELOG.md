@@ -1,5 +1,9 @@
 # Versions
 
+## 57.7.0
+
+- `getPendingChannels`: Add support for `close_transaction` to return raw tx
+
 ## 57.6.0
 
 - `addAdvertisedFeature`: Add method to advertise a feature bit support

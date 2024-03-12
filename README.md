@@ -3101,6 +3101,8 @@ Requires `offchain:read` permission
 
 `blocks_until_expiry` is not supported in LND 0.16.4 or before
 
+`close_transaction` is not supported in LND 0.17.4 or before
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -3110,6 +3112,7 @@ Requires `offchain:read` permission
       pending_channels: [{
         [blocks_until_expiry]: <Blocks Until Open Channel Expires Number>
         capacity: <Channel Capacity Tokens Number>
+        [close_transaction]: <Channel Closing Raw Transaction Hex String>
         [close_transaction_id]: <Channel Closing Transaction Id String>
         [description]: <Channel Description String>
         is_active: <Channel Is Active Bool>

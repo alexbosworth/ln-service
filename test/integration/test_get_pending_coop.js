@@ -1,7 +1,10 @@
+const {equal} = require('node:assert').strict;
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
+const {componentsOfTransaction} = require('@alexbosworth/blockchain');
+const {idForTransactionComponents} = require('@alexbosworth/blockchain');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
@@ -11,6 +14,7 @@ const {getWalletInfo} = require('./../../');
 
 const defaultFee = 1e3;
 const give = 1e4;
+const hexAsBuffer = hex => Buffer.from(hex, 'hex');
 const interval = 10;
 const size = 2;
 const times = 2000;
@@ -55,6 +59,30 @@ test(`Get pending channels`, async () => {
       return {channel};
     });
 
+    const transaction = channel.close_transaction;
+
+    // LND 0.17.4 and below do not support close_transaction
+    if (!!transaction) {
+      const components = componentsOfTransaction({transaction});
+
+      const closing = idForTransactionComponents({
+        inputs: components.inputs.map(input => ({
+          hash: hexAsBuffer(input.id).reverse(),
+          script: hexAsBuffer(input.script),
+          sequence: input.sequence,
+          vout: input.vout,
+        })),
+        locktime: components.locktime,
+        outputs: components.outputs.map(output => ({
+          script: hexAsBuffer(output.script),
+          tokens: output.tokens,
+        })),
+        version: components.version,
+      });
+
+      equal(closing.id, channel.close_transaction_id, 'Got closing tx');
+    }
+
     if (channel.is_partner_initiated !== undefined) {
       strictEqual(channel.is_partner_initiated, false, 'Channel initiated');
     }
@@ -82,11 +110,13 @@ test(`Get pending channels`, async () => {
     if (!!channel.remote_balance) {
       strictEqual(channel.remote_balance, give, 'Opposing channel balance');
     }
+
+    await kill({});
   } catch (err) {
+    await kill({});
+
     strictEqual(err, null, 'Expected no error');
   }
-
-  await kill({});
 
   return;
 });
