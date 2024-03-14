@@ -1,6 +1,6 @@
 # Versions
 
-## 57.7.0
+## 57.7.1
 
 - `getPendingChannels`: Add support for `close_transaction` to return raw tx
 
