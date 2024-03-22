@@ -245,6 +245,7 @@ for `unlocker` methods.
 - [proposeChannel](#proposechannel) - Offer a channel proposal to a peer
 - [recoverFundsFromChannel](#recoverfundsfromchannel) - Restore a channel
 - [recoverFundsFromChannels](#recoverfundsfromchannels) - Restore all channels
+- [removeAdvertisedFeature](#removeadvertisedfeature) - Remove feature from ad
 - [removeExternalSocket](#removeexternalsocket) - Remove a p2p host:ip announce
 - [removePeer](#removepeer) - Disconnect from a connected peer
 - [requestChainFeeIncrease](#requestchainfeeincrease) - Request a CPFP spend on
@@ -4680,6 +4681,32 @@ Example:
 const {getBackups, recoverFundsFromChannels} = require('ln-service');
 const {backup} = await getBackups({lnd});
 await recoverFundsFromChannels({backup, lnd});
+```
+
+### removeAdvertisedFeature
+
+Remove an advertised feature from the graph node announcement
+
+Note: this method is not supported in LND versions 0.14.5 and below
+
+Requires LND built with `peersrpc` build tag
+
+Requires `peers:write` permissions
+
+    {
+      feature: <BOLT 09 Feature Bit Number>
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+
+Example:
+
+```node
+const {removeAdvertisedFeature} = require('ln-service');
+
+// Remove a supported feature from the graph node announcement
+await removeAdvertisedFeature({lnd, feature: 12345});
 ```
 
 ### removeExternalSocket

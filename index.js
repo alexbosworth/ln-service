@@ -100,6 +100,7 @@ const {probeForRoute} = require('lightning');
 const {proposeChannel} = require('lightning');
 const {recoverFundsFromChannel} = require('lightning');
 const {recoverFundsFromChannels} = require('lightning');
+const {removeAdvertisedFeature} = require('lightning');
 const {removeExternalSocket} = require('lightning');
 const {removePeer} = require('lightning');
 const {requestChainFeeIncrease} = require('lightning');
@@ -261,6 +262,7 @@ module.exports = {
   proposeChannel,
   recoverFundsFromChannel,
   recoverFundsFromChannels,
+  removeAdvertisedFeature,
   removeExternalSocket,
   removePeer,
   requestChainFeeIncrease,

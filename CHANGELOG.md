@@ -1,5 +1,9 @@
 # Versions
 
+## 57.8.0
+
+- `removeAdvertisedFeature`: Add method to remove a feature bit support ad
+
 ## 57.7.1
 
 - `getPendingChannels`: Add support for `close_transaction` to return raw tx
