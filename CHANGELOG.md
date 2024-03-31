@@ -1,5 +1,9 @@
 # Versions
 
+## 57.8.1
+
+- `pay` and payment via request methods: disallow features 30/31 from payments
+
 ## 57.8.0
 
 - `removeAdvertisedFeature`: Add method to remove a feature bit support ad

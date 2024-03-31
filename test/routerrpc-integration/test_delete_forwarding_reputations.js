@@ -89,11 +89,13 @@ test('Delete forwarding reputations', async () => {
 
       equal(nodes.length, [].length, 'Reputations should be wiped');
     }
+
+    await kill({});
   } catch (err) {
+    await kill({});
+
     equal(err, null, 'Expected no error');
   }
-
-  await kill({});
 
   return;
 });

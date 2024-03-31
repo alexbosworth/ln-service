@@ -67,11 +67,13 @@ test(`Cancel back a hodl invoice`, async () => {
 
     equal(code, 503, 'Canceled back HODL HTLC results in 404');
     equal(message, 'PaymentRejectedByDestination', 'Got back 404 error');
+
+    await kill({});
   } catch (err) {
+    await kill({});
+
     equal(err, null, 'Expected no error');
   }
-
-  await kill({});
 
   return;
 });

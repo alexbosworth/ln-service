@@ -84,7 +84,11 @@ test('Payment errors', async () => {
     route.tokens = 1000;
 
     await pay({lnd, path: {id, routes: [route]}});
+
+    await kill({});
   } catch (err) {
+    await kill({});
+
     if (Array.isArray(err)) {
       const [, code, context] = err;
 
@@ -93,8 +97,6 @@ test('Payment errors', async () => {
       strictEqual(err, null, 'Expected array type error');
     }
   }
-
-  await kill({});
 
   return;
 });
