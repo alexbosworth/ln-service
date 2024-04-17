@@ -1341,6 +1341,8 @@ Specify outputs or PSBT with the outputs encoded
 
 If there are no inputs passed, internal UTXOs will be selected and locked
 
+`utxo_selection` methods: 'largest', 'random'
+
 Requires `onchain:write` permission
 
 Requires LND built with `walletrpc` tag
@@ -1348,6 +1350,8 @@ Requires LND built with `walletrpc` tag
 This method is not supported in LND 0.11.1 and below
 
 Specifying 0 for `min_confirmations` is not supported in LND 0.13.0 and below
+
+`utxo_selection` is not supported in LND 0.17.4 and below
 
     {
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
@@ -1363,6 +1367,7 @@ Specifying 0 for `min_confirmations` is not supported in LND 0.13.0 and below
       }]
       [target_confirmations]: <Confirmations To Wait Number>
       [psbt]: <Existing PSBT Hex String>
+      [utxo_selection]: <Select UTXOs Using Method String>
     }
 
     @returns via cbk or Promise
@@ -1637,9 +1642,13 @@ const chainBalance = (await getChainBalance({lnd})).chain_balance;
 
 Get a chain fee estimate for a prospective chain send
 
+`utxo_selection` methods: 'largest', 'random'
+
 Requires `onchain:read` permission
 
 Specifying 0 for `utxo_confirmations` is not supported in LND 0.13.0 or below
+
+`utxo_selection` is not supported in LND 0.17.4 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -1648,6 +1657,8 @@ Specifying 0 for `utxo_confirmations` is not supported in LND 0.13.0 or below
         tokens: <Tokens Number>
       }]
       [target_confirmations]: <Target Confirmations Number>
+      [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
+      [utxo_selection]: <Select UTXOs Using Method String>
     }
 
     @returns via cbk or Promise
@@ -4955,9 +4966,13 @@ await sendMessageToPeer({
 
 Send tokens in a blockchain transaction.
 
+`utxo_selection` methods: 'largest', 'random'
+
 Requires `onchain:write` permission
 
 `utxo_confirmations` is not supported on LND 0.11.1 or below
+
+`utxo_selection` is not supported in LND 0.17.4 and below
 
     {
       address: <Destination Chain Address String>
@@ -4969,6 +4984,7 @@ Requires `onchain:write` permission
       [target_confirmations]: <Confirmations To Wait Number>
       tokens: <Tokens To Send Number>
       [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
+      [utxo_selection]: <Select UTXOs Using Method String>
       [wss]: [<Web Socket Server Object>]
     }
 
@@ -4994,9 +5010,13 @@ await sendToChainAddress({address, lnd, tokens});
 
 Send tokens to multiple destinations in a blockchain transaction.
 
+`utxo_selection` methods: 'largest', 'random'
+
 Requires `onchain:write` permission
 
 `utxo_confirmations` is not supported on LND 0.11.1 or below
+
+`utxo_selection` is not supported in LND 0.17.4 and below
 
     {
       [description]: <Transaction Label String>
@@ -5009,6 +5029,7 @@ Requires `onchain:write` permission
       }]
       [target_confirmations]: <Confirmations To Wait Number>
       [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
+      [utxo_selection]: <Select UTXOs Using Method String>
       [wss]: [<Web Socket Server Object>]
     }
 
@@ -5033,9 +5054,13 @@ await sendToChainAddresses({lnd, send_to: sendTo});
 
 Send on-chain funds to multiple output scripts
 
+`utxo_selection` methods: 'largest', 'random'
+
 Requires `onchain:write` permission
 
 Requires LND compiled with `walletrpc` build tag
+
+`utxo_selection` is not supported in LND 0.17.4 and below
 
     {
       [description]: <Transaction Label String>
@@ -5046,6 +5071,7 @@ Requires LND compiled with `walletrpc` build tag
         tokens: <Tokens Number>
       }]
       [utxo_confirmations]: <Minimum Confirmations for UTXO Selection Number>
+      [utxo_selection]: <Select UTXOs Using Method String>
     }
 
     @returns via cbk or Promise
