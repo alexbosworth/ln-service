@@ -1003,7 +1003,7 @@ Remove a chain transaction.
 
 Requires `onchain:write` permission
 
-This method is not supported on LND 0.17.4 and below
+This method is not supported on LND 0.17.5 and below
 
     {
       id: <Transaction Id Hex String>
@@ -1351,7 +1351,7 @@ This method is not supported in LND 0.11.1 and below
 
 Specifying 0 for `min_confirmations` is not supported in LND 0.13.0 and below
 
-`utxo_selection` is not supported in LND 0.17.4 and below
+`utxo_selection` is not supported in LND 0.17.5 and below
 
     {
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
@@ -1648,7 +1648,7 @@ Requires `onchain:read` permission
 
 Specifying 0 for `utxo_confirmations` is not supported in LND 0.13.0 or below
 
-`utxo_selection` is not supported in LND 0.17.4 and below
+`utxo_selection` is not supported in LND 0.17.5 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -1706,7 +1706,7 @@ Get a chain transaction.
 
 Requires `onchain:read` permission
 
-This method is not supported on LND 0.17.4 and below
+This method is not supported on LND 0.17.5 and below
 
     {
       id: <Transaction Id Hex String>
@@ -2019,7 +2019,7 @@ Get the current configuration file settings and the output log
 Requires `info:read`, `offchain:read`, `onchain:read`, `peers:read`
 permissions
 
-This method is not supported on LND 0.17.4 and below
+This method is not supported on LND 0.17.5 and below
 
     {
       lnd: <Authenticated LND API Object>
@@ -2054,7 +2054,7 @@ Includes previously connected watchtowers
 
 `is_anchor` flag is not supported on LND 0.11.1 and below
 
-`is_taproot` flag is not supported on LND 0.17.4 and below
+`is_taproot` flag is not supported on LND 0.17.5 and below
 
     {
       [is_anchor]: <Get Anchor Type Tower Info Bool>
@@ -3113,7 +3113,7 @@ Requires `offchain:read` permission
 
 `blocks_until_expiry` is not supported in LND 0.16.4 or before
 
-`close_transaction` is not supported in LND 0.17.4 or before
+`close_transaction` is not supported in LND 0.17.5 or before
 
     {
       lnd: <Authenticated LND API Object>
@@ -4972,7 +4972,7 @@ Requires `onchain:write` permission
 
 `utxo_confirmations` is not supported on LND 0.11.1 or below
 
-`utxo_selection` is not supported in LND 0.17.4 and below
+`utxo_selection` is not supported in LND 0.17.5 and below
 
     {
       address: <Destination Chain Address String>
@@ -5016,7 +5016,7 @@ Requires `onchain:write` permission
 
 `utxo_confirmations` is not supported on LND 0.11.1 or below
 
-`utxo_selection` is not supported in LND 0.17.4 and below
+`utxo_selection` is not supported in LND 0.17.5 and below
 
     {
       [description]: <Transaction Label String>
@@ -5060,7 +5060,7 @@ Requires `onchain:write` permission
 
 Requires LND compiled with `walletrpc` build tag
 
-`utxo_selection` is not supported in LND 0.17.4 and below
+`utxo_selection` is not supported in LND 0.17.5 and below
 
     {
       [description]: <Transaction Label String>
