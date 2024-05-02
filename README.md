@@ -215,6 +215,7 @@ for `unlocker` methods.
 - [getPendingChainBalance](#getpendingchainbalance) - Get pending chain balance
 - [getPendingChannels](#getpendingchannels) - Get channels in pending states
 - [getPendingPayments](#getpendingpayments) - Get in-flight outgoing payments
+- [getPendingSweeps](#getpendingsweeps) - Get sweeps waiting for resolution
 - [getPublicKey](#getpublickey) - Get a public key out of the seed
 - [getRouteConfidence](#getrouteconfidence) - Get confidence in a route
 - [getRouteThroughHops](#getroutethroughhops) - Get a route through nodes
@@ -248,6 +249,8 @@ for `unlocker` methods.
 - [removeAdvertisedFeature](#removeadvertisedfeature) - Remove feature from ad
 - [removeExternalSocket](#removeexternalsocket) - Remove a p2p host:ip announce
 - [removePeer](#removepeer) - Disconnect from a connected peer
+- [requestBatchedFeeIncrease](#requestbatchedfeeincrease) - Request a batched
+    CPFP spend on an unconfirmed outpoint
 - [requestChainFeeIncrease](#requestchainfeeincrease) - Request a CPFP spend on
     a UTXO
 - [restrictMacaroon](#restrictmacaroon) - Add limitations to a macaroon
@@ -3256,13 +3259,49 @@ Requires `offchain:read` permission
     }
 
 ```node
-const {getPendingPayments} = require('ln-service')
+const {getPendingPayments} = require('ln-service');
 
 const {next, payments} = await getPendingPayments({lnd});
 
 if (!next) {
   const inFlightPaymentsCount = payments.length;
 }
+```
+
+### getPendingSweeps
+
+Get pending self-transfer spends
+
+Requires `onchain:read` permission
+
+Requires LND built with `walletrpc` build tag
+
+This method is not supported in LND 0.17.5 or below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      sweeps: [{
+        broadcasts_count: <Total Sweep Broadcast Attempts Count Number>
+        [current_fee_rate]: <Current Chain Fee Rate Tokens Per VByte Number>
+        [initial_fee_rate]: <Requested Chain Fee Rate Tokens per VByte Number>
+        is_batching: <Requested Waiting For Batching Bool>
+        [max_fee]: <Maximum Total Fee Tokens Allowed Number>
+        [max_height]: <Targeted Maximum Confirmation Height Number>
+        tokens: <Sweep Outpoint Tokens Value Number>
+        transaction_id: <Sweeping Outpoint Transaction Id Hex String>
+        transaction_vout: <Sweeping Outpoint Transaction Output Index Number>
+        type: <Outpoint Constraint Script Type String>
+      }]
+    }
+
+```node
+const {getPendingSweeps} = require('ln-service');
+
+const pendingSweepsCount = (await getPendingSweeps({lnd})).sweeps.length;
 ```
 
 ### getPublicKey
@@ -4765,6 +4804,36 @@ Example:
 const {removePeer} = require('ln-service');
 const connectedPeerPublicKey = 'nodePublicKeyHexString';
 await removePeer({lnd, public_key: connectedPeerPublicKey});
+```
+
+### requestBatchedFeeIncrease
+
+Request batched CPFP fee bumping of an unconfirmed outpoint on a deadline
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` build tag
+
+This method is unsupported on LND 0.17.5 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+      [max_fee]: <Maximum Tokens to Pay Into Chain Fees Number>
+      [max_height]: <Maximum Height To Reach a Confirmation Number>
+      transaction_id: <Unconfirmed UTXO Transaction Id Hex String>
+      transaction_vout: <Unconfirmed UTXO Transaction Index Number>
+    }
+
+    @returns via cbk or Promise
+
+```node
+const {requestBatchedFeeIncrease} = require('ln-service');
+
+await requestBatchedFeeIncrease({
+  lnd,
+  transaction_id: unconfirmedUtxoTxId,
+  transaction_vout: unconfirmedUtxoTxOutputIndex,
+});
 ```
 
 ### requestChainFeeIncrease

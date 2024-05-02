@@ -7,7 +7,6 @@ const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getHeight} = require('./../../');
 const {getChainBalance} = require('./../../');

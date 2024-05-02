@@ -6,7 +6,6 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
-const {delay} = require('./../macros');
 const {generateBlocks} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');

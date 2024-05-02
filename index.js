@@ -73,6 +73,7 @@ const {getPeers} = require('lightning');
 const {getPendingChainBalance} = require('lightning');
 const {getPendingChannels} = require('lightning');
 const {getPendingPayments} = require('lightning');
+const {getPendingSweeps} = require('lightning');
 const {getPublicKey} = require('lightning');
 const {getRouteConfidence} = require('lightning');
 const {getRouteThroughHops} = require('lightning');
@@ -103,6 +104,7 @@ const {recoverFundsFromChannels} = require('lightning');
 const {removeAdvertisedFeature} = require('lightning');
 const {removeExternalSocket} = require('lightning');
 const {removePeer} = require('lightning');
+const {requestBatchedFeeIncrease} = require('lightning');
 const {requestChainFeeIncrease} = require('lightning');
 const {restrictMacaroon} = require('./macaroons');
 const {revokeAccess} = require('lightning');
@@ -235,6 +237,7 @@ module.exports = {
   getPendingChainBalance,
   getPendingChannels,
   getPendingPayments,
+  getPendingSweeps,
   getPublicKey,
   getRouteConfidence,
   getRouteThroughHops,
@@ -265,6 +268,7 @@ module.exports = {
   removeAdvertisedFeature,
   removeExternalSocket,
   removePeer,
+  requestBatchedFeeIncrease,
   requestChainFeeIncrease,
   restrictMacaroon,
   revokeAccess,
