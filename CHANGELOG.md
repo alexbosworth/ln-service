@@ -1,5 +1,10 @@
 # Versions
 
+## 57.10.1
+
+- `closeChannel`, `openChannel`, `sendToChainAddress`, `sendToChainAddresses`:
+    Add default chain fee conf target when no chain fee is specified
+
 ## 57.10.0
 
 - `getPendingSweeps`: Add method to get the list of pending outpoints to sweep
