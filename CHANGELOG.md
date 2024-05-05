@@ -1,5 +1,9 @@
 # Versions
 
+## 57.10.2
+
+- `getChainFeeEstimate`: Add default chain fee conf target when none is passed
+
 ## 57.10.1
 
 - `closeChannel`, `openChannel`, `sendToChainAddress`, `sendToChainAddresses`:
