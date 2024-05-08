@@ -1,5 +1,10 @@
 # Versions
 
+## 57.11.0
+
+- `getChannel`, `getNetworkGraph`, `getNode`: Add
+    `inbound_base_discount_mtokens` and `inbound_rate_discount`
+
 ## 57.10.2
 
 - `getChainFeeEstimate`: Add default chain fee conf target when none is passed

@@ -83,11 +83,19 @@ test(`Update routing fees`, async () => {
       base_fee_mtokens: `${BigInt(baseFeeTokens) * BigInt(n) * BigInt(1e3)}`,
       cltv_delta: cltvDelta * n,
       fee_rate: feeRate * n,
+      inbound_base_discount_mtokens: 1,
+      inbound_rate_discount: 1,
     });
 
     const policy = (await getChannel({id, lnd})).policies.find(policy => {
       return policy.public_key === target.id;
     });
+
+    // LND 0.17.5 and below do not support fee discounts
+    if (!!policy.inbound_rate_discount) {
+      equal(policy.inbound_base_discount_mtokens, '1', 'Got base discount');
+      equal(policy.inbound_rate_discount, 1, 'Got rate discount');
+    }
 
     equal(policy.base_fee_mtokens, `${baseFeeTokens*mtokPerTok*n}`, 'Base');
     equal(policy.cltv_delta, cltvDelta*n, 'Global CLTV delta updated');
