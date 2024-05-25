@@ -147,6 +147,8 @@ for `unlocker` methods.
 - [closeChannel](#closechannel) - Terminate an open channel
 - [connectWatchtower](#connectwatchtower) - Connect a watchtower
 - [createChainAddress](#createchainaddress) - Get a chain address to receive at
+- [createFundedPsbt](#createfundedpsbt): Create a funded PSBT given inputs and
+    outputs
 - [createHodlInvoice](#createhodlinvoice) - Make a HODL HTLC invoice
 - [createInvoice](#createinvoice) - Make a regular invoice
 - [createSeed](#createseed) - Generate a wallet seed for a new wallet
@@ -686,6 +688,55 @@ Example:
 const {createChainAddress} = require('ln-service');
 const format = 'p2wpkh';
 const {address} = await createChainAddress({format, lnd});
+```
+
+### createFundedPsbt
+
+Create an unsigned funded PSBT given inputs or outputs
+
+When specifying local inputs, they must be locked before using
+
+`utxo_selection` methods: 'largest', 'random'
+
+Requires `onchain:write` permission
+
+Requires LND built with `walletrpc` tag
+
+This method is not supported on LND 0.17.5 or below
+
+    {
+      [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
+      [inputs]: [{
+        [sequence]: <Sequence Number>
+        transaction_id: <Unspent Transaction Id Hex String>
+        transaction_vout: <Unspent Transaction Output Index Number>
+      }]
+      lnd: <Authenticated LND API Object>
+      [min_confirmations]: <Select Inputs With Minimum Confirmations Number>
+      [outputs]: [{
+        [is_change]: <Use This Output For Change Bool>
+        script: <Output Script Hex String>
+        tokens: <Send Tokens Tokens Number>
+      }]
+      [target_confirmations]: <Blocks To Wait for Confirmation Number>
+      [timelock]: <Spendable Lock Time on Transaction Number>
+      [utxo_selection]: <Select Inputs Using Selection Methodology Type String>
+      [version]: <Transaction Version Number>
+    }
+
+    @returns via cbk or Promise
+    {
+      psbt: <Unsigned PSBT Hex String>
+    }
+
+```node
+const {createFundedPsbt} = require('ln-service');
+
+const script = '00';
+const tokens = 1e6;
+
+// Create an unsigned PSBT that sends 1mm to an output script
+const {psbt} = await createFundedPsbt({lnd, outputs: [{script, tokens}]});
 ```
 
 ### createHodlInvoice

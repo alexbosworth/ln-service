@@ -47,6 +47,8 @@ test(`Open channels`, async () => {
     await asyncRetry({interval, times}, async () => {
       const lnds = [lnd, target.lnd, remote.lnd];
 
+      await generate({});
+
       const heights = await asyncMap(lnds, async lnd => {
         return (await getHeight({lnd})).current_block_height;
       });

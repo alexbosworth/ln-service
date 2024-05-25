@@ -10,6 +10,7 @@ const {changePassword} = require('lightning');
 const {closeChannel} = require('lightning');
 const {connectWatchtower} = require('lightning');
 const {createChainAddress} = require('lightning');
+const {createFundedPsbt} = require('lightning');
 const {createHodlInvoice} = require('lightning');
 const {createInvoice} = require('lightning');
 const {createSeed} = require('lightning');
@@ -174,6 +175,7 @@ module.exports = {
   closeChannel,
   connectWatchtower,
   createChainAddress,
+  createFundedPsbt,
   createHodlInvoice,
   createInvoice,
   createSeed,

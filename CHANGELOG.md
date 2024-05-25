@@ -1,5 +1,9 @@
 # Versions
 
+## 57.12.0
+
+- `createFundedPsbt`: Add method to create a funded PSBT given inputs/outputs
+
 ## 57.11.0
 
 - `getChannel`, `getNetworkGraph`, `getNode`: Add

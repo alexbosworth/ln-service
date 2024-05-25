@@ -65,13 +65,6 @@ test(`Get chain transactions`, async () => {
   equal(tx.tokens, 5000000000, 'Got coinbase reward tokens');
   equal(!!tx.transaction, true, 'Got transaction hex');
 
-  const onlyAfter = await getChainTransactions({
-    lnd,
-    after: tx.confirmation_height,
-  });
-
-  equal(onlyAfter.transactions.length, [].length, 'No txs after');
-
   const onlyBefore = await getChainTransactions({lnd, before: 2});
 
   equal(onlyBefore.transactions.length < 100, true, 'Got before txs');

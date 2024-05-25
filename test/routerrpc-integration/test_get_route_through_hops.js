@@ -33,14 +33,24 @@ test(`Get route through hops`, async () => {
 
   const [{generate, lnd}, target, remote] = nodes;
 
-  await target.generate({count: maturity});
-
   const controlToTargetChan = await setupChannel({generate, lnd, to: target});
 
-  const targetToRemoteChan = await setupChannel({
-    generate: target.generate,
-    lnd: target.lnd,
-    to: remote,
+  await generate({});
+
+  await asyncRetry({interval, times}, async () => {
+    await generate({});
+
+    await addPeer({
+      lnd: target.lnd,
+      public_key: remote.id,
+      socket: remote.socket,
+    });
+
+    const targetToRemoteChan = await setupChannel({
+      generate: target.generate,
+      lnd: target.lnd,
+      to: remote,
+    });
   });
 
   await target.generate({count: confirmationCount});
