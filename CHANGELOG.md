@@ -1,5 +1,11 @@
 # Versions
 
+## 57.13.0
+
+- `getWalletInfo`: Add support for LND 0.18.0
+- `subscribeToGraph`: Add support for `inbound_base_discount_mtokens` and
+    `inbound_rate_discount`
+
 ## 57.12.0
 
 - `createFundedPsbt`: Add method to create a funded PSBT given inputs/outputs

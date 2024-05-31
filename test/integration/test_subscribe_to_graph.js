@@ -106,6 +106,8 @@ test('Subscribe to channels', async t => {
           cltv_delta: policy.cltv_delta,
           fee_rate: policy.fee_rate,
           is_disabled: policy.is_disabled,
+          inbound_base_discount_mtokens: policy.inbound_base_discount_mtokens,
+          inbound_rate_discount: policy.inbound_rate_discount,
           max_htlc_mtokens: policy.max_htlc_mtokens,
           min_htlc_mtokens: policy.min_htlc_mtokens,
           public_keys: [policy.public_key, peer.public_key],
