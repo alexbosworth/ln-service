@@ -7705,11 +7705,16 @@ Requires `offchain:write` permission
 
 `failures` are not returned on LND 0.13.4 and below
 
+`inbound_base_discount_mtokens` is not supported on LND 0.17.5 and below
+`inbound_rate_discount` is not supported on LND 0.17.5 and below
+
     {
       [base_fee_mtokens]: <Base Fee Millitokens Charged String>
       [base_fee_tokens]: <Base Fee Tokens Charged Number>
       [cltv_delta]: <HTLC CLTV Delta Number>
       [fee_rate]: <Fee Rate In Millitokens Per Million Number>
+      [inbound_base_discount_mtokens]: <Inbound Fee Millitokens Reduction String>
+      [inbound_rate_discount]: <Source Millitokens Per Million Discount Number>
       lnd: <Authenticated LND API Object>
       [max_htlc_mtokens]: <Maximum HTLC Millitokens to Forward String>
       [min_htlc_mtokens]: <Minimum HTLC Millitokens to Forward String>
