@@ -7706,6 +7706,7 @@ Requires `offchain:write` permission
 `failures` are not returned on LND 0.13.4 and below
 
 `inbound_base_discount_mtokens` is not supported on LND 0.17.5 and below
+
 `inbound_rate_discount` is not supported on LND 0.17.5 and below
 
     {
