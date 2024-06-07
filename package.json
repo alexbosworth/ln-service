@@ -7,7 +7,7 @@
     "url": "https://github.com/alexbosworth/ln-service/issues"
   },
   "dependencies": {
-    "bolt07": "1.9.0",
+    "bolt07": "1.9.1",
     "invoices": "3.0.0",
     "lightning": "10.13.1",
     "macaroon": "3.0.4"
@@ -72,5 +72,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "57.13.1"
+  "version": "57.13.2"
 }

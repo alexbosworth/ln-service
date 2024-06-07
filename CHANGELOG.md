@@ -1,6 +1,6 @@
 # Versions
 
-## 57.13.1
+## 57.13.2
 
 - `getWalletInfo`: Add support for LND 0.18.0
 - `subscribeToGraph`: Add support for `inbound_base_discount_mtokens` and
