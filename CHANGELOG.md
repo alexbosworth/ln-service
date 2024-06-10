@@ -1,5 +1,10 @@
 # Versions
 
+## 57.14.0
+
+- `getChannel`: Add support for specifying `transaction_id` and
+    `transaction_vout` instead of `id`
+
 ## 57.13.3
 
 - `getWalletInfo`: Add support for LND 0.18.0
