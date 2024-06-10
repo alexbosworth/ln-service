@@ -1883,14 +1883,23 @@ const balanceInChannels = (await getChannelBalance({lnd})).channel_balance;
 
 Get graph information about a channel on the network
 
+Either channel `id` or a `transaction_id` and `transaction_vout` is required
+
 Requires `info:read` permission
 
 `inbound_base_discount_mtokens` is not supported on LND 0.17.5 and below
+
 `inbound_rate_discount` is not supported on LND 0.17.5 and below
 
+`transaction_id` is not supported on LND 0.18.0 and below
+
+`transaction_vout` is not supported on LND 0.18.0 and below
+
     {
-      id: <Standard Format Channel Id String>
+      [id]: <Standard Format Channel Id String>
       lnd: <Authenticated LND API Object>
+      [transaction_id]: <Funding Outpoint Transaction Id Hex String>
+      [transaction_vout]: <Funding Outpoint Transaction Output Index Number>
     }
 
     @returns via cbk or Promise
@@ -1900,18 +1909,18 @@ Requires `info:read` permission
       policies: [{
         [base_fee_mtokens]: <Base Fee Millitokens String>
         [cltv_delta]: <Locktime Delta Number>
-        [fee_rate]: <Fees Charged Per Million Millitokens Number>
+        [fee_rate]: <Fees Charged in Millitokens Per Million Number>
         [inbound_base_discount_mtokens]: <Source Based Base Fee Reduction String>
         [inbound_rate_discount]: <Source Based Per Million Rate Reduction Number>
         [is_disabled]: <Channel Is Disabled Bool>
         [max_htlc_mtokens]: <Maximum HTLC Millitokens Value String>
         [min_htlc_mtokens]: <Minimum HTLC Millitokens Value String>
         public_key: <Node Public Key String>
-        [updated_at]: <Policy Last Updated At ISO 8601 Date String>
+        [updated_at]: <Edge Last Updated At ISO 8601 Date String>
       }]
       transaction_id: <Transaction Id Hex String>
       transaction_vout: <Transaction Output Index Number>
-      [updated_at]: <Last Update Epoch ISO 8601 Date String>
+      [updated_at]: <Channel Last Updated At ISO 8601 Date String>
     }
 
 Example:

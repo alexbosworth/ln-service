@@ -43,6 +43,21 @@ test(`Get channel`, async () => {
 
   strictEqual(Date.now()-new Date(details.updated_at) < 1e5, true, 'Updated');
 
+  try {
+    const details = await getChannel({
+      lnd,
+      transaction_id: channel.transaction_id,
+      transaction_vout: channel.transaction_vout,
+    });
+  } catch (err) {
+    const [code] = err;
+
+    // On LND 0.18.0 and below a transaction id and vout is not supported
+    if (code !== 404) {
+      throw err;
+    }
+  }
+
   await kill({});
 
   return;
