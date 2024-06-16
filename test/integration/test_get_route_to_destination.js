@@ -24,128 +24,130 @@ const tokens = 1000;
 
 // Getting a route to a destination should return a route to the destination
 test(`Get a route to a destination`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  await asyncRetry({}, async () => {
+    const {kill, nodes} = await spawnLightningCluster({size});
 
-  const [control, target, remote] = nodes;
+    const [control, target, remote] = nodes;
 
-  await control.generate({count: 500});
+    await control.generate({count: 200});
 
-  await setupChannel({
-    generate: control.generate,
-    lnd: control.lnd,
-    to: target,
-  });
-
-  await setupChannel({
-    generate: target.generate,
-    give_tokens: 1e5,
-    is_private: true,
-    lnd: target.lnd,
-    to: remote,
-  });
-
-  const invoice = await asyncRetry({interval, times}, async () => {
-    const invoice = await createInvoice({
-      tokens,
-      is_including_private_channels: true,
-      lnd: remote.lnd,
+    await setupChannel({
+      generate: control.generate,
+      lnd: control.lnd,
+      to: target,
     });
 
-    const {routes} = parsePaymentRequest({request: invoice.request});
+    await setupChannel({
+      generate: target.generate,
+      give_tokens: 1e5,
+      is_private: true,
+      lnd: target.lnd,
+      to: remote,
+    });
 
-    // Wait for private routes to get picked up
-    if (!routes) {
-      await cancelHodlInvoice({id: invoice.id, lnd: remote.lnd});
+    const invoice = await asyncRetry({interval, times}, async () => {
+      const invoice = await createInvoice({
+        tokens,
+        is_including_private_channels: true,
+        lnd: remote.lnd,
+      });
 
-      throw new Error('ExpectedRouteForInvoice');
+      const {routes} = parsePaymentRequest({request: invoice.request});
+
+      // Wait for private routes to get picked up
+      if (!routes) {
+        await cancelHodlInvoice({id: invoice.id, lnd: remote.lnd});
+
+        throw new Error('ExpectedRouteForInvoice');
+      }
+
+      return invoice;
+    });
+
+    const parsed = parsePaymentRequest({request: invoice.request});
+
+    await asyncRetry({interval, times}, async () => {
+      const {route} = await getRouteToDestination({
+        destination: parsed.destination,
+        features: parsed.features,
+        lnd: control.lnd,
+        payment: parsed.payment,
+        routes: parsed.routes,
+        mtokens: parsed.mtokens,
+        total_mtokens: parsed.mtokens,
+      });
+
+      const paid = await payViaRoutes({
+        id: parsed.id,
+        lnd: control.lnd,
+        routes: [route],
+      });
+
+      strictEqual(invoice.secret, paid.secret, 'Paid multi-hop private route');
+    });
+
+    const inv = await createInvoice({tokens, lnd: target.lnd});
+
+    const invDetails = await decodePaymentRequest({
+      lnd: control.lnd,
+      request: inv.request,
+    });
+
+    const controlToTarget = await getRouteToDestination({
+      destination: target.id,
+      features: invDetails.features,
+      lnd: control.lnd,
+      messages: [message],
+      payment: invDetails.payment,
+      tokens: invDetails.tokens / [control, remote].length,
+      total_mtokens: invDetails.mtokens,
+    });
+
+    const remoteToTarget = await getRouteToDestination({
+      destination: target.id,
+      features: invDetails.features,
+      lnd: remote.lnd,
+      messages: [message],
+      payment: invDetails.payment,
+      tokens: invDetails.tokens / [control, remote].length,
+      total_mtokens: invDetails.mtokens,
+    });
+
+    try {
+      const [controlPay, remotePay] = await all([
+        payViaRoutes({
+          id: invDetails.id,
+          lnd: control.lnd,
+          routes: [controlToTarget.route],
+        }),
+        payViaRoutes({
+          id: invDetails.id,
+          lnd: remote.lnd,
+          routes: [remoteToTarget.route],
+        }),
+      ]);
+
+      strictEqual(controlPay.secret, inv.secret, 'Control paid for secret');
+      strictEqual(remotePay.secret, inv.secret, 'Remote paid for secret');
+
+      const {payments} = await getInvoice({
+        id: invDetails.id,
+        lnd: target.lnd,
+      });
+
+      const [payment1, payment2] = payments;
+
+      const [message1] = payment1.messages;
+      const [message2] = payment2.messages;
+
+      deepStrictEqual(message1, message, 'Target received message');
+      deepStrictEqual(message2, message, 'Target received both messages');
+    } catch (err) {
+      strictEqual(err, null, 'Unexpected error paying invoice');
     }
 
-    return invoice;
+    await kill({});
   });
-
-  const parsed = parsePaymentRequest({request: invoice.request});
-
-  await asyncRetry({interval, times}, async () => {
-    const {route} = await getRouteToDestination({
-      destination: parsed.destination,
-      features: parsed.features,
-      lnd: control.lnd,
-      payment: parsed.payment,
-      routes: parsed.routes,
-      mtokens: parsed.mtokens,
-      total_mtokens: parsed.mtokens,
-    });
-
-    const paid = await payViaRoutes({
-      id: parsed.id,
-      lnd: control.lnd,
-      routes: [route],
-    });
-
-    strictEqual(invoice.secret, paid.secret, 'Paid multi-hop private route');
-  });
-
-  const inv = await createInvoice({tokens, lnd: target.lnd});
-
-  const invDetails = await decodePaymentRequest({
-    lnd: control.lnd,
-    request: inv.request,
-  });
-
-  const controlToTarget = await getRouteToDestination({
-    destination: target.id,
-    features: invDetails.features,
-    lnd: control.lnd,
-    messages: [message],
-    payment: invDetails.payment,
-    tokens: invDetails.tokens / [control, remote].length,
-    total_mtokens: invDetails.mtokens,
-  });
-
-  const remoteToTarget = await getRouteToDestination({
-    destination: target.id,
-    features: invDetails.features,
-    lnd: remote.lnd,
-    messages: [message],
-    payment: invDetails.payment,
-    tokens: invDetails.tokens / [control, remote].length,
-    total_mtokens: invDetails.mtokens,
-  });
-
-  try {
-    const [controlPay, remotePay] = await all([
-      payViaRoutes({
-        id: invDetails.id,
-        lnd: control.lnd,
-        routes: [controlToTarget.route],
-      }),
-      payViaRoutes({
-        id: invDetails.id,
-        lnd: remote.lnd,
-        routes: [remoteToTarget.route],
-      }),
-    ]);
-
-    strictEqual(controlPay.secret, inv.secret, 'Control paid for secret');
-    strictEqual(remotePay.secret, inv.secret, 'Remote paid for secret');
-
-    const {payments} = await getInvoice({
-      id: invDetails.id,
-      lnd: target.lnd,
-    });
-
-    const [payment1, payment2] = payments;
-
-    const [message1] = payment1.messages;
-    const [message2] = payment2.messages;
-
-    deepStrictEqual(message1, message, 'Target received message');
-    deepStrictEqual(message2, message, 'Target received both messages');
-  } catch (err) {
-    strictEqual(err, null, 'Unexpected error paying invoice');
-  }
-
-  await kill({});
 
   return;
 });

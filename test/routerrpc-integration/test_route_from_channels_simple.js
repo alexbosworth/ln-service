@@ -64,7 +64,11 @@ test(`Get route through hops`, async () => {
     }
   });
 
-  const invoice = await createInvoice({tokens, lnd: remote.lnd});
+  const invoice = await createInvoice({
+    tokens,
+    cltv_delta: 60,
+    lnd: remote.lnd,
+  });
 
   const {id} = invoice;
   const {request} = invoice;
@@ -119,6 +123,15 @@ test(`Get route through hops`, async () => {
     height: (await getHeight({lnd})).current_block_height,
     mtokens: decodedRequest.mtokens,
     payment: decodedRequest.payment,
+    total_mtokens: decodedRequest.mtokens,
+  });
+
+  const lndRoute = await getRouteThroughHops({
+    lnd,
+    cltv_delta: decodedRequest.cltv_delta + confirmationCount,
+    mtokens: decodedRequest.mtokens,
+    payment: decodedRequest.payment,
+    public_keys: [target.id, remote.id],
     total_mtokens: decodedRequest.mtokens,
   });
 
