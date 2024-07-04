@@ -3,7 +3,7 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const bip32 = require('bip32');
-const bs58check = require('bs58check');
+const bs58check = require('bs58check').default;
 const ecc = require('tiny-secp256k1')
 const {spawnLightningCluster} = require('ln-docker-daemons');
 

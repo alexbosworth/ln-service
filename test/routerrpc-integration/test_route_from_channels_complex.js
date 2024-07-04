@@ -145,6 +145,8 @@ test(`Get route through complex hops`, async () => {
     await asyncRetry({interval, times}, async () => {
       const {features} = await getNode({lnd, public_key: farthest.id});
 
+      await addPeer({lnd, public_key: farthest.id, socket: farthest.socket});
+
       if (!features.length) {
         throw new Error('ExpectedFarthestFeatures');
       }

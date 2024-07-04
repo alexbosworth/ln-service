@@ -126,13 +126,15 @@ test(`Get route through hops`, async () => {
     total_mtokens: decodedRequest.mtokens,
   });
 
-  const lndRoute = await getRouteThroughHops({
-    lnd,
-    cltv_delta: decodedRequest.cltv_delta + confirmationCount,
-    mtokens: decodedRequest.mtokens,
-    payment: decodedRequest.payment,
-    public_keys: [target.id, remote.id],
-    total_mtokens: decodedRequest.mtokens,
+  const lndRoute = await asyncRetry({interval, times}, async () => {
+    return await getRouteThroughHops({
+      lnd,
+      cltv_delta: decodedRequest.cltv_delta + confirmationCount,
+      mtokens: decodedRequest.mtokens,
+      payment: decodedRequest.payment,
+      public_keys: [target.id, remote.id],
+      total_mtokens: decodedRequest.mtokens,
+    });
   });
 
   const discounted = BigInt(discountFee.inbound_base_discount_mtokens);
