@@ -426,6 +426,7 @@ Both the cert and macaroon expect the entire serialized LND generated file
     {
       [cert]: <Base64 or Hex Serialized LND TLS Cert>
       [macaroon]: <Base64 or Hex Serialized Macaroon String>
+      [path]: <Path to Proto Files Directory String>
       [socket]: <Host:Port String>
     }
 
@@ -7437,6 +7438,7 @@ Make sure to provide a cert when using LND with its default self-signed cert
 
     {
       [cert]: <Base64 or Hex Serialized LND TLS Cert>
+      [path]: <Path to Proto Files Directory String>
       [socket]: <Host:Port String>
     }
 
