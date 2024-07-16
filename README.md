@@ -2043,6 +2043,10 @@ Requires `offchain:read` permission
     @returns via cbk or Promise
     {
       channels: [{
+        [anchor_is_confirmed]: <Anchor Sweep Confirmed Bool>
+        [anchor_is_pending]: <Anchor Sweep Pending Confirmation Bool>
+        [anchor_spent_by]: <Anchor Sweep Transaction Id Hex String>
+        [anchor_vout]: <Anchor Output Index Number>
         capacity: <Closed Channel Capacity Tokens Number>
         [close_balance_spent_by]: <Channel Balance Output Spent By Tx Id String>
         [close_balance_vout]: <Channel Balance Close Tx Output Index Number>

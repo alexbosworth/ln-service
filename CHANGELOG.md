@@ -1,5 +1,11 @@
 # Versions
 
+## 57.16.0
+
+- `getClosedChannels`: Add support for anchor resolution status via new
+    attributes `anchor_is_confirmed`, `anchor_is_pending`, `anchor_spent_by`,
+    and `anchor_vout`
+
 ## 57.15.0
 
 - `authenticatedLndGrpc`, `unauthenticatedLndGrpc`: Add `path` to specify the
