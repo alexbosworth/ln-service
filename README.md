@@ -2309,6 +2309,8 @@ Requires `offchain:read` permission
         base_fee: <Base Flat Fee Tokens Rounded Up Number>
         base_fee_mtokens: <Base Flat Fee Millitokens String>
         id: <Standard Format Channel Id String>
+        inbound_base_discount_mtokens: <Source Based Base Fee Reduction String>
+        inbound_rate_discount: <Source Based Per Million Rate Reduction Number>
         transaction_id: <Channel Funding Transaction Id Hex String>
         transaction_vout: <Funding Outpoint Output Index Number>
       }]

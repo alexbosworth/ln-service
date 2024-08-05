@@ -1,5 +1,10 @@
 # Versions
 
+## 57.17.0
+
+- `getFeeRates`: Add support for `inbound_base_discount_mtokens`,
+    'inbound_rate_discount` for inbound fee policy discounts
+
 ## 57.16.0
 
 - `getClosedChannels`: Add support for anchor resolution status via new
