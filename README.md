@@ -2732,6 +2732,25 @@ const allowedMethods = methods.filter(method => {
 });
 ```
 
+### getMinimumRelayFee
+
+Get the current minimum relay fee for the chain backend
+
+Requires LND built with `walletrpc` tag
+
+Requires `onchain:read` permission
+
+This method is not supported on LND 0.18.2 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns via cbk or Promise
+    {
+      tokens_per_vbyte: <Minimum Relayable Tokens Per Virtual Byte Number>
+    }
+
 ### getNetworkCentrality
 
 Get the graph centrality scores of the nodes on the network

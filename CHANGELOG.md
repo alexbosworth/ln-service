@@ -1,5 +1,9 @@
 # Versions
 
+## 57.18.0
+
+- `getMinimumRelayFee`: Add method to get the chain backend minimum relay fee
+
 ## 57.17.0
 
 - `getFeeRates`: Add support for `inbound_base_discount_mtokens`,
