@@ -9,14 +9,14 @@
   "dependencies": {
     "bolt07": "1.9.4",
     "invoices": "3.0.0",
-    "lightning": "10.18.0",
+    "lightning": "10.19.0",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
     "@alexbosworth/blockchain": "2.0.0",
     "@alexbosworth/node-fetch": "2.6.2",
-    "async": "3.2.5",
+    "async": "3.2.6",
     "asyncjs-util": "1.2.12",
     "bip32": "4.0.0",
     "bip66": "2.0.0",
@@ -24,7 +24,7 @@
     "bn.js": "5.2.1",
     "bs58check": "4.0.0",
     "ecpair": "2.1.0",
-    "ln-docker-daemons": "6.0.22",
+    "ln-docker-daemons": "6.0.23",
     "p2tr": "2.0.0",
     "portfinder": "1.0.32",
     "psbt": "3.0.0",
@@ -74,5 +74,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "57.18.0"
+  "version": "57.19.0"
 }

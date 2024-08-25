@@ -114,6 +114,7 @@ test('Get failed payments', async () => {
         {
           failed: {
             id: payment.id,
+            is_canceled: false,
             is_insufficient_balance: false,
             is_invalid_payment: false,
             is_pathfinding_timeout: false,
@@ -151,11 +152,13 @@ test('Get failed payments', async () => {
       deepStrictEqual(payment.safe_tokens, invoice.tokens, 'Safe tokens');
       deepStrictEqual(payment.tokens, invoice.tokens, 'Failed has tokens');
     }
+
+    await kill({});
   } catch (err) {
+    await kill({});
+
     strictEqual(err, null, 'Expected no error');
   }
-
-  await kill({});
 
   return;
 });

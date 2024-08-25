@@ -830,6 +830,7 @@ Requires `address:write`, `invoices:write` permission
       [description]: <Invoice Description String>
       [description_hash]: <Hashed Description of Payment Hex String>
       [expires_at]: <Expires At ISO 8601 Date String>
+      [is_encrypting_routes]: <Use Blinded Paths For Inbound Routes Bool>
       [is_fallback_included]: <Is Fallback Address Included Bool>
       [is_fallback_nested]: <Is Fallback Address Nested Bool>
       [is_including_private_channels]: <Invoice Includes Private Channels Bool>
@@ -3792,10 +3793,13 @@ Requires `info:read` permission
         type: <Feature Type String>
       }]
       is_synced_to_chain: <Is Synced To Chain Bool>
+      [is_synced_to_graph]: <Is Synced To Network Graph Bool>
       latest_block_at: <Latest Known Block At Date String>
       peers_count: <Peer Count Number>
       pending_channels_count: <Pending Channels Count Number>
       public_key: <Public Key String>
+      [uris]: [<The URIs of the Node String>]
+      version: <LND Version String>
     }
 
 Example:
@@ -6434,6 +6438,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
     @event 'failed'
     {
       id: <Payment Hash Hex String>
+      is_canceled: <Payment Canceled Bool>
       is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
@@ -6589,6 +6594,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
     @event 'failed'
     {
       id: <Payment Hash Hex String>
+      is_canceled: <Payment Canceled Bool>
       is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Invalid Payment Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
@@ -6923,6 +6929,7 @@ Note: Method not supported on LND 0.15.5 and below
     @event 'failed'
     {
       id: <Payment Hash Hex String>
+      is_canceled: <Payment Canceled Bool>
       is_insufficient_balance: <Failed Due To Lack of Balance Bool>
       is_invalid_payment: <Failed Due to Payment Rejected At Destination Bool>
       is_pathfinding_timeout: <Failed Due to Pathfinding Timeout Bool>
