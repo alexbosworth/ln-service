@@ -92,6 +92,7 @@ test(`Pay via payment request`, async () => {
       equal(paid.fee, 1, 'Fee tokens paid');
       equal(paid.fee_mtokens, '1000', 'Fee mtokens tokens paid');
       equal(paid.id, invoice.id, 'Payment hash is equal on both sides');
+      equal(paid.index, '2', 'Got payment offset index');
       equal(paid.mtokens, '101000', 'Paid mtokens');
       equal(paid.secret, invoice.secret, 'Paid for invoice secret');
 

@@ -4487,6 +4487,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         timeout: <First Route Timeout Block Height Number>
       }]
       id: <Payment Hash Hex String>
+      index: <Payment Index Offset Number String>
       mtokens: <Total Millitokens Paid String>
       paths: [{
         fee_mtokens: <Total Fee Millitokens Paid String>
@@ -6583,6 +6584,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         timeout: <Timeout Block Height Number>
       }]
       id: <Payment Hash Hex String>
+      index: <Payment Index Offset Number String>
       mtokens: <Total Millitokens Paid String>
       safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
       safe_tokens: <Payment Tokens Rounded Up Number>
@@ -6625,6 +6627,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       created_at: <Payment Created At ISO 8601 Date String>
       destination: <Payment Destination Hex String>
       id: <Payment Hash Hex String>
+      index: <Payment Index Offset Number String>
       mtokens: <Total Millitokens Pending String>
       paths: [{
         fee: <Total Fee Tokens Pending Number>
