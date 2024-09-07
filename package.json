@@ -9,7 +9,7 @@
   "dependencies": {
     "bolt07": "1.9.4",
     "invoices": "3.0.0",
-    "lightning": "10.20.0",
+    "lightning": "10.20.1",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
