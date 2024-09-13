@@ -1,5 +1,9 @@
 # Versions
 
+## 57.20.2
+
+- Add support for LND 0.18.3
+
 ## 57.20.1
 
 - `payViaPaymentRequest`, `subscribeToPayViaRequest`: Add `index` to response
