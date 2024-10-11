@@ -698,6 +698,8 @@ Create an unsigned funded PSBT given inputs or outputs
 
 When specifying local inputs, they must be locked before using
 
+`change_format` options: `p2tr` (only one change type is supported)
+
 `utxo_selection` methods: 'largest', 'random'
 
 Requires `onchain:write` permission
