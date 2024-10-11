@@ -1400,6 +1400,8 @@ If there are no inputs passed, internal UTXOs will be selected and locked
 
 `utxo_selection` methods: 'largest', 'random'
 
+`change_format` options: `p2tr` (only one change type is supported)
+
 Requires `onchain:write` permission
 
 Requires LND built with `walletrpc` tag
@@ -1411,6 +1413,7 @@ Specifying 0 for `min_confirmations` is not supported in LND 0.13.0 and below
 `utxo_selection` is not supported in LND 0.17.5 and below
 
     {
+      [change_format]: <Change Address Address Format String>
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
       [inputs]: [{
         transaction_id: <Unspent Transaction Id Hex String>
