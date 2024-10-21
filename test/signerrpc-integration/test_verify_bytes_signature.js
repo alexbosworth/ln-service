@@ -3,7 +3,7 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const {decode} = require('bip66');
-const {ecdsaRecover} = require('secp256k1');
+const {recover} = require('tiny-secp256k1');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {signBytes} = require('./../../');
@@ -38,7 +38,7 @@ test(`Verify bytes signature`, async () => {
     // Find the recovery flag that works for this signature
     const recoveryFlag = recoveryFlags.find(flag => {
       try {
-        const key = Buffer.from(ecdsaRecover(realSig, flag, hash, true));
+        const key = Buffer.from(recover(hash, realSig, flag, true));
 
         return key.equals(Buffer.from(id, 'hex'));
       } catch (err) {

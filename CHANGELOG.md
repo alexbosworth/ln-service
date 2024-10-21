@@ -1,6 +1,6 @@
 # Versions
 
-## 57.22.1
+## 57.22.2
 
 - `createFundedPsbt`: Add support for `change_format` for change address type
 
