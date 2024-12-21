@@ -1,5 +1,9 @@
 # Versions
 
+## 57.22.3
+
+- Add support for LND 0.18.4
+
 ## 57.22.2
 
 - `createFundedPsbt`: Add support for `change_format` for change address type
