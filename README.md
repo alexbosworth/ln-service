@@ -223,6 +223,7 @@ for `unlocker` methods.
 - [getRouteConfidence](#getrouteconfidence) - Get confidence in a route
 - [getRouteThroughHops](#getroutethroughhops) - Get a route through nodes
 - [getRouteToDestination](#getroutetodestination) - Get a route to a destination
+- [getRoutingFeeEstimate](#getroutingfeeestimate) - Get offchain fee estimate
 - [getSettlementStatus](#getsettlementstatus) - Get status of a received HTLC
 - [getSweepTransactions](#getsweeptransactions) - Get transactions sweeping to
     self
@@ -3627,6 +3628,35 @@ const destination = 'destinationPublicKeyHexString';
 const tokens = 1000;
 const {route} = await getRouteToDestination({destination, lnd, tokens});
 await payViaRoutes({lnd, routes: [route]});
+```
+
+### getRoutingFeeEstimate
+
+    Estimate routing fees and timeout required to pay a payment request
+
+    Requires `offchain:read` permission
+
+    This method is not supported on LND 0.18.3 and below
+
+   {
+      lnd: <Authenticated LND API Object>
+      request: <BOLT 11 Payment Request String>
+      [timeout]: <Maximum Route Pathfinding Time in Milliseconds Number>
+    }
+
+    @returns via cbk or Promise
+    {
+      fee_mtokens: <Estimated Minimum Required Route Fee Millitokens String>
+      timeout: <Estimated Minimum Time Lock Block Height Delay Number>
+    }
+
+Example:
+
+```node
+const {getRoutingFeeEstimate} = require('ln-service');
+
+// Get the minimum fee required to make an offchain payment to a request
+const minFeeMtok = (await getRoutingFeeEstimate({lnd, request})).fee_mtokens;
 ```
 
 ### getSettlementStatus

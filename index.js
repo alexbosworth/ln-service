@@ -80,6 +80,7 @@ const {getPublicKey} = require('lightning');
 const {getRouteConfidence} = require('lightning');
 const {getRouteThroughHops} = require('lightning');
 const {getRouteToDestination} = require('lightning');
+const {getRoutingFeeEstimate} = require('lightning');
 const {getSettlementStatus} = require('lightning');
 const {getSweepTransactions} = require('lightning');
 const {getTowerServerInfo} = require('lightning');
@@ -246,6 +247,7 @@ module.exports = {
   getRouteConfidence,
   getRouteThroughHops,
   getRouteToDestination,
+  getRoutingFeeEstimate,
   getSettlementStatus,
   getSweepTransactions,
   getTowerServerInfo,
