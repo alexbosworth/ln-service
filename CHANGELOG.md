@@ -1,5 +1,9 @@
 # Versions
 
+## 57.23.1
+
+- Add support for LND 0.18.5
+
 ## 57.23.0
 
 - `getRoutingFeeEstimate`: Add method to estimate an offchain payment fee
