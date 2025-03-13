@@ -9,7 +9,7 @@
   "dependencies": {
     "bolt07": "1.9.4",
     "invoices": "3.0.0",
-    "lightning": "10.23.1",
+    "lightning": "10.24.0",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
@@ -24,13 +24,13 @@
     "bn.js": "5.2.1",
     "bs58check": "4.0.0",
     "ecpair": "2.1.0",
-    "ln-docker-daemons": "6.0.23",
+    "ln-docker-daemons": "6.0.24",
     "p2tr": "2.0.0",
-    "portfinder": "1.0.32",
+    "portfinder": "1.0.34",
     "psbt": "3.0.0",
     "rimraf": "6.0.1",
     "tiny-secp256k1": "2.2.3",
-    "uuid": "11.0.5",
+    "uuid": "11.1.0",
     "varuint-bitcoin": "2.0.0"
   },
   "engines": {
@@ -51,6 +51,9 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
+    "integration-test-0.18.5": "DOCKER_LND_VERSION=v0.18.5-beta npm run test",
+    "integration-test-0.18.4": "DOCKER_LND_VERSION=v0.18.4-beta npm run test",
+    "integration-test-0.18.3": "DOCKER_LND_VERSION=v0.18.3-beta npm run test",
     "integration-test-0.18.2": "DOCKER_LND_VERSION=v0.18.2-beta npm run test",
     "integration-test-0.18.1": "DOCKER_LND_VERSION=v0.18.1-beta npm run test",
     "integration-test-0.18.0": "DOCKER_LND_VERSION=v0.18.0-beta npm run test",
@@ -73,5 +76,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "57.23.1"
+  "version": "57.24.0"
 }

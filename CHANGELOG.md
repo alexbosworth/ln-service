@@ -1,5 +1,9 @@
 # Versions
 
+## 57.24.0
+
+- `closeChannel`: Add `is_graceful_close` option to wait for pending resolution
+
 ## 57.23.1
 
 - Add support for LND 0.18.5

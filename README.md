@@ -613,10 +613,13 @@ permissions
 
 `max_tokens_per_vbyte` is not supported in LND 0.15.0 and below
 
+`is_graceful_close` is not supported in LND 0.17.5 and below
+
     {
       [address]: <Request Sending Local Channel Funds To Address String>
       [id]: <Standard Format Channel Id String>
       [is_force_close]: <Is Force Close Bool>
+      [is_graceful_close]: <Is Waiting For Pending Payments to Coop Close Bool>
       lnd: <Authenticated LND API Object>
       [max_tokens_per_vbyte]: <Fail Cooperative Close Above Fee Rate Number>
       [public_key]: <Peer Public Key String>
