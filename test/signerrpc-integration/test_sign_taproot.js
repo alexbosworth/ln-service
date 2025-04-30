@@ -194,7 +194,10 @@ test(`Sign a taproot transaction`, async () => {
 
     const unusedKey = ecp.makeRandom({network: networks.regtest});
 
-    const witnessScript = compile([unusedKey.publicKey.slice(1), OP_CHECKSIG]);
+    const witnessScript = compile([
+      Buffer.from(unusedKey.publicKey).slice(1),
+      OP_CHECKSIG,
+    ]);
 
     const branches = [{script: witnessScript}];
 
@@ -273,6 +276,9 @@ test(`Sign a taproot transaction`, async () => {
       }
     });
   } catch (err) {
+    console.log("ERR", err);
+    await kill({});
+
     equal(err, null, 'Expected no error');
   }
 

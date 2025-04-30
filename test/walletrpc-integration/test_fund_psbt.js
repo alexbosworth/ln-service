@@ -128,14 +128,20 @@ test(`Fund PSBT`, async () => {
     const keyPair2 = ecp.makeRandom({network: networks.regtest});
     const unusedKey = ecp.makeRandom({network: networks.regtest});
 
-    const witnessScript = compile([unusedKey.publicKey.slice(1), OP_CHECKSIG]);
+    const witnessScript = compile([
+      from(unusedKey.publicKey).slice(1),
+      OP_CHECKSIG,
+    ]);
 
     const branches = [{script: witnessScript}];
 
     const {hash} = hashForTree({branches});
 
     // Create a combined key using public key material
-    const combinedPoint = pointAdd(keyPair1.publicKey, keyPair2.publicKey);
+    const combinedPoint = pointAdd(
+      from(keyPair1.publicKey),
+      from(keyPair2.publicKey)
+    );
 
     const output = v1OutputScript({
       hash,
@@ -187,7 +193,10 @@ test(`Fund PSBT`, async () => {
     });
 
     // Ready for private key combining
-    const combinedKey = privateAdd(keyPair1.privateKey, keyPair2.privateKey);
+    const combinedKey = privateAdd(
+      from(keyPair1.privateKey),
+      from(keyPair2.privateKey)
+    );
 
     const signedInput = signHash({
       hash,
@@ -224,7 +233,10 @@ test(`Fund PSBT`, async () => {
 
     const keyPair = ecp.makeRandom({network: networks.regtest});
 
-    const witnessScript = compile([keyPair.publicKey.slice(1), OP_CHECKSIG]);
+    const witnessScript = compile([
+      from(keyPair.publicKey.slice(1)),
+      OP_CHECKSIG,
+    ]);
 
     const branches = [{script: witnessScript}];
 
@@ -277,7 +289,7 @@ test(`Fund PSBT`, async () => {
       );
     });
 
-    const signature = from(signSchnorr(hashToSign, keyPair.privateKey));
+    const signature = from(signSchnorr(hashToSign, from(keyPair.privateKey)));
 
     const {block} = controlBlock({
       external_key: output.external_key,
@@ -308,7 +320,11 @@ test(`Fund PSBT`, async () => {
       }
     });
   } catch (err) {
+    await kill({});
+
     equal(err, null, 'Expected no error');
+
+    return;
   }
 
   // A Taproot output should be funded for a regular key spend
@@ -318,7 +334,7 @@ test(`Fund PSBT`, async () => {
     const keyPair = ecp.makeRandom({network: networks.regtest});
 
     const output = v1OutputScript({
-      internal_key: keyPair.publicKey.toString('hex'),
+      internal_key: from(keyPair.publicKey).toString('hex'),
     });
 
     const outputScript = hexAsBuffer(output.script);
@@ -368,8 +384,8 @@ test(`Fund PSBT`, async () => {
     });
 
     const signedInput = signHash({
-      private_key: keyPair.privateKey.toString('hex'),
-      public_key: keyPair.publicKey.toString('hex'),
+      private_key: from(keyPair.privateKey).toString('hex'),
+      public_key: from(keyPair.publicKey).toString('hex'),
       sign_hash: hashToSign.toString('hex'),
     });
 

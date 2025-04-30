@@ -1,5 +1,9 @@
 # Versions
 
+## 57.25.0
+
+- Add support for Testnet4
+
 ## 57.24.0
 
 - `closeChannel`: Add `is_graceful_close` option to wait for pending resolution
