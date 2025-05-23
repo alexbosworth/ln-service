@@ -85,8 +85,10 @@ test(`Subscribe to settled invoice`, async () => {
     if (!!payments.length) {
       const [payment] = payments;
 
-      if (!!payment.messages.length) {
-        const [{type, value}] = payment.messages;
+      const messages = payment.messages.filter(n => n.type === tlvType);
+
+      if (!!messages.filter(n => n.type === tlvType).length) {
+        const [{type, value}] = messages;
 
         equal(type, tlvType, 'Payment message TLV type returned');
         equal(value, tlvValue, 'Payment message TLV value returned');

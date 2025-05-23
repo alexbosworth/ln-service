@@ -71,9 +71,12 @@ test(`Subscribe to chain transactions`, async () => {
   if (tx.fee === 7050) {
     equal(tx.fee, 7050, 'Transaction has a chain fee');
     equal(tx.tokens, 1007050, 'Tx tokens is fee + tokens sent');
-  } else {
+  } else if (tx.fee === 7650) { // LND 0.18.5 and below fee rate
     equal(tx.fee, 7650, 'Transaction has a chain fee');
     equal(tx.tokens, 1007650, 'Tx tokens is fee + tokens sent');
+  } else {
+    equal(tx.fee, 3825, 'Transaction has a chain fee');
+    equal(tx.tokens, 1003825, 'Tx tokens is fee + tokens sent');
   }
 
   if (!!tx.output_addresses.find(n => n.length < 14 || n.length > 74)) {

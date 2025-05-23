@@ -11,7 +11,12 @@ test(`Get chain fee rate`, async () => {
 
   const feeRate = await getChainFeeRate({lnd});
 
-  equal(feeRate.tokens_per_vbyte, 50, 'Fee rate is returned');
+  // LND 0.18.5 and below return 50
+  if (feeRate.tokens_per_vbyte === 50) {
+    equal(feeRate.tokens_per_vbyte, 50, 'Fee rate is returned');
+  } else {
+    equal(feeRate.tokens_per_vbyte, 25, 'Fee rate is returned');
+  }
 
   await kill({});
 

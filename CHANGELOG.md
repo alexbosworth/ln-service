@@ -1,5 +1,9 @@
 # Versions
 
+## 57.25.1
+
+- Add support for LND 0.19.0-beta
+
 ## 57.25.0
 
 - Add support for Testnet4

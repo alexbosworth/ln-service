@@ -35,16 +35,18 @@ test(`Request chain fee increase`, async () => {
 
     const bump = (await getUtxos({lnd})).utxos.find(n => n.tokens === tokens);
 
-    try {
-      await requestChainFeeIncrease({
-        lnd,
-        transaction_id: bump.transaction_id,
-        transaction_vout: bump.transaction_vout + 1,
-      });
-      fail('Expected chain fee increase rejected');
-    } catch (err) {
-      deepEqual(err, [404, 'SpecifiedOutpointNotFoundInWalletUtxos'], '404');
-    }
+    // // LND 0.19.0 does not support this error
+    // try {
+    //   await requestChainFeeIncrease({
+    //     lnd,
+    //     transaction_id: bump.transaction_id,
+    //     transaction_vout: bump.transaction_vout + 1,
+    //   });
+    //
+    //   fail('Expected chain fee increase rejected');
+    // } catch (err) {
+    //   deepEqual(err, [404, 'SpecifiedOutpointNotFoundInWalletUtxos'], '404');
+    // }
 
     await requestChainFeeIncrease({
       lnd,
@@ -53,9 +55,9 @@ test(`Request chain fee increase`, async () => {
     });
   } catch (err) {
     equal(err, null, 'Expected no error');
+  } finally {
+    await kill({});
   }
-
-  await kill({});
 
   return;
 });

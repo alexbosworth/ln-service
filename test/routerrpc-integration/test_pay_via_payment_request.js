@@ -132,8 +132,10 @@ test(`Pay via payment request`, async () => {
       if (!!payments.length) {
         const [payment] = payments;
 
-        if (!!payment.messages.length) {
-          const [message] = payment.messages;
+        const messages = payment.messages.filter(n => n.type !== '106823');
+
+        if (!!messages.length) {
+          const [message] = messages;
 
           equal(message.type, tlvType, 'Got TLV message type');
           equal(message.value, tlvValue, 'Got TLV message value');

@@ -137,8 +137,10 @@ test(`Pay via payment details`, async () => {
       if (!!payments) {
         const [payment] = payments;
 
-        if (!!payment && !!payment.messages.length) {
-          const [message] = payment.messages;
+        const messages = payment.messages.filter(n => n.type !== '106823');
+
+        if (!!payment && !!messages.length) {
+          const [message] = messages;
 
           equal(message.type, tlvType, 'Got TLV type');
           equal(message.value, tlvData, 'Got TLV value');
@@ -154,8 +156,10 @@ test(`Pay via payment details`, async () => {
       if (!!payments.length) {
         const [payment] = payments;
 
-        if (!!payment && !!payment.messages.length) {
-          const [message] = payment.messages;
+        const messages = payment.messages.filter(n => n.type !== '106823');
+
+        if (!!payment && !!messages.length) {
+          const [message] = messages;
 
           equal(message.type, tlvType, 'Got TLV type');
           equal(message.value, tlvData, 'Got TLV value');

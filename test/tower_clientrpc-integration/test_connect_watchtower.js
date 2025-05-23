@@ -10,6 +10,7 @@ const {getTowerServerInfo} = require('./../../');
 const {getWalletInfo} = require('./../../');
 
 const conf = ['--watchtower.active', '--wtclient.active'];
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const interval = 50;
 const size = 2;
 const times = 5000;
@@ -37,6 +38,9 @@ test(`Connect watchtower`, async () => {
     const {tower} = await getTowerServerInfo({lnd: target.lnd});
 
     const [socket] = tower.sockets;
+
+    // LND 0.19.0 requires a wait before connecting
+    await delay(5000);
 
     await connectWatchtower({lnd, socket, public_key: tower.public_key});
 

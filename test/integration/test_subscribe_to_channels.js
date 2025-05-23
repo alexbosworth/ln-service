@@ -150,7 +150,7 @@ test('Subscribe to channels', async () => {
 
   const final = closeEvent.final_local_balance;
 
-  equal([897190, 846655, 863366].includes(final), true, 'Close final');
+  equal([897190, 846655, 863366, 875633].includes(final), true, 'Close final');
 
   equal(closeEvent.capacity, channelCapacityTokens, 'Channel close capacity');
   equal(!!closeEvent.close_confirm_height, true, 'Close confirm height');

@@ -8,8 +8,8 @@ const {createChainAddress} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getChainFeeEstimate} = require('./../../');
 
-const expectedFee = 9250;
-const expectedFeeRate = 50;
+const expectedFee = 4625;
+const expectedFeeRate = 25;
 const format = 'np2wpkh';
 const size = 2;
 const times = 200;
@@ -44,11 +44,18 @@ test(`Get chain fee estimate`, async () => {
   // LND 0.15.4 and below uses P2WPKH as change
   if (estimate.fee === 8650) {
     strictEqual(estimate.fee, 8650, 'Total fee is estimated');
+  } else if (estimate.fee === 9250) { // LND 0.18.5 and below fee rate
+    strictEqual(estimate.fee, 9250, 'Total fee is estimated');
   } else {
     strictEqual(estimate.fee, expectedFee, 'Total fee is estimated');
   }
 
-  strictEqual(estimate.tokens_per_vbyte, expectedFeeRate, 'Got fee per vbyte');
+  // LND 0.18.5 and below fee rate is higher
+  if (estimate.tokens_per_vbyte === 50) {
+    strictEqual(estimate.tokens_per_vbyte, 50, 'Got fee/vbyte');
+  } else {
+    strictEqual(estimate.tokens_per_vbyte, expectedFeeRate, 'Got fee/vbyte');
+  }
 
   await kill({});
 

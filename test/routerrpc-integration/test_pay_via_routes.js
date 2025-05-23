@@ -205,8 +205,10 @@ test(`Pay via routes`, async () => {
   if (!!paidInvoice.payments.length) {
     const [payment] = paidInvoice.payments;
 
-    if (!!payment.messages.length) {
-      const [message] = payment.messages;
+    const messages = payment.messages.filter(n => n.type !== '106823');
+
+    if (!!messages.length) {
+      const [message] = messages;
 
       equal(message.type, tlvType, 'Got message type');
       equal(message.value, tlvValue, 'Got message value');

@@ -97,9 +97,12 @@ test(`Fund PSBT`, async () => {
   if (change.output_script.length === 44) {
     equal(change.output_script.length, 44, 'Change address is returned');
     equal(change.tokens, 4998992950, 'Got change output value');
-  } else {
+  } else if (change.tokens === 4998992350) { // LND 0.18.5 and below
     equal(change.output_script.length, 68, 'Change address is returned');
     equal(change.tokens, 4998992350, 'Got change output value');
+  } else {
+    equal(change.output_script.length, 68, 'Change address is returned');
+    equal(change.tokens, 4998996175, 'Got change output value');
   }
 
   equal(output.tokens, tokens, 'Got expected tokens output');

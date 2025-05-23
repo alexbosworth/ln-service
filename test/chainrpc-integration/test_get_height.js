@@ -7,6 +7,7 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 const {getHeight} = require('./../../');
 
 const confirmationCount = 6;
+const interval = 100;
 const times = 100;
 
 // Get height should return height
@@ -17,7 +18,7 @@ test(`Get height`, async () => {
 
   const startHeight = (await getHeight({lnd})).current_block_height;
 
-  await asyncRetry({times}, async () => {
+  await asyncRetry({interval, times}, async () => {
     await generate({});
 
     const endHeight = (await getHeight({lnd})).current_block_height;

@@ -132,9 +132,11 @@ test(`Get route through hops`, async () => {
 
   const [payment] = payments;
 
+  const paymentMessages = payment.messages.filter(n => n.type !== '106823');
+
   equal(payment.total_mtokens, invoice.mtokens, 'Got MPP total mtokens');
 
-  deepEqual(payment.messages, route.messages, 'Remote got TLV messages');
+  deepEqual(paymentMessages, route.messages, 'Remote got TLV messages');
 
   await kill({});
 
