@@ -7,12 +7,10 @@ const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createChainAddress} = require('./../../');
-const {generateBlocks} = require('./../macros');
 const {getHeight} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {subscribeToBlocks} = require('./../../');
-const {waitForTermination} = require('./../macros');
 
 const confirmationCount = 6;
 const interval = 50;

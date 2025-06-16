@@ -11,7 +11,7 @@ const {getChannels} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const chain = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206';
 const channelCapacityTokens = 1e6;

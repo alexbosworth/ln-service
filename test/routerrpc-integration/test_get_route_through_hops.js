@@ -15,7 +15,7 @@ const {getRouteThroughHops} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const confirmationCount = 6;
 const flatten = arr => [].concat(...arr);

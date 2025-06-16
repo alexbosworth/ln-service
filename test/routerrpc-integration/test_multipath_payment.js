@@ -14,7 +14,7 @@ const {getRouteToDestination} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const all = promise => Promise.all(promise);
 const capacity = 1e6;

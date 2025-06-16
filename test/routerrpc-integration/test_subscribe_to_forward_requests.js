@@ -8,7 +8,6 @@ const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
 const {deleteForwardingReputations} = require('./../../');
 const {getHeight} = require('./../../');
@@ -17,7 +16,7 @@ const {getPayment} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const size = 3;
 const tokens = 100;

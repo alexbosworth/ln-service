@@ -9,7 +9,6 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {closeChannel} = require('./../../');
 const {createHodlInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getChainTransactions} = require('./../../');
 const {getClosedChannels} = require('./../../');
 const {getInvoice} = require('./../../');

@@ -14,7 +14,7 @@ const {getHeight} = require('./../../');
 const {getPayment} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const interval = 50;
 const size = 3;

@@ -14,7 +14,7 @@ const {getPendingPayments} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwardRequests} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const size = 3;
 const tokens = 100;

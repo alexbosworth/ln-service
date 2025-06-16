@@ -12,7 +12,7 @@ const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const size = 3;
 const start = new Date().toISOString();

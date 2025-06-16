@@ -4,12 +4,12 @@ const {exit} = require('node:process');
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
+const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
 const {closeChannel} = require('./../../');
 const {getChannel} = require('./../../');
-const {setupChannel} = require('./../macros');
 const {subscribeToGraph} = require('./../../');
 
 const capacity = 1e6;

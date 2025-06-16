@@ -9,9 +9,7 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
 const {cancelHodlInvoice} = require('./../../');
-const {createCluster} = require('./../macros');
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getChannels} = require('./../../');
 const {getHeight} = require('./../../');
 const {getLockedUtxos} = require('./../../');
@@ -20,6 +18,7 @@ const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwards} = require('./../../');
 
 const anchorsFeatureBit = 23;
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const interval = 10;
 const size = 3;
 const times = 1000;

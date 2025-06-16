@@ -6,13 +6,11 @@ const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createInvoice} = require('./../../');
-const {delay} = require('./../macros');
 const {getPayment} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwards} = require('./../../');
 const {subscribeToPastPayments} = require('./../../');
-const {waitForRoute} = require('./../macros');
 
 const interval = 1000;
 const size = 2;

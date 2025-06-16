@@ -5,7 +5,6 @@ const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
-const {createCluster} = require('./../macros');
 const {getPeers} = require('./../../');
 
 const interval = 100;

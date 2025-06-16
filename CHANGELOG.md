@@ -1,5 +1,9 @@
 # Versions
 
+## 57.25.2
+
+- Add support for LND 0.19.1-beta
+
 ## 57.25.1
 
 - Add support for LND 0.19.0-beta

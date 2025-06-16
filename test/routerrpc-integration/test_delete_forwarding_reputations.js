@@ -12,7 +12,7 @@ const {getForwardingReputations} = require('./../../');
 const {getNetworkGraph} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const flatten = arr => [].concat(...arr);
 const interval = 10;

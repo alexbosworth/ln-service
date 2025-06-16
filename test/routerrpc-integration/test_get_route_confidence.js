@@ -9,7 +9,7 @@ const {addPeer} = require('./../../');
 const {getRouteConfidence} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const channelCapacityTokens = 1e6;
 const interval = 50;

@@ -11,7 +11,6 @@ const {getWalletInfo} = require('./../../');
 const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwards} = require('./../../');
 const {subscribeToPayments} = require('./../../');
-const {waitForRoute} = require('./../macros');
 
 const interval = 1000;
 const size = 2;

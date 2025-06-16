@@ -11,7 +11,7 @@ const {getForwardingConfidence} = require('./../../');
 const {getForwardingReputations} = require('./../../');
 const {getRouteToDestination} = require('./../../');
 const {probeForRoute} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const channelCapacityTokens = 1e6;
 const size = 3;

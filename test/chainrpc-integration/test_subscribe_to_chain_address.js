@@ -4,16 +4,12 @@ const test = require('node:test');
 const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
-const {chainSendTransaction} = require('./../macros');
 const {createChainAddress} = require('./../../');
-const {generateBlocks} = require('./../macros');
 const {getChainBalance} = require('./../../');
 const {getChainTransactions} = require('./../../');
 const {getHeight} = require('./../../');
-const {mineTransaction} = require('./../macros');
 const {sendToChainAddress} = require('./../../');
 const {subscribeToChainAddress} = require('./../../');
-const {waitForTermination} = require('./../macros');
 
 const count = 100;
 const defaultFee = 1e3;

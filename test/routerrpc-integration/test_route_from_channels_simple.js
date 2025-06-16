@@ -16,7 +16,7 @@ const {getWalletInfo} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {routeFromChannels} = require('./../../');
 const {updateRoutingFees} = require('./../../');
-const {waitForRoute} = require('./../macros');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const baseFee = '1000';
 const confirmationCount = 6;
