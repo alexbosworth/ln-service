@@ -9,7 +9,7 @@
   "dependencies": {
     "bolt07": "1.9.4",
     "invoices": "4.0.0",
-    "lightning": "10.25.3",
+    "lightning": "10.26.0",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
@@ -29,7 +29,7 @@
     "portfinder": "1.0.37",
     "psbt": "4.0.0",
     "rimraf": "6.0.1",
-    "tiny-secp256k1": "2.2.3",
+    "tiny-secp256k1": "2.2.4",
     "uuid": "11.1.0",
     "varuint-bitcoin": "2.0.0"
   },
@@ -78,5 +78,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "57.25.2"
+  "version": "57.26.0"
 }
