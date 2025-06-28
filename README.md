@@ -4147,6 +4147,8 @@ as well as a channel open request listener to accept the trusted funding.
 `base_fee_mtokens` is not supported on LND 0.15.5 and below
 `fee_rate` is not supported on LND 0.15.5 and below
 
+`is_allowing_minimal_reserve` is not supported on LND 0.15.0 and below
+
 `description` is not supported on LND 0.16.4 and below
 
 `is_simplified_taproot` is not supported on LND 0.16.4 and below and requires
@@ -4160,6 +4162,7 @@ as well as a channel open request listener to accept the trusted funding.
         [description]: <Immutable Channel Description String>
         [fee_rate]: <Routing Fee Rate In Millitokens Per Million Number>
         [give_tokens]: <Tokens to Gift To Partner Number> // Defaults to zero
+        [is_allowing_minimal_reserve]: <Allow Peer to Have Minimal Reserve Bool>
         [is_private]: <Channel is Private Bool> // Defaults to false
         [is_simplified_taproot]: <Channel is Simplified Taproot Type Bool>
         [is_trusted_funding]: <Peer Should Avoid Waiting For Confirmation Bool>
