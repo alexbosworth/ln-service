@@ -9,7 +9,7 @@
   "dependencies": {
     "bolt07": "1.9.4",
     "invoices": "4.0.0",
-    "lightning": "10.26.1",
+    "lightning": "10.26.2",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
@@ -51,6 +51,7 @@
     "url": "https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
+    "integration-test-0.19.3": "DOCKER_LND_VERSION=v0.19.3-beta npm run test",
     "integration-test-0.19.2": "DOCKER_LND_VERSION=v0.19.2-beta npm run test",
     "integration-test-0.19.1": "DOCKER_LND_VERSION=v0.19.1-beta npm run test",
     "integration-test-0.19.0": "DOCKER_LND_VERSION=v0.19.0-beta npm run test",
@@ -79,5 +80,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "57.26.1"
+  "version": "57.26.2"
 }
