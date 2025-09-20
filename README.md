@@ -3231,6 +3231,10 @@ Requires `offchain:read` permission
 
 `close_transaction` is not supported in LND 0.17.5 or before
 
+`opening_funding_height` is not supported in LND 0.19.3 or before
+
+`opening_waiting_blocks` is not supported in LND 0.19.3 or before
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -3251,6 +3255,8 @@ Requires `offchain:read` permission
         is_timelocked: <Channel Local Funds Constrained by Timelock Script Bool>
         local_balance: <Channel Local Tokens Balance Number>
         local_reserve: <Channel Local Reserved Tokens Number>
+        [opening_funding_height]: <Funding Seen At Best Block Height Number>
+        [opening_waiting_blocks]: <Open Activation Waiting Blocks Count Number>
         partner_public_key: <Channel Peer Public Key String>
         [pending_balance]: <Tokens Pending Recovery Number>
         [pending_payments]: [{
@@ -3289,6 +3295,7 @@ Get pending payments made through channels.
 Requires `offchain:read` permission
 
 `created_after` is not supported on LND 0.15.5 and below
+
 `created_before` is not supported on LND 0.15.5 and below
 
     {

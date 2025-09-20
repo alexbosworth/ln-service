@@ -9,7 +9,7 @@
   "dependencies": {
     "bolt07": "1.9.4",
     "invoices": "4.0.0",
-    "lightning": "10.26.2",
+    "lightning": "10.27.0",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
@@ -24,13 +24,13 @@
     "bn.js": "5.2.2",
     "bs58check": "4.0.0",
     "ecpair": "3.0.0",
-    "ln-docker-daemons": "6.0.25",
+    "ln-docker-daemons": "6.0.27",
     "p2tr": "2.0.0",
-    "portfinder": "1.0.37",
+    "portfinder": "1.0.38",
     "psbt": "4.0.0",
     "rimraf": "6.0.1",
     "tiny-secp256k1": "2.2.4",
-    "uuid": "11.1.0",
+    "uuid": "13.0.0",
     "varuint-bitcoin": "2.0.0"
   },
   "engines": {
@@ -80,5 +80,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "57.26.2"
+  "version": "57.27.0"
 }
