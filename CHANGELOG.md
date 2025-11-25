@@ -1,5 +1,9 @@
 # Versions
 
+## 57.27.1
+
+- Add support for LND 0.20.0-beta
+
 ## 57.27.0
 
 - `getPendingChannels`: Add support for `opening_funding_height`,

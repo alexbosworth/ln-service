@@ -21,28 +21,29 @@ const tokens = 1e8;
 
 // Subscribing to chain transaction confirmations should trigger events
 test(`Subscribe to chain transactions`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({});
-
-  const [{chain, generate, lnd}] = nodes;
-
-  // Wait for chainrpc to be active
   await asyncRetry({interval, times}, async () => {
-    if (!!(await getChainBalance({lnd})).chain_balance) {
-      return;
-    }
+    const {kill, nodes} = await spawnLightningCluster({});
 
-    await generate({});
+    const [{chain, generate, lnd}] = nodes;
 
-    await getHeight({lnd});
+    // Wait for chainrpc to be active
+    await asyncRetry({interval, times}, async () => {
+      if (!!(await getChainBalance({lnd})).chain_balance) {
+        return;
+      }
 
-    throw new Error('ExpectedChainBalance');
-  });
+      await generate({});
 
-  let firstConf;
-  const {address} = await createChainAddress({format, lnd});
-  const startHeight = (await getHeight({lnd})).current_block_height;
+      await getHeight({lnd});
 
-  await asyncRetry({interval, times}, async () => {
+      throw new Error('ExpectedChainBalance');
+    });
+
+    let firstConf;
+    const {address} = await createChainAddress({format, lnd});
+    const startHeight = (await getHeight({lnd})).current_block_height;
+
+
     const sub = subscribeToChainAddress({
       lnd,
       min_height: startHeight,
@@ -110,9 +111,9 @@ test(`Subscribe to chain transactions`, async () => {
     });
 
     [sub, sub2].forEach(n => n.removeAllListeners());
-  });
 
-  await kill({});
+    await kill({});
+  });
 
   return;
 });

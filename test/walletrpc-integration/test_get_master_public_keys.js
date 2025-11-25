@@ -10,7 +10,7 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 const {createChainAddress} = require('./../../');
 const {getMasterPublicKeys} = require('./../../');
 
-const asHex = n => n.toString('hex');
+const asHex = n => Buffer.from(n).toString('hex');
 const BIP32Factory = bip32.default;
 const chainCodeFromMasterPublicKey = n => n.slice(13, 45);
 const firstKeyPath = 'm/0/0';
