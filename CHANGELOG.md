@@ -1,5 +1,10 @@
 # Versions
 
+## 57.27.3
+
+- `pay`, `payViaPaymentRequest`, `subscribeToPayViaRequest`: Allow short CLTV
+    limit payments when the payment request final CLTV delta is very short
+
 ## 57.27.2
 
 - Add support for LND 0.20.0-beta

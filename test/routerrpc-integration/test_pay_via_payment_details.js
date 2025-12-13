@@ -98,11 +98,12 @@ test(`Pay via payment details`, async () => {
 
       equal(tooSoonCltv, null, 'Should not be able to pay a too soon CLTV');
     } catch (err) {
-      deepEqual(
-        err,
-        [400, 'MaxTimeoutTooNearCurrentHeightToMakePayment'],
-        'Fail'
-      );
+      deepEqual(!!err, true, 'There should be an error');
+
+      const [code, msg] = err;
+
+      deepEqual(code, 400, 'The error is a user client error');
+      deepEqual(msg, 'MaxTimeoutTooNearCurrentHeightToMakePayment', 'Failed');
     }
 
     try {

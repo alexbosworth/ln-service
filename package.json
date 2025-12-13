@@ -9,7 +9,7 @@
   "dependencies": {
     "bolt07": "1.9.4",
     "invoices": "4.0.0",
-    "lightning": "10.27.4",
+    "lightning": "10.27.5",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
@@ -81,5 +81,5 @@
     "integration-test-0.14.4": "DOCKER_LND_VERSION=v0.14.4-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "57.27.2"
+  "version": "57.27.3"
 }
