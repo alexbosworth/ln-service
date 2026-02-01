@@ -12,7 +12,6 @@ const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const tinysecp = require('tiny-secp256k1');
-const {Transaction} = require('bitcoinjs-lib');
 const {updatePsbt} = require('psbt');
 
 const {broadcastChainTransaction} = require('./../../');
@@ -31,6 +30,7 @@ const size = 3;
 const startingFunds = 1e7;
 const times = 1000;
 const tokens = 1e6;
+const transactionSighashAll = 1;
 
 // Partially signing a PSBT should result in a partially signed PSBT
 test(`Partially sign PSBT`, async () => {
@@ -173,7 +173,7 @@ test(`Partially sign PSBT`, async () => {
       psbt: base.psbt,
       sighashes: inputs.map(input => ({
         id: input.transaction_id,
-        sighash: Transaction.SIGHASH_ALL,
+        sighash: transactionSighashAll,
         vout: input.transaction_vout,
       })),
       transactions: controlTransactions.concat(targetTransactions),

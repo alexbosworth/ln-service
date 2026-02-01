@@ -2,9 +2,10 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {Transaction} = require('bitcoinjs-lib');
 
 const {signTransaction} = require('./../../');
+
+const transactionSighashAll = 1;
 
 // Signing a transaction should result in signatures for the transaction
 test(`Sign transaction`, async () => {
@@ -19,7 +20,7 @@ test(`Sign transaction`, async () => {
       key_index: 1,
       output_script: '00147ab105a90ccd7e49d96672abcac2995bdb852baa',
       output_tokens: 1e8,
-      sighash: Transaction.SIGHASH_ALL,
+      sighash: transactionSighashAll,
       vin: 0,
       witness_script: '00',
     }],

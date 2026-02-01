@@ -1,13 +1,16 @@
 const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
-const {address} = require('bitcoinjs-lib');
+const {decodeBase58Address} = require('@alexbosworth/blockchain');
+const {decodeBech32Address} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createChainAddress} = require('./../../');
 
 const formats = ['np2wpkh', 'p2wpkh'];
 const p2shAddressVersion = 196;
+const p2trProgramLength = 32;
+const p2trVersion = 1;
 const pkHashByteLength = 20;
 const prefixForV1 = 'bcrt1p';
 const regtestBech32AddressHrp = 'bcrt';
@@ -21,10 +24,10 @@ test(`Create address results in address creation`, async () => {
 
   const [np2wpkh, p2wpkh] = await Promise.all(createNewChainAddresses);
 
-  const nativeAddress = address.fromBech32(p2wpkh.address);
-  const nestedAddress = address.fromBase58Check(np2wpkh.address);
+  const nativeAddress = decodeBech32Address({address: p2wpkh.address});
+  const nestedAddress = decodeBase58Address({address: np2wpkh.address});
 
-  equal(nativeAddress.data.length, pkHashByteLength, 'Native address pkHash');
+  equal(nativeAddress.program.length, pkHashByteLength, 'Native addr pkHash');
   equal(nativeAddress.prefix, regtestBech32AddressHrp, 'Native addr prefix');
   equal(nestedAddress.version, p2shAddressVersion, 'Nested address version');
 
@@ -41,6 +44,12 @@ test(`Create address results in address creation`, async () => {
     const {address} = await createChainAddress({lnd, format: 'p2tr'});
 
     equal(address.startsWith(prefixForV1), true, 'A taproot address is made');
+
+    const p2trAddress = decodeBech32Address({address});
+
+    equal(p2trAddress.prefix, regtestBech32AddressHrp, 'addr has p2tr prefix');
+    equal(p2trAddress.program.length, p2trProgramLength, 'P2TR addr length');
+    equal(p2trAddress.version, p2trVersion, 'address has the P2TR version');
   } catch (err) {
     // LND 0.14.5 and below do not support TR addresses
     const [code] = err;

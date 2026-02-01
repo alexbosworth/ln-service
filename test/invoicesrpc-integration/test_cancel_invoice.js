@@ -12,9 +12,11 @@ const {createHodlInvoice} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
 const {getPayment} = require('./../../');
+const {getWalletInfo} = require('./../../');
 const {pay} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 
+const interval = 10;
 const size = 2;
 const times = 1000;
 const tokens = 100;
@@ -26,6 +28,16 @@ test(`Cancel back a hodl invoice`, async () => {
   const [{generate, lnd}, target] = nodes;
 
   try {
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('NotSyncedToChain');
+      }
+    });
+
     await setupChannel({generate, lnd, to: target});
 
     const id = createHash('sha256').update(randomBytes(32)).digest('hex');

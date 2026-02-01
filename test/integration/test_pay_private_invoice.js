@@ -39,6 +39,16 @@ test(`Pay private invoice`, async () => {
       }
     });
 
+    await asyncRetry({interval, times}, async () => {
+      const wallet = await getWalletInfo({lnd: target.lnd});
+
+      await generate({});
+
+      if (!wallet.is_synced_to_chain) {
+        throw new Error('NotSyncedToChain');
+      }
+    });
+
     const channel = await setupChannel({generate, lnd, to: target});
 
     const remoteChannel = await setupChannel({

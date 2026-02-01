@@ -5643,7 +5643,7 @@ Requires LND built with `chainrpc` build tag
 Requires `onchain:read` permission
 
     {
-      [bech32_address]: <Address String>
+      [bech32_address]: <Bech32 P2WPKH or P2WSH Address String>
       lnd: <Chain RPC LND gRPC API Object>
       [min_confirmations]: <Minimum Confirmations Number>
       min_height: <Minimum Transaction Inclusion Blockchain Height Number>

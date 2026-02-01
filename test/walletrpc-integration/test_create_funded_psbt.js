@@ -2,8 +2,8 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {address} = require('bitcoinjs-lib');
 const {componentsOfTransaction} = require('@alexbosworth/blockchain');
+const {decodeBech32Address} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {broadcastChainTransaction} = require('./../../');
@@ -18,7 +18,7 @@ const bufferAsHex = buffer => buffer.toString('hex');
 const {concat} = Buffer;
 const count = 100;
 const format = 'p2tr';
-const {fromBech32} = address;
+const fromBech32 = address => decodeBech32Address({address}).program;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const OP_1 = Buffer.from([81]);
 const push32 = Buffer.from([32]);
@@ -62,7 +62,7 @@ test(`Create funded PSBT`, async () => {
     const {address} = await createChainAddress({format, lnd});
     const {utxos} = await getUtxos({lnd});
 
-    const outputScriptElements = [OP_1, push32, fromBech32(address).data];
+    const outputScriptElements = [OP_1, push32, fromBech32(address)];
     const [utxo] = utxos;
 
     const output = bufferAsHex(concat(outputScriptElements));
