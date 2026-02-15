@@ -25,9 +25,17 @@ test('Get forwards', async () => {
   const [{generate, lnd}, target, remote] = nodes;
 
   await asyncRetry({interval, times}, async () => {
+    await generate({});
+
     await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
     await setupChannel({generate, lnd, to: target});
+  });
+
+  await asyncRetry({interval, times}, async () => {
+    await generate({});
+
+    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
     await setupChannel({
       lnd: target.lnd,

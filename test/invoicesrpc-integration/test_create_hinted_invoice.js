@@ -23,7 +23,11 @@ test(`Create an invoice with hop hints`, async t => {
 
   const [{generate, lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({generate, lnd, to: target});
+  const channel = await asyncRetry({interval, times}, async () => {
+    await generate({});
+
+    return await setupChannel({generate, lnd, to: target});
+  });
 
   const remoteChannel = await setupChannel({
     generate: target.generate,

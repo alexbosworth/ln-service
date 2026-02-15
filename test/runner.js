@@ -4,7 +4,7 @@ const {run} = require('node:test');
 const {tap} = require('node:test/reporters');
 
 const concurrency = 3;
-const timeout = 1000 * 60 * 5;
+const timeout = 1000 * 60 * 10;
 
 const dirs = [
   'autopilotrpc-integration',
