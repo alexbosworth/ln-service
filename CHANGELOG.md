@@ -1,6 +1,6 @@
 # Versions
 
-## 58.0.3
+## 58.0.4
 
 - Add support for LND 0.20.1-beta
 
