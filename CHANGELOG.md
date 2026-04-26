@@ -1,5 +1,9 @@
 # Versions
 
+## 58.1.0
+
+- `getChannels`: Add support for `partner_scid_alias`
+
 ## 58.0.4
 
 - Add support for LND 0.20.1-beta

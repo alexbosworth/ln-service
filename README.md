@@ -1992,6 +1992,7 @@ Requires `offchain:read` permission
         local_reserve: <Local Reserved Tokens Number>
         other_ids: [<Other Channel Id String>]
         partner_public_key: <Channel Partner Public Key String>
+        [partner_scid_alias]: <Peer Assigned Standard Format Channel Id String>
         past_states: <Total Count of Past Channel States Number>
         pending_payments: [{
           id: <Payment Preimage Hash Hex String>
