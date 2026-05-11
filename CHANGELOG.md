@@ -1,5 +1,13 @@
 # Versions
 
+## 59.0.0
+
+### Breaking Changes
+
+- Eliminate support for `channel_capacity` in payment hops
+- End support for node.js 20, require 22 or higher
+- End support for LND 0.19 and below
+
 ## 58.1.0
 
 - `getChannels`: Add support for `partner_scid_alias`

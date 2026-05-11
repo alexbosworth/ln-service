@@ -96,7 +96,6 @@ test(`Subscribe to requests`, async () => {
           hops: [
             {
               channel: channel.id,
-              channel_capacity: 1e6,
               fee: 1,
               fee_mtokens: '1000',
               forward: 100,
@@ -106,7 +105,6 @@ test(`Subscribe to requests`, async () => {
             },
             {
               channel: remoteChan.id,
-              channel_capacity: 1e6,
               fee: 0,
               fee_mtokens: '0',
               forward: 100,
@@ -154,7 +152,6 @@ test(`Subscribe to requests`, async () => {
           hops: [
             {
               channel: forward.in_channel,
-              channel_capacity: 1e6,
               fee: 1,
               fee_mtokens: '1000',
               forward: 100,
@@ -164,7 +161,6 @@ test(`Subscribe to requests`, async () => {
             },
             {
               channel: forward.out_channel,
-              channel_capacity: 1e6,
               fee: 0,
               fee_mtokens: '0',
               forward: 100,

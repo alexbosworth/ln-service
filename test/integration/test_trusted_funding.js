@@ -202,6 +202,8 @@ test(`Open unconfirmed channels`, async () => {
 
     // Remove the channel
     await asyncRetry({interval, times}, async () => {
+      await generate({});
+
       await closeChannel({lnd, id: confirmed.id});
     });
 
@@ -252,7 +254,21 @@ test(`Open unconfirmed channels`, async () => {
       return confirmed;
     });
 
-    const [closedChannel] = (await getClosedChannels({lnd})).channels;
+    const [closedChannel] = await asyncRetry({interval, times}, async () => {
+      const {channels} = await getClosedChannels({lnd});
+
+      await generate({});
+
+      if (!channels.length) {
+        throw new Error('ExpectedAClosedChannel');
+      }
+
+      if (!closings.length) {
+        throw new Error('ExpectedClosingEvent');
+      }
+
+      return channels;
+    });
 
     equal(closedChannel.id, confirmed.id, 'Closed channel shows confirmed id');
     deepEqual(closedChannel.other_ids, confirmed.other_ids, 'Saved temp id');

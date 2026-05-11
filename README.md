@@ -2268,7 +2268,6 @@ Requires `offchain:read` permission
             fee_mtokens: <Route Fee Millitokens String>
             hops: [{
               channel: <Standard Format Channel Id String>
-              channel_capacity: <Channel Capacity Tokens Number>
               fee: <Fee Number>
               fee_mtokens: <Fee Millitokens String>
               forward: <Forward Tokens Number>
@@ -2999,7 +2998,6 @@ Requires `offchain:read` permission
           fee_mtokens: <Total Fee Millitokens Paid String>
           hops: [{
             channel: <Standard Format Channel Id String>
-            channel_capacity: <Channel Capacity Tokens Number>
             fee: <Fee Tokens Rounded Down Number>
             fee_mtokens: <Fee Millitokens String>
             forward_mtokens: <Forward Millitokens String>
@@ -3024,7 +3022,6 @@ Requires `offchain:read` permission
           fee_mtokens: <Total Fee Millitokens Paid String>
           hops: [{
             channel: <Standard Format Channel Id String>
-            channel_capacity: <Channel Capacity Tokens Number>
             fee: <Fee Tokens Rounded Down Number>
             fee_mtokens: <Fee Millitokens String>
             forward: <Forwarded Tokens Number>
@@ -3108,7 +3105,6 @@ Requires `offchain:read` permission
             fee_mtokens: <Route Fee Millitokens String>
             hops: [{
               channel: <Standard Format Channel Id String>
-              channel_capacity: <Channel Capacity Tokens Number>
               fee: <Fee Number>
               fee_mtokens: <Fee Millitokens String>
               forward: <Forward Tokens Number>
@@ -3351,7 +3347,6 @@ Requires `offchain:read` permission
             fee_mtokens: <Route Fee Millitokens String>
             hops: [{
               channel: <Standard Format Channel Id String>
-              channel_capacity: <Channel Capacity Tokens Number>
               fee: <Fee Number>
               fee_mtokens: <Fee Millitokens String>
               forward: <Forward Tokens Number>
@@ -3519,7 +3514,6 @@ Requires `offchain:read` permission
         fee_mtokens: <Route Fee Millitokens String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -3595,7 +3589,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
-        [channel_capacity]: <Channel Capacity Tokens Number>
         [cltv_delta]: <CLTV Delta Blocks Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
         public_key: <Forward Edge Public Key Hex String>
@@ -3613,7 +3606,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Route Fee Millitokens String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -4345,7 +4337,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
           fee_mtokens: <Total Fee Millitokens To Pay String>
           hops: [{
             channel: <Standard Format Channel Id String>
-            channel_capacity: <Channel Capacity Tokens Number>
             fee: <Fee Number>
             fee_mtokens: <Fee Millitokens String>
             forward: <Forward Tokens Number>
@@ -4375,7 +4366,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       fee_mtokens: <Fee Paid Millitokens String>
       hops: [{
         channel: <Standard Format Channel Id String>
-        channel_capacity: <Hop Channel Capacity Tokens Number>
         fee_mtokens: <Hop Forward Fee Millitokens String>
         forward_mtokens: <Hop Forwarded Millitokens String>
         timeout: <Hop CLTV Expiry Block Height Number>
@@ -4453,7 +4443,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
         channel: <First Route Standard Format Channel Id String>
-        channel_capacity: <First Route Channel Capacity Tokens Number>
         fee: <First Route Fee Tokens Rounded Down Number>
         fee_mtokens: <First Route Fee Millitokens String>
         forward_mtokens: <First Route Forward Millitokens String>
@@ -4466,7 +4455,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens Paid String>
         hops: [{
           channel: <First Route Standard Format Channel Id String>
-          channel_capacity: <First Route Channel Capacity Tokens Number>
           fee: <First Route Fee Tokens Rounded Down Number>
           fee_mtokens: <First Route Fee Millitokens String>
           forward_mtokens: <First Route Forward Millitokens String>
@@ -4530,7 +4518,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
         channel: <First Route Standard Format Channel Id String>
-        channel_capacity: <First Route Channel Capacity Tokens Number>
         fee: <First Route Fee Tokens Rounded Down Number>
         fee_mtokens: <First Route Fee Millitokens String>
         forward_mtokens: <First Route Forward Millitokens String>
@@ -4544,7 +4531,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens Paid String>
         hops: [{
           channel: <First Route Standard Format Channel Id String>
-          channel_capacity: <First Route Channel Capacity Tokens Number>
           fee: <First Route Fee Tokens Rounded Down Number>
           fee_mtokens: <First Route Fee Millitokens String>
           forward_mtokens: <First Route Forward Millitokens String>
@@ -4585,7 +4571,6 @@ Requires `offchain:write` permission
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -4619,7 +4604,6 @@ Requires `offchain:write` permission
       fee_mtokens: <Fee Paid Millitokens String>
       hops: [{
         channel: <Standard Format Channel Id String>
-        channel_capacity: <Hop Channel Capacity Tokens Number>
         fee_mtokens: <Hop Forward Fee Millitokens String>
         forward_mtokens: <Hop Forwarded Millitokens String>
         timeout: <Hop CLTV Expiry Block Height Number>
@@ -4737,7 +4721,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [probe_timeout_ms]: <Probe Timeout Milliseconds Number>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens Number String>
-        [channel_capacity]: <Channel Capacity Tokens Number>
         [channel]: <Standard Format Channel Id String>
         [cltv_delta]: <CLTV Blocks Delta Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
@@ -4755,7 +4738,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Route Fee Millitokens String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -5122,7 +5104,6 @@ Either next hop destination in channels or final destination is required
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6281,7 +6262,6 @@ Requires `offchain:read` permission
         fee_mtokens: <Total Fee Millitokens Paid String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Tokens Rounded Down Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6322,7 +6302,6 @@ Requires `offchain:read` permission
         fee_mtokens: <Total Fee Millitokens Pending String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Tokens Rounded Down Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6387,7 +6366,6 @@ Note: Method not supported on LND 0.13.4 and below
         fee_mtokens: <Total Fee Millitokens Paid String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Tokens Rounded Down Number>
           fee_mtokens: <Fee Millitokens String>
           forward_mtokens: <Forward Millitokens String>
@@ -6473,7 +6451,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       fee_mtokens: <Total Fee Millitokens Paid String>
       hops: [{
         channel: <Standard Format Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
         fee_mtokens: <Fee Millitokens String>
         forward_mtokens: <Forward Millitokens String>
         public_key: <Public Key Hex String>
@@ -6500,7 +6477,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Route Total Fee Millitokens String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Hop Forwarding Fee Rounded Down Tokens Number>
           fee_mtokens: <Hop Forwarding Fee Millitokens String>
           forward: <Hop Forwarding Tokens Rounded Down Number>
@@ -6527,7 +6503,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens Pending String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Tokens Rounded Down Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6557,7 +6532,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Route Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6628,7 +6602,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       fee_mtokens: <Total Fee Millitokens To Pay String>
       hops: [{
         channel: <Standard Format Channel Id String>
-        channel_capacity: <Channel Capacity Tokens Number>
         fee_mtokens: <Fee Millitokens String>
         forward_mtokens: <Forward Millitokens String>
         public_key: <Public Key Hex String>
@@ -6657,7 +6630,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Route Total Fee Millitokens String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Hop Forwarding Fee Rounded Down Tokens Number>
           fee_mtokens: <Hop Forwarding Fee Millitokens String>
           forward: <Hop Forwarding Tokens Rounded Down Number>
@@ -6685,7 +6657,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens Pending String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Tokens Rounded Down Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6715,7 +6686,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Route Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6756,7 +6726,6 @@ Requires `offchain:write` permission
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6819,7 +6788,6 @@ Requires `offchain:write` permission
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6853,7 +6821,6 @@ Requires `offchain:write` permission
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6884,7 +6851,6 @@ Requires `offchain:write` permission
       fee_mtokens: <Fee Paid Millitokens String>
       hops: [{
         channel: <Standard Format Channel Id String>
-        channel_capacity: <Hop Channel Capacity Tokens Number>
         fee_mtokens: <Hop Forward Fee Millitokens String>
         forward_mtokens: <Hop Forwarded Millitokens String>
         timeout: <Hop CLTV Expiry Block Height Number>
@@ -6898,7 +6864,6 @@ Requires `offchain:write` permission
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6959,7 +6924,6 @@ Note: Method not supported on LND 0.15.5 and below
         fee_mtokens: <Total Fee Millitokens Paid String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Tokens Rounded Down Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -7001,7 +6965,6 @@ Note: Method not supported on LND 0.15.5 and below
         fee_mtokens: <Total Fee Millitokens Pending String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Tokens Rounded Down Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -7143,7 +7106,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [probe_timeout_ms]: <Fail Entire Probe After Milliseconds Number>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
-        [channel_capacity]: <Channel Capacity Tokens Number>
         [channel]: <Standard Format Channel Id String>
         [cltv_delta]: <CLTV Blocks Delta Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
@@ -7167,7 +7129,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -7197,7 +7158,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -7239,7 +7199,6 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
-          channel_capacity: <Channel Capacity Tokens Number>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -7364,7 +7323,6 @@ This method is not supported in LND 0.13.4 and below
           fee_mtokens: <Route Fee Millitokens String>
           hops: [{
             channel: <Standard Format Channel Id String>
-            channel_capacity: <Channel Capacity Tokens Number>
             fee: <Fee Tokens Number>
             fee_mtokens: <Fee Millitokens String>
             forward: <Forward Tokens Number>

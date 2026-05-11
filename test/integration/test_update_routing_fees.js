@@ -10,7 +10,7 @@ const {updateRoutingFees} = require('./../../');
 
 const baseFeeTokens = 9;
 const channelCapacityTokens = 1e6;
-const cltvDelta = 18;
+const cltvDelta = 24;
 const confirmationCount = 6;
 const defaultFee = 1e3;
 const feeRate = 0;

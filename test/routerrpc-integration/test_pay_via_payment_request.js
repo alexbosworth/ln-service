@@ -106,7 +106,6 @@ test(`Pay via payment request`, async () => {
       const expectedHops = [
         {
           channel: channel.id,
-          channel_capacity: 1000000,
           fee: 1,
           fee_mtokens: '1000',
           forward: 100,
@@ -115,7 +114,6 @@ test(`Pay via payment request`, async () => {
         },
         {
           channel: remoteChan.id,
-          channel_capacity: 1000000,
           fee: 0,
           fee_mtokens: '0',
           forward: 100,
