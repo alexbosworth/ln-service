@@ -10,12 +10,6 @@ through npm.
 Supported LND versions:
 
 - v0.20.0-beta to v0.20.1-beta
-- v0.19.0-beta to v0.19.3-beta
-- v0.18.0-beta to v0.18.5-beta
-- v0.17.0-beta to v0.17.5-beta
-- v0.16.0-beta to v0.16.4-beta
-- v0.15.2-beta to v0.15.5-beta
-- v0.14.4-beta to v0.14.5-beta
 
 For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
 
