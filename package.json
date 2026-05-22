@@ -55,5 +55,5 @@
     "integration-test-0.20.0": "DOCKER_LND_VERSION=v0.20.0-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "59.0.2"
+  "version": "59.0.3"
 }

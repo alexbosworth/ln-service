@@ -1,6 +1,6 @@
 # Versions
 
-## 59.0.2
+## 59.0.3
 
 ### Breaking Changes
 
