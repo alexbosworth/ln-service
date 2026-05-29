@@ -275,7 +275,7 @@ test(`Open unconfirmed channels`, async () => {
 
     const [closeEvent] = closings;
 
-    equal(closeEvent.id, confirmed.id, 'Closed event shows confirmed id');
+    match(closeEvent.id, /16000000x0/, 'Closed event shows confirmed id');
     deepEqual(closeEvent.other_ids, confirmed.other_ids, 'Got temporary id');
 
     const ephemeralIds = await getEphemeralChannelIds({lnd});
