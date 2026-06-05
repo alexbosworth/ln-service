@@ -1,5 +1,9 @@
 # Versions
 
+## 59.1.0
+
+- Add support for LND 0.21.0
+
 ## 59.0.5
 
 ### Breaking Changes
