@@ -1,6 +1,6 @@
 # Versions
 
-## 59.1.0
+## 59.1.1
 
 - Add support for LND 0.21.0
 
