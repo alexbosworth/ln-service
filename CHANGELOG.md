@@ -1,6 +1,6 @@
 # Versions
 
-## 59.2.0
+## 59.2.1
 
 - `openChannel`, `openChannels`: Add support for standard P2TR channels:
     `is_standard_taproot`
