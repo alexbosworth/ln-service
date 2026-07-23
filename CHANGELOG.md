@@ -1,5 +1,9 @@
 # Versions
 
+## 59.2.2
+
+- `getChannels`: Correct issue where peer alias scid was invalid
+
 ## 59.2.1
 
 - `openChannel`, `openChannels`: Add support for standard P2TR channels:
