@@ -8,6 +8,7 @@ const {combinePsbts} = require('psbt');
 const {decodePsbt} = require('psbt');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
+const {idForTransaction} = require('@alexbosworth/blockchain');
 const {networks} = require('bitcoinjs-lib');
 const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
@@ -37,6 +38,7 @@ const family = 0;
 const feeRate = 1;
 const {fromHex} = Transaction;
 const fundingFee = 190; // Vsize of 2 input, 1 output tx
+const idForTx = transaction => idForTransaction({transaction}).id;
 const interval = 100;
 const keyIndex = 0;
 const network = 'regtest';
@@ -144,18 +146,6 @@ test(`Propose a channel with a coop delay`, async () => {
       psbt: targetFundPsbt.psbt,
     });
 
-    // Decode the control funded PSBT
-    const controlPsbt = decodePsbt({ecp, psbt: controlFundPsbt.psbt});
-
-    // Decode the target funded PSBT
-    const targetPsbt = decodePsbt({ecp, psbt: targetFundPsbt.psbt});
-
-    // Derive the id of the control pre-funding tx
-    const controlId = fromHex(controlPsbt.unsigned_transaction).getId();
-
-    // Derive the id of the target pre-funding tx
-    const targetId = fromHex(targetPsbt.unsigned_transaction).getId();
-
     // Derive a new control key for a 2:2 multisig
     const controlMultiSigKey = await getPublicKey({family, lnd});
 
@@ -185,11 +175,11 @@ test(`Propose a channel with a coop delay`, async () => {
       }],
       utxos: [
         {
-          id: fromHex(controlSignPsbt.transaction).getId(),
+          id: idForTx(controlSignPsbt.transaction),
           vout: controlFundPsbt.outputs.findIndex(n => !n.is_change),
         },
         {
-          id: fromHex(targetSignPsbt.transaction).getId(),
+          id: idForTx(targetSignPsbt.transaction),
           vout: targetFundPsbt.outputs.findIndex(n => !n.is_change),
         },
       ],
@@ -221,7 +211,7 @@ test(`Propose a channel with a coop delay`, async () => {
 
     const fundingTx = fromHex(finalFundingPsbt.unsigned_transaction);
 
-    const fundingTxId = fundingTx.getId();
+    const fundingTxId = idForTx(finalFundingPsbt.unsigned_transaction);
 
     const fundingTxVout = fundingTx.outs.findIndex(n => n.value === capacity);
 
