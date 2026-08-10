@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "bolt07": "1.9.5",
-    "invoices": "6.0.0",
+    "invoices": "6.0.5",
     "lightning": "12.2.4",
     "macaroon": "3.0.4"
   },
@@ -58,5 +58,5 @@
     "integration-test-0.20.0": "DOCKER_LND_VERSION=v0.20.0-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "59.2.4"
+  "version": "59.2.5"
 }
