@@ -1,6 +1,6 @@
 # Versions
 
-## 59.3.0
+## 59.3.1
 
 - `parsePaymentRequest`: Add `signet` support
 
