@@ -10,6 +10,8 @@ const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {idForTransaction} = require('@alexbosworth/blockchain');
 const {networks} = require('bitcoinjs-lib');
+const {p2msScript} = require('@alexbosworth/blockchain');
+const {p2wshOutputScript} = require('@alexbosworth/blockchain');
 const {payments} = require('bitcoinjs-lib');
 const {script} = require('bitcoinjs-lib');
 const {spawnLightningCluster} = require('ln-docker-daemons');
@@ -31,6 +33,7 @@ const {proposeChannel} = require('./../../');
 const {signPsbt} = require('./../../');
 const {signTransaction} = require('./../../');
 
+const bufferAsHex = buffer => buffer.toString('hex');
 const capacity = 1e6;
 const {ceil} = Math;
 const cooperativeCloseDelay = 2016;
@@ -42,7 +45,6 @@ const idForTx = transaction => idForTransaction({transaction}).id;
 const interval = 100;
 const keyIndex = 0;
 const network = 'regtest';
-const {p2ms} = payments;
 const {p2pkh} = payments;
 const {regtest} = networks;
 const reserveRatio = 0.01;
@@ -158,19 +160,19 @@ test(`Propose a channel with a coop delay`, async () => {
     ];
 
     // Make the channel 2:2 funding output from control and target keys
-    const dualFundingChannelAddress = payments.p2wsh({
-      redeem: p2ms({
-        m: fundingMultiSigKeys.length,
-        pubkeys: fundingMultiSigKeys.sort().map(n => Buffer.from(n, 'hex')),
-      }),
+    const dualFundingChannelOutputScript = p2wshOutputScript({
+      hash: p2msScript({
+        keys: fundingMultiSigKeys.sort().map(n => Buffer.from(n, 'hex')),
+        required: fundingMultiSigKeys.length,
+      }).hash,
     });
 
-    const pendingChannelId = dualFundingChannelAddress.hash;
+    const pendingChannelId = dualFundingChannelOutputScript.script.slice(2);
 
     // Create the basic PSBT that spends temporary funds to the 2:2 funding
     const dualFundPsbt = createPsbt({
       outputs: [{
-        script: dualFundingChannelAddress.output.toString('hex'),
+        script: bufferAsHex(dualFundingChannelOutputScript.script),
         tokens: capacity,
       }],
       utxos: [
@@ -235,7 +237,7 @@ test(`Propose a channel with a coop delay`, async () => {
       inputs: [{
         key_family: temporaryFamily,
         key_index: controlDerivedKey.index,
-        output_script: dualFundingChannelAddress.output.toString('hex'),
+        output_script: bufferAsHex(dualFundingChannelOutputScript.script),
         output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
         sighash: Transaction.SIGHASH_ALL,
         vin: controlVin,
@@ -267,7 +269,7 @@ test(`Propose a channel with a coop delay`, async () => {
       inputs: [{
         key_family: temporaryFamily,
         key_index: targetDerivedKey.index,
-        output_script: dualFundingChannelAddress.output.toString('hex'),
+        output_script: bufferAsHex(dualFundingChannelOutputScript.script),
         output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
         sighash: Transaction.SIGHASH_ALL,
         vin: targetVin,
