@@ -6,8 +6,10 @@ const asyncRetry = require('async/retry');
 const {createPsbt} = require('psbt');
 const {combinePsbts} = require('psbt');
 const {decodePsbt} = require('psbt');
+const {encodeBech32Address} = require('@alexbosworth/blockchain');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
+const {hashForP2wpkh} = require('@alexbosworth/blockchain');
 const {idForTransaction} = require('@alexbosworth/blockchain');
 const {networks} = require('bitcoinjs-lib');
 const {p2msScript} = require('@alexbosworth/blockchain');
@@ -46,7 +48,8 @@ const interval = 100;
 const keyIndex = 0;
 const network = 'regtest';
 const {p2pkh} = payments;
-const {regtest} = networks;
+const p2wpkhHash = key => hashForP2wpkh({key: Buffer.from(key, 'hex')}).hash;
+const prefix = 'bcrt';
 const reserveRatio = 0.01;
 const size = 2;
 const temporaryFamily = 805;
@@ -103,17 +106,36 @@ test(`Propose a channel with a coop delay`, async () => {
       lnd: target.lnd,
     });
 
+
     // Control should fund and sign a transaction going to the control temp key
-    const controlDerivedAddress = payments.p2wpkh({
-      network: regtest,
-      pubkey: Buffer.from(controlDerivedKey.public_key, 'hex'),
-    });
+    const controlDerivedAddress = {
+      hash: p2wpkhHash(controlDerivedKey.public_key),
+    };
+
+    {
+      const {address} = encodeBech32Address({
+        prefix,
+        program: controlDerivedAddress.hash,
+        version: 0,
+      });
+
+      controlDerivedAddress.address = address;
+    }
 
     // Target should fund and sign a transaction going to the target temp key
-    const targetDerivedAddress = payments.p2wpkh({
-      network: regtest,
-      pubkey: Buffer.from(targetDerivedKey.public_key, 'hex'),
-    });
+    const targetDerivedAddress = {
+      hash: p2wpkhHash(targetDerivedKey.public_key),
+    };
+
+    {
+      const {address} = encodeBech32Address({
+        prefix,
+        program: targetDerivedAddress.hash,
+        version: 0,
+      });
+
+      targetDerivedAddress.address = address;
+    }
 
     const temporaryKeys = [controlDerivedKey, targetDerivedKey];
 
