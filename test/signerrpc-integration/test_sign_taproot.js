@@ -2,16 +2,17 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {address} = require('bitcoinjs-lib');
+const {componentsOfTransaction} = require('@alexbosworth/blockchain');
 const {controlBlock} = require('p2tr');
 const {createPsbt} = require('psbt');
+const {decodeBech32Address} = require('@alexbosworth/blockchain');
 const {hashForTree} = require('p2tr');
-const {networks} = require('bitcoinjs-lib');
-const {script} = require('bitcoinjs-lib');
+const {idForTransaction} = require('@alexbosworth/blockchain');
+const {p2wpkhOutputScript} = require('@alexbosworth/blockchain');
 const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const tinysecp = require('tiny-secp256k1');
-const {Transaction} = require('bitcoinjs-lib');
+const {transactionFromComponents} = require('@alexbosworth/blockchain');
 const {v1OutputScript} = require('p2tr');
 
 const {beginGroupSigningSession} = require('./../../');
@@ -23,17 +24,24 @@ const {getUtxos} = require('./../../');
 const {signPsbt} = require('./../../');
 const {signTransaction} = require('./../../');
 
+const bufferAsHex = buffer => buffer.toString('hex');
 const compile = elements => scriptElementsAsScript({elements}).script;
+const componentsOfTx = tx => componentsOfTransaction({transaction: tx});
 const count = 100;
 const defaultInternalKey = '0350929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0';
-const {fromHex} = Transaction;
+const defaultLocktime = 0;
+const defaultSequence = 0xffffffff;
+const defaultTxVersion = 1;
+const emptyScriptSig = '';
 const hexAsBuffer = hex => Buffer.from(hex, 'hex');
+const idForTx = transaction => idForTransaction({transaction}).id;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const OP_CHECKSIG = 172;
+const p2wpkh = hash => p2wpkhOutputScript({hash}).script;
 const smallTokens = 2e5;
 const times = 20;
-const {toOutputScript} = address;
 const tokens = 1e6;
+const transactionSighashDefault = 0;
 
 // Signing a taproot transaction should result in a valid signature
 test(`Sign a taproot transaction`, async () => {
@@ -119,23 +127,34 @@ test(`Sign a taproot transaction`, async () => {
     // Send the tx to the chain
     await broadcastChainTransaction({lnd, transaction: signed.transaction});
 
-    // Make a new tx that will spend the output back into the wallet
-    const tx = new Transaction();
+    const spends = componentsOfTx(signed.transaction).outputs;
 
     // The new tx spends the Taproot output
-    tx.addInput(
-      fromHex(signed.transaction).getHash(),
-      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
-    );
+    const inputs = [{
+      id: idForTx(signed.transaction),
+      script: emptyScriptSig,
+      sequence: defaultSequence,
+      vout: spends.findIndex(n => n.tokens === tokens),
+    }];
 
     // Make an output to pay back into the wallet
-    const chainOutput = toOutputScript(
-      (await createChainAddress({lnd})).address,
-      networks.regtest
-    );
+    const chainAddress = await createChainAddress({lnd});
+
+    const {program} = decodeBech32Address({address: chainAddress.address});
 
     // Add output to the pay back transaction
-    tx.addOutput(chainOutput, smallTokens);
+    const outputs = [{
+      script: bufferAsHex(p2wpkh(program)),
+      tokens: smallTokens,
+    }];
+
+    // Make a new tx that will spend the output back into the wallet
+    const unsigned = transactionFromComponents({
+      inputs,
+      outputs,
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
 
     const {signatures} = await signTransaction({
       lnd,
@@ -145,14 +164,14 @@ test(`Sign a taproot transaction`, async () => {
         output_script: output.script,
         output_tokens: tokens,
         root_hash: hash,
-        sighash: Transaction.SIGHASH_DEFAULT,
+        sighash: transactionSighashDefault,
         vin: 0,
         witness_script: witnessScript,
       }],
-      transaction: tx.toHex(),
+      transaction: unsigned.transaction,
     });
 
-    const [signature] = signatures.map(hexAsBuffer);
+    const [signature] = signatures;
 
     const {block} = controlBlock({
       external_key: output.external_key,
@@ -160,23 +179,28 @@ test(`Sign a taproot transaction`, async () => {
       script_branches: branches,
     });
 
-    // Add the signature to the input
-    tx.ins.forEach((input, i) => {
-      return tx.setWitness(i, [
-        signature,
-        hexAsBuffer(witnessScript),
-        hexAsBuffer(block),
-      ]);
+    // Add the signature to the input and serialize the signed transaction
+    const {transaction} = transactionFromComponents({
+      outputs,
+      inputs: inputs.map(input => ({
+        id: input.id,
+        script: input.script,
+        sequence: input.sequence,
+        vout: input.vout,
+        witness: [signature, witnessScript, block],
+      })),
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
     });
 
-    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+    await broadcastChainTransaction({lnd, transaction});
 
     await asyncRetry({interval, times}, async () => {
       await generate({});
 
       const {utxos} = await getUtxos({lnd});
 
-      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+      const utxo = utxos.find(n => n.transaction_id === idForTx(transaction));
 
       if (!utxo || !utxo.confirmation_count) {
         throw new Error('ExpectedReceivedTaprootSpend');
@@ -192,7 +216,7 @@ test(`Sign a taproot transaction`, async () => {
 
     const topLevelKey = await getPublicKey({lnd, family: 805});
 
-    const unusedKey = ecp.makeRandom({network: networks.regtest});
+    const unusedKey = ecp.makeRandom({});
 
     const witnessScript = compile([
       Buffer.from(unusedKey.publicKey).slice(1),
@@ -225,23 +249,34 @@ test(`Sign a taproot transaction`, async () => {
     // Send the tx to the chain
     await broadcastChainTransaction({lnd, transaction: signed.transaction});
 
-    // Make a new tx that will spend the output back into the wallet
-    const tx = new Transaction();
+    const spends = componentsOfTx(signed.transaction).outputs;
 
     // The new tx spends the Taproot output
-    tx.addInput(
-      fromHex(signed.transaction).getHash(),
-      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
-    );
+    const inputs = [{
+      id: idForTx(signed.transaction),
+      script: emptyScriptSig,
+      sequence: defaultSequence,
+      vout: spends.findIndex(n => n.tokens === tokens),
+    }];
 
     // Make an output to pay back into the wallet
-    const chainOutput = toOutputScript(
-      (await createChainAddress({lnd})).address,
-      networks.regtest
-    );
+    const chainAddress = await createChainAddress({lnd});
+
+    const {program} = decodeBech32Address({address: chainAddress.address});
 
     // Add output to the pay back transaction
-    tx.addOutput(chainOutput, smallTokens);
+    const outputs = [{
+      script: bufferAsHex(p2wpkh(program)),
+      tokens: smallTokens,
+    }];
+
+    // Make a new tx that will spend the output back into the wallet
+    const unsigned = transactionFromComponents({
+      inputs,
+      outputs,
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
 
     const {signatures} = await signTransaction({
       lnd,
@@ -251,25 +286,36 @@ test(`Sign a taproot transaction`, async () => {
         output_script: output.script,
         output_tokens: tokens,
         root_hash: hash,
-        sighash: Transaction.SIGHASH_DEFAULT,
+        sighash: transactionSighashDefault,
         vin: 0,
       }],
-      transaction: tx.toHex(),
+      transaction: unsigned.transaction,
     });
 
-    const [signature] = signatures.map(hexAsBuffer);
+    const [signature] = signatures;
 
-    // Add the signature to the input
-    tx.ins.forEach((input, i) => tx.setWitness(i, [signature]));
+    // Add the signature to the input and serialize the signed transaction
+    const {transaction} = transactionFromComponents({
+      outputs,
+      inputs: inputs.map(input => ({
+        id: input.id,
+        script: input.script,
+        sequence: input.sequence,
+        vout: input.vout,
+        witness: [signature],
+      })),
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
 
-    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+    await broadcastChainTransaction({lnd, transaction});
 
     await asyncRetry({interval, times}, async () => {
       await generate({});
 
       const {utxos} = await getUtxos({lnd});
 
-      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+      const utxo = utxos.find(n => n.transaction_id === idForTx(transaction));
 
       if (!utxo || !utxo.confirmation_count) {
         throw new Error('ExpectedReceivedTaprootSpend');
@@ -309,23 +355,34 @@ test(`Sign a taproot transaction`, async () => {
     // Send the tx to the chain
     await broadcastChainTransaction({lnd, transaction: signed.transaction});
 
-    // Make a new tx that will spend the output back into the wallet
-    const tx = new Transaction();
+    const spends = componentsOfTx(signed.transaction).outputs;
 
     // The new tx spends the Taproot output
-    tx.addInput(
-      fromHex(signed.transaction).getHash(),
-      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
-    );
+    const inputs = [{
+      id: idForTx(signed.transaction),
+      script: emptyScriptSig,
+      sequence: defaultSequence,
+      vout: spends.findIndex(n => n.tokens === tokens),
+    }];
 
     // Make an output to pay back into the wallet
-    const chainOutput = toOutputScript(
-      (await createChainAddress({lnd})).address,
-      networks.regtest
-    );
+    const chainAddress = await createChainAddress({lnd});
+
+    const {program} = decodeBech32Address({address: chainAddress.address});
 
     // Add output to the pay back transaction
-    tx.addOutput(chainOutput, smallTokens);
+    const outputs = [{
+      script: bufferAsHex(p2wpkh(program)),
+      tokens: smallTokens,
+    }];
+
+    // Make a new tx that will spend the output back into the wallet
+    const unsigned = transactionFromComponents({
+      inputs,
+      outputs,
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
 
     const {signatures} = await signTransaction({
       lnd,
@@ -334,25 +391,36 @@ test(`Sign a taproot transaction`, async () => {
         key_index: topLevelKey.index,
         output_script: output.script,
         output_tokens: tokens,
-        sighash: Transaction.SIGHASH_DEFAULT,
+        sighash: transactionSighashDefault,
         vin: 0,
       }],
-      transaction: tx.toHex(),
+      transaction: unsigned.transaction,
     });
 
-    const [signature] = signatures.map(hexAsBuffer);
+    const [signature] = signatures;
 
-    // Add the signature to the input
-    tx.ins.forEach((input, i) => tx.setWitness(i, [signature]));
+    // Add the signature to the input and serialize the signed transaction
+    const {transaction} = transactionFromComponents({
+      outputs,
+      inputs: inputs.map(input => ({
+        id: input.id,
+        script: input.script,
+        sequence: input.sequence,
+        vout: input.vout,
+        witness: [signature],
+      })),
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
 
-    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+    await broadcastChainTransaction({lnd, transaction});
 
     await asyncRetry({interval, times}, async () => {
       await generate({});
 
       const {utxos} = await getUtxos({lnd});
 
-      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+      const utxo = utxos.find(n => n.transaction_id === idForTx(transaction));
 
       if (!utxo || !utxo.confirmation_count) {
         throw new Error('ExpectedReceivedTaprootSpend');

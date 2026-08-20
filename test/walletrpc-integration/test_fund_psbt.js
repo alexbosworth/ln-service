@@ -2,13 +2,15 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {address} = require('bitcoinjs-lib');
+const {componentsOfTransaction} = require('@alexbosworth/blockchain');
 const {controlBlock} = require('p2tr');
 const {createPsbt} = require('psbt');
+const {decodeBech32Address} = require('@alexbosworth/blockchain');
 const {decodePsbt} = require('psbt');
 const {hashForTree} = require('p2tr');
+const {idForTransaction} = require('@alexbosworth/blockchain');
 const {leafHash} = require('p2tr');
-const {networks} = require('bitcoinjs-lib');
+const {p2wpkhOutputScript} = require('@alexbosworth/blockchain');
 const {pointAdd} = require('tiny-secp256k1');
 const {privateAdd} = require('tiny-secp256k1');
 const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
@@ -17,6 +19,7 @@ const {signSchnorr} = require('tiny-secp256k1');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const tinysecp = require('tiny-secp256k1');
 const {Transaction} = require('bitcoinjs-lib');
+const {transactionFromComponents} = require('@alexbosworth/blockchain');
 const {v1OutputScript} = require('p2tr');
 
 const {broadcastChainTransaction} = require('./../../');
@@ -28,24 +31,30 @@ const {getUtxos} = require('./../../');
 const {sendToChainAddress} = require('./../../');
 const {signPsbt} = require('./../../');
 
+const bufferAsHex = buffer => buffer.toString('hex');
 const chainAddressRowType = 'chain_address';
 const compile = elements => scriptElementsAsScript({elements}).script;
+const componentsOfTx = tx => componentsOfTransaction({transaction: tx});
 const confirmationCount = 6;
 const count = 100;
 const defaultInternalKey = '0350929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0';
+const defaultLocktime = 0;
+const defaultSequence = 0xffffffff;
+const defaultTxVersion = 1;
 const description = 'description';
+const emptyScriptSig = '';
 const {from} = Buffer;
-const {fromBech32} = address;
 const {fromHex} = Transaction;
-const {fromOutputScript} = address;
 const hexAsBuffer = hex => Buffer.from(hex, 'hex');
+const idForTx = transaction => idForTransaction({transaction}).id;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
 const OP_CHECKSIG = 172;
+const p2wpkh = hash => p2wpkhOutputScript({hash}).script;
 const regtestBech32AddressHrp = 'bcrt';
 const smallTokens = 2e5;
 const times = 20;
-const {toOutputScript} = address;
 const tokens = 1e6;
+const transactionSighashDefault = 0;
 const txIdHexByteLength = 64;
 
 // Funding a transaction should result in a funded PSBT
@@ -107,11 +116,11 @@ test(`Fund PSBT`, async () => {
 
   equal(output.tokens, tokens, 'Got expected tokens output');
 
-  const {data, version} = fromBech32(address);
+  const {program, version} = decodeBech32Address({address});
 
   const prefix = `${Buffer.from([version]).toString('hex')}14`;
 
-  const expectedOutput = `${prefix}${data.toString('hex')}`;
+  const expectedOutput = `${prefix}${bufferAsHex(program)}`;
 
   equal(output.output_script, expectedOutput, 'Got expected output script');
 
@@ -127,9 +136,9 @@ test(`Fund PSBT`, async () => {
   try {
     await generate({count});
 
-    const keyPair1 = ecp.makeRandom({network: networks.regtest});
-    const keyPair2 = ecp.makeRandom({network: networks.regtest});
-    const unusedKey = ecp.makeRandom({network: networks.regtest});
+    const keyPair1 = ecp.makeRandom({});
+    const keyPair2 = ecp.makeRandom({});
+    const unusedKey = ecp.makeRandom({});
 
     const witnessScript = compile([
       from(unusedKey.publicKey).slice(1),
@@ -168,30 +177,41 @@ test(`Fund PSBT`, async () => {
     // Send the tx to the chain
     await broadcastChainTransaction({lnd, transaction: signed.transaction});
 
-    // Make a new tx that will spend the output back into the wallet
-    const tx = new Transaction();
+    const spends = componentsOfTx(signed.transaction).outputs;
 
     // The new tx spends the Taproot output
-    tx.addInput(
-      fromHex(signed.transaction).getHash(),
-      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
-    );
+    const inputs = [{
+      id: idForTx(signed.transaction),
+      script: emptyScriptSig,
+      sequence: defaultSequence,
+      vout: spends.findIndex(n => n.tokens === tokens),
+    }];
 
     // Make an output to pay back into the wallet
-    const chainOutput = toOutputScript(
-      (await createChainAddress({lnd})).address,
-      networks.regtest
-    );
+    const chainAddress = await createChainAddress({lnd});
+
+    const {program} = decodeBech32Address({address: chainAddress.address});
 
     // Add output to the pay back transaction
-    tx.addOutput(chainOutput, smallTokens);
+    const outputs = [{
+      script: bufferAsHex(p2wpkh(program)),
+      tokens: smallTokens,
+    }];
 
-    const [hashToSign] = tx.ins.map((input, i) => {
-      return tx.hashForWitnessV1(
+    // Make a new tx that will spend the output back into the wallet
+    const unsigned = transactionFromComponents({
+      inputs,
+      outputs,
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
+
+    const [hashToSign] = inputs.map((input, i) => {
+      return fromHex(unsigned.transaction).hashForWitnessV1(
         i,
         [hexAsBuffer(output.script)],
         [tokens],
-        Transaction.SIGHASH_DEFAULT,
+        transactionSighashDefault,
       );
     });
 
@@ -208,19 +228,30 @@ test(`Fund PSBT`, async () => {
       sign_hash: hashToSign.toString('hex'),
     });
 
-    const signature = hexAsBuffer(signedInput.signature);
+    const {signature} = signedInput;
 
-    // Add the signature to the input
-    tx.ins.forEach((input, i) => tx.setWitness(i, [signature]));
+    // Add the signature to the input and serialize the signed transaction
+    const {transaction} = transactionFromComponents({
+      outputs,
+      inputs: inputs.map(input => ({
+        id: input.id,
+        script: input.script,
+        sequence: input.sequence,
+        vout: input.vout,
+        witness: [signature],
+      })),
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
 
-    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+    await broadcastChainTransaction({lnd, transaction});
 
     await asyncRetry({interval, times}, async () => {
       await generate({});
 
       const {utxos} = await getUtxos({lnd});
 
-      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+      const utxo = utxos.find(n => n.transaction_id === idForTx(transaction));
 
       if (!utxo || !utxo.confirmation_count) {
         throw new Error('ExpectedReceivedTaprootSpend');
@@ -234,7 +265,7 @@ test(`Fund PSBT`, async () => {
   try {
     await generate({count});
 
-    const keyPair = ecp.makeRandom({network: networks.regtest});
+    const keyPair = ecp.makeRandom({});
 
     const witnessScript = compile([
       from(keyPair.publicKey.slice(1)),
@@ -264,35 +295,48 @@ test(`Fund PSBT`, async () => {
     // Send the tx to the chain
     await broadcastChainTransaction({lnd, transaction: signed.transaction});
 
-    // Make a new tx that will spend the output back into the wallet
-    const tx = new Transaction();
+    const spends = componentsOfTx(signed.transaction).outputs;
 
     // The new tx spends the Taproot output
-    tx.addInput(
-      fromHex(signed.transaction).getHash(),
-      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
-    );
+    const inputs = [{
+      id: idForTx(signed.transaction),
+      script: emptyScriptSig,
+      sequence: defaultSequence,
+      vout: spends.findIndex(n => n.tokens === tokens),
+    }];
 
     // Make an output to pay back into the wallet
-    const chainOutput = toOutputScript(
-      (await createChainAddress({lnd})).address,
-      networks.regtest
-    );
+    const chainAddress = await createChainAddress({lnd});
+
+    const {program} = decodeBech32Address({address: chainAddress.address});
 
     // Add output to the pay back transaction
-    tx.addOutput(chainOutput, smallTokens);
+    const outputs = [{
+      script: bufferAsHex(p2wpkh(program)),
+      tokens: smallTokens,
+    }];
 
-    const [hashToSign] = tx.ins.map((input, i) => {
-      return tx.hashForWitnessV1(
+    // Make a new tx that will spend the output back into the wallet
+    const unsigned = transactionFromComponents({
+      inputs,
+      outputs,
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
+
+    const [hashToSign] = inputs.map((input, i) => {
+      return fromHex(unsigned.transaction).hashForWitnessV1(
         i,
         [hexAsBuffer(output.script)],
         [tokens],
-        Transaction.SIGHASH_DEFAULT,
+        transactionSighashDefault,
         hexAsBuffer(leafHash({script: witnessScript}).hash),
       );
     });
 
-    const signature = from(signSchnorr(hashToSign, from(keyPair.privateKey)));
+    const schnorrSig = signSchnorr(hashToSign, from(keyPair.privateKey));
+
+    const signature = bufferAsHex(from(schnorrSig));
 
     const {block} = controlBlock({
       external_key: output.external_key,
@@ -300,23 +344,28 @@ test(`Fund PSBT`, async () => {
       script_branches: branches,
     });
 
-    // Add the signature to the input
-    tx.ins.forEach((input, i) => {
-      return tx.setWitness(i, [
-        signature,
-        hexAsBuffer(witnessScript),
-        hexAsBuffer(block),
-      ]);
+    // Add the signature to the input and serialize the signed transaction
+    const {transaction} = transactionFromComponents({
+      outputs,
+      inputs: inputs.map(input => ({
+        id: input.id,
+        script: input.script,
+        sequence: input.sequence,
+        vout: input.vout,
+        witness: [signature, witnessScript, block],
+      })),
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
     });
 
-    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+    await broadcastChainTransaction({lnd, transaction});
 
     await asyncRetry({interval, times}, async () => {
       await generate({});
 
       const {utxos} = await getUtxos({lnd});
 
-      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+      const utxo = utxos.find(n => n.transaction_id === idForTx(transaction));
 
       if (!utxo || !utxo.confirmation_count) {
         throw new Error('ExpectedReceivedTaprootSpend');
@@ -334,7 +383,7 @@ test(`Fund PSBT`, async () => {
   try {
     await generate({count});
 
-    const keyPair = ecp.makeRandom({network: networks.regtest});
+    const keyPair = ecp.makeRandom({});
 
     const output = v1OutputScript({
       internal_key: from(keyPair.publicKey).toString('hex'),
@@ -359,30 +408,41 @@ test(`Fund PSBT`, async () => {
     // Send the tx to the chain
     await broadcastChainTransaction({lnd, transaction: signed.transaction});
 
-    // Make a new tx that will spend the output back into the wallet
-    const tx = new Transaction();
+    const spends = componentsOfTx(signed.transaction).outputs;
 
     // The new tx spends the Taproot output
-    tx.addInput(
-      fromHex(signed.transaction).getHash(),
-      fromHex(signed.transaction).outs.findIndex(n => n.value === tokens)
-    );
+    const inputs = [{
+      id: idForTx(signed.transaction),
+      script: emptyScriptSig,
+      sequence: defaultSequence,
+      vout: spends.findIndex(n => n.tokens === tokens),
+    }];
 
     // Make an output to pay back into the wallet
-    const chainOutput = toOutputScript(
-      (await createChainAddress({lnd})).address,
-      networks.regtest
-    );
+    const chainAddress = await createChainAddress({lnd});
+
+    const {program} = decodeBech32Address({address: chainAddress.address});
 
     // Add output to the pay back transaction
-    tx.addOutput(chainOutput, smallTokens);
+    const outputs = [{
+      script: bufferAsHex(p2wpkh(program)),
+      tokens: smallTokens,
+    }];
 
-    const [hashToSign] = tx.ins.map((input, i) => {
-      return tx.hashForWitnessV1(
+    // Make a new tx that will spend the output back into the wallet
+    const unsigned = transactionFromComponents({
+      inputs,
+      outputs,
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
+
+    const [hashToSign] = inputs.map((input, i) => {
+      return fromHex(unsigned.transaction).hashForWitnessV1(
         i,
         [outputScript],
         [tokens],
-        Transaction.SIGHASH_DEFAULT,
+        transactionSighashDefault,
       );
     });
 
@@ -392,19 +452,30 @@ test(`Fund PSBT`, async () => {
       sign_hash: hashToSign.toString('hex'),
     });
 
-    const signature = hexAsBuffer(signedInput.signature);
+    const {signature} = signedInput;
 
-    // Add the signature to the input
-    tx.ins.forEach((input, i) => tx.setWitness(i, [Buffer.from(signature)]));
+    // Add the signature to the input and serialize the signed transaction
+    const {transaction} = transactionFromComponents({
+      outputs,
+      inputs: inputs.map(input => ({
+        id: input.id,
+        script: input.script,
+        sequence: input.sequence,
+        vout: input.vout,
+        witness: [signature],
+      })),
+      locktime: defaultLocktime,
+      version: defaultTxVersion,
+    });
 
-    await broadcastChainTransaction({lnd, transaction: tx.toHex()});
+    await broadcastChainTransaction({lnd, transaction});
 
     await asyncRetry({interval, times}, async () => {
       await generate({});
 
       const {utxos} = await getUtxos({lnd});
 
-      const utxo = utxos.find(n => n.transaction_id === tx.getId());
+      const utxo = utxos.find(n => n.transaction_id === idForTx(transaction));
 
       if (!utxo || !utxo.confirmation_count) {
         throw new Error('ExpectedReceivedTaprootSpend');
