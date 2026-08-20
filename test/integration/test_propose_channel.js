@@ -3,22 +3,21 @@ const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {createPsbt} = require('psbt');
 const {combinePsbts} = require('psbt');
-const {decodePsbt} = require('psbt');
+const {componentsOfTransaction} = require('@alexbosworth/blockchain');
+const {createPsbt} = require('psbt');
 const {encodeBech32Address} = require('@alexbosworth/blockchain');
 const {extractTransaction} = require('psbt');
 const {finalizePsbt} = require('psbt');
 const {hashForP2wpkh} = require('@alexbosworth/blockchain');
 const {idForTransaction} = require('@alexbosworth/blockchain');
-const {networks} = require('bitcoinjs-lib');
 const {p2msScript} = require('@alexbosworth/blockchain');
+const {p2pkhOutputScript} = require('@alexbosworth/blockchain');
 const {p2wshOutputScript} = require('@alexbosworth/blockchain');
-const {payments} = require('bitcoinjs-lib');
-const {script} = require('bitcoinjs-lib');
+const {sizeOfTransaction} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const tinysecp = require('tiny-secp256k1');
-const {Transaction} = require('bitcoinjs-lib');
+const {unsignedTxFromPsbt} = require('@alexbosworth/blockchain');
 const {updatePsbt} = require('psbt');
 
 const {addPeer} = require('./../../');
@@ -38,22 +37,25 @@ const {signTransaction} = require('./../../');
 const bufferAsHex = buffer => buffer.toString('hex');
 const capacity = 1e6;
 const {ceil} = Math;
+const componentsOfTx = tx => componentsOfTransaction({transaction: tx});
 const cooperativeCloseDelay = 2016;
 const family = 0;
 const feeRate = 1;
-const {fromHex} = Transaction;
 const fundingFee = 190; // Vsize of 2 input, 1 output tx
 const idForTx = transaction => idForTransaction({transaction}).id;
 const interval = 100;
 const keyIndex = 0;
 const network = 'regtest';
-const {p2pkh} = payments;
+const p2pkh = hash => p2pkhOutputScript({hash}).script;
 const p2wpkhHash = key => hashForP2wpkh({key: Buffer.from(key, 'hex')}).hash;
 const prefix = 'bcrt';
 const reserveRatio = 0.01;
 const size = 2;
 const temporaryFamily = 805;
 const times = 300;
+const transactionSighashAll = 1;
+const unsignedTx = psbt => bufferAsHex(unsignedTxFromPsbt({psbt}).transaction);
+const vsizeOfTx = transaction => sizeOfTransaction({transaction}).vsize;
 
 // Proposing a cooperative delay channel should open a cooperative delay chan
 test(`Propose a channel with a coop delay`, async () => {
@@ -209,49 +211,31 @@ test(`Propose a channel with a coop delay`, async () => {
       ],
     });
 
-    const controlWithoutWitnessTx = fromHex(controlSignPsbt.transaction);
-    const targetWithoutWitnessTx = fromHex(targetSignPsbt.transaction);
-
-    // Eliminate the witnesses
-    controlWithoutWitnessTx.ins.forEach((input, index) => {
-      return controlWithoutWitnessTx.setWitness(index, []);
-    });
-
-    targetWithoutWitnessTx.ins.forEach((input, index) => {
-      return targetWithoutWitnessTx.setWitness(index, []);
-    });
-
     // Add the spending transactions to the psbt
     const psbtWithSpending = updatePsbt({
       ecp,
       psbt: dualFundPsbt.psbt,
-      transactions: [
-        controlWithoutWitnessTx.toHex(),
-        targetWithoutWitnessTx.toHex(),
-      ],
+      transactions: [controlSignPsbt.transaction, targetSignPsbt.transaction],
     });
 
-    const finalFundingPsbt = decodePsbt({ecp, psbt: dualFundPsbt.psbt});
+    // The funding transaction is the unsigned tx of the dual funding PSBT
+    const fundingTransaction = unsignedTx(dualFundPsbt.psbt);
 
-    const fundingTx = fromHex(finalFundingPsbt.unsigned_transaction);
+    const fundingTx = componentsOfTx(fundingTransaction);
+    const fundingTxId = idForTx(fundingTransaction);
 
-    const fundingTxId = idForTx(finalFundingPsbt.unsigned_transaction);
-
-    const fundingTxVout = fundingTx.outs.findIndex(n => n.value === capacity);
-
-    const controlTxHash = controlWithoutWitnessTx.getHash();
-
-    const targetTxHash = targetWithoutWitnessTx.getHash();
-
-    const controlVin = fundingTx.ins.findIndex(({hash}) => {
-      return hash.equals(controlTxHash);
+    const fundingTxVout = fundingTx.outputs.findIndex(({tokens}) => {
+      return tokens === capacity;
     });
 
-    const targetVin = fundingTx.ins.findIndex(({hash}) => {
-      return hash.equals(targetTxHash);
-    });
+    const controlTxId = idForTx(controlSignPsbt.transaction);
+    const targetTxId = idForTx(targetSignPsbt.transaction);
 
-    const decodePayout = decodePsbt({ecp, psbt: psbtWithSpending.psbt});
+    const controlVin = fundingTx.inputs.findIndex(n => n.id === controlTxId);
+    const targetVin = fundingTx.inputs.findIndex(n => n.id === targetTxId);
+
+    // The temporary funds spend is the unsigned tx of the spending PSBT
+    const payoutTransaction = unsignedTx(psbtWithSpending.psbt);
 
     // Call signTransaction on the unsigned tx that pays from temp -> multisig
     const controlSignDerivedKey = await signTransaction({
@@ -261,11 +245,11 @@ test(`Propose a channel with a coop delay`, async () => {
         key_index: controlDerivedKey.index,
         output_script: bufferAsHex(dualFundingChannelOutputScript.script),
         output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
-        sighash: Transaction.SIGHASH_ALL,
+        sighash: transactionSighashAll,
         vin: controlVin,
-        witness_script: p2pkh({hash: controlDerivedAddress.hash}).output,
+        witness_script: p2pkh(controlDerivedAddress.hash),
       }],
-      transaction: decodePayout.unsigned_transaction,
+      transaction: payoutTransaction,
     });
 
     const [controlDerivedSignature] = controlSignDerivedKey.signatures;
@@ -277,9 +261,9 @@ test(`Propose a channel with a coop delay`, async () => {
         return {
           signature: Buffer.concat([
             Buffer.from(sig, 'hex'),
-            Buffer.from([Transaction.SIGHASH_ALL]),
+            Buffer.from([transactionSighashAll]),
           ]).toString('hex') ,
-          hash_type: Transaction.SIGHASH_ALL,
+          hash_type: transactionSighashAll,
           public_key: controlDerivedKey.public_key,
           vin: controlVin,
         };
@@ -293,15 +277,12 @@ test(`Propose a channel with a coop delay`, async () => {
         key_index: targetDerivedKey.index,
         output_script: bufferAsHex(dualFundingChannelOutputScript.script),
         output_tokens: giveTokens + ceil(fundingFee / temporaryKeys.length),
-        sighash: Transaction.SIGHASH_ALL,
+        sighash: transactionSighashAll,
         vin: targetVin,
-        witness_script: p2pkh({hash: targetDerivedAddress.hash}).output,
+        witness_script: p2pkh(targetDerivedAddress.hash),
       }],
       lnd: target.lnd,
-      transaction: decodePsbt({
-        ecp,
-        psbt: psbtWithSpending.psbt,
-      }).unsigned_transaction,
+      transaction: payoutTransaction,
     });
 
     const [targetDerivedSignature] = targetSignDerivedKey.signatures;
@@ -313,9 +294,9 @@ test(`Propose a channel with a coop delay`, async () => {
         return {
           signature: Buffer.concat([
             Buffer.from(sig, 'hex'),
-            Buffer.from([Transaction.SIGHASH_ALL]),
+            Buffer.from([transactionSighashAll]),
           ]).toString('hex') ,
-          hash_type: Transaction.SIGHASH_ALL,
+          hash_type: transactionSighashAll,
           public_key: targetDerivedKey.public_key,
           vin: targetVin,
         };
@@ -397,7 +378,7 @@ test(`Propose a channel with a coop delay`, async () => {
     const finalTempTx = extractTransaction({ecp, psbt: finalTempPsbt.psbt});
 
     // Calculate the size of the tx
-    const txSize = fromHex(finalTempTx.transaction).virtualSize();
+    const txSize = vsizeOfTx(finalTempTx.transaction);
 
     strictEqual(txSize <= fundingFee, true, 'Transaction size is not large');
 
