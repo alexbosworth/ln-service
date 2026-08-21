@@ -49,7 +49,7 @@
   "name": "ln-service",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alexbosworth/ln-service.git"
+    "url": "git+https://github.com/alexbosworth/ln-service.git"
   },
   "scripts": {
     "integration-test-0.21.2": "DOCKER_LND_VERSION=v0.21.2-beta npm run test",
