@@ -8,13 +8,12 @@ const {createPsbt} = require('psbt');
 const {decodeBech32Address} = require('@alexbosworth/blockchain');
 const {hashForTree} = require('p2tr');
 const {idForTransaction} = require('@alexbosworth/blockchain');
-const {leafHash} = require('p2tr');
 const {p2trOutputScript} = require('@alexbosworth/blockchain');
 const {p2wpkhOutputScript} = require('@alexbosworth/blockchain');
 const {scriptElementsAsScript} = require('@alexbosworth/blockchain');
 const {spawnLightningCluster} = require('ln-docker-daemons');
-const {Transaction} = require('bitcoinjs-lib');
 const {transactionFromComponents} = require('@alexbosworth/blockchain');
+const {v1HashToSign} = require('p2tr');
 const {v1OutputScript} = require('p2tr');
 
 const {beginGroupSigningSession} = require('./../../');
@@ -36,12 +35,11 @@ const defaultLocktime = 0;
 const defaultSequence = 0xffffffff;
 const defaultTxVersion = 1;
 const emptyScriptSig = '';
-const {fromHex} = Transaction;
 const hexAsBuffer = hex => Buffer.from(hex, 'hex');
 const idForTx = transaction => idForTransaction({transaction}).id;
 const interval = 100;
 const OP_CHECKSIG = 172;
-const p2tr = hash => p2trOutputScript({hash}).script;
+const p2tr = hash => bufferAsHex(p2trOutputScript({hash}).script);
 const p2wpkh = hash => p2wpkhOutputScript({hash}).script;
 const size = 2;
 const smallTokens = 2e5;
@@ -106,7 +104,7 @@ test(`Begin group signing session`, async () => {
 
     // Make a PSBT paying to the Taproot output
     const {psbt} = createPsbt({
-      outputs: [{tokens, script: script.toString('hex')}],
+      outputs: [{tokens, script}],
       utxos: [{id: utxo.transaction_id, vout: utxo.transaction_vout}],
     });
 
@@ -149,23 +147,23 @@ test(`Begin group signing session`, async () => {
     });
 
     const [hashToSign] = inputs.map((input, i) => {
-      return fromHex(unsigned.transaction).hashForWitnessV1(
-        i,
-        [script],
-        [tokens],
-        transactionSighashDefault,
-      );
+      return v1HashToSign({
+        sighash: transactionSighashDefault,
+        spends: [{script, tokens}],
+        transaction: unsigned.transaction,
+        vin: i,
+      }).hash;
     });
 
     const controlSign = await updateGroupSigningSession({
       lnd,
-      hash: hashToSign.toString('hex'),
+      hash: hashToSign,
       id: controlGroup.id,
       nonces: [targetGroup.nonce],
     });
 
     const targetSign = await updateGroupSigningSession({
-      hash: hashToSign.toString('hex'),
+      hash: hashToSign,
       id: targetGroup.id,
       lnd: target.lnd,
       nonces: [controlGroup.nonce],
@@ -251,7 +249,7 @@ test(`Begin group signing session`, async () => {
 
     // Make a PSBT paying to the Taproot output
     const {psbt} = createPsbt({
-      outputs: [{tokens, script: script.toString('hex')}],
+      outputs: [{tokens, script}],
       utxos: [{id: utxo.transaction_id, vout: utxo.transaction_vout}],
     });
 
@@ -294,23 +292,23 @@ test(`Begin group signing session`, async () => {
     });
 
     const [hashToSign] = inputs.map((input, i) => {
-      return fromHex(unsigned.transaction).hashForWitnessV1(
-        i,
-        [script],
-        [tokens],
-        transactionSighashDefault,
-      );
+      return v1HashToSign({
+        sighash: transactionSighashDefault,
+        spends: [{script, tokens}],
+        transaction: unsigned.transaction,
+        vin: i,
+      }).hash;
     });
 
     const controlSign = await updateGroupSigningSession({
       lnd,
-      hash: hashToSign.toString('hex'),
+      hash: hashToSign,
       id: controlGroup.id,
       nonces: [targetGroup.nonce],
     });
 
     const targetSign = await updateGroupSigningSession({
-      hash: hashToSign.toString('hex'),
+      hash: hashToSign,
       id: targetGroup.id,
       lnd: target.lnd,
       nonces: [controlGroup.nonce],
@@ -433,24 +431,24 @@ test(`Begin group signing session`, async () => {
     });
 
     const [hashToSign] = inputs.map((input, i) => {
-      return fromHex(unsigned.transaction).hashForWitnessV1(
-        i,
-        [hexAsBuffer(output.script)],
-        [tokens],
-        transactionSighashDefault,
-        hexAsBuffer(leafHash({script: witnessScript}).hash),
-      );
+      return v1HashToSign({
+        leaf: {script: witnessScript},
+        sighash: transactionSighashDefault,
+        spends: [{tokens, script: output.script}],
+        transaction: unsigned.transaction,
+        vin: i,
+      }).hash;
     });
 
     const controlSign = await updateGroupSigningSession({
       lnd,
-      hash: hashToSign.toString('hex'),
+      hash: hashToSign,
       id: controlGroup.id,
       nonces: [targetGroup.nonce],
     });
 
     const targetSign = await updateGroupSigningSession({
-      hash: hashToSign.toString('hex'),
+      hash: hashToSign,
       id: targetGroup.id,
       lnd: target.lnd,
       nonces: [controlGroup.nonce],

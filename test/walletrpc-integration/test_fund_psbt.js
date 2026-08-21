@@ -9,7 +9,6 @@ const {decodeBech32Address} = require('@alexbosworth/blockchain');
 const {decodePsbt} = require('psbt');
 const {hashForTree} = require('p2tr');
 const {idForTransaction} = require('@alexbosworth/blockchain');
-const {leafHash} = require('p2tr');
 const {p2wpkhOutputScript} = require('@alexbosworth/blockchain');
 const {pointAdd} = require('tiny-secp256k1');
 const {privateAdd} = require('tiny-secp256k1');
@@ -18,8 +17,8 @@ const {signHash} = require('p2tr');
 const {signSchnorr} = require('tiny-secp256k1');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 const tinysecp = require('tiny-secp256k1');
-const {Transaction} = require('bitcoinjs-lib');
 const {transactionFromComponents} = require('@alexbosworth/blockchain');
+const {v1HashToSign} = require('p2tr');
 const {v1OutputScript} = require('p2tr');
 
 const {broadcastChainTransaction} = require('./../../');
@@ -44,7 +43,6 @@ const defaultTxVersion = 1;
 const description = 'description';
 const emptyScriptSig = '';
 const {from} = Buffer;
-const {fromHex} = Transaction;
 const hexAsBuffer = hex => Buffer.from(hex, 'hex');
 const idForTx = transaction => idForTransaction({transaction}).id;
 const interval = retryCount => 10 * Math.pow(2, retryCount);
@@ -207,12 +205,12 @@ test(`Fund PSBT`, async () => {
     });
 
     const [hashToSign] = inputs.map((input, i) => {
-      return fromHex(unsigned.transaction).hashForWitnessV1(
-        i,
-        [hexAsBuffer(output.script)],
-        [tokens],
-        transactionSighashDefault,
-      );
+      return v1HashToSign({
+        sighash: transactionSighashDefault,
+        spends: [{tokens, script: output.script}],
+        transaction: unsigned.transaction,
+        vin: i,
+      }).hash;
     });
 
     // Ready for private key combining
@@ -225,7 +223,7 @@ test(`Fund PSBT`, async () => {
       hash,
       private_key: Buffer.from(combinedKey).toString('hex'),
       public_key: Buffer.from(combinedPoint).toString('hex'),
-      sign_hash: hashToSign.toString('hex'),
+      sign_hash: hashToSign,
     });
 
     const {signature} = signedInput;
@@ -325,16 +323,18 @@ test(`Fund PSBT`, async () => {
     });
 
     const [hashToSign] = inputs.map((input, i) => {
-      return fromHex(unsigned.transaction).hashForWitnessV1(
-        i,
-        [hexAsBuffer(output.script)],
-        [tokens],
-        transactionSighashDefault,
-        hexAsBuffer(leafHash({script: witnessScript}).hash),
-      );
+      return v1HashToSign({
+        leaf: {script: witnessScript},
+        sighash: transactionSighashDefault,
+        spends: [{tokens, script: output.script}],
+        transaction: unsigned.transaction,
+        vin: i,
+      }).hash;
     });
 
-    const schnorrSig = signSchnorr(hashToSign, from(keyPair.privateKey));
+    const hashBuffer = hexAsBuffer(hashToSign);
+
+    const schnorrSig = signSchnorr(hashBuffer, from(keyPair.privateKey));
 
     const signature = bufferAsHex(from(schnorrSig));
 
@@ -389,13 +389,11 @@ test(`Fund PSBT`, async () => {
       internal_key: from(keyPair.publicKey).toString('hex'),
     });
 
-    const outputScript = hexAsBuffer(output.script);
-
     const [utxo] = (await getUtxos({lnd})).utxos.reverse();
 
     // Make a PSBT paying to the Taproot output
     const {psbt} = createPsbt({
-      outputs: [{tokens, script: outputScript.toString('hex')}],
+      outputs: [{tokens, script: output.script}],
       utxos: [{id: utxo.transaction_id, vout: utxo.transaction_vout}],
     });
 
@@ -438,18 +436,18 @@ test(`Fund PSBT`, async () => {
     });
 
     const [hashToSign] = inputs.map((input, i) => {
-      return fromHex(unsigned.transaction).hashForWitnessV1(
-        i,
-        [outputScript],
-        [tokens],
-        transactionSighashDefault,
-      );
+      return v1HashToSign({
+        sighash: transactionSighashDefault,
+        spends: [{tokens, script: output.script}],
+        transaction: unsigned.transaction,
+        vin: i,
+      }).hash;
     });
 
     const signedInput = signHash({
       private_key: from(keyPair.privateKey).toString('hex'),
       public_key: from(keyPair.publicKey).toString('hex'),
-      sign_hash: hashToSign.toString('hex'),
+      sign_hash: hashToSign,
     });
 
     const {signature} = signedInput;
