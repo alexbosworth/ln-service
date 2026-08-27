@@ -50,7 +50,9 @@ test('Probe for route', async () => {
       }
     });
 
-    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+    await asyncRetry({interval, times}, async () => {
+      await addPeer({lnd, public_key: remote.id, socket: remote.socket});
+    });
 
     await setupChannel({
       generate,
