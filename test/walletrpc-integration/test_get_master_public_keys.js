@@ -3,7 +3,7 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const bip32 = require('bip32');
-const bs58check = require('bs58check').default;
+const {decodeBase58} = require('@alexbosworth/blockchain');
 const ecc = require('tiny-secp256k1')
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
@@ -60,10 +60,12 @@ test(`Get master public keys`, async () => {
     const masterIdentityKey = keys.find(n => n.named === identityKeyName);
 
     // Convert the key from base58 into its raw form
-    const rawKey = bs58check.decode(masterIdentityKey.extended_public_key);
+    const {payload} = decodeBase58({
+      encoded: masterIdentityKey.extended_public_key,
+    });
 
-    const chainCode = Buffer.from(chainCodeFromMasterPublicKey(rawKey));
-    const publicKey = Buffer.from(publicKeyFromMasterPublicKey(rawKey));
+    const chainCode = chainCodeFromMasterPublicKey(payload);
+    const publicKey = publicKeyFromMasterPublicKey(payload);
 
     // Make a bip32 object to derive from
     const masterKey = fromPublicKey(publicKey, chainCode);

@@ -19,20 +19,17 @@
   },
   "description": "Interaction helper for your Lightning Network daemon",
   "devDependencies": {
-    "@alexbosworth/blockchain": "4.7.2",
+    "@alexbosworth/blockchain": "4.8.0",
     "async": "3.2.6",
     "asyncjs-util": "1.2.12",
     "bip32": "5.0.1",
     "bip66": "2.0.0",
-    "bn.js": "5.2.5",
-    "bs58check": "4.0.0",
-    "ecpair": "3.0.1",
-    "ln-docker-daemons": "8.0.4",
+    "ecpair": "3.0.2",
+    "ln-docker-daemons": "8.0.5",
     "p2tr": "3.0.0",
     "portfinder": "1.0.38",
     "psbt": "6.0.3",
-    "tiny-secp256k1": "2.2.4",
-    "varuint-bitcoin": "2.0.0"
+    "tiny-secp256k1": "2.2.4"
   },
   "engines": {
     "node": ">=22"
