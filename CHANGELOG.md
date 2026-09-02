@@ -1,5 +1,10 @@
 # Versions
 
+## 59.3.7
+
+- Add support for LND 0.21.3
+- Add support for LND 0.20.4
+
 ## 59.3.6
 
 - `parsePaymentRequest`: Add `signet` support
