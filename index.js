@@ -112,6 +112,7 @@ const {requestChainFeeIncrease} = require('lightning');
 const {restrictMacaroon} = require('./macaroons');
 const {revokeAccess} = require('lightning');
 const {routeFromChannels} = require('bolt07');
+const {sendMessage} = require('lightning');
 const {sendMessageToPeer} = require('lightning');
 const {sendToChainAddress} = require('lightning');
 const {sendToChainAddresses} = require('lightning');
@@ -134,6 +135,7 @@ const {subscribeToForwards} = require('lightning');
 const {subscribeToGraph} = require('lightning');
 const {subscribeToInvoice} = require('lightning');
 const {subscribeToInvoices} = require('lightning');
+const {subscribeToMessages} = require('lightning');
 const {subscribeToOpenRequests} = require('lightning');
 const {subscribeToPastPayment} = require('lightning');
 const {subscribeToPastPayments} = require('lightning');
@@ -279,6 +281,7 @@ module.exports = {
   restrictMacaroon,
   revokeAccess,
   routeFromChannels,
+  sendMessage,
   sendMessageToPeer,
   sendToChainAddress,
   sendToChainAddresses,
@@ -301,6 +304,7 @@ module.exports = {
   subscribeToGraph,
   subscribeToInvoice,
   subscribeToInvoices,
+  subscribeToMessages,
   subscribeToOpenRequests,
   subscribeToPastPayment,
   subscribeToPastPayments,

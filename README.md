@@ -257,6 +257,7 @@ for `unlocker` methods.
 - [restrictMacaroon](#restrictmacaroon) - Add limitations to a macaroon
 - [revokeAccess](#revokeaccess) - Revoke all access macaroons given to an id
 - [routeFromChannels](#routefromchannels) - Convert channel series to a route
+- [sendMessage](#sendmessage) - Send a network onion message
 - [sendMessageToPeer](#sendmessagetopeer) - Send a custom message to a peer
 - [sendToChainAddress](#sendtochainaddress) - Send on-chain to an address
 - [sendToChainAddresses](#sendtochainaddresses) - Send on-chain to addresses
@@ -281,6 +282,7 @@ for `unlocker` methods.
 - [subscribeToGraph](#subscribetograph) - Subscribe to network graph updates
 - [subscribeToInvoice](#subscribetoinvoice) - Subscribe to invoice updates
 - [subscribeToInvoices](#subscribetoinvoices) - Subscribe to all invoices
+- [subscribeToMessages](#subscribetomessages) - Subscribe to network messages
 - [subscribeToOpenRequests](#subscribetoopenrequests) - Approve open requests
 - [subscribeToPastPayment](#subscribetopastpayment) - Subscribe to a payment
 - [subscribeToPastPayments](#subscribetopastpayments) - Subscribe to all sent
@@ -5140,6 +5142,53 @@ const res = routeFromChannels({channels, destination, height, mtokens});
 const {route} = res;
 ```
 
+### sendMessage
+
+Send a generic message over the network
+
+The receiver of the message needs to first publish an inbound path to them,
+this is supplied via `inbound`. To send, add a series of relaying node ids
+that support message passing, to a landmark node provided by the receiver.
+
+This method is not supported in LND 0.20.4 and below
+
+    {
+      inbound: [{
+        encrypted_data: <Encrypted Data Hex String>
+        relay_key: <Blinded Relaying Public Key Into Destination Hex String>
+      }]
+      key: <Message Path Key Hex String>
+      lnd: <Authenticated LND API Object>
+      [message]: {
+        type: <Message Payload Record Type Number String>
+        value: <Message Payload Hex String>
+      }
+      outbound: [<Relaying Node Public Key Out of Source Hex String>]
+      [reply]: [<Reply Path Relaying Node Public Key Back To Sender Hex String>]
+    }
+
+    @returns via cbk or Promise
+    {
+      [reply]: <Reply Identifier Hex String>
+    }
+
+Example:
+
+```node
+const {sendMessage} = require('ln-service');
+
+const {reply} = await sendMessage({
+  lnd,
+  inbound: blindedPath.path,
+  key: blindedPath.key,
+  outbound: [peer.public_key, blindedPath.introduction_node],
+  message: {type, value},
+  reply: [peer.public_key, own.public_key],
+});
+
+// Wait for message reply on `reply` id
+```
+
 ### sendMessageToPeer
 
 Send a custom message to a connected peer
@@ -6163,6 +6212,67 @@ const {once} = require('events');
 const {subscribeToInvoices} = require('ln-service');
 const sub = subscribeToInvoices({lnd});
 const [lastUpdatedInvoice] = await once(sub, 'invoice_updated');
+```
+
+### subscribeToMessages
+
+Subscribe to received onion messages
+
+Requires `offchain:read` permission
+
+This method is not supported in LND 0.20.4 and below
+
+    {
+      lnd: <Authenticated LND API Object>
+    }
+
+    @returns
+    <EventEmitter Object>
+
+    @event 'message_received'
+    {
+      encrypted: <Encrypted Data Hex String>
+      key: <Path Key Hex String>
+      [message]: {
+        type: <Message Payload Record Type Number String>
+        value: <Message Payload Hex String>
+      }
+      onion: <Onion Packet Hex String>
+      [reply]: {
+        inbound: [{
+          encrypted_data: <Encrypted Data Hex String>
+          relay_key: <Blinded Relay Key Hex String>
+        }]
+        [introduction_edge]: <Introduction Node Edge Format Channel Id String>
+        [introduction_node]: <Introduction Node Public Key Hex String>
+        key: <Path Key Hex String>
+      }
+      via: <Message Received Via Peer with Id Public Key Hex String>
+    }
+
+```node
+const {decryptBlindedPath} = require('bolt04');
+const {diffieHellmanComputeSecret} = require('ln-service');
+const {subscribeToMessages} = require('ln-service');
+
+const sub = subscribeToMessages({lnd});
+
+sub.on('message_received', async ({custom, encrypted, key}) => {
+  // The message id is encrypted
+  const {secret} = await diffieHellmanComputeSecret({
+    lnd,
+    partner_public_key: key,
+  });
+
+  const decrypted = decryptBlindedPath({encrypted, key, secret});
+
+  // The received id should be equal to the one given out
+  if (decrypted.id !== blindedPath.id) {
+    return;
+  }
+
+  // Message to path received
+});
 ```
 
 ### subscribeToOpenRequests

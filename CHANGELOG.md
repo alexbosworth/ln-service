@@ -1,5 +1,10 @@
 # Versions
 
+## 59.4.0
+
+- `sendMessage`: Add method to send a network onion message
+- `subscribeToMessages`: Add method to listen to network onion messages
+
 ## 59.3.7
 
 - Add support for LND 0.21.3
