@@ -1,5 +1,11 @@
 # Versions
 
+## 59.4.1
+
+- `subscribeToForwardRequests`: Invalid requests to forward more than the
+    inbound HTLC amount or with an outbound CLTV past the inbound CLTV are no
+    longer emitted and are released for LND to fail
+
 ## 59.4.0
 
 - `sendMessage`: Add method to send a network onion message

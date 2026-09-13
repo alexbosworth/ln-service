@@ -5882,6 +5882,9 @@ Subscribe to requests to forward payments
 Note that the outbound channel is only the requested channel, another may be
 selected internally to complete the forward.
 
+Invalid requests that have invalid fees or CLTVs cannot be forwarded and are
+not emitted, they are released for LND to fail
+
 Requires `offchain:read`, `offchain:write` permission
 
 `onion` is not supported in LND 0.11.1 and below
