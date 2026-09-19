@@ -235,17 +235,21 @@ test(`Open unconfirmed channels`, async () => {
 
     // Confirm the private channel
     const privateConfirmed = await asyncRetry({interval, times}, async () => {
-      // Generate the channel into a block
-      await broadcastChainTransaction({
-        lnd,
-        transaction: signedPrivate.transaction,
-      });
-
       await generate({});
 
       const [confirmed] = (await getChannels({lnd})).channels;
 
       const shut = await getClosedChannels({lnd});
+
+      if (!!shut.channels.length) {
+        return confirmed;
+      }
+
+      // Generate the channel into a block
+      await broadcastChainTransaction({
+        lnd,
+        transaction: signedPrivate.transaction,
+      });
 
       if (!shut.channels.length) {
         throw new Error('ExpectedClosedChannel');

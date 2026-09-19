@@ -54,12 +54,16 @@ test('Probe for route', async () => {
       await addPeer({lnd, public_key: remote.id, socket: remote.socket});
     });
 
+    await generate({});
+
     await setupChannel({
       generate,
       lnd,
       capacity: channelCapacityTokens + channelCapacityTokens,
       to: target,
     });
+
+    await target.generate({});
 
     await setupChannel({
       capacity: channelCapacityTokens,
@@ -68,7 +72,6 @@ test('Probe for route', async () => {
       give_tokens: Math.round(channelCapacityTokens / 2),
       to: remote,
     });
-
     const invoice = await createInvoice({tokens, lnd: remote.lnd});
 
     await delay(1000);

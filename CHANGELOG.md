@@ -1,5 +1,11 @@
 # Versions
 
+## 59.5.0
+
+- `createSignedRequest`: Add support for signing BLIP39 path payment requests
+- `createUnsignedRequest`: Add support for specifying BLIP39 payment req paths
+- `parsePaymentRequest`: Add support for parsing BLIP39 payment request paths
+
 ## 59.4.1
 
 - `subscribeToForwardRequests`: Invalid requests to forward more than the
