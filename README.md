@@ -4576,6 +4576,7 @@ Requires `offchain:write` permission
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
+          [encrypted_data]: <Blinded Path Encrypted Data Hex String>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -4584,6 +4585,7 @@ Requires `offchain:write` permission
             type: <Message Type Number String>
             value: <Message Raw Value Hex Encoded String>
           }]
+          [path_key]: <Blinded Path Key Hex String>
           [public_key]: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
         }]
@@ -4592,19 +4594,21 @@ Requires `offchain:write` permission
           value: <Message Raw Value Hex Encoded String>
         }]
         mtokens: <Total Millitokens To Pay String>
+        [payment]: <Payment Identifier Hex String>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
+        [total_mtokens]: <Total Millitokens String>
       }]
     }
 
     @returns via cbk or Promise
     {
+      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       failures: [[
         <Failure Code Number>
         <Failure Code Message String>
         <Failure Code Details Object>
       ]]
-      confirmed_at: <Payment Confirmed At ISO 8601 Date String>
       fee: <Fee Paid Tokens Number>
       fee_mtokens: <Fee Paid Millitokens String>
       hops: [{
@@ -4697,10 +4701,12 @@ Requires `offchain:write` permission
 
 Preferred `confidence` is not supported on LND 0.14.5 and below
 
+`paths` are blinded paths. If using, `destination` is not required.
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       [confidence]: <Preferred Route Confidence Number Out of One Million Number>
-      destination: <Destination Public Key Hex String>
+      [destination]: <Destination Public Key Hex String>
       [features]: [{
         bit: <Feature Bit Number>
       }]
@@ -4722,10 +4728,23 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Outgoing Channel Id String>
       [path_timeout_ms]: <Time to Spend On A Path Milliseconds Number>
+      [paths]: [{
+        base_fee_mtokens: <Accumulated Base Fee Millitokens String>
+        cltv_delta: <Accumulated CLTV Expiry Delta Number>
+        fee_rate: <Accumulated Fee Rate Millitokens Per Million Number>
+        hops: [{
+          encrypted_data: <Encrypted Recipient Data Hex String>
+          relay_key: <Relaying Node Public Key Hex String>
+        }]
+        [introduction_node]: <Introduction Node Public Key Hex String>
+        key: <First Hop Path Key Public Key Hex String>
+        [max_htlc_mtokens]: <Maximum HTLC Millitokens String>
+        [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
+      }]
       [payment]: <Payment Identifier Hex String>
       [probe_timeout_ms]: <Probe Timeout Milliseconds Number>
       [routes]: [[{
-        [base_fee_mtokens]: <Base Routing Fee In Millitokens Number String>
+        [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
         [cltv_delta]: <CLTV Blocks Delta Number>
         [fee_rate]: <Fee Rate In Millitokens Per Million Number>
@@ -4743,10 +4762,12 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Route Fee Millitokens String>
         hops: [{
           channel: <Standard Format Channel Id String>
+          [encrypted_data]: <Blinded Path Encrypted Data Hex String>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
           forward_mtokens: <Forward Millitokens String>
+          [path_key]: <Blinded Path Key Hex String>
           public_key: <Forward Edge Public Key Hex String>
           timeout: <Timeout Block Height Number>
         }]
@@ -6835,13 +6856,14 @@ Requires `offchain:write` permission
 
     {
       [id]: <Payment Hash Hex String>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       routes: [{
         fee: <Total Fee Tokens To Pay Number>
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
+          [encrypted_data]: <Blinded Path Encrypted Data Hex String>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
@@ -6850,6 +6872,7 @@ Requires `offchain:write` permission
             type: <Message Type Number String>
             value: <Message Raw Value Hex Encoded String>
           }]
+          [path_key]: <Blinded Path Key Hex String>
           public_key: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
         }]
@@ -6858,8 +6881,10 @@ Requires `offchain:write` permission
           value: <Message Raw Value Hex Encoded String>
         }]
         mtokens: <Total Millitokens To Pay String>
+        [payment]: <Payment Identifier Hex String>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
+        [total_mtokens]: <Total Millitokens String>
       }]
     }
 
@@ -6876,6 +6901,7 @@ Requires `offchain:write` permission
         <Failure Message String>
         {
           channel: <Standard Format Channel Id String>
+          [index]: <Failure Hop Index Number>
           [mtokens]: <Millitokens String>
           [policy]: {
             base_fee_mtokens: <Base Fee Millitokens String>
@@ -6920,6 +6946,7 @@ Requires `offchain:write` permission
     @event 'routing_failure'
     {
       [channel]: <Standard Format Channel Id String>
+      [height]: <Failure Height Context Number>
       [index]: <Failure Hop Index Number>
       [mtokens]: <Failure Related Millitokens String>
       [policy]: {
@@ -6945,11 +6972,11 @@ Requires `offchain:write` permission
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Millitokens To Pay String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Tokens Rounded Up Number>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
       }
-      safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
-      safe_tokens: <Payment Tokens Rounded Up Number>
       [timeout_height]: <Failure Related CLTV Timeout Height Number>
       [update]: {
         chain: <Chain Id Hex String>
@@ -6988,6 +7015,8 @@ Requires `offchain:write` permission
           timeout: <Timeout Block Height Number>
         }]
         mtokens: <Total Millitokens To Pay String>
+        safe_fee: <Payment Forwarding Fee Rounded Up Tokens Number>
+        safe_tokens: <Payment Tokens Rounded Up Number>
         timeout: <Expiration Block Height Number>
         tokens: <Total Tokens To Pay Number>
       }
@@ -7195,10 +7224,12 @@ Requires `offchain:write` permission
 
 Preferred `confidence` is not supported on LND 0.14.5 and below
 
+`paths` are blinded paths. If using, `destination` is not required.
+
     {
       [cltv_delta]: <Final CLTV Delta Number>
       [confidence]: <Preferred Route Confidence Number Out of One Million Number>
-      destination: <Destination Public Key Hex String>
+      [destination]: <Destination Public Key Hex String>
       [features]: [{
         bit: <Feature Bit Number>
       }]
@@ -7218,6 +7249,19 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [mtokens]: <Millitokens to Probe String>
       [outgoing_channel]: <Outgoing Channel Id String>
       [path_timeout_ms]: <Skip Individual Path Attempt After Milliseconds Number>
+      [paths]: [{
+        base_fee_mtokens: <Accumulated Base Fee Millitokens String>
+        cltv_delta: <Accumulated CLTV Expiry Delta Number>
+        fee_rate: <Accumulated Fee Rate Millitokens Per Million Number>
+        hops: [{
+          encrypted_data: <Encrypted Recipient Data Hex String>
+          relay_key: <Relaying Node Public Key Hex String>
+        }]
+        [introduction_node]: <Introduction Node Public Key Hex String>
+        key: <First Hop Path Key Public Key Hex String>
+        [max_htlc_mtokens]: <Maximum HTLC Millitokens String>
+        [min_htlc_mtokens]: <Minimum HTLC Millitokens String>
+      }]
       [payment]: <Payment Identifier Hex String>
       [probe_timeout_ms]: <Fail Entire Probe After Milliseconds Number>
       [routes]: [[{
@@ -7245,10 +7289,12 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         fee_mtokens: <Total Fee Millitokens To Pay String>
         hops: [{
           channel: <Standard Format Channel Id String>
+          [encrypted_data]: <Blinded Path Encrypted Data Hex String>
           fee: <Fee Number>
           fee_mtokens: <Fee Millitokens String>
           forward: <Forward Tokens Number>
           forward_mtokens: <Forward Millitokens String>
+          [path_key]: <Blinded Path Key Hex String>
           public_key: <Public Key Hex String>
           timeout: <Timeout Block Height Number>
         }]
@@ -7298,6 +7344,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
     @event 'routing_failure'
     {
       [channel]: <Standard Format Channel Id String>
+      index: <Failure Index Number>
       [mtokens]: <Millitokens String>
       [policy]: {
         base_fee_mtokens: <Base Fee Millitokens String>
@@ -7306,8 +7353,10 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
         [is_disabled]: <Channel is Disabled Bool>
         max_htlc_mtokens: <Maximum HLTC Millitokens Value String>
         min_htlc_mtokens: <Minimum HTLC Millitokens Value String>
+        [public_key]: <Public Key Hex String>
+        [updated_at]: <Updated At ISO 8601 Date String>
       }
-      public_key: <Public Key Hex String>
+      [public_key]: <Public Key Hex String>
       reason: <Failure Reason String>
       route: {
         [confidence]: <Route Confidence Score Out Of One Million Number>

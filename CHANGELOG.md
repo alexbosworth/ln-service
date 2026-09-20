@@ -1,5 +1,14 @@
 # Versions
 
+## 59.6.0
+
+- `payViaRoutes`, `subscribeToPayViaRoutes`: Add support for routes into
+    blinded paths: `encrypted_data` on blinded path hops and `path_key` on the
+    introduction node hop
+- `probeForRoute`, `subscribeToProbeForRoute`: Add `paths` to probe to blinded
+    paths: find a route to a path introduction node and return a route that
+    continues into the blinded path
+
 ## 59.5.0
 
 - `createSignedRequest`: Add support for signing BLIP39 path payment requests

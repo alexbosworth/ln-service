@@ -14,7 +14,7 @@
   "dependencies": {
     "bolt07": "2.0.0",
     "invoices": "6.2.0",
-    "lightning": "12.3.1",
+    "lightning": "12.4.0",
     "macaroon": "3.0.4"
   },
   "description": "Interaction helper for your Lightning Network daemon",
@@ -35,6 +35,11 @@
   "engines": {
     "node": ">=22"
   },
+  "files": [
+    "CHANGELOG.md",
+    "index.js",
+    "macaroons"
+  ],
   "keywords": [
     "bitcoin",
     "grpc",
@@ -61,5 +66,5 @@
     "integration-test-0.20.0": "DOCKER_LND_VERSION=v0.20.0-beta npm run test",
     "test": "echo $DOCKER_LND_VERSION && node test/runner"
   },
-  "version": "59.5.0"
+  "version": "59.6.0"
 }

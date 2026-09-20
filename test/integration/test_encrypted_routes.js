@@ -17,7 +17,9 @@ const {getHeight} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {parsePaymentRequest} = require('./../../');
+const {probeForRoute} = require('./../../');
 const {pay} = require('./../../');
+const {payViaRoutes} = require('./../../');
 
 const count = 100;
 const expiry = () => new Date(Date.now() + (4 * 60 * 60 * 1000)).toISOString();
@@ -148,7 +150,27 @@ test(`Create an encrypted routes invoice`, async () => {
         paths: [targetPath],
       });
 
-      await pay({lnd, request: createSignedRequest({hrp, tags}).request});
+      const {request} = createSignedRequest({hrp, tags});
+
+      const encryptedDetails = parsePaymentRequest({request});
+
+      const {route} = await probeForRoute({
+        lnd,
+        cltv_delta: encryptedDetails.cltv_delta,
+        features: encryptedDetails.features,
+        mtokens: encryptedDetails.mtokens,
+        paths: encryptedDetails.paths,
+        payment: encryptedDetails.payment,
+        tokens: encryptedDetails.tokens,
+      });
+
+      const {secret} = await payViaRoutes({
+        lnd,
+        id: encryptedDetails.id,
+        routes: [route],
+      });
+
+      equal(secret, targetInvoice.secret, 'Got preimage via probe before pay');
     }
 
     await kill({});
