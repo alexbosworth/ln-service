@@ -5441,11 +5441,14 @@ Requires `signer:generate` permission
 
 `schnorr` signature type is not supported on LND 0.15.0 and below
 
+`tag` is not supported on LND 0.17.5 and below and requires `schnorr` type
+
     {
       key_family: <Key Family Number>
       key_index: <Key Index Number>
-      lnd: <Authenticated LND gRPC API Object>
+      lnd: <Authenticated LND API Object>
       preimage: <Bytes To Hash and Sign Hex Encoded String>
+      [tag]: <BIP-340 Tagged Hash Tag UTF8 String>
       [type]: <Signature Type String>
     }
 
@@ -5465,6 +5468,16 @@ const {signature} = await signBytes({
   key_family: 6,
   key_index: 0,
   preimage: '00',
+});
+
+// Get a schnorr signature over a BIP-340 tagged hash of the preimage
+const tagged = await signBytes({
+  lnd,
+  key_family: 6,
+  key_index: 0,
+  preimage: '00',
+  tag: 'BIP0322-signed-message',
+  type: 'schnorr',
 });
 ```
 
@@ -8054,11 +8067,14 @@ Requires `signer:read` permission
 
 Validating `schnorr` signatures is unsupported in LND 0.15.0 and below
 
+`tag` is not supported on LND 0.17.5 and below
+
     {
       lnd: <Authenticated LND API Object>
       preimage: <Message Preimage Bytes Hex Encoded String>
       public_key: <Signature Valid For Public Key Hex String>
       signature: <Signature Hex String>
+      [tag]: <BIP-340 Tagged Hash Tag UTF8 String>
     }
 
     @returns via cbk or Promise
@@ -8082,6 +8098,25 @@ const validity = await verifyBytesSignature({
   preimage,
   signature,
   public_key: (await getIdentity({lnd})).public_key,
+});
+
+// Sign a BIP-340 tagged hash of the preimage with a schnorr signature
+const tagged = await signBytes({
+  lnd,
+  preimage,
+  key_family: 6,
+  key_index: 0,
+  tag: 'BIP0322-signed-message',
+  type: 'schnorr',
+});
+
+// Verify the tagged hash signature using the x-only public key
+const taggedValidity = await verifyBytesSignature({
+  lnd,
+  preimage,
+  public_key: (await getIdentity({lnd})).public_key.slice(2),
+  signature: tagged.signature,
+  tag: 'BIP0322-signed-message',
 });
 ```
 

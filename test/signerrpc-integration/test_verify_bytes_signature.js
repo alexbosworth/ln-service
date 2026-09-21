@@ -12,6 +12,7 @@ const {verifyBytesSignature} = require('./../../');
 const preimage = '00';
 const recoveryFlags = [0, 1, 2, 3];
 const sha256 = n => createHash('sha256').update(Buffer.from(n, 'hex'));
+const tag = 'BIP0322-signed-message';
 
 // Verifying signature over bytes should result in validity
 test(`Verify bytes signature`, async () => {
@@ -94,6 +95,51 @@ test(`Verify bytes signature`, async () => {
     const [code, message] = Array.isArray(err) ? err : [];
 
     equal(code, 503, 'A 503 code is thrown if schnorr is unsupported');
+    equal(message, 'UnexpectedSignatureLengthInSignBytesResponse', 'Sig len');
+  }
+
+  try {
+    const tagged = await signBytes({
+      lnd,
+      preimage,
+      tag,
+      key_family: 6,
+      key_index: 0,
+      type: 'schnorr',
+    });
+
+    const validity = await verifyBytesSignature({
+      lnd,
+      preimage,
+      tag,
+      public_key: id.slice(2),
+      signature: tagged.signature,
+    });
+
+    equal(validity.is_valid, true, 'Tagged hash schnorr signature is valid');
+
+    const untagged = await verifyBytesSignature({
+      lnd,
+      preimage,
+      public_key: id.slice(2),
+      signature: tagged.signature,
+    });
+
+    equal(untagged.is_valid, false, 'Tagged signature is invalid without tag');
+
+    const wrongTag = await verifyBytesSignature({
+      lnd,
+      preimage,
+      public_key: id.slice(2),
+      signature: tagged.signature,
+      tag: 'BIP0340/challenge',
+    });
+
+    equal(wrongTag.is_valid, false, 'Tagged signature is invalid for bad tag');
+  } catch (err) {
+    const [code, message] = Array.isArray(err) ? err : [];
+
+    equal(code, 503, 'A 503 code is thrown if tagged hashes are unsupported');
     equal(message, 'UnexpectedSignatureLengthInSignBytesResponse', 'Sig len');
   }
 

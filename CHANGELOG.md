@@ -1,5 +1,12 @@
 # Versions
 
+## 59.7.0
+
+- `signBytes`: Add `tag` to sign a BIP-340 tagged hash of the bytes with a
+    `schnorr` signature
+- `verifyBytesSignature`: Add `tag` to verify a `schnorr` signature over a
+    BIP-340 tagged hash of the bytes
+
 ## 59.6.0
 
 - `payViaRoutes`, `subscribeToPayViaRoutes`: Add support for routes into
