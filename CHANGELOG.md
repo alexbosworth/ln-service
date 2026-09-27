@@ -1,5 +1,18 @@
 # Versions
 
+## 60.0.0
+
+### Breaking Changes
+
+- `authenticatedLndGrpc`, `unauthenticatedLndGrpc`: Now use keepalive to error
+    on slow or unresponsive connections
+- `subscribeToInvoices`: Now uses `ListInvoices` internally when called without
+    `added_after` and `confirmed_after` to avoid missing invoice updates
+- `subscribeToInvoices`: Now favors re-emitting invoice updates even if they
+    were already emitted to avoid potential emission misses
+- `subscribeToInvoices`: Only emit `error` event when an unrecoverable error is
+    encountered
+
 ## 59.7.0
 
 - `signBytes`: Add `tag` to sign a BIP-340 tagged hash of the bytes with a
