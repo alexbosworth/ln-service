@@ -3582,6 +3582,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       }]
       [mtokens]: <Tokens to Send String>
       [outgoing_channel]: <Outgoing Channel Id String>
+      [outgoing_channels]: [<Outgoing Channel Ids String>]
       [payment]: <Payment Identifier Hex Strimng>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
@@ -3990,6 +3991,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [max_fee]: <Maximum Fee Tokens To Pay Number>
       [max_timeout_height]: <Maximum Expiration CLTV Timeout Height Number>
       [outgoing_channel]: <Pay Out of Outgoing Standard Format Channel Id String>
+      [outgoing_channels]: [<Pay Out of Outgoing Standard Channel Ids String>]
       [pathfinding_timeout]: <Time to Spend Finding a Route Milliseconds Number>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
@@ -4727,6 +4729,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       }]
       [mtokens]: <Millitokens to Pay String>
       [outgoing_channel]: <Outgoing Channel Id String>
+      [outgoing_channels]: [<Outgoing Channel Ids String>]
       [path_timeout_ms]: <Time to Spend On A Path Milliseconds Number>
       [paths]: [{
         base_fee_mtokens: <Accumulated Base Fee Millitokens String>
@@ -7261,6 +7264,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       }]
       [mtokens]: <Millitokens to Probe String>
       [outgoing_channel]: <Outgoing Channel Id String>
+      [outgoing_channels]: [<Outgoing Channel Ids String>]
       [path_timeout_ms]: <Skip Individual Path Attempt After Milliseconds Number>
       [paths]: [{
         base_fee_mtokens: <Accumulated Base Fee Millitokens String>
