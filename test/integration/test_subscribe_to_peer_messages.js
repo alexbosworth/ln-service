@@ -40,23 +40,6 @@ test(`Subscribe to peer messages`, async () => {
       });
     });
 
-    try {
-      await sendMessageToPeer({
-        lnd,
-        message: Buffer.from('message').toString('hex'),
-        public_key: target.id,
-      });
-    } catch (err) {
-      const [code] = err;
-
-      // Send message to peer is not supported on LND 0.13.4 or lower
-      if (code === 501) {
-        await kill({});
-
-        return;
-      }
-    }
-
     const messages = [];
     const targetSub = subscribeToPeerMessages({lnd: target.lnd});
     const remoteSub = subscribeToPeerMessages({lnd: remote.lnd});

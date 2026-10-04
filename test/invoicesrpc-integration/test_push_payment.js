@@ -4,7 +4,6 @@ const {randomBytes} = require('node:crypto');
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -13,6 +12,7 @@ const {getInvoices} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
 const {subscribeToInvoices} = require('./../../');
 
+const capacity = 1e6;
 const interval = 10
 const keySendPreimageType = '5482373484';
 const preimageByteLength = 32;
@@ -22,14 +22,12 @@ const tokens = 100;
 
 // Pay a push payment
 test(`Pay push payment`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
   try {
     const [{generate, lnd}, target] = nodes;
 
     await generate({count: 400});
-
-    await setupChannel({generate, lnd, to: target});
 
     const preimage = randomBytes(preimageByteLength);
     let updated;

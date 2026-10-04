@@ -3,7 +3,6 @@ const {equal} = require('node:assert').strict;
 const {randomBytes} = require('node:crypto');
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {cancelHodlInvoice} = require('./../../');
@@ -12,20 +11,21 @@ const {getInvoice} = require('./../../');
 const {pay} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 
+const capacity = 1e6;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const size = 2;
 const tokens = 100;
 
 // Subscribe to canceled invoice should return invoice canceled event
 test(`Subscribe to canceled invoice`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {channels, kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target] = nodes;
+  const [{lnd}, target] = nodes;
 
   let currentInvoice;
   const secret = randomBytes(32);
 
-  const channel = await setupChannel({generate, lnd, to: target});
+  const [channel] = channels;
 
   const sub = subscribeToInvoice({
     id: createHash('sha256').update(secret).digest('hex'),

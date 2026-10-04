@@ -19,7 +19,6 @@ const {subscribeToProbeForRoute} = require('./../../');
 const capacity = 1e6;
 const channelsCount = 3;
 const interval = 10;
-const maturity = 100;
 const size = 2;
 const times = 2000;
 const tokens = 1e4;
@@ -37,23 +36,21 @@ const subscribeProbe = args => new Promise((resolve, reject) => {
 
 // Outgoing channel constraints should restrict the first hop of paths
 test(`Outgoing channels constraints`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  // The cluster opens the first channel from control to target
+  const {channels, kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [{generate, lnd}, target] = nodes;
 
   try {
-    await generate({count: maturity});
-
-    // Open multiple parallel channels so there is a choice of first hop
-    const channels = [];
-
-    for (let i = 0; i < channelsCount; i++) {
+    // Open more parallel channels so there is a choice of first hop
+    while (channels.length < channelsCount) {
       channels.push(await setupChannel({capacity, generate, lnd, to: target}));
     }
 
     const ids = channels.map(n => n.id);
 
-    await asyncRetry({interval, times}, async () => {
+    // Wait for all the channels to be active and note their starting balances
+    const starting = await asyncRetry({interval, times}, async () => {
       const active = await getChannels({lnd, is_active: true});
 
       if (active.channels.length < channelsCount) {
@@ -61,6 +58,8 @@ test(`Outgoing channels constraints`, async () => {
 
         throw new Error('ExpectedAllChannelsActive');
       }
+
+      return active.channels;
     });
 
     // Constraining to each single channel should always use that channel
@@ -202,10 +201,11 @@ test(`Outgoing channels constraints`, async () => {
     // The payments should be reflected in the outgoing channel balances
     const {channels: updated} = await getChannels({lnd});
 
-    channels.forEach(channel => {
-      const {local_balance} = updated.find(n => n.id === channel.id);
+    ids.forEach(id => {
+      const before = starting.find(n => n.id === id).local_balance;
+      const {local_balance} = updated.find(n => n.id === id);
 
-      const paidOut = channel.local_balance - local_balance;
+      const paidOut = before - local_balance;
 
       equal(paidOut >= tokens, true, 'Outgoing channel balance was paid out');
     });

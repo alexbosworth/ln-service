@@ -2,7 +2,6 @@ const {deepEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createInvoice} = require('./../../');
@@ -12,6 +11,7 @@ const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwards} = require('./../../');
 const {subscribeToPastPayments} = require('./../../');
 
+const capacity = 1e6;
 const interval = 1000;
 const size = 2;
 const times = 1000;
@@ -19,7 +19,7 @@ const tokens = 100;
 
 // Subscribing to past payments should notify on a payment
 test(`Subscribe to past payment`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
   try {
     const [{generate, lnd}, target] = nodes;
@@ -47,8 +47,6 @@ test(`Subscribe to past payment`, async () => {
 
     const {id} = invoice;
 
-    await setupChannel({generate, lnd, to: target});
-
     await payViaPaymentRequest({lnd, request: invoice.request});
 
     const {payment} = await getPayment({id, lnd});
@@ -63,14 +61,9 @@ test(`Subscribe to past payment`, async () => {
 
     const [got] = payments;
 
-    const sent = forwards.find(n => n.is_confirmed && n.is_send);
-
     [sub, sub2].forEach(n => n.removeAllListeners());
 
-    // LND 0.13.4 and below do not support preimages in forward notifications
-    if (!!sent && !!sent.secret) {
-      deepEqual(got, payment, 'Payment subscription notifies of payment');
-    }
+    deepEqual(got, payment, 'Payment subscription notifies of payment');
   } catch (err) {
     deepEqual(err, null, 'Expected no error');
   }

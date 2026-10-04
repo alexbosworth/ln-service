@@ -12,37 +12,16 @@ const {createInvoice} = require('./../../');
 const {getWalletInfo} = require('./../../');
 const {openChannel} = require('./../../');
 const {payViaRoutes} = require('./../../');
-const {sendMessageToPeer} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 const {subscribeToRpcRequests} = require('./../../');
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const interval = 10;
-const message = '00';
 const subscribeInvoiceUri = '/invoicesrpc.Invoices/SubscribeSingleInvoice';
 const times = 2000;
 
 // Subscribing to RPC requests should listen for RPC requests
 test(`Subscribe to RPC requests`, async () => {
-  // LND 0.13.4 and below do not support subscribing to RPC requests
-  {
-    const [{id, kill, lnd}] = (await spawnLightningCluster({})).nodes;
-
-    try {
-      await sendMessageToPeer({lnd, message, public_key: id});
-    } catch (err) {
-      const [, code] = err;
-
-      if (code === 'SendMessageToPeerMethodNotSupported') {
-        await kill({});
-
-        return;
-      }
-    }
-
-    await kill({});
-  }
-
   const kills = [];
 
   await asyncRetry({interval: 1000}, async () => {

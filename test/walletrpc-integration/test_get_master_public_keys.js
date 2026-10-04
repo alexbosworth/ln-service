@@ -1,4 +1,3 @@
-const {deepEqual} = require('node:assert').strict;
 const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
@@ -24,21 +23,12 @@ test(`Get master public keys`, async () => {
 
   const {fromPublicKey} = await BIP32Factory(ecc);
 
-  // This method is not supported on LND 0.13.3 and below
-  try {
-    const {keys} = await getMasterPublicKeys({lnd});
+  const {keys} = await getMasterPublicKeys({lnd});
 
-    const [,, key] = keys;
+  const [,, key] = keys;
 
-    // Check if extended keys are available
-    if (!key) {
-      await kill({});
-
-      return;
-    }
-  } catch (err) {
-    deepEqual(err, [501, 'GetMasterPublicKeysMethodNotSupported'], 'Got err');
-
+  // Check if extended keys are available
+  if (!key) {
     await kill({});
 
     return;

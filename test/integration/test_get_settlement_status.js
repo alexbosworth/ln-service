@@ -2,13 +2,13 @@ const {deepStrictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createInvoice} = require('./../../');
 const {getSettlementStatus} = require('./../../');
 const {pay} = require('./../../');
 
+const capacity = 1e6;
 const fakeChannelId = '1x1x1';
 const interval = 100;
 const size = 2;
@@ -45,15 +45,16 @@ test(`Get settlement status`, async () => {
     }
   }
 
-  const {kill, nodes} = await spawnLightningCluster({
+  const {channels, kill, nodes} = await spawnLightningCluster({
+    capacity,
     size,
     lnd_configuration: ['--store-final-htlc-resolutions'],
   });
 
-  const [{generate, lnd}, target] = nodes;
+  const [{lnd}, target] = nodes;
 
   try {
-    const channel = await setupChannel({generate, lnd, to: target});
+    const [channel] = channels;
 
     const {request} = await createInvoice({tokens, lnd: target.lnd});
 

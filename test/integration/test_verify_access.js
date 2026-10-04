@@ -15,22 +15,17 @@ test(`Verify access`, async () => {
 
   const {macaroon} = await grantAccess({lnd, permissions});
 
-  // verifyAccess is not supported on LND 0.13.4 and below
-  try {
-    const validity = await verifyAccess({lnd, macaroon, permissions});
+  const validity = await verifyAccess({lnd, macaroon, permissions});
 
-    deepEqual(validity, {is_valid: true}, 'Macaroon is valid');
+  deepEqual(validity, {is_valid: true}, 'Macaroon is valid');
 
-    const invalid = await verifyAccess({
-      lnd,
-      macaroon,
-      permissions: invalidPermissions,
-    });
+  const invalid = await verifyAccess({
+    lnd,
+    macaroon,
+    permissions: invalidPermissions,
+  });
 
-    deepEqual(invalid, {is_valid: false}, 'Message is not valid');
-  } catch (err) {
-    deepEqual(err, [501, 'VerifyAccessMethodNotSupported'], 'Got error')
-  }
+  deepEqual(invalid, {is_valid: false}, 'Message is not valid');
 
   await kill({});
 

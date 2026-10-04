@@ -40,22 +40,15 @@ test(`Create address results in address creation`, async () => {
   equal(np2wpkh.address, unusedNp2wpkh.address, 'Nested is reused');
   equal(p2wpkh.address, unusedP2wpkh.address, 'Native is reused');
 
-  try {
-    const {address} = await createChainAddress({lnd, format: 'p2tr'});
+  const {address} = await createChainAddress({lnd, format: 'p2tr'});
 
-    equal(address.startsWith(prefixForV1), true, 'A taproot address is made');
+  equal(address.startsWith(prefixForV1), true, 'A taproot address is made');
 
-    const p2trAddress = decodeBech32Address({address});
+  const p2trAddress = decodeBech32Address({address});
 
-    equal(p2trAddress.prefix, regtestBech32AddressHrp, 'addr has p2tr prefix');
-    equal(p2trAddress.program.length, p2trProgramLength, 'P2TR addr length');
-    equal(p2trAddress.version, p2trVersion, 'address has the P2TR version');
-  } catch (err) {
-    // LND 0.14.5 and below do not support TR addresses
-    const [code] = err;
-
-    equal(code, 501, 'Taproot addresses are unsupported');
-  }
+  equal(p2trAddress.prefix, regtestBech32AddressHrp, 'addr has p2tr prefix');
+  equal(p2trAddress.program.length, p2trProgramLength, 'P2TR addr length');
+  equal(p2trAddress.version, p2trVersion, 'address has the P2TR version');
 
   await kill({});
 

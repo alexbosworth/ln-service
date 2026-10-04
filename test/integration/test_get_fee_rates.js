@@ -1,22 +1,24 @@
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {getFeeRates} = require('./../../');
 
+const capacity = 1e6;
 const defaultBaseFee = 1;
 const defaultFeeRate = 1;
 const size = 2;
 
 // Getting fee rates should return the fee rates of nodes in the channel graph
 test(`Get fee rates`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const cluster = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, to] = nodes;
+  const {kill, nodes} = cluster;
 
-  const channelOpen = await setupChannel({generate, lnd, to});
+  const [{lnd}] = nodes;
+
+  const [channelOpen] = cluster.channels;
 
   const {channels} = await getFeeRates({lnd});
 

@@ -12,17 +12,6 @@ test(`Get pathfinding settings`, async () => {
 
   const [{lnd}] = nodes;
 
-  try {
-    await getPathfindingSettings({lnd});
-  } catch (err) {
-    // Get pathfinding settings is not supported in LND 0.12.1 and below
-    if (err.slice().shift() === 501) {
-      await kill({});
-
-      return;
-    }
-  }
-
   const config = await getPathfindingSettings({lnd});
 
   const expected = {

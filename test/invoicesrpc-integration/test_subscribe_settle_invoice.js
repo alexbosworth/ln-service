@@ -4,7 +4,6 @@ const {randomBytes} = require('node:crypto');
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createHodlInvoice} = require('./../../');
@@ -13,6 +12,7 @@ const {payViaPaymentRequest} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 
+const capacity = 1e6;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const interval = 10;
 const size = 2;
@@ -23,13 +23,11 @@ const tokens = 100;
 
 // Subscribe to a settled invoice should return invoice settled event
 test(`Subscribe to settled invoice`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target] = nodes;
+  const [{lnd}, target] = nodes;
 
   let currentInvoice;
-
-  await setupChannel({generate, lnd, to: target});
 
   const secret = randomBytes(32);
 

@@ -1,7 +1,6 @@
 const {deepStrictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -16,24 +15,15 @@ const {subscribeToForwardRequests} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
 const waitForRoute = require('./../macros/wait_for_route');
 
+const capacity = 1e6;
 const size = 3;
 const tokens = 100;
 
 // Getting pending payments should list out payments in flight
 test(`Get pending payments`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target, remote] = nodes;
-
-  const channel = await setupChannel({generate, lnd, to: target});
-
-  await remote.generate({count: 100});
-
-  const remoteChan = await setupChannel({
-    lnd: target.lnd,
-    generate: target.generate,
-    to: remote,
-  });
+  const [{lnd}, target, remote] = nodes;
 
   await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 

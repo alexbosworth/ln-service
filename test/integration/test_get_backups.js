@@ -2,21 +2,23 @@ const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {getBackups} = require('./../../');
 
+const capacity = 1e6;
 const size = 2;
 
 // Getting a set of channel backups should return channel backups
 test(`Get channel backup`, async () => {
   await asyncRetry({}, async () => {
-    const {kill, nodes} = await spawnLightningCluster({size});
+    const cluster = await spawnLightningCluster({capacity, size});
 
-    const [{generate, lnd}, target] = nodes;
+    const {kill, nodes} = cluster;
 
-    const channel = await setupChannel({generate, lnd, to: target});
+    const [{lnd}] = nodes;
+
+    const [channel] = cluster.channels;
 
     const {backup, channels} = await getBackups({lnd});
 

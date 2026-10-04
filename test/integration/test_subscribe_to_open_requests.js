@@ -77,10 +77,7 @@ test(`Subscribe to open requests`, async () => {
   const acceptSub = subscribeToOpenRequests({lnd});
 
   acceptSub.on('channel_request', request => {
-    // LND 0.11.1 and below defaulted the commit fee to a higher value
-    if (request.commit_fee_tokens_per_vbyte !== 10) {
-      equal(request.commit_fee_tokens_per_vbyte, 50, 'Got commit fee tokens');
-    }
+    equal(request.commit_fee_tokens_per_vbyte, 10, 'Got commit fee tokens');
 
     equal(request.capacity, channelCapacityTokens, 'Channel capacity tokens');
     equal(request.chain, regtestGenesisHash, 'Got chain in request');

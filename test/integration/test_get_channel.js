@@ -1,22 +1,20 @@
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {getChannel} = require('./../../');
 const {getChannels} = require('./../../');
 
 const {ceil} = Math;
+const capacity = 1e6;
 const size = 2;
 
 // Getting a channel should return channel details from the channel graph
 test(`Get channel`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target] = nodes;
-
-  await setupChannel({generate, lnd, to: target});
+  const [{lnd}] = nodes;
 
   const [channel] = (await getChannels({lnd})).channels;
 

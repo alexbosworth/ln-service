@@ -2,13 +2,13 @@ const {deepEqual} = require('node:assert').strict;
 const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {getChannel} = require('./../../');
 const {updateRoutingFees} = require('./../../');
 
 const baseFeeTokens = 9;
+const capacity = 1e6;
 const channelCapacityTokens = 1e6;
 const cltvDelta = 24;
 const confirmationCount = 6;
@@ -21,13 +21,13 @@ const size = 2;
 
 // Updating routing fees should update routing fees
 test(`Update routing fees`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {channels, kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [control, target] = nodes;
 
-  const {generate, lnd} = control;
+  const {lnd} = control;
 
-  const channelOpen = await setupChannel({generate, lnd, to: target});
+  const [channelOpen] = channels;
 
   const {id} = channelOpen;
 
@@ -70,10 +70,7 @@ test(`Update routing fees`, async () => {
     transaction_vout: 1,
   }];
 
-  // Failures is not supported on LND 0.13.4 and below
-  if (!!failures.length) {
-    deepEqual(failures, expectedFailures, 'Got expected failures');
-  }
+  deepEqual(failures, expectedFailures, 'Got expected failures');
 
   {
     const lnd = target.lnd;

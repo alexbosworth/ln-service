@@ -3,12 +3,10 @@ const {equal} = require('node:assert').strict;
 const {rejects} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createHodlInvoice} = require('./../../');
 const {createInvoice} = require('./../../');
-const {getChannelBalance} = require('./../../');
 const {getChannels} = require('./../../');
 const {getInvoice} = require('./../../');
 const {getInvoices} = require('./../../');
@@ -16,7 +14,7 @@ const {getWalletInfo} = require('./../../');
 const {pay} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
 
-const anchorFeatureBit = 23;
+const capacity = 1e6;
 const cltvDelta = 144;
 const size = 3;
 const sweepBlockCount = 40;
@@ -24,25 +22,9 @@ const tokens = 100;
 
 // Create a hodl invoice
 test(`Pay a hodl invoice`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [control, target, remote] = nodes;
-
-  const {features} = await getWalletInfo({lnd: control.lnd});
-
-  const isAnchors = !!features.find(n => n.bit === anchorFeatureBit);
-
-  await setupChannel({
-    generate: control.generate,
-    lnd: control.lnd,
-    to: target,
-  });
-
-  await setupChannel({
-    lnd: target.lnd,
-    generate: target.generate,
-    to: remote,
-  });
 
   const {id, request, secret} = await createInvoice({lnd: remote.lnd});
 
@@ -89,25 +71,6 @@ test(`Pay a hodl invoice`, async () => {
     equal(invoice.is_held, true, 'HTLC is locked in place');
 
     const [held] = (await getInvoices({lnd})).invoices;
-
-    const controlChannelBalance = await getChannelBalance({lnd});
-
-    // LND 0.11.1 and below do not support extended channel balance details
-    if (!isAnchors) {
-      if (!!controlChannelBalance.channel_balance_mtokens) {
-        deepEqual(controlChannelBalance, {
-          channel_balance: 990950,
-          channel_balance_mtokens: '990950000',
-          inbound: 990850,
-          inbound_mtokens: '990850000',
-          pending_balance: 0,
-          pending_inbound: 0,
-          unsettled_balance: tokens,
-          unsettled_balance_mtokens: '100000',
-        },
-        'Channel balance is updated');
-      }
-    }
 
     deepEqual(invoice, held, 'Invoice is held');
 

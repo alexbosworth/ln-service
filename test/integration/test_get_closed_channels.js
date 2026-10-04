@@ -9,7 +9,6 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 const {closeChannel} = require('./../../');
 const {createHodlInvoice} = require('./../../');
 const {getClosedChannels} = require('./../../');
-const {getWalletInfo} = require('./../../');
 const {settleHodlInvoice} = require('./../../');
 const {subscribeToInvoice} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
@@ -45,10 +44,6 @@ test(`Get closed channels`, async t => {
     transaction_vout: channelOpen.transaction_vout,
   });
 
-  const {features} = await getWalletInfo({lnd});
-
-  const isAnchors = !!features.find(n => n.bit === 23);
-
   // Wait for channel to close
   await asyncRetry({interval, times}, async () => {
     await generate({});
@@ -68,12 +63,7 @@ test(`Get closed channels`, async t => {
 
   const spend = maxChanTokens - channel.final_local_balance;
 
-  // LND 0.11.1 and below do not use anchors
-  if (isAnchors) {
-    strictEqual([53345, 28473, 2810].includes(spend), true, 'Final');
-  } else {
-    strictEqual(spend, 9050, 'Final');
-  }
+  strictEqual([53345, 28473, 2810].includes(spend), true, 'Final');
 
   strictEqual(channel.capacity, maxChanTokens, 'Channel capacity reflected');
   strictEqual(!!channel.close_confirm_height, true, 'Channel close height');

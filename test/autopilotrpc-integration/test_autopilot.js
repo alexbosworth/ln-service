@@ -1,7 +1,6 @@
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -9,6 +8,7 @@ const {getAutopilot} = require('./../../');
 const {setAutopilot} = require('./../../');
 
 const avg = array => array.reduce((a, b) => a + b) / array.length;
+const capacity = 1e6;
 const confirmationCount = 6;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const maxScore = 1e8;
@@ -17,15 +17,13 @@ const size = 2;
 
 // Adjusting autopilot should result in changed autopilot status
 test(`Autopilot`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [control, target] = nodes;
 
   const cluster = {control, target};
 
   const {lnd} = cluster.control;
-
-  await setupChannel({lnd, generate: control.generate, to: cluster.target});
 
   strictEqual(
     (await getAutopilot({lnd})).is_enabled,

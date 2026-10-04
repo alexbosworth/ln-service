@@ -1,21 +1,24 @@
 const {deepStrictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {getBackup} = require('./../../');
 const {verifyBackup} = require('./../../');
 
+const capacity = 1e6;
 const size = 2;
 
 // Getting a channel backup should return a channel backup
 test(`Get channel backup`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {channels, kill, nodes} = await spawnLightningCluster({
+    capacity,
+    size,
+  });
 
-  const [{generate, lnd}, target] = nodes;
+  const [{lnd}] = nodes;
 
-  const channel = await setupChannel({generate, lnd, to: target});
+  const [channel] = channels;
 
   const {backup} = await getBackup({
     lnd,

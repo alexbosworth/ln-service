@@ -14,21 +14,6 @@ test(`Get chain addresses`, async () => {
   const [{generate, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   try {
-    await getChainAddresses({lnd});
-  } catch (err) {
-    // LND 0.12.1 does not support getting locked UTXOs
-    deepEqual(
-      err,
-      [501, 'BackingLndDoesNotSupportGettingChainAddresses'],
-      'Got unsupported error'
-    );
-
-    await kill({});
-
-    return;
-  }
-
-  try {
     const expected = [
       {
         address: (await createChainAddress({lnd, format: 'np2wpkh'})).address,

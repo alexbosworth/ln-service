@@ -3,7 +3,6 @@ const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -11,6 +10,7 @@ const {createInvoice} = require('./../../');
 const {getForwards} = require('./../../');
 const {pay} = require('./../../');
 
+const capacity = 1e6;
 const delay = n => new Promise(resolve => setTimeout(resolve, n));
 const interval = 100;
 const limit = 1;
@@ -20,29 +20,9 @@ const tokens = 100;
 
 // Getting forwarded payments should return all forwarded payments
 test('Get forwards', async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target, remote] = nodes;
-
-  await asyncRetry({interval, times}, async () => {
-    await generate({});
-
-    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
-
-    await setupChannel({generate, lnd, to: target});
-  });
-
-  await asyncRetry({interval, times}, async () => {
-    await generate({});
-
-    await addPeer({lnd, public_key: remote.id, socket: remote.socket});
-
-    await setupChannel({
-      lnd: target.lnd,
-      generate: target.generate,
-      to: remote,
-    });
-  });
+  const [{lnd}, target, remote] = nodes;
 
   await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 

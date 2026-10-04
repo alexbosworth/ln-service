@@ -53,25 +53,6 @@ test(`Begin group signing session`, async () => {
 
   const [{generate, lnd}, target] = nodes;
 
-  try {
-    await beginGroupSigningSession({
-      lnd,
-      is_key_spend: true,
-      key_family: 0,
-      key_index: 0,
-      public_keys: [Buffer.alloc(33, 2).toString('hex')],
-    });
-  } catch (err) {
-    // On LND 0.14.5 and below, group signing is not supported
-    if (err.slice().shift() === 501) {
-      await kill({});
-
-      return;
-    }
-
-    throw err;
-  }
-
   // A Taproot script can be funded and spent with MuSig2
   try {
     await generate({count});

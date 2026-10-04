@@ -20,23 +20,6 @@ test(`Send peer message`, async () => {
   const [{generate, id, lnd}, target] = nodes;
 
   try {
-    await sendMessageToPeer({
-      lnd,
-      message: Buffer.from('message').toString('hex'),
-      public_key: target.id,
-    });
-  } catch (err) {
-    const [code] = err;
-
-    // Send message to peer is not supported on LND 0.13.4 or lower
-    if (code === 501) {
-      await kill({});
-
-      return;
-    }
-  }
-
-  try {
     await asyncRetry({interval, times}, async () => {
       await generate({});
 

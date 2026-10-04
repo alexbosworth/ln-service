@@ -44,31 +44,15 @@ test(`Sign PSBT`, async () => {
   const [utxo] = (await getUtxos({lnd: control.lnd})).utxos;
 
   const funded = await asyncRetry({interval, times}, async () => {
-    try {
-      return await fundPsbt({
-        inputs: [{
-          transaction_id: utxo.transaction_id,
-          transaction_vout: utxo.transaction_vout,
-        }],
-        lnd: control.lnd,
-        outputs: [{address, tokens}],
-      });
-    } catch (err) {
-      // On LND 0.11.1 and below, funding a PSBT is not supported
-      if (err.slice().shift() === 501) {
-        return;
-      }
-
-      throw err;
-    }
+    return await fundPsbt({
+      inputs: [{
+        transaction_id: utxo.transaction_id,
+        transaction_vout: utxo.transaction_vout,
+      }],
+      lnd: control.lnd,
+      outputs: [{address, tokens}],
+    });
   });
-
-  // On LND 0.11.1 and below, funding a PSBT is not supported
-  if (!funded) {
-    await kill({});
-
-    return;
-  }
 
   const finalized = await signPsbt({lnd: control.lnd, psbt: funded.psbt});
 

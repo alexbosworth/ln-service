@@ -153,12 +153,7 @@ test(`Get pending channels`, async () => {
   strictEqual(forceClose.received, 0, 'No receive amount');
   strictEqual(forceClose.recovered_tokens, undefined, 'No recovered amount');
 
-  // LND 0.14.5 and below do not support remote balance info
-  if (!!forceClose.remote_balance) {
-    strictEqual(forceClose.remote_balance, giftTokens, 'Got gift remote');
-  } else {
-    strictEqual(forceClose.remote_balance, 0, 'No remote balance');
-  }
+  strictEqual(forceClose.remote_balance, giftTokens, 'Got gift remote');
 
   strictEqual(forceClose.sent, 0, 'No sent amount');
   strictEqual(!!forceClose.timelock_blocks, true, 'Timelock blocks set');

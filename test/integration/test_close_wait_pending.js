@@ -9,11 +9,11 @@ const {getInvoice} = require('./../../');
 const {getChannels} = require('./../../');
 const {getClosedChannels} = require('./../../');
 const {pay} = require('./../../');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {closeChannel} = require('./../../');
 
+const capacity = 1e6;
 const interval = 100;
 const size = 2;
 const times = 1000;
@@ -21,17 +21,16 @@ const tokens = 10;
 
 // Closing a pending payments channel should close the channel after a wait
 test(`Close channel with wait for pending`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {channels, kill, nodes} = await spawnLightningCluster({
+    capacity,
+    size,
+  });
 
   const [control, target] = nodes;
 
   try {
-    // Open a channel from control to target
-    const channelOpen = await setupChannel({
-      generate: control.generate,
-      lnd: control.lnd,
-      to: target,
-    });
+    // The cluster opened a channel from control to target
+    const [channelOpen] = channels;
 
     // Create a hold invoice to create the pending state
     const invoice = await createHodlInvoice({tokens, lnd: target.lnd});

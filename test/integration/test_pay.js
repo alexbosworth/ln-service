@@ -4,7 +4,6 @@ const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -15,6 +14,7 @@ const {getRouteToDestination} = require('./../../');
 const {openChannel} = require('./../../');
 const {pay} = require('./../../');
 
+const capacity = 1e6;
 const confirmationCount = 6;
 const interval = 10;
 const mtokPadding = '000';
@@ -24,24 +24,16 @@ const tokens = 100;
 
 // Paying an invoice should settle the invoice
 test(`Pay`, async ({end, equal, strictSame}) => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {channels, kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [{generate, lnd}, target, remote] = nodes;
 
   try {
-    const channel = await setupChannel({generate, lnd, to: target});
-
-    const remoteChan = await setupChannel({
-      generate: target.generate,
-      lnd: target.lnd,
-      to: remote,
-    });
+    const [channel, remoteChan] = channels;
 
     await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
     const invoice = await createInvoice({tokens, lnd: remote.lnd});
-
-    const commitTxFee = channel.commit_transaction_fee;
 
     const paid = await asyncRetry({interval, times}, async () => {
       return await pay({lnd, request: invoice.request});

@@ -1,21 +1,19 @@
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {getNetworkInfo} = require('./../../');
 
+const capacity = 1e6;
 const size = 2;
 const tokens = 1e6;
 
 // Getting the network info should return basic network statistics
 test(`Get network info`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target] = nodes;
-
-  await setupChannel({generate, lnd, to: target});
+  const [{lnd}] = nodes;
 
   const result = await getNetworkInfo({lnd});
 

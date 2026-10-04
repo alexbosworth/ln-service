@@ -2,7 +2,6 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -14,6 +13,7 @@ const {payViaPaymentRequest} = require('./../../');
 const {probeForRoute} = require('./../../');
 const waitForRoute = require('./../macros/wait_for_route');
 
+const capacity = 1e6;
 const flatten = arr => [].concat(...arr);
 const interval = 10;
 const size = 3;
@@ -23,23 +23,11 @@ const tokens = 1e6 / 2;
 
 // Deleting forwarding reputations should eliminate forwarding reputations
 test('Delete forwarding reputations', async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target, remote] = nodes;
+  const [{lnd},, remote] = nodes;
 
   try {
-    const controlToTargetChan = await setupChannel({
-      generate,
-      lnd,
-      to: target,
-    });
-
-    const targetToRemoteChan = await setupChannel({
-      generate: target.generate,
-      lnd: target.lnd,
-      to: remote,
-    });
-
     await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
     const {id, request} = await createInvoice({tokens, lnd: remote.lnd});

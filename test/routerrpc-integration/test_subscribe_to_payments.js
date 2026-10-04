@@ -2,7 +2,6 @@ const {deepEqual} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createInvoice} = require('./../../');
@@ -12,6 +11,7 @@ const {payViaPaymentRequest} = require('./../../');
 const {subscribeToForwards} = require('./../../');
 const {subscribeToPayments} = require('./../../');
 
+const capacity = 1e6;
 const interval = 1000;
 const size = 2;
 const times = 1000;
@@ -20,7 +20,7 @@ const unsupported = 'unknown method TrackPayments for service routerrpc.Router';
 
 // Subscribing to payments should notify on a payment
 test(`Subscribe to payments`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [{generate, lnd}, target] = nodes;
 
@@ -44,8 +44,6 @@ test(`Subscribe to payments`, async () => {
     const invoice = await createInvoice({tokens, lnd: target.lnd});
 
     const {id} = invoice;
-
-    await setupChannel({generate, lnd, to: target});
 
     const sub = subscribeToPayments({lnd});
     const sub2 = subscribeToForwards({lnd});

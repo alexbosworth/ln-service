@@ -13,7 +13,6 @@ const {deleteForwardingReputations} = require('./../../');
 const {getChainBalance} = require('./../../');
 const {getFailedPayments} = require('./../../');
 const {getWalletInfo} = require('./../../');
-const {getWalletVersion} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const {probeForRoute} = require('./../../');
 const {sendToChainAddress} = require('./../../');
@@ -91,15 +90,9 @@ test('Probe for route', async () => {
       equal(failure.reason, 'TemporaryChannelFailure', 'Temporary failure');
     }
 
-    const {version} = await getWalletVersion({lnd});
+    const {payments} = await getFailedPayments({lnd});
 
-    const [, minor] = (version || '').split('.');
-
-    if (!version || parseInt(minor) > 13) {
-      const {payments} = await getFailedPayments({lnd});
-
-      deepEqual(payments, [], 'Probes do not leave a failed state behind');
-    }
+    deepEqual(payments, [], 'Probes do not leave a failed state behind');
 
     // Create a new channel to increase total edge liquidity
     await setupChannel({

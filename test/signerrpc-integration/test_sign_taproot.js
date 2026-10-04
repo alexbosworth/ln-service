@@ -15,7 +15,6 @@ const tinysecp = require('tiny-secp256k1');
 const {transactionFromComponents} = require('@alexbosworth/blockchain');
 const {v1OutputScript} = require('p2tr');
 
-const {beginGroupSigningSession} = require('./../../');
 const {broadcastChainTransaction} = require('./../../');
 const {createChainAddress} = require('./../../');
 const {fundPsbt} = require('./../../');
@@ -50,48 +49,20 @@ test(`Sign a taproot transaction`, async () => {
 
   const [{generate, lnd}] = nodes;
 
-  try {
-    await beginGroupSigningSession({
-      lnd,
-      is_key_spend: true,
-      key_family: 0,
-      key_index: 0,
-      public_keys: [Buffer.alloc(33, 2).toString('hex')],
-    });
-  } catch (err) {
-    // On LND 0.14.5 and below, taproot signing is not supported
-    if (err.slice().shift() === 501) {
-      await kill({});
-
-      return;
-    }
-
-    throw err;
-  }
-
   await generate({count});
 
   const {address} = await createChainAddress({lnd});
   const [utxo] = (await getUtxos({lnd})).utxos;
 
   const funded = await asyncRetry({interval, times}, async () => {
-    try {
-      return await fundPsbt({
-        lnd,
-        inputs: [{
-          transaction_id: utxo.transaction_id,
-          transaction_vout: utxo.transaction_vout,
-        }],
-        outputs: [{address, tokens}],
-      });
-    } catch (err) {
-      // On LND 0.11.1 and below, funding a PSBT is not supported
-      if (err.slice().shift() === 501) {
-        return;
-      }
-
-      throw err;
-    }
+    return await fundPsbt({
+      lnd,
+      inputs: [{
+        transaction_id: utxo.transaction_id,
+        transaction_vout: utxo.transaction_vout,
+      }],
+      outputs: [{address, tokens}],
+    });
   });
 
   // A Taproot script output should be funded and spent with script

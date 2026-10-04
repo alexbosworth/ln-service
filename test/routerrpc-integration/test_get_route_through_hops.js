@@ -3,7 +3,6 @@ const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
 const asyncRetry = require('async/retry');
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -17,6 +16,7 @@ const {getWalletInfo} = require('./../../');
 const {payViaRoutes} = require('./../../');
 const waitForRoute = require('./../macros/wait_for_route');
 
+const capacity = 1e6;
 const confirmationCount = 6;
 const flatten = arr => [].concat(...arr);
 const interval = 10;
@@ -29,33 +29,9 @@ const tokens = 100;
 
 // Getting a route through hops should result in a route through specified hops
 test(`Get route through hops`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [{generate, lnd}, target, remote] = nodes;
-
-  const controlToTargetChan = await asyncRetry({interval, times}, async () => {
-    await generate({});
-
-    return await setupChannel({generate, lnd, to: target});
-  });
-
-  await generate({});
-
-  await asyncRetry({interval, times}, async () => {
-    await generate({});
-
-    await addPeer({
-      lnd: target.lnd,
-      public_key: remote.id,
-      socket: remote.socket,
-    });
-
-    const targetToRemoteChan = await setupChannel({
-      generate: target.generate,
-      lnd: target.lnd,
-      to: remote,
-    });
-  });
 
   await target.generate({count: confirmationCount});
 

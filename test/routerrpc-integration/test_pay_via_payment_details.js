@@ -2,7 +2,6 @@ const {deepEqual} = require('node:assert').strict;
 const {equal} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -14,6 +13,7 @@ const {getInvoices} = require('./../../');
 const {payViaPaymentDetails} = require('./../../');
 const waitForRoute = require('./../macros/wait_for_route');
 
+const capacity = 1e6;
 const size = 3;
 const start = new Date().toISOString();
 const tlvData = '0000';
@@ -22,18 +22,12 @@ const tokens = 100;
 
 // Paying an invoice via payment details should settle the invoice
 test(`Pay via payment details`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {channels, kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target, remote] = nodes;
+  const [{lnd}, target, remote] = nodes;
 
   try {
-    const channel = await setupChannel({lnd, generate, to: target});
-
-    const remoteChan = await setupChannel({
-      generate: target.generate,
-      lnd: target.lnd,
-      to: remote,
-    });
+    const [channel, remoteChan] = channels;
 
     await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 

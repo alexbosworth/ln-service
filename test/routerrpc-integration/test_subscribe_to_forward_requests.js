@@ -4,7 +4,6 @@ const {once} = require('node:events');
 const {rejects} = require('node:assert').strict;
 const test = require('node:test');
 
-const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {addPeer} = require('./../../');
@@ -18,24 +17,17 @@ const {subscribeToForwardRequests} = require('./../../');
 const {subscribeToPayViaRequest} = require('./../../');
 const waitForRoute = require('./../macros/wait_for_route');
 
+const capacity = 1e6;
 const size = 3;
 const tokens = 100;
 
 // Subscribing to forward requests should intercept forwards
 test(`Subscribe to requests`, async () => {
-  const {kill, nodes} = await spawnLightningCluster({size});
+  const {channels, kill, nodes} = await spawnLightningCluster({capacity, size});
 
-  const [{generate, lnd}, target, remote] = nodes;
+  const [{lnd}, target, remote] = nodes;
 
-  const channel = await setupChannel({generate, lnd, to: target});
-
-  await remote.generate({count: 100});
-
-  const remoteChan = await setupChannel({
-    lnd: target.lnd,
-    generate: target.generate,
-    to: remote,
-  });
+  const [channel, remoteChan] = channels;
 
   await addPeer({lnd, public_key: remote.id, socket: remote.socket});
 
