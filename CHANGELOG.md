@@ -1,5 +1,11 @@
 # Versions
 
+## 60.1.3
+
+- `getChannels`, `subscribeToChannels`: Fix `pending_payments` returning
+    `payment`, `in_payment` and `out_payment` as undefined when the HTLC
+    index is zero, `payment` is now always present
+
 ## 60.1.2
 
 - Add support for LND 0.21.4

@@ -95,7 +95,7 @@ lnService.getWalletInfo({lnd}, (err, result) => {
 const nodePublicKey = (await lnService.getWalletInfo({lnd})).public_key;
 ```
 
-An [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) function is also available
+An [unauthenticatedLndGrpc](#unauthenticatedlndgrpc) function is also available
 for `unlocker` methods.
 
 ## Subscriptions
@@ -203,6 +203,7 @@ for `unlocker` methods.
 - [getLockedUtxos](#getlockedutxos) - Get all previously locked UTXOs
 - [getMasterPublicKeys](#getmasterpublickeys) - Get a list of master pub keys
 - [getMethods](#getmethods) - Get available methods and associated permissions
+- [getMinimumRelayFee](#getminimumrelayfee) - Get the minimum chain relay fee
 - [getNetworkCentrality](#getnetworkcentrality) - Get centrality score for nodes
 - [getNetworkGraph](#getnetworkgraph) - Get the channels and nodes of the graph
 - [getNetworkInfo](#getnetworkinfo) - Get high-level graph info
@@ -230,7 +231,6 @@ for `unlocker` methods.
 - [getWalletStatus](#getwalletstatus) - Get the status of the wallet
 - [getWalletVersion](#getwalletversion) - Get the build and version of the LND
 - [grantAccess](#grantaccess) - Grant an access credential macaroon
-- [grpcProxyServer](#grpcproxyserver) - REST proxy server for calling to gRPC
 - [isDestinationPayable](#isdestinationpayable) - Check can pay to destination
 - [lockUtxo](#lockutxo) - Lock a UTXO temporarily to prevent it being used
 - [openChannel](#openchannel) - Open a new channel
@@ -294,12 +294,11 @@ for `unlocker` methods.
 - [subscribeToPeerMessages](#subscribetopeermessages) - Listen to incoming
     custom messages
 - [subscribeToPeers](#subscribetopeers) - Subscribe to peers connectivity
-- [subscribeToProbe](#subscribetoprobe) - Subscribe to a probe for a route
 - [subscribeToProbeForRoute](#subscribetoprobeforroute) - Probe for a route
 - [subscribeToRpcRequests](#subscribetorpcrequests) - Subscribe to rpc requests
 - [subscribeToTransactions](#subscribetotransactions) - Subscribe to chain tx
 - [subscribeToWalletStatus](#subscribetowalletstatus) - Subscribe to node state
-- [unauthenticatedLndGrpc](#unauthenticatedLndGrpc) - LND for locked lnd APIs
+- [unauthenticatedLndGrpc](#unauthenticatedlndgrpc) - LND for locked lnd APIs
 - [unlockUtxo](#unlockutxo) - Release a locked UTXO so that it can be used
     again
 - [unlockWallet](#unlockwallet) - Unlock a locked lnd
@@ -1947,9 +1946,6 @@ Get channels
 
 Requires `offchain:read` permission
 
-`in_channel`, `in_payment`, `is_forward`, `out_channel`, `out_payment`,
-`payment` are not supported on LND 0.11.1 and below
-
 `is_trusted_funding` is not supported on LND 0.15.0 and below
 
 `description` is not supported on LND 0.16.4 and below
@@ -1999,7 +1995,7 @@ Requires `offchain:read` permission
           is_outgoing: <Payment Is Outgoing Bool>
           [out_channel]: <Forward Outbound To Channel Id String>
           [out_payment]: <Payment Index on Outbound Channel Number>
-          [payment]: <Payment Attempt Id Number>
+          payment: <Payment Attempt Id Number>
           timeout: <Chain Height Expiration Number>
           tokens: <Payment Tokens Number>
         }]
@@ -3583,7 +3579,7 @@ Preferred `confidence` is not supported on LND 0.14.5 and below
       [mtokens]: <Tokens to Send String>
       [outgoing_channel]: <Outgoing Channel Id String>
       [outgoing_channels]: [<Outgoing Channel Ids String>]
-      [payment]: <Payment Identifier Hex Strimng>
+      [payment]: <Payment Identifier Hex String>
       [routes]: [[{
         [base_fee_mtokens]: <Base Routing Fee In Millitokens String>
         [channel]: <Standard Format Channel Id String>
@@ -5851,8 +5847,8 @@ Requires `offchain:read` permission
       is_cooperative_close: <Is Cooperative Close Bool>
       is_funding_cancel: <Is Funding Cancelled Close Bool>
       is_local_force_close: <Is Local Force Close Bool>
-      [is_partner_closed]: <Channel Was Closed By Channel Peer Bool>
-      [is_partner_initiated]: <Channel Was Initiated By Channel Peer Bool>
+      is_partner_closed: <Channel Was Closed By Channel Peer Bool>
+      is_partner_initiated: <Channel Was Initiated By Channel Peer Bool>
       is_remote_force_close: <Is Remote Force Close Bool>
       other_ids: [<Other Channel Id String>]
       partner_public_key: <Partner Public Key Hex String>
@@ -5876,19 +5872,25 @@ Requires `offchain:read` permission
       is_private: <Channel Is Private Bool>
       [is_trusted_funding]: <Funding Output is Trusted Bool>
       local_balance: <Local Balance Tokens Number>
-      [local_given]: <Local Initially Pushed Tokens Number>
+      local_given: <Local Initially Pushed Tokens Number>
       local_reserve: <Local Reserved Tokens Number>
       partner_public_key: <Channel Partner Public Key String>
       past_states: <Total Count of Past Channel States Number>
       pending_payments: [{
         id: <Payment Preimage Hash Hex String>
+        [in_channel]: <Forward Inbound From Channel Id String>
+        [in_payment]: <Payment Index on Inbound Channel Number>
+        [is_forward]: <Payment is a Forward Bool>
         is_outgoing: <Payment Is Outgoing Bool>
+        [out_channel]: <Forward Outbound To Channel Id String>
+        [out_payment]: <Payment Index on Outbound Channel Number>
+        payment: <Payment Attempt Id Number>
         timeout: <Chain Height Expiration Number>
         tokens: <Payment Tokens Number>
       }]
       received: <Received Tokens Number>
       remote_balance: <Remote Balance Tokens Number>
-      [remote_given]: <Remote Initially Pushed Tokens Number>
+      remote_given: <Remote Initially Pushed Tokens Number>
       remote_reserve: <Remote Reserved Tokens Number>
       sent: <Sent Tokens Number>
       transaction_id: <Blockchain Transaction Id String>
@@ -6142,7 +6144,6 @@ Requires `invoices:read` permission
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
       [is_held]: <HTLC is Held Bool>
-      is_outgoing: <Invoice is Outgoing Bool>
       is_private: <Invoice is Private Bool>
       [is_push]: <Invoice is Push Payment Bool>
       mtokens: <Invoiced Millitokens String>
@@ -6205,6 +6206,7 @@ Requires `invoices:read` permission
       [chain_address]: <Fallback Chain Address String>
       cltv_delta: <Final CLTV Delta Number>
       [confirmed_at]: <Confirmed At ISO 8601 Date String>
+      [confirmed_index]: <Confirmed Index Number>
       created_at: <Created At ISO 8601 Date String>
       description: <Description String>
       description_hash: <Description Hash Hex String>
@@ -6216,8 +6218,8 @@ Requires `invoices:read` permission
         name: <Feature Name String>
       }]
       id: <Invoice Payment Hash Hex String>
+      index: <Invoice Index Number>
       is_confirmed: <Invoice is Confirmed Bool>
-      is_outgoing: <Invoice is Outgoing Bool>
       [is_push]: <Invoice is Push Payment Bool>
       mtokens: <Invoiced Millitokens String>
       [payment]: <Payment Identifying Secret Hex String>
