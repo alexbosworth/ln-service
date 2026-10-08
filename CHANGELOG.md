@@ -1,5 +1,10 @@
 # Versions
 
+## 60.1.4
+
+- `getWalletInfo`, `stopDaemon`: Fix detection of the daemon being offline to
+    handle newer connection failure and shutdown error messages
+
 ## 60.1.3
 
 - `getChannels`, `subscribeToChannels`: Fix `pending_payments` returning
