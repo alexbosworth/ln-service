@@ -1,4 +1,3 @@
-const {exit} = require('node:process');
 const {fail} = require('node:assert').strict;
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
@@ -12,7 +11,8 @@ const {stopDaemon} = require('./../../');
 test(`Stop daemon`, async t => {
   const [{kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
-  t.after(() => exit());
+  // Stop the spawned nodes whether the test passes or fails
+  t.after(() => kill({}));
 
   await stopDaemon({lnd});
 
@@ -26,8 +26,6 @@ test(`Stop daemon`, async t => {
     strictEqual(code, 503, 'Error code indicates daemon offline');
     strictEqual(message, 'FailedToConnectToDaemon', 'Error indicates offline');
   }
-
-  await kill({});
 
   return;
 });

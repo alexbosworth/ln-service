@@ -1,17 +1,31 @@
+const {deepStrictEqual} = require('node:assert').strict;
 const {ok} = require('node:assert').strict;
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
+const {addPeer} = require('./../../');
+const {cancelHodlInvoice} = require('./../../');
+const {createHodlInvoice} = require('./../../');
 const {getChannels} = require('./../../');
+const {getHeight} = require('./../../');
+const {getInvoice} = require('./../../');
 const {getWalletInfo} = require('./../../');
+const {subscribeToPayViaRequest} = require('./../../');
+const waitForRoute = require('./../macros/wait_for_route');
 
 const anchorFeatureBit = 23;
+const capacity = 1e6;
+const firstHtlcIndex = 0;
 const giveTokens = 1e5;
+const interval = 100;
 const remoteCsv = 40;
 const size = 2;
+const times = 1000;
+const tokens = 100;
 
 // Getting channels should return the list of channels
 test(`Get channels`, async () => {
@@ -79,6 +93,177 @@ test(`Get channels`, async () => {
   strictEqual(channel.unsettled_balance, 0, 'Channel unsettled balance');
 
   await kill({});
+
+  return;
+});
+
+// Getting channels should return pending payments, including first HTLCs
+test(`Get channels with pending payments`, async () => {
+  const {kill, nodes} = await spawnLightningCluster({capacity, size: 3});
+
+  const [control, target, remote] = nodes;
+
+  const subs = [];
+
+  try {
+    await addPeer({
+      lnd: control.lnd,
+      public_key: remote.id,
+      socket: remote.socket,
+    });
+
+    const {routes} = await waitForRoute({
+      tokens,
+      destination: remote.id,
+      lnd: control.lnd,
+    });
+
+    const [route] = routes;
+
+    // Hold a payment open so that there are HTLCs on every channel
+    const invoice = await createHodlInvoice({tokens, lnd: remote.lnd});
+
+    const sub = subscribeToPayViaRequest({
+      lnd: control.lnd,
+      request: invoice.request,
+    });
+
+    subs.push(sub);
+
+    sub.on('error', () => {});
+
+    await asyncRetry({interval, times}, async () => {
+      const {is_held} = await getInvoice({id: invoice.id, lnd: remote.lnd});
+
+      if (!is_held) {
+        throw new Error('ExpectedPaymentHeldAtRemote');
+      }
+    });
+
+    const {current_block_height} = await getHeight({lnd: control.lnd});
+
+    // Wait for every node to reflect the held HTLC on its channels
+    const [controlChans, targetChans, remoteChans] = await asyncRetry({
+      interval,
+      times,
+    },
+    async () => {
+      const lists = await Promise.all(nodes.map(async ({lnd}) => {
+        return (await getChannels({lnd})).channels;
+      }));
+
+      const [, targetList] = lists;
+
+      const pending = [].concat(...lists).map(n => n.pending_payments);
+
+      if (pending.filter(n => n.length === 1).length !== 4) {
+        throw new Error('ExpectedPendingPaymentsOnAllChannels');
+      }
+
+      // The forwarding node needs to know about both sides of the forward
+      if (targetList.find(n => !n.pending_payments[0].is_forward)) {
+        throw new Error('ExpectedForwardingDetailsOnTargetHtlcs');
+      }
+
+      return lists;
+    });
+
+    const [controlChannel] = controlChans;
+    const [remoteChannel] = remoteChans;
+
+    const targetIn = targetChans.find(n => n.id === controlChannel.id);
+    const targetOut = targetChans.find(n => n.id === remoteChannel.id);
+
+    strictEqual(controlChans.length, 1, 'Control has a channel with target');
+    strictEqual(remoteChans.length, 1, 'Remote has a channel with target');
+    strictEqual(!!targetIn, true, 'Target has channel with control');
+    strictEqual(!!targetOut, true, 'Target has channel with remote');
+
+    const [controlHtlc] = controlChannel.pending_payments;
+    const [remoteHtlc] = remoteChannel.pending_payments;
+    const [targetInHtlc] = targetIn.pending_payments;
+    const [targetOutHtlc] = targetOut.pending_payments;
+
+    // Timeouts are set by the payment, so only check they are in the future
+    [controlHtlc, remoteHtlc, targetInHtlc, targetOutHtlc].forEach(htlc => {
+      ok(htlc.timeout > current_block_height, 'HTLC has a timeout height');
+    });
+
+    // The first HTLC on a channel has index zero, it should not be dropped
+    deepStrictEqual(
+      controlHtlc,
+      {
+        id: invoice.id,
+        in_channel: undefined,
+        in_payment: undefined,
+        is_forward: undefined,
+        is_outgoing: true,
+        out_channel: undefined,
+        out_payment: undefined,
+        payment: firstHtlcIndex,
+        timeout: controlHtlc.timeout,
+        tokens: route.tokens,
+      },
+      'Sender has an outgoing HTLC with the first HTLC index'
+    );
+
+    deepStrictEqual(
+      targetInHtlc,
+      {
+        id: invoice.id,
+        in_channel: undefined,
+        in_payment: undefined,
+        is_forward: true,
+        is_outgoing: false,
+        out_channel: remoteChannel.id,
+        out_payment: firstHtlcIndex,
+        payment: firstHtlcIndex,
+        timeout: targetInHtlc.timeout,
+        tokens: route.tokens,
+      },
+      'Forwarder has an incoming HTLC forwarding to the first outbound HTLC'
+    );
+
+    deepStrictEqual(
+      targetOutHtlc,
+      {
+        id: invoice.id,
+        in_channel: controlChannel.id,
+        in_payment: firstHtlcIndex,
+        is_forward: true,
+        is_outgoing: true,
+        out_channel: undefined,
+        out_payment: undefined,
+        payment: firstHtlcIndex,
+        timeout: targetOutHtlc.timeout,
+        tokens,
+      },
+      'Forwarder has an outgoing HTLC forwarded from the first inbound HTLC'
+    );
+
+    deepStrictEqual(
+      remoteHtlc,
+      {
+        id: invoice.id,
+        in_channel: undefined,
+        in_payment: undefined,
+        is_forward: undefined,
+        is_outgoing: false,
+        out_channel: undefined,
+        out_payment: undefined,
+        payment: firstHtlcIndex,
+        timeout: remoteHtlc.timeout,
+        tokens,
+      },
+      'Receiver has an incoming HTLC with the first HTLC index'
+    );
+
+    await cancelHodlInvoice({id: invoice.id, lnd: remote.lnd});
+  } finally {
+    subs.forEach(n => n.removeAllListeners());
+
+    await kill({});
+  }
 
   return;
 });

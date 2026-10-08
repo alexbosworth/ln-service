@@ -1,5 +1,4 @@
 const {equal} = require('node:assert').strict;
-const {exit} = require('node:process');
 const test = require('node:test');
 
 const asyncAuto = require('async/auto');
@@ -32,7 +31,8 @@ const tokens = 100;
 test(`Get pending sweeps`, async t => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  t.after(() => exit());
+  // Stop the spawned nodes whether the test passes or fails
+  t.after(() => kill({}));
 
   const [{generate, lnd}, target] = nodes;
 
@@ -76,8 +76,6 @@ test(`Get pending sweeps`, async t => {
   const [sweep] = sweeps;
 
   equal(sweep.transaction_id, closing.transaction_id, 'Got closing sweep');
-
-  await kill({});
 
   return;
 });

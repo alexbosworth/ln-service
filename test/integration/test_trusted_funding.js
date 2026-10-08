@@ -1,6 +1,5 @@
 const {deepEqual} = require('node:assert').strict;
 const {equal} = require('node:assert').strict;
-const {exit} = require('node:process');
 const {match} = require('node:assert').strict;
 const test = require('node:test');
 

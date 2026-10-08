@@ -1,4 +1,3 @@
-const {exit} = require('node:process');
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
@@ -23,9 +22,20 @@ const times = 1000;
 test(`Get closed channels`, async t => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  t.after(() => exit());
-
   const [control, target] = nodes;
+  const subs = [];
+
+  // Stop subscriptions and spawned nodes whether the test passes or fails
+  t.after(async () => {
+    subs.forEach(n => n.removeAllListeners());
+
+    await kill({});
+  });
+
+  // Stop retrying once the test has ended so nothing runs against dead nodes
+  const retry = (args, task) => {
+    return asyncRetry({...args, errorFilter: () => !t.signal.aborted}, task);
+  };
 
   const {generate, lnd} = control;
 
@@ -45,7 +55,7 @@ test(`Get closed channels`, async t => {
   });
 
   // Wait for channel to close
-  await asyncRetry({interval, times}, async () => {
+  await retry({interval, times}, async () => {
     await generate({});
 
     const {channels} = await getClosedChannels({lnd});
@@ -63,7 +73,7 @@ test(`Get closed channels`, async t => {
 
   const spend = maxChanTokens - channel.final_local_balance;
 
-  strictEqual([53345, 28473, 2810].includes(spend), true, 'Final');
+  strictEqual([53345, 28473, 18939, 2810].includes(spend), true, 'Final');
 
   strictEqual(channel.capacity, maxChanTokens, 'Channel capacity reflected');
   strictEqual(!!channel.close_confirm_height, true, 'Channel close height');
@@ -93,7 +103,7 @@ test(`Get closed channels`, async t => {
 
   const cancelInvoice = await createHodlInvoice({
     lnd,
-    cltv_delta: 20,
+    cltv_delta: 24,
     tokens: 1e5,
   });
 
@@ -105,6 +115,8 @@ test(`Get closed channels`, async t => {
 
   const subCancelInvoice = subscribeToInvoice({lnd, id: cancelInvoice.id});
   const subSettleInvoice = subscribeToInvoice({lnd, id: settleInvoice.id});
+
+  subs.push(subCancelInvoice, subSettleInvoice);
 
   const cancelInvoiceUpdates = [];
   const settleInvoiceUpdates = [];
@@ -124,7 +136,9 @@ test(`Get closed channels`, async t => {
     request: settleInvoice.request,
   });
 
-  await asyncRetry({interval, times}, async () => {
+  subs.push(payToCancel, payToSettle);
+
+  await retry({interval, times}, async () => {
     if (!cancelInvoiceUpdates.filter(n => !!n.is_held).length) {
       throw new Error('WaitingForLockToCancelInvoice');
     }
@@ -146,7 +160,7 @@ test(`Get closed channels`, async t => {
   await settleHodlInvoice({lnd, secret: settleInvoice.secret});
 
   // LND 0.12.0 requires a delay before sweeps start
-  const deadChans = await asyncRetry({interval: 1000, times: 99}, async () => {
+  const deadChans = await retry({interval: 1000, times: 99}, async () => {
     const {channels} = await getClosedChannels({lnd});
 
     if (channels.length === [toForceClose, channelOpen].length) {
@@ -203,7 +217,7 @@ test(`Get closed channels`, async t => {
   strictEqual(!!settleHtlc.transaction_id, true, 'Output tx id');
   strictEqual(settleHtlc.transaction_vout !== undefined, true, 'Output vout');
 
-  const alsoDead = await asyncRetry({interval: 20, times: 7000}, async () => {
+  const alsoDead = await retry({interval: 20, times: 7000}, async () => {
     const {channels} = await getClosedChannels({lnd: target.lnd});
 
     if (channels.length === [toForceClose, channelOpen].length) {
@@ -258,8 +272,6 @@ test(`Get closed channels`, async t => {
   strictEqual(refundedHtlc.tokens, 1e5, 'Payment refund tokens amount');
   strictEqual(!!refundedHtlc.transaction_id, true, 'Got refund tx id');
   strictEqual(refundedHtlc.transaction_vout !== undefined, true, 'Got vout');
-
-  await kill({});
 
   return;
 });

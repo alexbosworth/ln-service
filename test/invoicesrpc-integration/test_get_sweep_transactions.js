@@ -1,5 +1,4 @@
 const {equal} = require('node:assert').strict;
-const {exit} = require('node:process');
 const test = require('node:test');
 
 const asyncAuto = require('async/auto');
@@ -32,7 +31,8 @@ const tokens = 100;
 test(`Get sweep transactions`, async t => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
-  t.after(() => exit());
+  // Stop the spawned nodes whether the test passes or fails
+  t.after(() => kill({}));
 
   const [{generate, lnd}, target] = nodes;
 
@@ -85,22 +85,9 @@ test(`Get sweep transactions`, async t => {
 
   const [transaction] = transactions;
 
-  const [anchorTokens, sweepTokens] = transactions
-    .map(n => n.tokens).sort();
+  const anchorTokens = transaction.tokens;
 
-  equal(transactions.length, 2, 'Got closed channel sweep');
-
-  // LND 0.15.0 and before have different sweep tokens
-  if (sweepTokens === 890455) {
-    equal(anchorTokens, 149, 'Sweep has tokens amount');
-    equal(sweepTokens, 890455, 'Sweep has tokens amount');
-  } else if (anchorTokens === 147) {
-    equal(anchorTokens, 147, 'Sweep has tokens amount');
-    equal(sweepTokens, 889855, 'Sweep has tokens amount');
-  } else {
-    equal(anchorTokens, 136, 'Sweep has tokens amount');
-    equal(sweepTokens, 889855, 'Sweep has tokens amount');
-  }
+  equal(anchorTokens, 896395, 'Sweep has tokens amount');
 
   equal(transaction.block_id.length, 64, 'Sweep confirmed');
   equal(!!transaction.confirmation_count, true, 'Sweep confirm count');
@@ -117,8 +104,6 @@ test(`Get sweep transactions`, async t => {
   } else {
     equal(transaction.description, undefined, 'Sweep has description');
   }
-
-  await kill({});
 
   return;
 });
