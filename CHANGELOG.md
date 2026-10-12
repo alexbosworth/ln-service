@@ -1,5 +1,11 @@
 # Versions
 
+## 60.1.5
+
+- `createFundedPsbt`: When a `timelock` is set, inputs get a default sequence
+- `probeForRoute`, `subscribeToProbeForRoute`: Add support for blinded paths
+    that start at the node itself
+
 ## 60.1.4
 
 - `getWalletInfo`, `stopDaemon`: Fix detection of the daemon being offline to
