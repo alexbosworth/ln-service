@@ -134,12 +134,17 @@ test(`Open unconfirmed channels`, async () => {
     // Make an invoice to pay over the channel
     const invoice = await createInvoice({lnd: target.lnd, tokens: 100});
 
-    // Wait for the trusted channel
+    // Wait for the trusted channel and its open event
     const channel = await asyncRetry({interval, times}, async () => {
       const {channels} = await getChannels({lnd, is_active: true});
 
       if (!channels.length) {
         throw new Error('ExpectedTrustedChannelToAppear');
+      }
+
+      // The open event can arrive after the channel shows as active
+      if (!opened.length) {
+        throw new Error('ExpectedChannelOpenedEvent');
       }
 
       const [channel] = channels;

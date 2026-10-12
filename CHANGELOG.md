@@ -1,5 +1,10 @@
 # Versions
 
+## 60.1.6
+
+- `subscribeToChannels`: Add cooperative close support for `is_partner_closed`
+- `subscribeToChannels`: Add `is_partner_initiated` to `channel_closed`
+
 ## 60.1.5
 
 - `createFundedPsbt`: When a `timelock` is set, inputs get a default sequence

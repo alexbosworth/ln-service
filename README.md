@@ -5847,8 +5847,8 @@ Requires `offchain:read` permission
       is_cooperative_close: <Is Cooperative Close Bool>
       is_funding_cancel: <Is Funding Cancelled Close Bool>
       is_local_force_close: <Is Local Force Close Bool>
-      is_partner_closed: <Channel Was Closed By Channel Peer Bool>
-      is_partner_initiated: <Channel Was Initiated By Channel Peer Bool>
+      [is_partner_closed]: <Channel Was Closed By Channel Peer Bool>
+      [is_partner_initiated]: <Channel Was Initiated By Channel Peer Bool>
       is_remote_force_close: <Is Remote Force Close Bool>
       other_ids: [<Other Channel Id String>]
       partner_public_key: <Partner Public Key Hex String>

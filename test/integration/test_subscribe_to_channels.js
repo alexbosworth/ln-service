@@ -28,6 +28,7 @@ test('Subscribe to channels', async () => {
   const channelOpened = [];
   const {kill, nodes} = await spawnLightningCluster({size});
   const errors = [];
+  const peerClosed = [];
 
   const [control, target] = nodes;
 
@@ -43,6 +44,12 @@ test('Subscribe to channels', async () => {
   sub.on('channel_opened', update => channelOpened.push(update));
   sub.on('channel_opening', update => channelAdding.push(update));
   sub.on('error', err => errors.push(err));
+
+  // The peer sees the same channel from the other side
+  const peerSub = subscribeToChannels({lnd: target.lnd});
+
+  peerSub.on('channel_closed', update => peerClosed.push(update));
+  peerSub.on('error', err => errors.push(err));
 
   await asyncRetry({times: 150}, async () => {
     if (!(await getChainBalance({lnd})).chain_balance) {
@@ -146,6 +153,17 @@ test('Subscribe to channels', async () => {
     return;
   });
 
+  // Wait for the peer to see the channel close too
+  await asyncRetry({interval, times}, async () => {
+    if (!peerClosed.length) {
+      await generate({});
+
+      throw new Error('ExpectedPeerChannelClosed');
+    }
+
+    return;
+  });
+
   const closeEvent = channelClosed.pop();
 
   const final = closeEvent.final_local_balance;
@@ -161,10 +179,20 @@ test('Subscribe to channels', async () => {
   equal(closeEvent.is_cooperative_close, true, 'Cooperative close');
   equal(closeEvent.is_funding_cancel, false, 'Not funding cancel');
   equal(closeEvent.is_local_force_close, false, 'Not local force close');
+  equal(closeEvent.is_partner_closed, false, 'Channel was closed locally');
+  equal(closeEvent.is_partner_initiated, false, 'Channel was opened locally');
   equal(closeEvent.is_remote_force_close, false, 'Not remote force close');
   equal(closeEvent.partner_public_key, target.id, 'Pk');
   equal(closeEvent.transaction_id, channelOpen.transaction_id, 'Chan tx id');
   equal(closeEvent.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
+
+  const peerCloseEvent = peerClosed.pop();
+
+  equal(peerCloseEvent.is_cooperative_close, true, 'Peer sees coop close');
+  equal(peerCloseEvent.is_partner_closed, true, 'Peer sees remote close');
+  equal(peerCloseEvent.is_partner_initiated, true, 'Peer sees remote open');
+  equal(peerCloseEvent.partner_public_key, control.id, 'Peer sees control');
+  equal(peerCloseEvent.transaction_id, channelOpen.transaction_id, 'Peer tx');
 
   equal(errors.length, [].length, 'No errors encountered');
 
@@ -179,6 +207,7 @@ test('Subscribe to channels', async () => {
   equal(deactivated.transaction_vout, channelOpen.transaction_vout, 'Tx vout');
 
   sub.removeAllListeners();
+  peerSub.removeAllListeners();
 
   await kill({});
 
