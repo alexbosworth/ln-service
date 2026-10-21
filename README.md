@@ -700,6 +700,26 @@ Create an unsigned funded PSBT given inputs or outputs
 
 When specifying local inputs, they must be locked before using
 
+`lock_id` and `lock_expires_at` set the id and expiration of the locks on
+the inputs that are added to fund the PSBT
+
+LND 0.21.4 and below need inputs from other wallets to have a
+`witness_utxo`, and P2TR ones to also have a `bip32_derivations` entry for
+their x-only internal key, without `leaf_hashes`
+
+LND 0.21.4 and below can only estimate the size of P2WPKH, nested P2WPKH
+and P2TR key spend inputs
+
+Inputs with a `witness_utxo` that are not P2TR are set to sign with
+SIGHASH_ALL, since LND 0.21.4 and below otherwise sign them with an invalid
+sighash type
+
+A fractional `fee_tokens_per_vbyte` is rounded up to whole tokens per 1000
+weight units
+
+`max_fee_ratio` is the highest fee to total output value ratio to allow.
+LND 0.21.4 and below use 0.2 when it is not set, and allow at most 1
+
 `change_format` options: `p2tr` (only one change type is supported)
 
 `utxo_selection` methods: 'largest', 'random'
@@ -710,14 +730,31 @@ Requires LND built with `walletrpc` tag
 
 This method is not supported on LND 0.17.5 or below
 
+`lock_expires_at`, `lock_id`, `max_fee_ratio` and a fractional
+`fee_tokens_per_vbyte` are not supported on LND 0.18.5 or below
+
     {
+      [change_format]: <Change Address Address Format String>
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
       [inputs]: [{
+        [bip32_derivations]: [{
+          fingerprint: <Public Key Fingerprint Hex String>
+          [leaf_hashes]: [<Taproot Leaf Hash Hex String>]
+          [path]: <BIP 32 Derivation Path String>
+          public_key: <Public Key Hex String>
+        }]
         [sequence]: <Sequence Number>
         transaction_id: <Unspent Transaction Id Hex String>
         transaction_vout: <Unspent Transaction Output Index Number>
+        [witness_utxo]: {
+          output_script: <UTXO Output Script Hex String>
+          tokens: <UTXO Tokens Number>
+        }
       }]
       lnd: <Authenticated LND API Object>
+      [lock_expires_at]: <Lock Expires At ISO 8601 Date String>
+      [lock_id]: <Lock Identifier Hex String>
+      [max_fee_ratio]: <Maximum Fee To Total Output Value Ratio Number>
       [min_confirmations]: <Select Inputs With Minimum Confirmations Number>
       [outputs]: [{
         [is_change]: <Use This Output For Change Bool>
@@ -732,6 +769,17 @@ This method is not supported on LND 0.17.5 or below
 
     @returns via cbk or Promise
     {
+      inputs: [{
+        [lock_expires_at]: <UTXO Lock Expires At ISO 8601 Date String>
+        [lock_id]: <UTXO Lock Id Hex String>
+        transaction_id: <Unspent Transaction Id Hex String>
+        transaction_vout: <Unspent Transaction Output Index Number>
+      }]
+      outputs: [{
+        is_change: <Is Change Output Bool>
+        output_script: <Output Script Hex String>
+        tokens: <Send Tokens Tokens Number>
+      }]
       psbt: <Unsigned PSBT Hex String>
     }
 

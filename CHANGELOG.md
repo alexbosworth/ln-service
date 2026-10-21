@@ -1,5 +1,15 @@
 # Versions
 
+## 60.1.7
+
+- `createFundedPsbt`: Add `inputs` and `outputs` to the result
+- `createFundedPsbt`: Add `lock_expires_at` and `lock_id` to set input locks
+- `createFundedPsbt`: Add `max_fee_ratio` to allow setting fee to value ratio
+- `createFundedPsbt`: Add `bip32_derivations` and `witness_utxo` to `inputs`
+    to support inputs from other wallets
+- `createFundedPsbt`: Fix change output being P2WPKH instead of P2TR when no
+    output is marked `is_change`
+
 ## 60.1.6
 
 - `subscribeToChannels`: Add cooperative close support for `is_partner_closed`
