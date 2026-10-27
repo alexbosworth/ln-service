@@ -1,5 +1,10 @@
 # Versions
 
+## 60.1.8
+
+- Add support for LND 0.21.5
+- Add support for LND 0.20.6
+
 ## 60.1.7
 
 - `createFundedPsbt`: Add `inputs` and `outputs` to the result
