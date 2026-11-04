@@ -2101,9 +2101,11 @@ Requires `offchain:read` permission
         [anchor_is_confirmed]: <Anchor Sweep Confirmed Bool>
         [anchor_is_pending]: <Anchor Sweep Pending Confirmation Bool>
         [anchor_spent_by]: <Anchor Sweep Transaction Id Hex String>
+        [anchor_tokens]: <Anchor Output Value Tokens Number>
         [anchor_vout]: <Anchor Output Index Number>
         capacity: <Closed Channel Capacity Tokens Number>
         [close_balance_spent_by]: <Channel Balance Output Spent By Tx Id String>
+        [close_balance_tokens]: <Channel Balance Output Value Tokens Number>
         [close_balance_vout]: <Channel Balance Close Tx Output Index Number>
         close_payments: [{
           is_outgoing: <Payment Is Outgoing Bool>
@@ -5855,6 +5857,12 @@ Requires `offchain:read` permission
 
 `description` is not supported on LND 0.16.4 and below
 
+`channel_closed` is emitted when the close transaction confirms, before sweeps
+are reported: `close_balance_tokens` and other sweep details may be absent
+until `channel_resolved` is emitted, and `anchor_tokens` is only reported once
+the anchor output is swept. Use `getClosedChannels` to get the final values
+after resolution.
+
     {
       lnd: <Authenticated LND API Object>
     }
@@ -5874,8 +5882,10 @@ Requires `offchain:read` permission
 
     @event 'channel_closed'
     {
+      [anchor_tokens]: <Anchor Output Value Tokens Number>
       capacity: <Closed Channel Capacity Tokens Number>
       [close_balance_spent_by]: <Channel Balance Output Spent By Tx Id String>
+      [close_balance_tokens]: <Channel Balance Output Value Tokens Number>
       [close_balance_vout]: <Channel Balance Close Tx Output Index Number>
       [close_confirm_height]: <Channel Close Confirmation Height Number>
       close_payments: [{
@@ -5952,6 +5962,12 @@ Requires `offchain:read` permission
     {
       transaction_id: <Blockchain Transaction Id Hex String>
       transaction_vout: <Blockchain Transaction Output Index Number>
+    }
+
+    @event 'channel_resolved'
+    {
+      transaction_id: <Channel Funding Transaction Id Hex String>
+      transaction_vout: <Channel Funding Transaction Output Index Number>
     }
 
 Example:

@@ -1,5 +1,12 @@
 # Versions
 
+## 60.3.0
+
+- `getClosedChannels`, `subscribeToChannels`: Add `anchor_tokens` and
+    `close_balance_tokens` to expose resolved output values
+- `subscribeToChannels`: Add `channel_resolved` event to signal a closed
+    channel has all of its outputs resolved
+
 ## 60.2.0
 
 - Add support for LND 0.21.6
