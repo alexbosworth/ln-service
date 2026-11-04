@@ -256,6 +256,19 @@ test(`Create funded PSBT`, async () => {
 
     equal(Math.round(fractionalFee / wholeFee * 100), 125, 'Got 2.5 sat/vB');
 
+    // A fee rate in millitokens per vbyte is used as a precise fee rate
+    const atMtokensRate = await createFundedPsbt({
+      lnd,
+      fee_mtokens_per_vbyte: 2500,
+      outputs: [{script: output, tokens: 500}],
+    });
+
+    await unlockInputs({lnd, inputs: atMtokensRate.inputs});
+
+    const mtokensFee = feeForPsbt(atMtokensRate.psbt);
+
+    equal(Math.round(mtokensFee / wholeFee * 100), 125, 'Got 2500 mtok/vB');
+
     // A 9,000 sat P2TR input at 30 sat/vB pays a 3,330 fee on 5,670 output
     const small = await createChainAddress({format, lnd});
 

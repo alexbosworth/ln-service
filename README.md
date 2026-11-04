@@ -9,8 +9,8 @@ through npm.
 
 Supported LND versions:
 
-- v0.21.0-beta to v0.21.4-beta
-- v0.20.0-beta to v0.20.5-beta
+- v0.21.0-beta to v0.21.6-beta
+- v0.20.0-beta to v0.20.7-beta
 
 For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
 
@@ -714,8 +714,8 @@ Inputs with a `witness_utxo` that are not P2TR are set to sign with
 SIGHASH_ALL, since LND 0.21.4 and below otherwise sign them with an invalid
 sighash type
 
-A fractional `fee_tokens_per_vbyte` is rounded up to whole tokens per 1000
-weight units
+`fee_mtokens_per_vbyte` is an alternative to `fee_tokens_per_vbyte`, only
+one of them can be set
 
 `max_fee_ratio` is the highest fee to total output value ratio to allow.
 LND 0.21.4 and below use 0.2 when it is not set, and allow at most 1
@@ -735,6 +735,7 @@ This method is not supported on LND 0.17.5 or below
 
     {
       [change_format]: <Change Address Address Format String>
+      [fee_mtokens_per_vbyte]: <Chain Fee Millitokens Per Virtual Byte Number>
       [fee_tokens_per_vbyte]: <Chain Fee Tokens Per Virtual Byte Number>
       [inputs]: [{
         [bip32_derivations]: [{

@@ -1,5 +1,11 @@
 # Versions
 
+## 60.2.0
+
+- Add support for LND 0.21.6
+- Add support for LND 0.20.7
+- `createFundedPsbt`: Add `fee_mtokens_per_vbyte` to set a precise fee rate
+
 ## 60.1.9
 
 - Add support for LND 0.21.5

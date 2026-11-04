@@ -45,7 +45,7 @@ test('Get route confidence', async () => {
     // Create a too-small channel from target to remote
     await setupChannel({
       generate: target.generate,
-      give: Math.round(channelCapacityTokens / 2),
+      give_tokens: Math.round(channelCapacityTokens / 2),
       lnd: target.lnd,
       to: remote,
     });
