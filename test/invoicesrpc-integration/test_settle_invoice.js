@@ -3,6 +3,7 @@ const {equal} = require('node:assert').strict;
 const {rejects} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
 const {createHodlInvoice} = require('./../../');
@@ -16,8 +17,10 @@ const {settleHodlInvoice} = require('./../../');
 
 const capacity = 1e6;
 const cltvDelta = 144;
+const interval = 10;
 const size = 3;
 const sweepBlockCount = 40;
+const times = 1500;
 const tokens = 100;
 
 // Create a hodl invoice
@@ -78,7 +81,16 @@ test(`Pay a hodl invoice`, async () => {
 
     await settleHodlInvoice({secret, lnd: target.lnd});
 
-    const [settled] = (await getInvoices({lnd})).invoices;
+    // The invoice confirms when its payment is final, after it is settled
+    const settled = await asyncRetry({interval, times}, async () => {
+      const [settled] = (await getInvoices({lnd})).invoices;
+
+      if (!settled.is_confirmed) {
+        throw new Error('ExpectedInvoiceConfirmed');
+      }
+
+      return settled;
+    });
 
     equal(settled.is_confirmed, true, 'HTLC is settled back');
 

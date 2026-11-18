@@ -1,6 +1,7 @@
 const {strictEqual} = require('node:assert').strict;
 const test = require('node:test');
 
+const asyncRetry = require('async/retry');
 const {setupChannel} = require('ln-docker-daemons');
 const {spawnLightningCluster} = require('ln-docker-daemons');
 
@@ -9,8 +10,10 @@ const {getInvoice} = require('./../../');
 const {pay} = require('./../../');
 
 const description = 'description';
+const interval = 10;
 const secret = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
 const size = 2;
+const times = 1500;
 const tokens = 42;
 
 // getInvoice results in invoice details
@@ -39,7 +42,16 @@ test(`Get an invoice`, async () => {
 
   await pay({lnd: target.lnd, request: created.request});
 
-  const paid = await getInvoice({lnd, id: created.id});
+  // The invoice confirms when its payment is final, after the payer is paid
+  const paid = await asyncRetry({interval, times}, async () => {
+    const paid = await getInvoice({lnd, id: created.id});
+
+    if (!paid.is_confirmed) {
+      throw new Error('ExpectedInvoiceConfirmed');
+    }
+
+    return paid;
+  });
 
   if (!!paid.payments.length) {
     strictEqual(paid.payments.length, [created.request].length, 'Paid once');

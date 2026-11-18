@@ -60,6 +60,7 @@ test(`Subscribe to canceled invoice`, async () => {
       equal(payment.is_canceled, false, 'Payment not canceled');
       equal(payment.is_confirmed, false, 'Payment not confirmed');
       equal(payment.is_held, true, 'Payment is held');
+      equal(payment.is_secret_revealed, false, 'Held secret is not revealed');
       equal(payment.mtokens, '100000', 'Payment holding mtokens');
       equal(payment.pending_index, 0, 'Payment HTLC index returned');
       equal(payment.tokens, 100, 'Payment tokens held');
@@ -68,6 +69,12 @@ test(`Subscribe to canceled invoice`, async () => {
     equal(!!currentInvoice.is_held, true, 'Invoice is not held yet');
     equal(!!currentInvoice.is_canceled, false, 'Invoice is not canceled yet');
     equal(!!currentInvoice.is_confirmed, false, 'Invoice is confirmed');
+
+    // A held payment is counted as held rather than received
+    equal(currentInvoice.held, tokens, 'Invoice holds the payment');
+    equal(currentInvoice.held_mtokens, '100000', 'Invoice holds mtokens');
+    equal(currentInvoice.received, 0, 'Held payment is not received');
+    equal(currentInvoice.received_mtokens, '0', 'Held mtokens not received');
 
     await cancelHodlInvoice({
       id: createHash('sha256').update(secret).digest('hex'),
@@ -89,6 +96,7 @@ test(`Subscribe to canceled invoice`, async () => {
       equal(payment.is_canceled, true, 'Payment canceled');
       equal(payment.is_confirmed, false, 'Payment not confirmed');
       equal(payment.is_held, false, 'Payment is not held');
+      equal(payment.is_secret_revealed, false, 'Secret was never revealed');
       equal(payment.mtokens, '100000', 'Payment holding mtokens');
       equal(payment.pending_index, undefined, 'Payment HTLC is gone');
       equal(payment.tokens, 100, 'Payment tokens held');
@@ -97,6 +105,11 @@ test(`Subscribe to canceled invoice`, async () => {
     equal(!!currentInvoice.is_held, false, 'Invoice is not held yet');
     equal(!!currentInvoice.is_canceled, true, 'Invoice is canceled');
     equal(!!currentInvoice.is_confirmed, false, 'Invoice is not confirmed');
+
+    // Canceling before the secret is revealed leaves nothing held or received
+    equal(!!currentInvoice.is_secret_revealed, false, 'Secret not revealed');
+    equal(currentInvoice.held, 0, 'Canceled invoice holds nothing');
+    equal(currentInvoice.received, 0, 'Canceled invoice received nothing');
 
     return setTimeout(async () => {
       await kill({});

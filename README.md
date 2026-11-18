@@ -9,8 +9,8 @@ through npm.
 
 Supported LND versions:
 
-- v0.21.0-beta to v0.21.6-beta
-- v0.20.0-beta to v0.20.7-beta
+- v0.21.0-beta to v0.21.8-beta
+- v0.20.0-beta to v0.20.8-beta
 
 For typescript-ready methods, check out https://github.com/alexbosworth/lightning#readme
 
@@ -281,7 +281,8 @@ for `unlocker` methods.
 - [subscribeToForwards](#subscribetoforwards) - Subscribe to HTLC events
 - [subscribeToGraph](#subscribetograph) - Subscribe to network graph updates
 - [subscribeToInvoice](#subscribetoinvoice) - Subscribe to invoice updates
-- [subscribeToInvoices](#subscribetoinvoices) - Subscribe to all invoices
+- [subscribeToInvoices](#subscribetoinvoices) - Subscribe to newly added and
+    settled invoices
 - [subscribeToMessages](#subscribetomessages) - Subscribe to network messages
 - [subscribeToOpenRequests](#subscribetoopenrequests) - Approve open requests
 - [subscribeToPastPayment](#subscribetopastpayment) - Subscribe to a payment
@@ -2537,7 +2538,8 @@ over-paid.
 
 Requires `invoices:read` permission
 
-`payment` is not supported on LND 0.11.1 and below
+`is_confirming` and `is_secret_revealed` are not supported on LND 0.21.8 and
+below
 
     {
       id: <Payment Hash Id Hex String>
@@ -2550,6 +2552,8 @@ Requires `invoices:read` permission
       cltv_delta: <CLTV Delta Number>
       [confirmed_at]: <Settled at ISO 8601 Date String>
       [confirmed_index]: <Confirmed Index Number>
+      confirming: <Confirming Tokens Number>
+      confirming_mtokens: <Confirming Millitokens String>
       created_at: <ISO 8601 Date String>
       description: <Description String>
       [description_hash]: <Description Hash Hex String>
@@ -2560,12 +2564,16 @@ Requires `invoices:read` permission
         is_required: <Feature Support is Required To Pay Bool>
         type: <Feature Type String>
       }]
+      held: <Held Tokens Number>
+      held_mtokens: <Held Millitokens String>
       id: <Payment Hash String>
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
+      [is_confirming]: <Invoice is Pending Final Settlement Bool>
       [is_held]: <HTLC is Held Bool>
       is_private: <Invoice is Private Bool>
       [is_push]: <Invoice is Push Payment Bool>
+      [is_secret_revealed]: <LND Committed to Releasing Invoice Preimage Bool>
       mtokens: <Millitokens String>
       [payment]: <Payment Identifying Secret Hex String>
       payments: [{
@@ -2575,7 +2583,9 @@ Requires `invoices:read` permission
         in_channel: <Incoming Payment Through Channel Id String>
         is_canceled: <Payment is Canceled Bool>
         is_confirmed: <Payment is Confirmed Bool>
+        is_confirming: <Payment is Pending Final Settlement Bool>
         is_held: <Payment is Held Bool>
+        is_secret_revealed: <HTLC State Indicates Preimage Release Bool>
         messages: [{
           type: <Message Type Number String>
           value: <Raw Value Hex String>
@@ -2607,10 +2617,11 @@ If a next token is returned, pass it to get another page of invoices.
 
 Requires `invoices:read` permission
 
-Invoice `payment` is not supported on LND 0.11.1 and below
-
 `created_after` is not supported on LND 0.15.5 and below
 `created_before` is not supported on LND 0.15.5 and below
+
+Invoice `is_confirming` and `is_secret_revealed` are not supported on LND
+0.21.8 and below
 
     {
       [created_after]: <Creation Date After or Equal to ISO 8601 Date String>
@@ -2628,6 +2639,8 @@ Invoice `payment` is not supported on LND 0.11.1 and below
         cltv_delta: <Final CLTV Delta Number>
         [confirmed_at]: <Settled at ISO 8601 Date String>
         [confirmed_index]: <Confirmed Index Number>
+        confirming: <Confirming Tokens Number>
+        confirming_mtokens: <Confirming Millitokens String>
         created_at: <ISO 8601 Date String>
         description: <Description String>
         [description_hash]: <Description Hash Hex String>
@@ -2638,13 +2651,17 @@ Invoice `payment` is not supported on LND 0.11.1 and below
           is_required: <Feature Support is Required To Pay Bool>
           type: <Feature Type String>
         }]
+        held: <Held Tokens Number>
+        held_mtokens: <Held Millitokens String>
         id: <Payment Hash Hex String>
         index: <Index Number>
         [is_canceled]: <Invoice is Canceled Bool>
         is_confirmed: <Invoice is Confirmed Bool>
+        [is_confirming]: <Invoice is Pending Final Settlement Bool>
         [is_held]: <HTLC is Held Bool>
         is_private: <Invoice is Private Bool>
         [is_push]: <Invoice is Push Payment Bool>
+        [is_secret_revealed]: <LND Committed to Releasing Invoice Preimage Bool>
         mtokens: <Millitokens String>
         [payment]: <Payment Identifying Secret Hex String>
         payments: [{
@@ -2655,7 +2672,9 @@ Invoice `payment` is not supported on LND 0.11.1 and below
           in_channel: <Incoming Payment Through Channel Id String>
           is_canceled: <Payment is Canceled Bool>
           is_confirmed: <Payment is Confirmed Bool>
+          is_confirming: <Payment is Pending Final Settlement Bool>
           is_held: <Payment is Held Bool>
+          is_secret_revealed: <HTLC State Indicates Preimage Release Bool>
           messages: [{
             type: <Message Type Number String>
             value: <Raw Value Hex String>
@@ -6178,7 +6197,8 @@ LND built with `invoicesrpc` tag is required
 
 Requires `invoices:read` permission
 
-`payment` is not supported on LND 0.11.1 and below
+`is_confirming` and `is_secret_revealed` are not supported on LND 0.21.8 and
+below
 
     {
       id: <Invoice Payment Hash Hex String>
@@ -6195,6 +6215,8 @@ Requires `invoices:read` permission
     {
       chain_address: <Fallback Chain Address String>
       [confirmed_at]: <Settled at ISO 8601 Date String>
+      confirming: <Confirming Tokens Number>
+      confirming_mtokens: <Confirming Millitokens String>
       created_at: <ISO 8601 Date String>
       description: <Description String>
       description_hash: <Description Hash Hex String>
@@ -6205,12 +6227,16 @@ Requires `invoices:read` permission
         is_required: <Feature Support is Required To Pay Bool>
         type: <Feature Type String>
       }]
+      held: <Held Tokens Number>
+      held_mtokens: <Held Millitokens String>
       id: <Payment Hash String>
       [is_canceled]: <Invoice is Canceled Bool>
       is_confirmed: <Invoice is Confirmed Bool>
+      [is_confirming]: <Invoice is Pending Final Settlement Bool>
       [is_held]: <HTLC is Held Bool>
       is_private: <Invoice is Private Bool>
       [is_push]: <Invoice is Push Payment Bool>
+      [is_secret_revealed]: <LND Committed to Releasing Invoice Preimage Bool>
       mtokens: <Invoiced Millitokens String>
       [payment]: <Payment Identifying Secret Hex String>
       payments: [{
@@ -6220,7 +6246,9 @@ Requires `invoices:read` permission
         in_channel: <Incoming Payment Through Channel Id String>
         is_canceled: <Payment is Canceled Bool>
         is_confirmed: <Payment is Confirmed Bool>
+        is_confirming: <Payment is Pending Final Settlement Bool>
         is_held: <Payment is Held Bool>
+        is_secret_revealed: <HTLC State Indicates Preimage Release Bool>
         messages: [{
           type: <Message Type Number String>
           value: <Raw Value Hex String>
@@ -6249,9 +6277,14 @@ const [invoice] = await once(sub, 'invoice_updated');
 
 ### subscribeToInvoices
 
-Subscribe to invoices
+Subscribe to newly added and settled invoices
+
+Use `subscribeToInvoice` to follow an individual invoice through acceptance,
+pending settlement, and cancellation.
 
 Requires `invoices:read` permission
+
+`is_secret_revealed` is not supported on LND 0.21.8 and below
 
     {
       [added_after]: <Invoice Added After Index Number>
@@ -6286,6 +6319,7 @@ Requires `invoices:read` permission
       index: <Invoice Index Number>
       is_confirmed: <Invoice is Confirmed Bool>
       [is_push]: <Invoice is Push Payment Bool>
+      [is_secret_revealed]: <LND Committed to Releasing Invoice Preimage Bool>
       mtokens: <Invoiced Millitokens String>
       [payment]: <Payment Identifying Secret Hex String>
       payments: [{
@@ -6295,7 +6329,9 @@ Requires `invoices:read` permission
         in_channel: <Incoming Payment Through Channel Id String>
         is_canceled: <Payment is Canceled Bool>
         is_confirmed: <Payment is Confirmed Bool>
+        is_confirming: <Payment is Pending Final Settlement Bool>
         is_held: <Payment is Held Bool>
+        is_secret_revealed: <HTLC State Indicates Preimage Release Bool>
         messages: [{
           type: <Message Type Number String>
           value: <Raw Value Hex String>

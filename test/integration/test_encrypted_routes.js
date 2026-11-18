@@ -129,9 +129,18 @@ test(`Create an encrypted routes invoice`, async () => {
 
       await pay({lnd, request});
 
-      const received = await getInvoice({
-        id: remotePaymentDetails.id,
-        lnd: remote.lnd,
+      // The invoice receives its payment when final, after the payer is paid
+      const received = await asyncRetry({interval, times}, async () => {
+        const received = await getInvoice({
+          id: remotePaymentDetails.id,
+          lnd: remote.lnd,
+        });
+
+        if (!received.is_confirmed) {
+          throw new Error('ExpectedInvoiceConfirmed');
+        }
+
+        return received;
       });
 
       equal(received.received_mtokens, '102001', 'Got receiver fee');

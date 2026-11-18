@@ -106,7 +106,16 @@ test(`Pay private invoice`, async () => {
 
     const payment = await pay({lnd, path: {id, routes: [route]}});
 
-    const paidInvoice = await getInvoice({id, lnd: remote.lnd});
+    // The invoice confirms when its payment is final, after the payer is paid
+    const paidInvoice = await asyncRetry({interval, times}, async () => {
+      const paidInvoice = await getInvoice({id, lnd: remote.lnd});
+
+      if (!paidInvoice.is_confirmed) {
+        throw new Error('ExpectedInvoiceConfirmed');
+      }
+
+      return paidInvoice;
+    });
 
     strictEqual(paidInvoice.secret, invoice.secret, 'Paying got secret');
     strictEqual(paidInvoice.is_confirmed, true, 'Private invoice is paid');

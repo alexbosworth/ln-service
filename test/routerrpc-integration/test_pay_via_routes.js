@@ -200,7 +200,16 @@ test(`Pay via routes`, async () => {
 
   equal(payment.confirmed_at > start, true, 'Paid has confirm date');
 
-  const paidInvoice = await getInvoice({id, lnd: remote.lnd});
+  // The invoice confirms when its payment is final, after the payer is paid
+  const paidInvoice = await asyncRetry({interval, times}, async () => {
+    const paidInvoice = await getInvoice({id, lnd: remote.lnd});
+
+    if (!paidInvoice.is_confirmed) {
+      throw new Error('ExpectedInvoiceConfirmed');
+    }
+
+    return paidInvoice;
+  });
 
   if (!!paidInvoice.payments.length) {
     const [payment] = paidInvoice.payments;

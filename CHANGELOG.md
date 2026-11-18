@@ -1,5 +1,34 @@
 # Versions
 
+## 61.0.0
+
+- Add support for LND 0.21.8
+- Add support for LND 0.21.7
+- Add support for LND 0.20.8
+- `getInvoice`, `getInvoices`, `subscribeToInvoice`: Add `is_confirming` to
+    invoices and `payments` to signal that LND is awaiting final settlement
+    after committing to preimage release
+- `subscribeToInvoices`: Add `is_confirming` to `payments`
+- `getInvoice`, `getInvoices`, `subscribeToInvoice`, `subscribeToInvoices`:
+    Add `is_secret_revealed` to show whether LND committed to releasing the
+    invoice preimage, even if collection later failed. For each payment, the
+    flag indicates preimage release based on the HTLC state.
+- `getInvoice`, `getInvoices`, `subscribeToInvoice`: Add `held` and
+    `held_mtokens` to report the total amount for invoices marked held
+- `getInvoice`, `getInvoices`, `subscribeToInvoice`: Add `confirming` and
+    `confirming_mtokens` to report the amount awaiting final settlement
+
+### Breaking Changes
+
+- `getInvoice`, `getInvoices`, `subscribeToInvoice`, `subscribeToInvoices`:
+    For ordinary invoices, `received` and `received_mtokens` now total
+    payments LND marks settled. For a held invoice, `received` and
+    `received_mtokens` are now zero. Use `held` and `held_mtokens` to read
+    the amount on hold from invoice lookups or the single-invoice subscription.
+    Settled invoices with no payment records use LND's stored paid amount.
+    While an invoice is confirming, its payments awaiting final settlement
+    are counted in `confirming` and `confirming_mtokens`, not `received`
+
 ## 60.3.0
 
 - `getClosedChannels`, `subscribeToChannels`: Add `anchor_tokens` and
