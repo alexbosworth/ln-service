@@ -27,7 +27,7 @@ const times = 1000;
 const tokens = 100;
 
 // Calculating a route from channels should result in a route
-test(`Get route through hops`, async () => {
+test(`Route from channels`, async () => {
   const {channels, kill, nodes} = await spawnLightningCluster({capacity, size});
 
   const [{generate, lnd}, target, remote] = nodes;

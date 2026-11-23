@@ -20,7 +20,7 @@ const times = 1500;
 const tokens = 1e8;
 
 // Subscribing to chain transaction confirmations should trigger events
-test(`Subscribe to chain transactions`, async () => {
+test(`Subscribe to chain address`, async () => {
   await asyncRetry({interval, times}, async () => {
     const {kill, nodes} = await spawnLightningCluster({});
 

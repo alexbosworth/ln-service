@@ -10,7 +10,7 @@ const capacity = 1e6;
 const size = 2;
 
 // Getting a set of channel backups should return channel backups
-test(`Get channel backup`, async () => {
+test(`Get channel backups`, async () => {
   await asyncRetry({}, async () => {
     const cluster = await spawnLightningCluster({capacity, size});
 

@@ -3991,6 +3991,9 @@ Requires `macaroon:generate` permission
 Note: access once given cannot be revoked. Access is defined at the LND level
 and version differences in LND can result in expanded access.
 
+`is_ok_to_sign_bytes` grants `signer:generate`, which also allows signing
+transactions, deriving shared keys and MuSig2 signing with node keys
+
 Note: `id` is not supported in LND versions 0.11.0 and below
 
 `methods` is not supported in LND versions 0.11.0 and below
@@ -5247,6 +5250,7 @@ This method is not supported in LND 0.20.4 and below
         encrypted_data: <Encrypted Data Hex String>
         relay_key: <Blinded Relaying Public Key Into Destination Hex String>
       }]
+      [is_large]: <Use Large Onion Message Size Bool>
       key: <Message Path Key Hex String>
       lnd: <Authenticated LND API Object>
       [message]: {
@@ -5649,6 +5653,9 @@ Sign transaction
 
 `spending` is required for non-internal inputs for a Taproot signature
 
+`spending` is the outputs spent by the inputs that are not signed, in the
+order of those inputs in the transaction
+
 Requires LND built with `signrpc` build tag
 
 Requires `signer:generate` permission
@@ -6008,9 +6015,51 @@ selected internally to complete the forward.
 Invalid requests that have invalid fees or CLTVs cannot be forwarded and are
 not emitted, they are released for LND to fail
 
+Rejecting with `failure_authentication` fails the forward back as a hop
+further along the route. `failure_authentication` is the onion shared
+secrets of the hops from the next hop to the hop the failure is returned
+from, so the payer authenticates the failure as coming from that hop. Each
+shared secret is the SHA256 hash of the compressed ECDH point of the hop key
+and the onion ephemeral public key, the 33 bytes after the onion version
+byte, like how `diffieHellmanComputeSecret` derives it. `decryptPaymentOnion`
+in bolt04 gives the onion for each further hop.
+
+`failure_reason` is the reason the forward failed:
+- Without `failure_authentication`, failing as this node:
+  - `temporary_channel_failure`: The default
+  - `invalid_onion_hmac`, `invalid_onion_key`, `invalid_onion_version`
+- When the hop the failure is returned from is the final hop:
+  - `unknown_payment_hash`: The default
+  - `mpp_timeout`, `temporary_node_failure`, `permanent_node_failure`
+- When it is not the final hop, a reason is required:
+  - `temporary_node_failure`, `permanent_node_failure`
+
+`failure_height` is the block height reported with an
+`unknown_payment_hash` failure, and is only for that failure reason. The
+payer uses it to tell an unknown payment apart from a payment that arrived
+too close to its expiry. When it is not specified, the current block height
+of the intercepting node is used. `unknown_payment_hash` is BOLT 4
+`incorrect_or_unknown_payment_details`.
+
+Each shared secret is checked against its layer of the `onion`. Forwards
+into a blinded path are not supported: hops of a blinded path use blinded
+keys.
+
+The subscription is cancelled when its last listener is removed, once the
+forwards it emitted are resolved. Forwards without a listener are resumed.
+
+A forward is resolved once: accepting, rejecting or settling a forward that
+is already resolved, or that is still being resolved, returns an error, as
+does resolving after the stream to LND ended. When a resolution is not made
+the returned Promise is rejected with an error and the forward stays held
+to be resolved again, or is failed back if the listener threw.
+
+`secret` is the preimage of the payment hash of the forward.
+
 Requires `offchain:read`, `offchain:write` permission
 
-`onion` is not supported in LND 0.11.1 and below
+Requires `onchain:read` or `info:read` permission when rejecting with an
+`unknown_payment_hash` failure without a `failure_height`
 
     {
       lnd: <Authenticated LND API Object>
@@ -6022,7 +6071,7 @@ Requires `offchain:read`, `offchain:write` permission
     @returns
     <EventEmitter Object>
 
-    @event 'forward_request`
+    @event 'forward_request'
     {
       accept: () => {}
       cltv_delta: <Difference Between Out and In CLTV Height Number>
@@ -6038,8 +6087,12 @@ Requires `offchain:read`, `offchain:write` permission
       mtokens: <Millitokens to Forward To Next Peer String>
       [onion]: <Hex Serialized Next-Hop Onion Packet To Forward String>
       out_channel: <Requested Outbound Channel Standard Format Id String>
-      reject: <Reject Forward Function> () => {}
-      settle: <Short Circuit Function> ({secret: <Preimage Hex String}) => {}
+      reject: <Reject Forward Function> ({
+        [failure_authentication]: [<Hop Onion Shared Secret Hex String>]
+        [failure_height]: <Unknown Payment Hash Failure Block Height Number>
+        [failure_reason]: <Failure Reason String>
+      }) => {}
+      settle: <Short Circuit Function> ({secret: <Preimage Hex String>}) => {}
       timeout: <CLTV Timeout Height Number>
       tokens: <Tokens to Forward to Next Peer Rounded Down Number>
     }
@@ -6047,12 +6100,29 @@ Requires `offchain:read`, `offchain:write` permission
 Example:
 
 ```node
+const {diffieHellmanComputeSecret} = require('ln-service');
 const {subscribeToForwardRequests} = require('ln-service');
 const sub = subscribeToForwardRequests({lnd});
 
-sub.on('forward_request', forward => {
-  // Fail all forward requests
-  return forward.reject();
+sub.on('forward_request', async forward => {
+  // Fail forwards that are not to a final hop with a known key
+  if (forward.out_channel !== finalHopChannelId) {
+    return await forward.reject();
+  }
+
+  try {
+    // The onion ephemeral public key is the 33 bytes after the version byte
+    const {secret} = await diffieHellmanComputeSecret({
+      lnd: finalHopLnd,
+      partner_public_key: forward.onion.slice(2, 68),
+    });
+
+    // Fail back as the final hop of the route with an unknown payment failure
+    return await forward.reject({failure_authentication: [secret]});
+  } catch (err) {
+    // Fail the forward back as this node when that fails
+    return await forward.reject();
+  }
 });
 ```
 
@@ -7531,6 +7601,16 @@ Subscribe to RPC requests and their responses
 Requires `macaroon:write` permission
 
 LND must be running with "RPC middleware" enabled: `rpcmiddleware.enable=1`
+
+Only `OpenChannel`, `OpenChannelSync`, `CloseChannel` and `SendToRouteV2`
+requests can be intercepted. Other requests, like `BatchOpenChannel`, are
+emitted as `request` events and accepted.
+
+Requests are let through while the subscription is not connected, unless LND
+lists its `id` as mandatory: `rpcmiddleware.addmandatory=<id>`. Without an
+`id` a random name is used, so it cannot be mandatory.
+
+Events carry the full macaroon of the caller: treat them as secrets
 
 This method is not supported in LND 0.13.4 and below
 

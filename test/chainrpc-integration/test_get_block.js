@@ -8,7 +8,7 @@ const {getBlock} = require('./../../');
 const {getHeight} = require('./../../');
 
 // Get height should return height
-test(`Get height`, async () => {
+test(`Get block`, async () => {
   const {nodes} = await spawnLightningCluster({});
 
   const [{chain, generate, kill, lnd}] = nodes;

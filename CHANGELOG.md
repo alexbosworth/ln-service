@@ -1,5 +1,17 @@
 # Versions
 
+## 61.1.0
+
+- `sendMessage`: Add `is_large` to send at the large onion message size even
+    when the message fits the regular size
+- `subscribeToForwardRequests`: Add `failure_authentication`, `failure_height`
+    and `failure_reason` to `reject` to fail a forward with a chosen failure,
+    either as the intercepting node or authenticated as a hop further along
+    the route
+- `subscribeToForwardRequests`: Return an error from `accept`, `reject` and
+    `settle` when the forward request is already resolved
+- `authenticatedLndGrpc`: Limit the size of a received message to 881 MiB
+
 ## 61.0.0
 
 - Add support for LND 0.21.8

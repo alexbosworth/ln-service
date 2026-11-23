@@ -10,7 +10,7 @@ const {removeAdvertisedFeature} = require('./../../');
 const feature = 12345;
 
 // Removing a feature should result in an updated advertised feature
-test(`Add external socket`, async () => {
+test(`Remove advertised feature`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{id, lnd}] = nodes;

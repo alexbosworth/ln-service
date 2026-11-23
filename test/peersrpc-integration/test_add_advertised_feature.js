@@ -9,7 +9,7 @@ const {getWalletInfo} = require('./../../');
 const feature = 12345;
 
 // Adding a feature should result in an updated advertised feature
-test(`Add external socket`, async () => {
+test(`Add advertised feature`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{id, lnd}] = nodes;

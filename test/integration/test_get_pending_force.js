@@ -25,7 +25,7 @@ const spendableRatio = 0.99;
 const times = 2000;
 
 // Getting pending channels should show pending channels
-test(`Get pending channels`, async () => {
+test(`Get pending channels after a force close`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;

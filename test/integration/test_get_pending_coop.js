@@ -20,7 +20,7 @@ const size = 2;
 const times = 2000;
 
 // Getting pending channels should show pending channels
-test(`Get pending channels`, async () => {
+test(`Get pending channels after a cooperative close`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target] = nodes;

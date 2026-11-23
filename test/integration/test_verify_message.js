@@ -9,7 +9,7 @@ const {verifyMessage} = require('./../../');
 const message = 'message';
 
 // Sign message should return a signature for the message
-test(`Sign message`, async () => {
+test(`Verify message`, async () => {
   const [{id, kill, lnd}] = (await spawnLightningCluster({})).nodes;
 
   const {signature} = await signMessage({lnd, message});

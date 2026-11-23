@@ -16,7 +16,7 @@ const tokens = 1e6;
 const txIdHexByteLength = 64;
 
 // Sending to chain addresses should result in on-chain sent funds
-test(`Send to chain address`, async () => {
+test(`Send to chain addresses`, async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [control, target] = nodes;

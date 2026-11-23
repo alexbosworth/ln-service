@@ -8,7 +8,7 @@ const {getPathfindingSettings} = require('./../../');
 const {updatePathfindingSettings} = require('./../../');
 
 // Updating pathfinding settings should update the pathfinding configuration
-test(`Get pathfinding settings`, async () => {
+test(`Update pathfinding settings`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{generate, lnd}] = nodes;

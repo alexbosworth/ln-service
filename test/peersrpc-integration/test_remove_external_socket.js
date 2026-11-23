@@ -6,8 +6,8 @@ const {spawnLightningCluster} = require('ln-docker-daemons');
 const {getWalletInfo} = require('./../../');
 const {removeExternalSocket} = require('./../../');
 
-// Removign a node socket should result in a no longer advertised socket
-test(`Add external socket`, async () => {
+// Removing a node socket should result in a no longer advertised socket
+test(`Remove external socket`, async () => {
   const {kill, nodes} = await spawnLightningCluster({});
 
   const [{id, lnd}] = nodes;

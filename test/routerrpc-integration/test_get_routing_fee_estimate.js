@@ -19,7 +19,7 @@ const times = 9000;
 const tokens = 1e6 / 2;
 
 // Getting routing fee estimate should return required fee for a route
-test('Get route confidence', async () => {
+test('Get routing fee estimate', async () => {
   const {kill, nodes} = await spawnLightningCluster({size});
 
   const [{generate, lnd}, target, remote] = nodes;

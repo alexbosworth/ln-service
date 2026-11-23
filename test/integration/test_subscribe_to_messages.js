@@ -79,6 +79,8 @@ test('Subscribe to messages', async t => {
         key: reply.key,
         message: {type, value: message.value + message.value},
         outbound: [charlie.id, bob.id, reply.introduction_node],
+        // The reply is relayed back at the large onion message size
+        is_large: true,
       });
     });
 

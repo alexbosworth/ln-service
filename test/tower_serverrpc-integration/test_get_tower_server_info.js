@@ -20,13 +20,17 @@ test(`Get tower server info`, async () => {
 
   const [socket] = tower.sockets;
 
-  match(socket, /127.0.0.1\:\d\d\d\d/, 'Tower socket returned');
+  // The tower listens on all interfaces of its container
+  match(socket, /\:\d\d\d\d$/, 'Tower socket returned');
 
   equal(tower.public_key.length, 66, 'Public key returned');
 
   const [uri] = tower.uris;
 
-  equal(uri, `${tower.public_key}@${socket}`, 'Got back socket');
+  // The URI has the external address, which is not the listening socket
+  const [key] = uri.split('@');
+
+  equal(key, tower.public_key, 'Got back URI of the tower');
 
   await kill({});
 
